@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net45</TargetFrameworks>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<Authors>rockey627</Authors>
+		<PackageTags>C# Expression Eval Evaluator Execute Function Compile Compiler Roslyn Script Scripting 脚本执行 动态脚本 表达式 计算</PackageTags>
+		<PackageLicenseUrl>https://gitee.com/rockey627/ascript/blob/master/LICENSE</PackageLicenseUrl>
+		<PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
+		<Description>动态脚本解析与计算，C#语法，支持表达式运算、多语句、变量、函数、while/for/if/foreach语句等，可自定义语法解析</Description>
+		<Version>1.0.0.0</Version>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+	</ItemGroup>
+
+</Project>
