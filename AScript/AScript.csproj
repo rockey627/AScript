@@ -7,9 +7,16 @@
 		<PackageTags>C# Expression Eval Evaluator Execute Function Compile Compiler Roslyn Script Scripting 脚本执行 动态脚本 表达式 计算</PackageTags>
 		<PackageLicenseUrl>https://gitee.com/rockey627/ascript/blob/master/LICENSE</PackageLicenseUrl>
 		<PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
-		<Description>动态脚本解析与计算，C#语法，支持表达式运算、多语句、变量、函数、while/for/if/foreach语句等，可自定义语法解析</Description>
+		<Description>
+			动态脚本解析、编译、执行，C#语法，支持表达式运算、多语句、变量、函数、while/for/if/foreach语句等，可自定义语法解析；
+			快速开始：
+			var script = new Script();
+			var result = script.Eval("int sum(int a, int b)=>a+b; int n=10; sum(n,5)");
+			Assert.AreEqual(15, result);
+		</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>1.0.0.0</Version>
+		<Version>1.0.1.0</Version>
+		<PackageReleaseNotes>新增Script.Compile方法，将脚本编译为带参数的Func/Action</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
