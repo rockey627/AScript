@@ -104,7 +104,7 @@ namespace AScript.Syntaxs
 				if (control != null && (control.Break || control.Terminal || control.Continue)) break;
 				var nextToken = tokenReader.Read();
 				if (!nextToken.HasValue) break;
-				if (nextToken.Value.Value == ";") continue;
+				if (nextToken.Value.Value == ";" || nextToken.Value.Value == ",") continue;
 				tokenReader.Push(nextToken.Value);
 				if (nextToken.Value.Value == "}" || nextToken.Value.Value == ")" || nextToken.Value.Value == "]") break;
 			}

@@ -360,6 +360,10 @@ namespace AScript
 			{
 				if (_VariablesCount == 0)
 				{
+					if (body == null || body.Length == 0)
+					{
+						return Expression.Empty();
+					}
 					if (body.Length == 1)
 					{
 						return body[0];
@@ -543,7 +547,8 @@ namespace AScript
 		/// <returns></returns>
 		public Delegate Compile(ScriptContext scriptContext, BuildOptions options, Expression body)
 		{
-			return Build(scriptContext, options, body).Compile();
+			var bodys = body == null ? null : new[] { body };
+			return Build(scriptContext, options, bodys).Compile();
 		}
 
 		public void Clear()
