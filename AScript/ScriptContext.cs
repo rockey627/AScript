@@ -1696,6 +1696,15 @@ namespace AScript
 		}
 
 		/// <summary>
+		/// 添加类型中的所有公开静态方法
+		/// </summary>
+		/// <param name="type"></param>
+		public void AddFunc(Type type)
+		{
+			AddFunc(type, null);
+		}
+
+		/// <summary>
 		/// 如果target为null，则添加类型中的公开静态方法，否则添加实例公开方法
 		/// </summary>
 		/// <param name="type"></param>
@@ -1714,6 +1723,24 @@ namespace AScript
 					AddFunc(method.Name, del);
 				}
 			}
+		}
+
+		/// <summary>
+		/// 添加类型中的所有公开静态方法
+		/// </summary>
+		/// <typeparam name="TType"></typeparam>
+		public void AddFunc<TType>()
+		{
+			AddFunc(typeof(TType));
+		}
+
+		/// <summary>
+		/// 添加类型中的所有公开实例方法
+		/// </summary>
+		/// <typeparam name="TType"></typeparam>
+		public void AddFunc<TType>(TType instance)
+		{
+			AddFunc(typeof(TType), instance);
 		}
 
 		public void AddFunc(MethodInfo method, object target = null)

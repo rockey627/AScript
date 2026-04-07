@@ -2,7 +2,7 @@
 
 #### 介绍
 
-动态脚本解析与计算
+动态脚本解析、编译、执行
 
 * 支持表达式运算
 * 支持注入变量
@@ -66,6 +66,45 @@ install-package AScript
 * 已内置C#常用数据类型，如：int/bool/string/long/double/DateTime等
 * 已内置Convert数据转换方法，使用示例：'12'.ToInt32() 等同于 ToInt32('12') 或者 Convert.ToInt32('12')
 
+###### 注入类型及类型中的方法
+```C#
+var script = new Script();
+script.Context.AddType<Person>();
+script.Eval("var p1 = new Person('tom', 20); p1.SayHello()"); // Hello, my name is tom, I'm 20 years old
+script.Eval("var p2 = Person.Create('john', 35); p2.SayHello()"); // Hello, my name is john, I'm 35 years old
+
+// 添加类中的所有公开静态方法
+script.Context.AddFunc<Person>();
+script.Eval("var p3 = Create('jim', 15); p3.SayHello()"); // Hello, my name is jim, I'm 15 years old
+// 添加类中的所有公开实例方法
+var p = new Person("san", 27);
+script.Context.AddFunc(p);
+script.Eval("SayHello()"); // Hello, my name is san, I'm 27 years old
+
+public class Person
+{
+	public string Name { get; set; }
+	public int Age { get; set; }
+
+	public Person() { }
+	public Person(string name, int age)
+	{
+		this.Name = name;
+		this.Age = age;
+	}
+
+	public string SayHello()
+	{
+		return $"Hello, my name is {this.Name}, I'm {this.Age} years old";
+	}
+
+	public static Person Create(string name, int age)
+	{
+		return new Person(name, age);
+	}
+}
+```
+
 ###### 变量
 
 ```C#
@@ -86,7 +125,6 @@ Assert.AreEqual(1+2+8+1+2+3+5*6, script.Eval("sum(1,2)+8+sum(1,2,3)+mult(5,6)"))
 
 ###### 自定义函数
 ```C#
-var script = new Script();
 string s = @"
 int exec(int a, int b) {
 	var n=mult(a,10);
@@ -104,6 +142,7 @@ int mult(int a, int b)=>a*b;
 */
 sum(1,2)+8+sum(1,2,3)+mult(5,6)
 ";
+var script = new Script();
 var result = script.Eval(s);
 Assert.AreEqual(1 + 2 + 8 + 1 + 2 + 3 + 5 * 6, result);
 Assert.AreEqual(1 + 2 + 8, script.Eval("sum(1,2)+8"));
@@ -146,19 +185,10 @@ foreach(var item in list)
 }
 n";
 
-int n = 0;
-var list = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
-foreach (var item in list)
-{
-	if (item % 2 == 0) continue;
-	if (item > 10) break;
-	n += item;
-}
-
 var script = new Script();
-Assert.AreEqual(n, script.Eval(s));
+Assert.AreEqual(25, script.Eval(s));
 // 编译缓存方式执行
-Assert.AreEqual(n, script.Eval(s, -1));
+Assert.AreEqual(25, script.Eval(s, -1));
 ```
 
 ###### 自定义语法解析
@@ -183,19 +213,11 @@ script.Context.AddTokenHandler("中断", BreakTokenHandler.Instance);
 Assert.AreEqual(25, script.Eval(s));
 ```
 
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+###### 编译
+```C#
+var script = new Script();
+//var func = script.Compile<int, int, int>("a+b*2", "a", "b");
+var func = script.Compile<Func<int, int, int>>("a+b*2", new[] { "a", "b" });
+Assert.IsNotNull(func);
+Assert.AreEqual(11, func(3, 4));
+```

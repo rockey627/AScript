@@ -9,6 +9,23 @@ namespace AScript.Test.MSTests
 	[TestClass]
 	public class ScriptDelegateTest
 	{
+		[TestMethod]
+		public void Test06_2()
+		{
+			var script = new Script();
+			var func = script.Compile<int, int, int>("a+b*2", "a", "b");
+			Assert.IsNotNull(func);
+			Assert.AreEqual(11, func(3, 4));
+		}
+
+		[TestMethod]
+		public void Test06()
+		{
+			var script = new Script();
+			var func = script.Compile<Func<int, int, int>>("a+b*2", new[] { "a", "b" });
+			Assert.IsNotNull(func);
+			Assert.AreEqual(11, func(3, 4));
+		}
 
 		[TestMethod]
 		public void Test05_2()

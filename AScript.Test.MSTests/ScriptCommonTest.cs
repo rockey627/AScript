@@ -349,6 +349,11 @@ exec(0)
 			Assert.AreEqual(p0.SayHello(), script.Eval("p.SayHello()"));
 			Assert.AreEqual(p0.SayHello(), script.Eval("p.SayHello()", ECompileMode.All));
 			Assert.AreEqual(p0.SayHello(), p.SayHello());
+
+			var p2 = new Person("san", 27);
+			script.Context.AddFunc(p2);
+			Assert.AreEqual("Hello, my name is san, I'm 27 years old", script.Eval("SayHello()"));
+			Assert.AreEqual("Hello, my name is san, I'm 27 years old", script.Eval("SayHello()", ECompileMode.All));
 		}
 
 		[TestMethod]

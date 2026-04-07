@@ -1,6 +1,8 @@
 ﻿using AScript.Nodes;
 using System;
 using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace AScript
 {
@@ -800,6 +802,70 @@ namespace AScript
 			return buildContext.Compile(this.Context, buildOptions, body);
 		}
 
+		public Delegate CompileGlobal(string expression, Type[] argTypes, string[] argNames)
+		{
+			if (string.IsNullOrEmpty(expression)) return null;
+			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
+			int argNamesCount = argNames == null ? 0 : argNames.Length;
+			if (argTypesCount != argNamesCount)
+			{
+				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+			}
+
+			var buildContext = new BuildContext();
+			if (argTypesCount > 0)
+			{
+				for (int i = 0; i < argTypesCount; i++)
+				{
+					string name = argNames[i];
+					Type type = argTypes[i];
+					buildContext.Parameters.Add(name, System.Linq.Expressions.Expression.Parameter(type, name));
+				}
+			}
+			BuildOptions buildOptions;
+			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				buildOptions = this.Options;
+			}
+			else
+			{
+				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
+			}
+			return this.ScriptProvider.Compile(buildContext, this.Context, buildOptions, expression);
+		}
+
+		public Delegate CompileGlobal(Stream expression, Type[] argTypes, string[] argNames)
+		{
+			if (expression == null) return null;
+			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
+			int argNamesCount = argNames == null ? 0 : argNames.Length;
+			if (argTypesCount != argNamesCount)
+			{
+				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+			}
+
+			var buildContext = new BuildContext();
+			if (argTypesCount > 0)
+			{
+				for (int i = 0; i < argTypesCount; i++)
+				{
+					string name = argNames[i];
+					Type type = argTypes[i];
+					buildContext.Parameters.Add(name, System.Linq.Expressions.Expression.Parameter(type, name));
+				}
+			}
+			BuildOptions buildOptions;
+			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				buildOptions = this.Options;
+			}
+			else
+			{
+				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
+			}
+			return this.ScriptProvider.Compile(buildContext, this.Context, buildOptions, expression);
+		}
+
 		/// <summary>
 		/// 编译生成委托
 		/// </summary>
@@ -1038,6 +1104,168 @@ namespace AScript
 			if (func == null) return null;
 			T targetFunc() => func(this.Context);
 			return targetFunc;
+		}
+
+		public Delegate Compile(string expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			if (string.IsNullOrEmpty(expression)) return null;
+			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
+			int argNamesCount = argNames == null ? 0 : argNames.Length;
+			if (argTypesCount != argNamesCount)
+			{
+				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+			}
+
+			var buildContext = new BuildContext(null)
+			{
+				ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
+				ReturnType = returnType
+			};
+			if (argTypesCount > 0)
+			{
+				for (int i = 0; i < argTypesCount; i++)
+				{
+					string name = argNames[i];
+					Type type = argTypes[i];
+					buildContext.Parameters.Add(name, Expression.Parameter(type, name));
+				}
+			}
+			BuildOptions buildOptions;
+			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				buildOptions = this.Options;
+			}
+			else
+			{
+				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
+			}
+			return this.ScriptProvider.Compile(buildContext, this.Context, buildOptions, expression);
+		}
+
+		public Delegate Compile(Stream expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			if (expression == null) return null;
+			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
+			int argNamesCount = argNames == null ? 0 : argNames.Length;
+			if (argTypesCount != argNamesCount)
+			{
+				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+			}
+
+			var buildContext = new BuildContext(null)
+			{
+				ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
+				ReturnType = returnType
+			};
+			if (argTypesCount > 0)
+			{
+				for (int i = 0; i < argTypesCount; i++)
+				{
+					string name = argNames[i];
+					Type type = argTypes[i];
+					buildContext.Parameters.Add(name, Expression.Parameter(type, name));
+				}
+			}
+			BuildOptions buildOptions;
+			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				buildOptions = this.Options;
+			}
+			else
+			{
+				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
+			}
+			return this.ScriptProvider.Compile(buildContext, this.Context, buildOptions, expression);
+		}
+
+		public TDelegate Compile<TDelegate>(string expression, string[] argNames) where TDelegate : Delegate
+		{
+			if (string.IsNullOrEmpty(expression)) return null;
+			var delegateType = typeof(TDelegate);
+			var argTypes = delegateType.GenericTypeArguments;
+			Type returnType;
+			if (delegateType.Name.StartsWith("Func"))
+			{
+				returnType = argTypes[argTypes.Length - 1];
+				var tmpTypes = new Type[argTypes.Length - 1];
+				Array.Copy(argTypes, 0, tmpTypes, 0, tmpTypes.Length);
+				argTypes = tmpTypes;
+			}
+			else
+			{
+				returnType = typeof(void);
+			}
+			return (TDelegate)Compile(expression, argTypes, argNames, returnType);
+		}
+
+		public TDelegate Compile<TDelegate>(Stream expression, string[] argNames) where TDelegate : Delegate
+		{
+			if (expression == null) return null;
+			var delegateType = typeof(TDelegate);
+			var argTypes = delegateType.GenericTypeArguments;
+			Type returnType;
+			if (delegateType.Name.StartsWith("Func"))
+			{
+				returnType = argTypes[argTypes.Length - 1];
+				var tmpTypes = new Type[argTypes.Length - 1];
+				Array.Copy(argTypes, 0, tmpTypes, 0, tmpTypes.Length);
+				argTypes = tmpTypes;
+			}
+			else
+			{
+				returnType = typeof(void);
+			}
+			return (TDelegate)Compile(expression, argTypes, argNames, returnType);
+		}
+
+		public Func<T1, TReturn> Compile<T1, TReturn>(string expression, string argName)
+		{
+			return (Func<T1, TReturn>)Compile(expression, new[] { typeof(T1) }, new[] { argName }, typeof(TReturn));
+		}
+
+		public Func<T1, TReturn> Compile<T1, TReturn>(Stream expression, string argName)
+		{
+			return (Func<T1, TReturn>)Compile(expression, new[] { typeof(T1) }, new[] { argName }, typeof(TReturn));
+		}
+
+		public Func<T1, T2, TReturn> Compile<T1, T2, TReturn>(string expression, string argName1, string argName2)
+		{
+			return (Func<T1, T2, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2) }, new[] { argName1, argName2 }, typeof(TReturn));
+		}
+
+		public Func<T1, T2, TReturn> Compile<T1, T2, TReturn>(Stream expression, string argName1, string argName2)
+		{
+			return (Func<T1, T2, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2) }, new[] { argName1, argName2 }, typeof(TReturn));
+		}
+
+		public Func<T1, T2, T3, TReturn> Compile<T1, T2, T3, TReturn>(string expression, string argName1, string argName2, string argName3)
+		{
+			return (Func<T1, T2, T3, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3) }, new[] { argName1, argName2, argName3 }, typeof(TReturn));
+		}
+
+		public Func<T1, T2, T3, TReturn> Compile<T1, T2, T3, TReturn>(Stream expression, string argName1, string argName2, string argName3)
+		{
+			return (Func<T1, T2, T3, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3) }, new[] { argName1, argName2, argName3 }, typeof(TReturn));
+		}
+
+		public Func<T1, T2, T3, T4, TReturn> Compile<T1, T2, T3, T4, TReturn>(string expression, string argName1, string argName2, string argName3, string argName4)
+		{
+			return (Func<T1, T2, T3, T4, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, new[] { argName1, argName2, argName3, argName4 }, typeof(TReturn));
+		}
+
+		public Func<T1, T2, T3, T4, TReturn> Compile<T1, T2, T3, T4, TReturn>(Stream expression, string argName1, string argName2, string argName3, string argName4)
+		{
+			return (Func<T1, T2, T3, T4, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, new[] { argName1, argName2, argName3, argName4 }, typeof(TReturn));
+		}
+
+		public Func<T1, T2, T3, T4, T5, TReturn> Compile<T1, T2, T3, T4, T5, TReturn>(string expression, string argName1, string argName2, string argName3, string argName4, string argName5)
+		{
+			return (Func<T1, T2, T3, T4, T5, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, new[] { argName1, argName2, argName3, argName4, argName5 }, typeof(TReturn));
+		}
+
+		public Func<T1, T2, T3, T4, T5, TReturn> Compile<T1, T2, T3, T4, T5, TReturn>(Stream expression, string argName1, string argName2, string argName3, string argName4, string argName5)
+		{
+			return (Func<T1, T2, T3, T4, T5, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, new[] { argName1, argName2, argName3, argName4, argName5 }, typeof(TReturn));
 		}
 	}
 }
