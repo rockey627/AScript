@@ -392,6 +392,7 @@ exec(0)
 		public void Test16_2()
 		{
 			var script = new Script();
+			script.Options.ThrowIfVariableNotExists = false;
 			Assert.AreEqual(2, script.Eval("n+2"));
 		}
 
@@ -418,7 +419,7 @@ exec(0)
 		{
 			var script = new Script();
 			Assert.AreEqual(8, script.Eval("s='a+5';{a=3;eval(s)}"));
-			Assert.AreEqual(null, script.Eval("a"));
+			Assert.AreEqual(null, script.Context.EvalVar("a"));
 		}
 
 		[TestMethod]
@@ -453,7 +454,7 @@ exec(0)
 			var script = new Script();
 			Assert.AreEqual(13, script.Eval("a=5;{b=6;a+=b;return (a+2)}a+=2;a+5"));
 			Assert.AreEqual(11, script.Eval("a"));
-			Assert.AreEqual(null, script.Eval("b"));
+			Assert.AreEqual(null, script.Context.EvalVar("b"));
 		}
 
 		[TestMethod]
@@ -462,7 +463,7 @@ exec(0)
 			var script = new Script();
 			Assert.AreEqual(11, script.Eval("a=5;{b=6;a+=b;return a}a+=2;a+5"));
 			Assert.AreEqual(11, script.Eval("a"));
-			Assert.AreEqual(null, script.Eval("b"));
+			Assert.AreEqual(null, script.Context.EvalVar("b"));
 		}
 
 		[TestMethod]
@@ -471,7 +472,7 @@ exec(0)
 			var script = new Script();
 			Assert.AreEqual(18, script.Eval("a=5;{b=6;a+=b;}a+=2;a+5"));
 			Assert.AreEqual(13, script.Eval("a"));
-			Assert.AreEqual(null, script.Eval("b"));
+			Assert.AreEqual(null, script.Context.EvalVar("b"));
 		}
 
 		[TestMethod]
@@ -481,7 +482,7 @@ exec(0)
 			script.Options.CompileMode = ECompileMode.All;
 			Assert.AreEqual(6, script.Eval("a=5;{b=6}"));
 			Assert.AreEqual(5, script.Eval("a"));
-			Assert.AreEqual(null, script.Eval("b"));
+			Assert.AreEqual(null, script.Context.EvalVar("b"));
 		}
 
 		[TestMethod]
@@ -490,7 +491,7 @@ exec(0)
 			var script = new Script();
 			Assert.AreEqual(6, script.Eval("a=5;{b=6}"));
 			Assert.AreEqual(5, script.Eval("a"));
-			Assert.AreEqual(null, script.Eval("b"));
+			Assert.AreEqual(null, script.Context.EvalVar("b"));
 		}
 
 		[TestMethod]
@@ -500,7 +501,7 @@ exec(0)
 			script.Options.CompileMode = ECompileMode.All;
 			Assert.AreEqual(11, script.Eval("a=5;{b=6;a+=b;}"));
 			Assert.AreEqual(11, script.Eval("a"));
-			Assert.AreEqual(null, script.Eval("b"));
+			Assert.AreEqual(null, script.Context.EvalVar("b"));
 		}
 
 		[TestMethod]
@@ -509,7 +510,7 @@ exec(0)
 			var script = new Script();
 			Assert.AreEqual(11, script.Eval("a=5;{b=6;a+=b;}"));
 			Assert.AreEqual(11, script.Eval("a"));
-			Assert.AreEqual(null, script.Eval("b"));
+			Assert.AreEqual(null, script.Context.EvalVar("b"));
 		}
 
 		[TestMethod]

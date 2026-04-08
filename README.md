@@ -4,7 +4,6 @@
 
 动态脚本解析、编译、执行
 
-* 支持表达式运算
 * 支持注入变量
 * 支持定义变量
 * 支持注入函数
@@ -21,11 +20,12 @@
 * 支持自定义语法解析（自定义关键字）
 * 支持流式读取表达式
 * 支持自定义语言环境，默认已实现CSharpLang
-* 支持3种执行模式：
+* 支持2种执行模式：
 1. 解析执行：解析过程中计算结果，对于非循环语句有较高的性能及低内存，有循环语句则建议使用第2种编译执行方式
 ```C#
 var script = new Script();
 var result = script.Eval("5+8*6");
+Assert.AreEqual(53, result);
 ```
 2. 编译执行：解析过程中构建Expression表达式树，编译结果可缓存，对于执行频率高的表达式建议使用编译缓存方式执行，提高性能
 ```C#
@@ -41,12 +41,10 @@ var script = new Script();
 // -1表示缓存时间为永久缓存
 var result = script.Eval("5+8*6", -1);
 ```
-3. 先构建完整表达式树，再执行或编译执行（不建议该方式，内存消耗相对较高）
 * 上下文环境会缓存临时变量及函数，编译执行模式可关闭该缓存（获得更高的性能）
 ```C#
 var script = new Script();
 script.Options.CompileMode = ECompileMode.All;
-script.Options.ThrowIfVariableNotExists = true;
 //script.Options.RewriteVariables = false;
 //script.Options.RewriteFunctions = false;
 script.Eval("int sum(int a, int b)=>a+b;int n=10;sum(n,5)");

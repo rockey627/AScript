@@ -13,7 +13,7 @@ namespace AScript
 		/// <summary>
 		/// 默认编译选项
 		/// </summary>
-		public static readonly BuildOptions DefaultOptions = new BuildOptions();
+		public static readonly BuildOptions DefaultOptions = new BuildOptions { ThrowIfVariableNotExists = true };
 
 		/// <summary>
 		/// 缓存

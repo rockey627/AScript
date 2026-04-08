@@ -34,7 +34,7 @@ namespace AScript
 			set => _CompileMode = value;
 		}
 		/// <summary>
-		/// 如果变量不存在是否抛异常，否则返回变量默认值，默认为false
+		/// 如果变量不存在是否抛异常，否则返回变量默认值
 		/// </summary>
 		public bool? ThrowIfVariableNotExists
 		{

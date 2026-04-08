@@ -374,6 +374,7 @@ namespace AScript.Test.MSTests
 		{
 			string s = "5+n+6";
 			var script = new Script();
+			script.Options.ThrowIfVariableNotExists = false;
 			var func1 = script.CompileGlobal<int>(s, -1);
 			var func2 = script.CompileGlobal<string>(s, -1);
 			script.Context.SetVar("n", 5);
@@ -414,6 +415,7 @@ namespace AScript.Test.MSTests
 		{
 			string s = "5+n+6";
 			var script = new Script();
+			script.Options.ThrowIfVariableNotExists = false;
 			var func = script.CompileGlobal(s);
 			Assert.IsInstanceOfType(func, typeof(Func<ScriptContext, object>));
 		}
