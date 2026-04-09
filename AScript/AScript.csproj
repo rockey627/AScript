@@ -4,7 +4,7 @@
 		<TargetFrameworks>netstandard2.0;netstandard2.1;net45</TargetFrameworks>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<Authors>rockey627</Authors>
-		<PackageTags>C# Expression Eval Evaluator Execute Function Compile Compiler Roslyn Script Scripting 脚本执行 动态脚本 表达式 计算</PackageTags>
+		<PackageTags>C# Expression Eval Evaluator Execute Function Compile Compiler Script Scripting 脚本执行 动态脚本 表达式 计算</PackageTags>
 		<PackageLicenseUrl>https://gitee.com/rockey627/ascript/blob/master/LICENSE</PackageLicenseUrl>
 		<PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
 		<Description>
@@ -17,8 +17,8 @@ Assert.AreEqual(15, result);
 			]]>
 		</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>1.0.1.1</Version>
-		<PackageReleaseNotes>默认ThrowIfVariableNotExists为true，变量不存在则抛异常</PackageReleaseNotes>
+		<Version>1.0.2.0</Version>
+		<PackageReleaseNotes>优化字符串解析；新增字符串内插值功能：var name='tom'; $'hello {name}, 5+8={5+8}'</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>

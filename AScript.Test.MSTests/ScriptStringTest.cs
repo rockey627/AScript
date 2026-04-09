@@ -10,6 +10,24 @@ namespace AScript.Test.MSTests
 	public class ScriptStringTest
 	{
 		[TestMethod]
+		public void Test23()
+		{
+			// 字符串内插中使用复杂表达式
+			string s = "var a=1; var b=2; var c=3; $'result={(a+b)*c}'";
+			var script = new Script();
+			Assert.AreEqual("result=9", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test22()
+		{
+			// 字符串内插中包含转义字符
+			string s = "var n='newline'; $'{n}\\ntest'";
+			var script = new Script();
+			Assert.AreEqual("newline\ntest", script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test13()
 		{
 			string s = "var name='tom'; { int age=16; $'hello {name+'ok'}, {{age + 10}' }";
@@ -115,20 +133,18 @@ namespace AScript.Test.MSTests
 		[TestMethod]
 		public void Test07_2()
 		{
-			string s = "var name='tom'; $'hello {name}'";
+			string s = "var name='tom'; $'hello {name}, 5+8={5+8}'";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
-			var name = "tom";
-			Assert.AreEqual($"hello {name}", script.Eval(s));
+			Assert.AreEqual("hello tom, 5+8=13", script.Eval(s));
 		}
 
 		[TestMethod]
 		public void Test07()
 		{
-			string s = "var name='tom'; $'hello {name}'";
+			string s = "var name='tom'; $'hello {name}, 5+8={5+8}'";
 			var script = new Script();
-			var name = "tom";
-			Assert.AreEqual($"hello {name}", script.Eval(s));
+			Assert.AreEqual("hello tom, 5+8=13", script.Eval(s));
 		}
 
 		[TestMethod]

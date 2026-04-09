@@ -161,6 +161,13 @@ Assert.AreEqual(15, script.Eval(s));
 Assert.AreEqual(55, script.Eval("exec(10)"));
 ```
 
+###### 字符串内插值
+```C#
+string s = "var name='tom'; $'hello {name}, 5+8={5+8}'";
+var script = new Script();
+Assert.AreEqual("hello tom, 5+8=13", script.Eval(s));
+```
+
 ###### 点操作符
 ```C#
 var script = new Script();
