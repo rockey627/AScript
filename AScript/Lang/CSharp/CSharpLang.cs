@@ -30,8 +30,10 @@ namespace AScript.Lang.CSharp
 			AddType("decimal", typeof(decimal));
 			AddType("bool", typeof(bool));
 			AddType("string", typeof(string));
+			AddType("IList<>", typeof(IList<>));
 			AddType("List<>", typeof(List<>));
 			AddType("HashSet<>", typeof(HashSet<>));
+			AddType("IDictionary<,>", typeof(IDictionary<,>));
 			AddType("Dictionary<,>", typeof(Dictionary<,>));
 			AddType(typeof(DateTime));
 			AddType(typeof(TimeSpan));
@@ -54,6 +56,7 @@ namespace AScript.Lang.CSharp
 			AddType(typeof(DirectoryInfo));
 			AddType(typeof(Path));
 			AddType(typeof(Convert));
+			AddType(typeof(Guid));
 
 			AddFunc("=", AssignOperator.Instance);
 			AddFunc("+=", PlusAssignOperator.Instance);
@@ -121,6 +124,7 @@ namespace AScript.Lang.CSharp
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			AddTokenHandler("break", BreakTokenHandler.Instance);
 			AddTokenHandler("continue", ContinueTokenHandler.Instance);
+			AddTokenHandler("$", StringInterpolationTokenHandler.Instance);
 		}
 
 		private static object Eval(ScriptContext context, string expression)

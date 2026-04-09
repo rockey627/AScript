@@ -166,7 +166,8 @@ namespace AScript.Syntaxs
 				else if (t.Value.Type == ETokenType.String)
 				{
 					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
-					treeBuilder.AddData(buildContext, scriptContext, options, control, ScriptUtils.EvalString(t.Value.Value), typeof(string));
+					//treeBuilder.AddData(buildContext, scriptContext, options, control, ScriptUtils.EvalString(t.Value.Value), typeof(string));
+					treeBuilder.AddData(buildContext, scriptContext, options, control, t.Value.Value, typeof(string));
 				}
 				else if (t.Value.Value == "=>")
 				{

@@ -10,6 +10,128 @@ namespace AScript.Test.MSTests
 	public class ScriptStringTest
 	{
 		[TestMethod]
+		public void Test13()
+		{
+			string s = "var name='tom'; { int age=16; $'hello {name+'ok'}, {{age + 10}' }";
+			var script = new Script();
+			var name = "tom";
+			int age = 16;
+			Assert.AreEqual($"hello {name+"ok"}, {{age + 10}}", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test12()
+		{
+			string s = "var name='tom'; { int age=16; $'hello {name}, {{age + 10}' }";
+			var script = new Script();
+			var name = "tom";
+			int age = 16;
+			Assert.AreEqual($"hello {name}, {{age + 10}}", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test11()
+		{
+			string s = "var name='tom'; { int age=16; $'hello {name}, {{age + 10}}' }";
+			var script = new Script();
+			var name = "tom";
+			int age = 16;
+			Assert.AreEqual($"hello {name}, {{age + 10}}", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test10_2()
+		{
+			string s = "var name='tom'; { int age=16; } $'hello {name}, {age+10}'";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			try
+			{
+				script.Eval(s);
+			}
+			catch (Exception ex)
+			{
+				Assert.AreEqual("variable age is not exists", ex.Message);
+				return;
+			}
+			Assert.IsTrue(false);
+		}
+
+		[TestMethod]
+		public void Test10()
+		{
+			string s = "var name='tom'; { int age=16; } $'hello {name}, {age+10}'";
+			var script = new Script();
+			try
+			{
+				script.Eval(s);
+			}
+			catch (Exception ex)
+			{
+				Assert.AreEqual("variable age is not exists", ex.Message);
+				return;
+			}
+			Assert.IsTrue(false);
+		}
+
+		[TestMethod]
+		public void Test09_2()
+		{
+			string s = "var name='tom'; { int age=16; $'hello {name}, {age+10}' }";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var name = "tom";
+			int age = 16;
+			Assert.AreEqual($"hello {name}, {age + 10}", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test09()
+		{
+			string s = "var name='tom'; { int age=16; $'hello {name}, {age+10}' }";
+			var script = new Script();
+			var name = "tom";
+			int age = 16;
+			Assert.AreEqual($"hello {name}, {age + 10}", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test08_2()
+		{
+			string s = "$'hello tom'";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual($"hello tom", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test08()
+		{
+			string s = "$'hello tom'";
+			var script = new Script();
+			Assert.AreEqual($"hello tom", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test07_2()
+		{
+			string s = "var name='tom'; $'hello {name}'";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var name = "tom";
+			Assert.AreEqual($"hello {name}", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test07()
+		{
+			string s = "var name='tom'; $'hello {name}'";
+			var script = new Script();
+			var name = "tom";
+			Assert.AreEqual($"hello {name}", script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test06()
 		{
 			string s = "string s = 'hel';s+='lo5'";
@@ -61,7 +183,7 @@ namespace AScript.Test.MSTests
 			catch (Exception ex)
 			{
 				n++;
-				Assert.AreEqual("unknown string escape:'hello\\everyone'", ex.Message);
+				Assert.AreEqual("unknown string escape:\\e", ex.Message);
 			}
 			Assert.AreEqual(1, n);
 		}

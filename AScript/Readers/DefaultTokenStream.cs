@@ -16,6 +16,8 @@ namespace AScript.Readers
 
 		private readonly CharReader _reader;
 
+		public CharReader CharReader => _reader;
+
 		public DefaultTokenStream(string expression) : this(new StringCharStream(expression)) { }
 		public DefaultTokenStream(Stream expression, bool autoDisposeStream) : this(new StreamCharStream(expression, autoDisposeStream)) { }
 		public DefaultTokenStream(ICharStream stream)
@@ -87,7 +89,9 @@ namespace AScript.Readers
 						break;
 					}
 					ParseString(c.Value);
-					break;
+					string s = _buffer.ToString();
+					_buffer.Clear();
+					return new Token(s, ETokenType.String, startLine, startColumn);
 				}
 				// 
 				if (IsSpace(c.Value))
@@ -213,7 +217,9 @@ namespace AScript.Readers
 						break;
 					}
 					ParseString(c.Value);
-					break;
+					string s = _buffer.ToString();
+					_buffer.Clear();
+					return new Token(s, ETokenType.String, startLine, startColumn);
 				}
 				// 
 				if (IsSpace(c.Value))
@@ -311,23 +317,58 @@ namespace AScript.Readers
 			return false;
 		}
 
-		protected virtual void ParseString(int startChar)
+		protected virtual void ParseString(char startChar)
 		{
 			// 读取字符串，需要注意字符串中的转义字符，如：\' \" \r \n \t 等
-			_buffer.Append((char)startChar);
 			bool prevEscape = false;
 			var c = _reader.Read();
 			while (c.HasValue)
 			{
-				_buffer.Append(c);
 				if (c == '\\')
 				{
-					prevEscape = !prevEscape;
+					if (prevEscape)
+					{
+						prevEscape = false;
+						_buffer.Append(c);
+					}
+					else
+					{
+						prevEscape = true;
+					}
+					c = _reader.Read();
+					continue;
 				}
 				if (c == startChar && !prevEscape)
 				{
 					break;
 				}
+
+				if (!prevEscape)
+				{
+					_buffer.Append(c);
+					c = _reader.Read();
+					continue;
+				}
+
+				prevEscape = false;
+				if (c == startChar)
+				{
+					_buffer.Append(c);
+				}
+				else if (c == 'n')
+				{
+					_buffer.Append('\n');
+				}
+				else if (c == 'r')
+				{
+					_buffer.Append('\r');
+				}
+				else if (c == 't')
+				{
+					_buffer.Append('\t');
+				}
+				else throw new Exception("unknown string escape:\\" + c);
+
 				c = _reader.Read();
 			}
 		}

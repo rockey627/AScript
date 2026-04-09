@@ -40,7 +40,7 @@ s??'hello'";
 			Assert.AreEqual(2, tokens[4].Line);
 			Assert.AreEqual(2, tokens[4].Column);
 
-			Assert.AreEqual("'hello'", tokens[5].Value);
+			Assert.AreEqual("hello", tokens[5].Value);
 			Assert.AreEqual(ETokenType.String, tokens[5].Type);
 			Assert.AreEqual(2, tokens[5].Line);
 			Assert.AreEqual(4, tokens[5].Column);
@@ -78,7 +78,7 @@ s??'hello'";
 			Assert.AreEqual(1, tokens[4].Line);
 			Assert.AreEqual(11, tokens[4].Column);
 
-			Assert.AreEqual("'hello'", tokens[5].Value);
+			Assert.AreEqual("hello", tokens[5].Value);
 			Assert.AreEqual(ETokenType.String, tokens[5].Type);
 			Assert.AreEqual(1, tokens[5].Line);
 			Assert.AreEqual(13, tokens[5].Column);
@@ -161,7 +161,7 @@ s??'hello'";
 			var tokens = new DefaultTokenStream(s).ParseAll();
 			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
 			Assert.AreEqual(3, tokens.Count);
-			Assert.AreEqual("'hello'", tokens[0].Value);
+			Assert.AreEqual("hello", tokens[0].Value);
 			Assert.AreEqual(".", tokens[1].Value);
 			Assert.AreEqual("Length", tokens[2].Value);
 		}

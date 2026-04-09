@@ -277,56 +277,56 @@ namespace AScript
 			return int.Parse(number);
 		}
 
-		public static string EvalString(string s)
-		{
-			char sc = s[0];
-			StringBuilder sb = new StringBuilder(s.Length - 2);
-			bool preEscape = false;
-			for (int i = 1; i < s.Length - 1; i++)
-			{
-				var c = s[i];
-				if (c == '\\')
-				{
-					if (preEscape)
-					{
-						sb.Append('\\');
-						preEscape = false;
-					}
-					else
-					{
-						preEscape = true;
-					}
-					continue;
-				}
-				if (preEscape)
-				{
-					preEscape = false;
-					if (c == sc)
-					{
-						sb.Append(c);
-						continue;
-					}
-					if (c == 'n')
-					{
-						sb.Append('\n');
-						continue;
-					}
-					if (c == 'r')
-					{
-						sb.Append('\r');
-						continue;
-					}
-					if (c == 't')
-					{
-						sb.Append('\t');
-						continue;
-					}
-					throw new Exception("unknown string escape:" + s);
-				}
-				sb.Append(c);
-			}
-			return sb.ToString();
-		}
+		//public static string EvalString(string s)
+		//{
+		//	char sc = s[0];
+		//	StringBuilder sb = new StringBuilder(s.Length - 2);
+		//	bool preEscape = false;
+		//	for (int i = 1; i < s.Length - 1; i++)
+		//	{
+		//		var c = s[i];
+		//		if (c == '\\')
+		//		{
+		//			if (preEscape)
+		//			{
+		//				sb.Append('\\');
+		//				preEscape = false;
+		//			}
+		//			else
+		//			{
+		//				preEscape = true;
+		//			}
+		//			continue;
+		//		}
+		//		if (preEscape)
+		//		{
+		//			preEscape = false;
+		//			if (c == sc)
+		//			{
+		//				sb.Append(c);
+		//				continue;
+		//			}
+		//			if (c == 'n')
+		//			{
+		//				sb.Append('\n');
+		//				continue;
+		//			}
+		//			if (c == 'r')
+		//			{
+		//				sb.Append('\r');
+		//				continue;
+		//			}
+		//			if (c == 't')
+		//			{
+		//				sb.Append('\t');
+		//				continue;
+		//			}
+		//			throw new Exception("unknown string escape:" + s);
+		//		}
+		//		sb.Append(c);
+		//	}
+		//	return sb.ToString();
+		//}
 
 
 		/// <summary>

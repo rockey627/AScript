@@ -11,6 +11,9 @@ namespace AScript.Readers
 		private readonly ITokenStream _stream;
 		private readonly bool _autoDisposeStream;
 
+		public ITokenStream TokenStream => _stream;
+		public CharReader CharReader => (_stream as DefaultTokenStream).CharReader;
+
 		public TokenReader(ITokenStream stream, bool autoDisposeStream)
 		{
 			_stream = stream;
