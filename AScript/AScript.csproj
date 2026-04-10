@@ -17,8 +17,8 @@ Assert.AreEqual(15, result);
 			]]>
 		</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>1.0.2.0</Version>
-		<PackageReleaseNotes>优化字符串解析；新增字符串内插值功能：var name='tom'; $'hello {name}, 5+8={5+8}'</PackageReleaseNotes>
+		<Version>1.0.3.0</Version>
+		<PackageReleaseNotes>优化DefaultSyntaxAnalyzer.BuildOneStatement方法；新增ScriptContext.AddFunc(Type, methodNameMap)方法</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
