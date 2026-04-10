@@ -115,18 +115,33 @@ namespace AScript.Syntaxs
 			return treeBuilder;
 		}
 
-		public virtual ITreeNode BuildOneStatement(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, bool noblock = false)
+		public virtual ITreeNode BuildOneStatement(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, bool noblock = false, IEnumerable<string> endTokens = null)
 		{
 			var t = tokenReader.Read();
 			TreeBuilder treeBuilder = null;
 			while (t.HasValue)
 			{
-				if (t.Value.Value == ")" || t.Value.Value == "]" || t.Value.Value == "}" || t.Value.Value == "," || t.Value.Value == ";" || t.Value.Value == ":")
+				if (t.Value.Type == ETokenType.Number)
+				{
+					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
+					treeBuilder.AddData(buildContext, scriptContext, options, control, ScriptUtils.EvalNumber(t.Value.Value), null);
+				}
+				else if (t.Value.Type == ETokenType.String)
+				{
+					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
+					treeBuilder.AddData(buildContext, scriptContext, options, control, t.Value.Value, typeof(string));
+				}
+				else if (t.Value.Value == ")" || t.Value.Value == "]" || t.Value.Value == "}" || t.Value.Value == "," || t.Value.Value == ";" || t.Value.Value == ":")
 				{
 					tokenReader.Push(t.Value);
 					break;
 				}
-				if (t.Value.Value == "{")
+				else if (ScriptUtils.Contains(endTokens, t.Value.Value))
+				{
+					tokenReader.Push(t.Value);
+					break;
+				}
+				else if (t.Value.Value == "{")
 				{
 					if (treeBuilder != null && treeBuilder.Current != null && treeBuilder.Current is CallFuncNode funcHead
 						&& (funcHead.Args == null || funcHead.Args.All(a => a is DefineVarNode)))
@@ -157,17 +172,6 @@ namespace AScript.Syntaxs
 						if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
 						treeBuilder.AddData(buildContext, scriptContext, options, control, statement0);
 					}
-				}
-				else if (t.Value.Type == ETokenType.Number)
-				{
-					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
-					treeBuilder.AddData(buildContext, scriptContext, options, control, ScriptUtils.EvalNumber(t.Value.Value), null);
-				}
-				else if (t.Value.Type == ETokenType.String)
-				{
-					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
-					//treeBuilder.AddData(buildContext, scriptContext, options, control, ScriptUtils.EvalString(t.Value.Value), typeof(string));
-					treeBuilder.AddData(buildContext, scriptContext, options, control, t.Value.Value, typeof(string));
 				}
 				else if (t.Value.Value == "=>")
 				{

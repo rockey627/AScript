@@ -1,4 +1,5 @@
-﻿using BenchmarkDotNet.Configs;
+﻿using AScript.Test.Consoles.中文;
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using System.Linq.Expressions;
 using System.Text;
@@ -10,7 +11,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			Test01_Benchmark();
+			//Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -21,9 +22,27 @@ namespace AScript.Test.Consoles
 			//Test09_Antlr4();
 			//Test10_Lambda();
 			//Test11_Convert();
+			Test12();
 			//Console.WriteLine(typeof(int[]).FullName);
 			Console.WriteLine("end");
 			Console.ReadLine();
+		}
+
+		private static void Test12()
+		{
+			Script.Langs["中文"] = 中文语言.实例;
+
+			string s = @"
+整型 n=10;
+整型 x=0;
+如果 n<5 则 x=1+n;
+否则 如果 n<20 则 x=2+n;
+否则 x=3+n;
+x
+";
+			var script = new Script();
+			Console.WriteLine(script.Eval(s));
+			Console.WriteLine(script.Eval(s, ECompileMode.All));
 		}
 
 		static void Test11_Convert()

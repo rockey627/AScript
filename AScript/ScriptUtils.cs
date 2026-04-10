@@ -377,5 +377,15 @@ namespace AScript
 			if (delegateType == null) return null;
 			return target == null ? Delegate.CreateDelegate(delegateType, methodInfo) : Delegate.CreateDelegate(delegateType, target, methodInfo);
 		}
+
+		public static bool Contains(IEnumerable<string> list, string s)
+		{
+			if (list == null) return false;
+			if (list is HashSet<string> set)
+			{
+				return set.Contains(s);
+			}
+			return list.Contains(s);
+		}
 	}
 }
