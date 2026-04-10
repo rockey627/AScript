@@ -6,6 +6,9 @@ using System.Linq.Expressions;
 
 namespace AScript
 {
+	/// <summary>
+	/// 脚本引擎
+	/// </summary>
 	public class ScriptEngine
 	{
 		public const string SCRIPT_ENGINE_VAR_NAME = "__ScriptEngine__";

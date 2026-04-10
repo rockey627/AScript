@@ -276,7 +276,7 @@ namespace AScript
 		/// <param name="type"></param>
 		public void AddFunc(Type type)
 		{
-			AddFunc(type, null);
+			AddFunc(type, null, null);
 		}
 
 		/// <summary>
@@ -285,6 +285,27 @@ namespace AScript
 		/// <param name="type"></param>
 		/// <param name="target">实例对象</param>
 		public void AddFunc(Type type, object target)
+		{
+			AddFunc(type, target, null);
+		}
+
+		/// <summary>
+		/// 添加类型中的所有公开静态方法
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="methodNameMap">方法名映射</param>
+		public void AddFunc(Type type, Func<MethodInfo, string> methodNameMap)
+		{
+			AddFunc(type, null, methodNameMap);
+		}
+
+		/// <summary>
+		/// 如果target为null，则添加类型中的公开静态方法，否则添加实例公开方法
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="target">实例对象</param>
+		/// <param name="methodNameMap">方法名映射</param>
+		public void AddFunc(Type type, object target, Func<MethodInfo, string> methodNameMap)
 		{
 			var methods = target == null ? type.GetMethods(BindingFlags.Public | BindingFlags.Static) : type.GetMethods(BindingFlags.Public | BindingFlags.Instance);
 			foreach (var method in methods)
@@ -295,9 +316,30 @@ namespace AScript
 				var del = ScriptUtils.CreateDelegate(method, target);
 				if (del != null)
 				{
-					AddFunc(method.Name, del);
+					AddFunc(methodNameMap?.Invoke(method) ?? method.Name, del);
 				}
 			}
+		}
+
+		/// <summary>
+		/// 添加类型中的所有公开静态方法
+		/// </summary>
+		/// <typeparam name="TType"></typeparam>
+		/// <param name="methodNameMap">方法名映射</param>
+		public void AddFunc<TType>(Func<MethodInfo, string> methodNameMap)
+		{
+			AddFunc(typeof(TType), methodNameMap);
+		}
+
+		/// <summary>
+		/// 添加类型中的所有公开实例方法
+		/// </summary>
+		/// <typeparam name="TType"></typeparam>
+		/// <param name="instance">实例</param>
+		/// <param name="methodNameMap">方法名映射</param>
+		public void AddFunc<TType>(TType instance, Func<MethodInfo, string> methodNameMap)
+		{
+			AddFunc(typeof(TType), instance, methodNameMap);
 		}
 
 		/// <summary>

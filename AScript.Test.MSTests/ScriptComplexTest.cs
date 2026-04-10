@@ -8,6 +8,54 @@ namespace AScript.Test.MSTests
 	[TestClass]
 	public class ScriptComplexTest
 	{
+		[TestMethod]
+		public void TestFile()
+		{
+			string filePath = @"./ScriptComplexTest_TestFile.txt";
+
+			try
+			{
+				File.WriteAllText(filePath, "5+6*10");
+				int cacheTime = -1;
+				string cacheKey = filePath;
+				var script = new Script();
+
+				{
+					string cacheVersion = File.GetLastWriteTime(filePath).ToFileTimeUtc().ToString();
+					var result = script.Eval(() => File.OpenRead(filePath), cacheTime, cacheKey, cacheVersion);
+					Assert.AreEqual(65, result);
+				}
+
+				{
+					string cacheVersion = File.GetLastWriteTime(filePath).ToFileTimeUtc().ToString();
+					var result = script.Eval(() => File.OpenRead(filePath), cacheTime, cacheKey, cacheVersion);
+					Assert.AreEqual(65, result);
+				}
+
+				Thread.Sleep(100);
+				File.WriteAllText(filePath, "8+6*10");
+
+				{
+					string cacheVersion = File.GetLastWriteTime(filePath).ToFileTimeUtc().ToString();
+					var result = script.Eval(() => File.OpenRead(filePath), cacheTime, cacheKey, cacheVersion);
+					Assert.AreEqual(68, result);
+				}
+
+				{
+					string cacheVersion = File.GetLastWriteTime(filePath).ToFileTimeUtc().ToString();
+					var result = script.Eval(() => File.OpenRead(filePath), cacheTime, cacheKey, cacheVersion);
+					Assert.AreEqual(68, result);
+				}
+			}
+			finally
+			{
+				if (File.Exists(filePath))
+				{
+					File.Delete(filePath);
+				}
+			}
+		}
+
 		/// <summary>
 		/// 测试复杂表达式计算
 		/// </summary>
@@ -423,11 +471,11 @@ sum
 			var script = new Script();
 			script.Context.AddType(typeof(Math));
 
-//			string s = @"
-//double d = 10.5;
-//int i = (int)(d + 0.5);
-//i
-//";
+			//			string s = @"
+			//double d = 10.5;
+			//int i = (int)(d + 0.5);
+			//i
+			//";
 			string s = @"
 double d = 10.5;
 int i = d + 0.5;
@@ -466,10 +514,10 @@ i
 			var script = new Script();
 			script.Context.AddType(typeof(Math));
 
-//			string s = @"
-//int result = (int)(Math.Pow(2, 3) + Math.Sqrt(16) + Math.Abs(-5) + Math.Max(3, 7));
-//result
-//";
+			//			string s = @"
+			//int result = (int)(Math.Pow(2, 3) + Math.Sqrt(16) + Math.Abs(-5) + Math.Max(3, 7));
+			//result
+			//";
 			string s = @"
 int result = Math.Pow(2, 3) + Math.Sqrt(16) + Math.Abs(-5) + Math.Max(3, 7);
 result
