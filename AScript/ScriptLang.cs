@@ -53,6 +53,11 @@ namespace AScript
 		// 函数列表
 		private readonly ConcurrentDictionary<string, List<Delegate>> _Functions = new ConcurrentDictionary<string, List<Delegate>>();
 
+		/// <summary>
+		/// 语言兼容性，表示是否与其他语言兼容运行，如果不兼容则需指定语言执行
+		/// </summary>
+		public bool Compatibility { get; set; } = true;
+
 		public object EvalVar(string name)
 		{
 			return EvalVar(name, out _);

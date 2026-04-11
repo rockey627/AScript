@@ -556,7 +556,7 @@ namespace AScript
 				var langs = this.Langs;
 				if (langs == null || langs.Length == 0)
 				{
-					foreach (var lang in Script.Langs.Values)
+					foreach (var lang in Script.Langs.Values.Where(a => a.Compatibility))
 					{
 						lang.EvalFunc(functionEvalArgs);
 						if (functionEvalArgs.IsHandled)
@@ -756,7 +756,7 @@ namespace AScript
 				var langs = this.Langs;
 				if (langs == null || langs.Length == 0)
 				{
-					foreach (var lang in Script.Langs.Values)
+					foreach (var lang in Script.Langs.Values.Where(a => a.Compatibility))
 					{
 						lang.BuildFunc(functionBuildArgs);
 						if (functionBuildArgs.Result != null)
@@ -844,7 +844,7 @@ namespace AScript
 				var langs = this.Langs;
 				if (langs == null || langs.Length == 0)
 				{
-					foreach (var lang in Script.Langs.Values)
+					foreach (var lang in Script.Langs.Values.Where(a => a.Compatibility))
 					{
 						lang.BuildFunc(functionBuildArgs);
 						if (functionBuildArgs.Result != null)
@@ -1137,7 +1137,7 @@ namespace AScript
 			var langs = this.Langs;
 			if (langs == null || langs.Length == 0)
 			{
-				foreach (var lang in Script.Langs.Values)
+				foreach (var lang in Script.Langs.Values.Where(a => a.Compatibility))
 				{
 					var type = lang.EvalType(name);
 					if (type != null) return type;
@@ -1576,8 +1576,8 @@ namespace AScript
 			var langs = this.Langs;
 			if (langs == null || langs.Length == 0)
 			{
-				// 所有脚本语言
-				foreach (var lang in Script.Langs.Values)
+				// 所有可兼容脚本语言
+				foreach (var lang in Script.Langs.Values.Where(a => a.Compatibility))
 				{
 					lang.HandleToken(analyzer, e);
 					if (e.IsHandled) return;

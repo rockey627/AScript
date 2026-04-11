@@ -227,7 +227,7 @@ namespace AScript.Nodes
 				}
 				// 
 				var pp = current.Parent;
-				if ((options.CreateFullTreeNode ?? false) || !(current is OperatorNode) || DefaultSyntaxAnalyzer.OperatorPriorities[operatorNode.Name] == DefaultSyntaxAnalyzer.ASSIGN)
+				if ((options.CreateFullTreeNode ?? false) || !(current is OperatorNode) || operatorNode.Priority == DefaultSyntaxAnalyzer.ASSIGN)
 				{
 					operatorNode.Left = current;
 				}
