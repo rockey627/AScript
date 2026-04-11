@@ -432,241 +432,14 @@ namespace AScript.Syntaxs
 			// 如果前面有点操作符，则表示调用实例函数或类静态函数
 			if (treeBuilder.Current is OperatorNode operatorNode && operatorNode.Name == ".")
 			{
-				if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
-				{
-					Expression[] argExpressions;
-					Type[] argTypes;
-					if (args == null)
-					{
-						argExpressions = null;
-#if NETSTANDARD
-						argTypes = Array.Empty<Type>();
-#else
-						argTypes = new Type[0];
-#endif
-					}
-					else
-					{
-						argExpressions = new Expression[args.Count];
-						argTypes = new Type[args.Count];
-						for (int i = 0; i < args.Count; i++)
-						{
-							var argExpression = args[i].Build(buildContext, scriptContext, options);
-							argExpressions[i] = argExpression;
-							argTypes[i] = argExpression.Type;
-						}
-					}
-					var v0 = operatorNode.Left.Build(buildContext, scriptContext, options);
-					PoolManage.Return(treeBuilder.Pop());
-					if (v0.Type == typeof(TypeWrapper))
-					{
-						// 调用类静态函数
-						var type = ((TypeWrapper)((ConstantExpression)v0).Value).Type;
-						//var methodInfo = GetBestMatchMethod(type, funcName, argTypes, true);
-						var methodInfo = type.GetMethod(funcName, argTypes);
-						if (methodInfo == null)
-						{
-							throw new Exception($"unknown function: {type}.{funcName}({string.Join(", ", argTypes.Select(t => t?.Name))})");
-						}
-						// 进行参数类型转换
-						var parameters = methodInfo.GetParameters();
-						var convertedArgs = ConvertArguments(argExpressions, parameters);
-						var expr = Expression.Call(null, methodInfo, convertedArgs);
-						treeBuilder.Add(buildContext, scriptContext, options, control, PoolManage.CreateExpressionNode(expr));
-					}
-					else
-					{
-						// 调用实例方法
-						//var methodInfo = GetBestMatchMethod(v0.Type, funcName, argTypes, false);
-						var methodInfo = v0.Type.GetMethod(funcName, argTypes);
-						if (methodInfo == null)
-						{
-							// 尝试第1个参数ScriptContext
-							var argTypes2 = new Type[argTypes.Length + 1];
-							argTypes2[0] = typeof(ScriptContext);
-							Array.Copy(argTypes, 0, argTypes2, 1, argTypes.Length);
-							methodInfo = v0.Type.GetMethod(funcName, argTypes2);
-							if (methodInfo != null)
-							{
-								argTypes = argTypes2;
-								Expression[] argExpressions2;
-								if (argExpressions == null || argExpressions.Length == 0)
-								{
-									argExpressions2 = new Expression[1];
-								}
-								else
-								{
-									argExpressions2 = new Expression[argExpressions.Length + 1];
-									Array.Copy(argExpressions, 0, argExpressions2, 1, argExpressions.Length);
-								}
-								argExpressions2[0] = buildContext.GetScriptContextParameter();
-								argExpressions = argExpressions2;
-							}
-						}
-						if (methodInfo == null)
-						{
-							// 尝试调用扩展方法
-							var argValues2 = new Expression[argExpressions == null ? 1 : argExpressions.Length + 1];
-							argValues2[0] = v0;
-							if (argExpressions != null && argExpressions.Length > 0)
-							{
-								Array.Copy(argExpressions, 0, argValues2, 1, argExpressions.Length);
-							}
-							var argTypes2 = new Type[argTypes == null ? 1 : argTypes.Length + 1];
-							argTypes2[0] = v0.Type;
-							if (argTypes != null && argTypes.Length > 0)
-							{
-								Array.Copy(argTypes, 0, argTypes2, 1, argTypes.Length);
-							}
-
-							try
-							{
-								var expr2 = scriptContext.BuildFunc(buildContext, options, control, funcName, false, argValues2, buildEvalEnabled: false);
-								if (expr2 != null)
-								{
-									treeBuilder.AddData(buildContext, scriptContext, options, control, PoolManage.CreateExpressionNode(expr2));
-									return;
-								}
-							}
-							catch { }
-						}
-						if (methodInfo == null)
-						{
-							throw new Exception($"unknown function: {v0.Type}.{funcName}({string.Join(", ", argTypes.Select(t => t?.Name))})");
-						}
-						// 进行参数类型转换
-						var parameters = methodInfo.GetParameters();
-						var convertedArgs = ConvertArguments(argExpressions, parameters, expressionStartIndex: methodInfo.IsStatic ? 1 : 0);
-						if (methodInfo.IsStatic) convertedArgs[0] = v0;
-						var expr = Expression.Call(methodInfo.IsStatic ? null : v0, methodInfo, convertedArgs);
-						treeBuilder.Add(buildContext, scriptContext, options, control, PoolManage.CreateExpressionNode(expr));
-					}
-				}
-				else
-				{
-					object[] argValues;
-					Type[] argTypes;
-					if (args == null)
-					{
-						argValues = null;
-#if NETSTANDARD
-						argTypes = Array.Empty<Type>();
-#else
-						argTypes = new Type[0];
-#endif
-					}
-					else
-					{
-						argValues = new object[args.Count];
-						argTypes = new Type[args.Count];
-						for (int i = 0; i < args.Count; i++)
-						{
-							argValues[i] = args[i].Eval(scriptContext, options, null, out var argType);
-							argTypes[i] = argType;
-						}
-					}
-					//
-					var v0 = operatorNode.Left.Eval(scriptContext, options, null, out var t0);
-					PoolManage.Return(treeBuilder.Pop());
-					if (t0 == typeof(TypeWrapper))
-					{
-						// 调用类静态函数
-						var type = ((TypeWrapper)v0).Type;
-						//var methodInfo = GetBestMatchMethod(type, funcName, argTypes, true);
-						var methodInfo = type.GetMethod(funcName, argTypes);
-						if (methodInfo == null)
-						{
-							throw new Exception($"unknown function: {type}.{funcName}({string.Join(", ", argTypes.Select(t => t?.Name))})");
-						}
-						// 进行参数类型转换
-						var parameters = methodInfo.GetParameters();
-						var convertedArgs = ConvertObjectArguments(argValues, parameters);
-						var result = methodInfo.Invoke(null, convertedArgs);
-						treeBuilder.AddData(buildContext, scriptContext, options, null, result, methodInfo.ReturnType);
-					}
-					else
-					{
-						// 调用实例方法
-						//var methodInfo = GetBestMatchMethod(t0, funcName, argTypes, false);
-						var methodInfo = t0.GetMethod(funcName, argTypes);
-						if (methodInfo == null)
-						{
-							// 尝试第1个参数ScriptContext
-							var argTypes2 = new Type[argTypes.Length + 1];
-							argTypes2[0] = typeof(ScriptContext);
-							Array.Copy(argTypes, 0, argTypes2, 1, argTypes.Length);
-							methodInfo = t0.GetMethod(funcName, argTypes2);
-							if (methodInfo != null)
-							{
-								argTypes = argTypes2;
-								var argValues2 = new object[argValues == null ? 1 : argValues.Length + 1];
-								argValues2[0] = scriptContext;
-								if (argValues != null && argValues.Length > 0)
-								{
-									Array.Copy(argValues, 0, argValues2, 1, argValues.Length);
-								}
-								argValues = argValues2;
-							}
-						}
-						if (methodInfo == null)
-						{
-							// 尝试调用扩展方法
-							var argValues2 = new object[argValues == null ? 1 : argValues.Length + 1];
-							argValues2[0] = v0;
-							if (argValues != null && argValues.Length > 0)
-							{
-								Array.Copy(argValues, 0, argValues2, 1, argValues.Length);
-							}
-							var argTypes2 = new Type[argTypes == null ? 1 : argTypes.Length + 1];
-							argTypes2[0] = t0;
-							if (argTypes != null && argTypes.Length > 0)
-							{
-								Array.Copy(argTypes, 0, argTypes2, 1, argTypes.Length);
-							}
-
-							try
-							{
-								var result2 = scriptContext.EvalFunc(funcName, argValues2, argTypes2, out var returnType2);
-								if (returnType2 != null)
-								{
-									treeBuilder.AddData(buildContext, scriptContext, options, null, result2, returnType2);
-									return;
-								}
-							}
-							catch { }
-						}
-						if (methodInfo == null)
-						{
-							throw new Exception($"unknown function: {t0}.{funcName}({string.Join(", ", argTypes.Select(t => t?.Name))})");
-						}
-						// 进行参数类型转换
-						var parameters = methodInfo.GetParameters();
-						var convertedArgs = ConvertObjectArguments(argValues, parameters);
-						var result = methodInfo.Invoke(v0, convertedArgs);
-						treeBuilder.AddData(buildContext, scriptContext, options, null, result, methodInfo.ReturnType);
-					}
-				}
+				var target = operatorNode.Left;
+				treeBuilder.Pop();
+				treeBuilder.Add(buildContext, scriptContext, options, control, new CallFuncNode { Name = funcName, Args = args?.ToArray(), Target = target });
 			}
 			else
 			{
 				treeBuilder.Add(buildContext, scriptContext, options, null, new CallFuncNode { Name = funcName, Args = args?.ToArray() });
 			}
-			//else if (options.CreateFullTreeNode ?? false)
-			//{
-			//	treeBuilder.Add(buildContext, scriptContext, options, null, new CallFuncNode { Name = funcName, Args = args?.ToArray() });
-			//}
-			//else if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
-			//{
-			//	var expr = scriptContext.BuildFunc(buildContext, options, null, funcName, false, args);
-			//	PoolManage.Return(args);
-			//	treeBuilder.Add(buildContext, scriptContext, options, null, PoolManage.CreateExpressionNode(expr));
-			//}
-			//else
-			//{
-			//	var result = scriptContext.EvalFunc(options, null, funcName, false, args, out var returnType);
-			//	PoolManage.Return(args);
-			//	treeBuilder.AddData(buildContext, scriptContext, options, null, result, returnType);
-			//}
 		}
 
 		/// <summary>
@@ -825,7 +598,7 @@ namespace AScript.Syntaxs
 		/// <summary>
 		/// 转换表达式参数（编译模式）
 		/// </summary>
-		private static Expression[] ConvertArguments(Expression[] args, ParameterInfo[] parameters, int expressionStartIndex = 0)
+		internal static Expression[] ConvertArguments(Expression[] args, ParameterInfo[] parameters, int expressionStartIndex = 0)
 		{
 			if (args == null || parameters == null) return args;
 			if (args.Length != parameters.Length) return args;
@@ -857,7 +630,7 @@ namespace AScript.Syntaxs
 		/// <summary>
 		/// 转换对象参数（非编译模式）
 		/// </summary>
-		private static object[] ConvertObjectArguments(object[] args, ParameterInfo[] parameters)
+		internal static object[] ConvertObjectArguments(object[] args, ParameterInfo[] parameters)
 		{
 			if (args == null || parameters == null) return args;
 			if (args.Length > parameters.Length) return args;

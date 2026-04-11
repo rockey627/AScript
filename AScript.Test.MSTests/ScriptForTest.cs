@@ -11,6 +11,92 @@ namespace AScript.Test.MSTests
 	public class ScriptForTest
 	{
 		[TestMethod]
+		public void Test13_2()
+		{
+			string s = @"
+int sum(int a) => a+1;
+int n = 0;
+for(var i=1;i<=12;i++)
+{
+	if (i % 2 == 0) n+=sum(i);
+}
+n";
+			Func<int, int> sum = a => a + 1;
+			int n = 0;
+			for (var i = 1; i <= 12; i++)
+			{
+				if (i % 2 == 0) n += sum(i);
+			}
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(n, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test13()
+		{
+			string s = @"
+int sum(int a) => a+1;
+int n = 0;
+for(var i=1;i<=12;i++)
+{
+	if (i % 2 == 0) n+=sum(i);
+}
+n";
+			Func<int, int> sum = a => a + 1;
+			int n = 0;
+			for (var i = 1; i <= 12; i++)
+			{
+				if (i % 2 == 0) n += sum(i);
+			}
+			var script = new Script();
+			Assert.AreEqual(n, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test12_2()
+		{
+			string s = @"
+var list2 = new List<int>();
+for(var i=1;i<=12;i++)
+{
+	if (i % 2 == 0) list2.Add(i);
+}
+list2";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var list2 = script.Eval<List<int>>(s);
+			Assert.AreEqual(6, list2.Count);
+			Assert.AreEqual(2, list2[0]);
+			Assert.AreEqual(4, list2[1]);
+			Assert.AreEqual(6, list2[2]);
+			Assert.AreEqual(8, list2[3]);
+			Assert.AreEqual(10, list2[4]);
+			Assert.AreEqual(12, list2[5]);
+		}
+
+		[TestMethod]
+		public void Test12()
+		{
+			string s = @"
+var list2 = new List<int>();
+for(var i=1;i<=12;i++)
+{
+	if (i % 2 == 0) list2.Add(i);
+}
+list2";
+			var script = new Script();
+			var list2 = script.Eval<List<int>>(s);
+			Assert.AreEqual(6, list2.Count);
+			Assert.AreEqual(2, list2[0]);
+			Assert.AreEqual(4, list2[1]);
+			Assert.AreEqual(6, list2[2]);
+			Assert.AreEqual(8, list2[3]);
+			Assert.AreEqual(10, list2[4]);
+			Assert.AreEqual(12, list2[5]);
+		}
+
+		[TestMethod]
 		public void Test11()
 		{
 			string s = @"

@@ -10,6 +10,54 @@ namespace AScript.Test.MSTests
 	public class ScriptForeachTest
 	{
 		[TestMethod]
+		public void Test03_2()
+		{
+			string s = @"
+var list2 = new List<int>();
+foreach(var item in list)
+{
+	if (item % 2 == 0) list2.Add(item);
+}
+list2";
+
+			var list = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("list", list);
+			var list2 = script.Eval<List<int>>(s);
+			Assert.AreEqual(6, list2.Count);
+			Assert.AreEqual(2, list2[0]);
+			Assert.AreEqual(4, list2[1]);
+			Assert.AreEqual(6, list2[2]);
+			Assert.AreEqual(8, list2[3]);
+			Assert.AreEqual(10, list2[4]);
+			Assert.AreEqual(12, list2[5]);
+		}
+
+		[TestMethod]
+		public void Test03()
+		{
+			string s = @"
+var list2 = new List<int>();
+foreach(var item in list)
+{
+	if (item % 2 == 0) list2.Add(item);
+}
+list2";
+			var list = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+			var script = new Script();
+			script.Context.SetVar("list", list);
+			var list2 = script.Eval<List<int>>(s);
+			Assert.AreEqual(6, list2.Count);
+			Assert.AreEqual(2, list2[0]);
+			Assert.AreEqual(4, list2[1]);
+			Assert.AreEqual(6, list2[2]);
+			Assert.AreEqual(8, list2[3]);
+			Assert.AreEqual(10, list2[4]);
+			Assert.AreEqual(12, list2[5]);
+		}
+
+		[TestMethod]
 		public void Test02_2()
 		{
 			string s = @"
