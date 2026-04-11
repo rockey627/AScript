@@ -1,62 +1,133 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace AScript.Nodes
 {
-    /// <summary>
-    /// 函数调用节点
-    /// </summary>
-    public class CallFuncNode : TreeNode
+	/// <summary>
+	/// 函数调用节点
+	/// </summary>
+	public class CallFuncNode : TreeNode
 	{
 		public string Name { get; set; }
+		public MethodInfo Method { get; set; }
+		public object Target { get; set; }
 		public ITreeNode[] Args { get; set; }
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
-			ITreeNode[] args = null;
-			if (this.Args != null && this.Args.Length > 0)
+			if (string.IsNullOrEmpty(this.Name))
 			{
-				args = new ITreeNode[this.Args.Length];
-				for (int i = 0; i < this.Args.Length; i++)
+				if (this.Method != null)
 				{
-					var arg = this.Args[i];
-					if (arg == null || arg is ObjectNode)
+					object[] args = null;
+					if (this.Args != null && this.Args.Length > 0)
 					{
-						args[i] = arg;
+						args = new object[this.Args.Length];
+						for (int i = 0; i < this.Args.Length; i++)
+						{
+							var arg = this.Args[i];
+							if (arg == null)
+							{
+								args[i] = null;
+							}
+							else if (arg is ObjectNode objNode)
+							{
+								args[i] = objNode.Data;
+							}
+							else
+							{
+								args[i] = arg.Eval(context, options, control, out _);
+							}
+						}
 					}
-					else
-					{
-						var v = arg.Eval(context, options, control, out var type);
-						args[i] = PoolManage.CreateObjectData(v, type);
-					}
+					returnType = this.Method.ReturnType;
+					return this.Method.Invoke(this.Target, args);
 				}
 			}
-			var tmpContext = ScriptContext.Create(context);
-			return tmpContext.EvalFunc(options, control, this.Name, args, out returnType);
+			else
+			{
+				ITreeNode[] args = null;
+				if (this.Args != null && this.Args.Length > 0)
+				{
+					args = new ITreeNode[this.Args.Length];
+					for (int i = 0; i < this.Args.Length; i++)
+					{
+						var arg = this.Args[i];
+						if (arg == null || arg is ObjectNode)
+						{
+							args[i] = arg;
+						}
+						else
+						{
+							var v = arg.Eval(context, options, control, out var type);
+							args[i] = PoolManage.CreateObjectData(v, type);
+						}
+					}
+				}
+				var tmpContext = ScriptContext.Create(context);
+				return tmpContext.EvalFunc(options, control, this.Name, args, out returnType);
+			}
+			returnType = null;
+			return null;
 		}
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
-			ITreeNode[] args = null;
-			if (this.Args != null && this.Args.Length > 0)
+			if (string.IsNullOrEmpty(this.Name))
 			{
-				args = new ITreeNode[this.Args.Length];
-				for (int i = 0; i < this.Args.Length; i++)
+				if (this.Method != null)
 				{
-					var arg = this.Args[i];
-					if (arg == null || arg is ExpressionNode)
+					Expression[] args = null;
+					if (this.Args != null && this.Args.Length > 0)
 					{
-						args[i] = arg;
+						args = new Expression[this.Args.Length];
+						for (int i = 0; i < this.Args.Length; i++)
+						{
+							var arg = this.Args[i];
+							if (arg == null)
+							{
+								args[i] = ExpressionUtils.Constant_null;
+							}
+							else if (arg is ExpressionNode exprNode)
+							{
+								args[i] = exprNode.Expr;
+							}
+							else
+							{
+								args[i] = arg.Build(buildContext, scriptContext, options);
+							}
+						}
 					}
-					else
-					{
-						var v = arg.Build(buildContext, scriptContext, options);
-						args[i] = PoolManage.CreateExpressionNode(v);
-					}
+					return this.Target == null ?
+						Expression.Call(this.Method, args) :
+						Expression.Call(Expression.Constant(this.Target), this.Method, args);
 				}
 			}
-			return scriptContext.BuildFunc(buildContext, options, null, this.Name, false, args);
-			//return ExpressionUtils.BuildCall(buildContext, scriptContext, options, this.Name, this.Args);
+			else
+			{
+				ITreeNode[] args = null;
+				if (this.Args != null && this.Args.Length > 0)
+				{
+					args = new ITreeNode[this.Args.Length];
+					for (int i = 0; i < this.Args.Length; i++)
+					{
+						var arg = this.Args[i];
+						if (arg == null || arg is ExpressionNode)
+						{
+							args[i] = arg;
+						}
+						else
+						{
+							var v = arg.Build(buildContext, scriptContext, options);
+							args[i] = PoolManage.CreateExpressionNode(v);
+						}
+					}
+				}
+				return scriptContext.BuildFunc(buildContext, options, null, this.Name, false, args);
+				//return ExpressionUtils.BuildCall(buildContext, scriptContext, options, this.Name, this.Args);
+			}
+			return null;
 		}
 
 		public override void Clear()
@@ -66,6 +137,8 @@ namespace AScript.Nodes
 			PoolManage.Return(this.Args);
 
 			this.Name = null;
+			this.Method = null;
+			this.Target = null;
 			this.Args = null;
 		}
 	}
