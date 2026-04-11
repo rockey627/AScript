@@ -226,7 +226,7 @@ namespace AScript.Syntaxs
 				}
 				throw new Exception($"invalid expression expect {nextTokenForValid}");
 			}
-			if (nextToken.Value.Value != nextTokenForValid)
+			if (nextToken.Value.Type == ETokenType.String || nextToken.Value.Value != nextTokenForValid)
 			{
 				throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect {nextTokenForValid}");
 			}
@@ -255,7 +255,8 @@ namespace AScript.Syntaxs
 		{
 			var nextToken = tokenReader.Read();
 			if (!nextToken.HasValue) return;
-			if (nextToken.Value.Value == nextTokenForSkip) return;
+			if (nextToken.Value.Type != ETokenType.String 
+				&& nextToken.Value.Value == nextTokenForSkip) return;
 			tokenReader.Push(nextToken.Value);
 		}
 

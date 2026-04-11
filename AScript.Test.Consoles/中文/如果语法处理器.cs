@@ -30,7 +30,7 @@ namespace AScript.Test.Consoles.中文
 			var body = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createAllOptions, e.TokenReader, e.Control, e.Ignore, endTokens: _StatementEndTokens);
 			var node = new IfNode { Condition = condition, Body = body };
 			var nextToken = e.TokenReader.Read();
-			if (nextToken.HasValue && nextToken.Value.Value == ";")
+			if (nextToken.HasValue && nextToken.Value.Type != ETokenType.String && nextToken.Value.Value == ";")
 			{
 				nextToken = e.TokenReader.Read();
 			}
@@ -45,7 +45,10 @@ namespace AScript.Test.Consoles.中文
 					e.TokenReader.Push(nextToken.Value);
 				}
 			}
-			e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, node);
+			if (!e.Ignore)
+			{
+				e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, node);
+			}
 		}
 	}
 }

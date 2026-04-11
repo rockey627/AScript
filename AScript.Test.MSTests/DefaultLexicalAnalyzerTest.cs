@@ -7,6 +7,24 @@ namespace AScript.Test.MSTests
 	public class DefaultLexicalAnalyzerTest
 	{
 		[TestMethod]
+		public void Test18()
+		{
+			string s = "文本 s";
+			var tokens = new DefaultTokenStream(s).ParseAll();
+			Assert.AreEqual(2, tokens.Count);
+
+			Assert.AreEqual("文本", tokens[0].Value);
+			Assert.AreEqual(ETokenType.Word, tokens[0].Type);
+			Assert.AreEqual(1, tokens[0].Line);
+			Assert.AreEqual(1, tokens[0].Column);
+
+			Assert.AreEqual("s", tokens[1].Value);
+			Assert.AreEqual(ETokenType.Word, tokens[1].Type);
+			Assert.AreEqual(1, tokens[1].Line);
+			Assert.AreEqual(4, tokens[1].Column);
+		}
+
+		[TestMethod]
 		public void Test17()
 		{
 			string s = @"string s;

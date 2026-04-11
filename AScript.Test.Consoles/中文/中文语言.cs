@@ -1,9 +1,5 @@
 ﻿using AScript;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AScript.Test.Consoles.中文
 {
@@ -14,8 +10,10 @@ namespace AScript.Test.Consoles.中文
 		public 中文语言()
 		{
 			AddType<int>("整型");
+			AddType<string>("文本");
 
 			AddTokenHandler("如果", new 如果语法处理器());
+			AddTokenHandler("返回", AScript.TokenHandlers.ReturnTokenHandler.Instance);
 		}
 	}
 }

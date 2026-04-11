@@ -11,7 +11,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			//Test01_Benchmark();
+			Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -22,7 +22,7 @@ namespace AScript.Test.Consoles
 			//Test09_Antlr4();
 			//Test10_Lambda();
 			//Test11_Convert();
-			Test12();
+			//Test12();
 			//Console.WriteLine(typeof(int[]).FullName);
 			Console.WriteLine("end");
 			Console.ReadLine();
@@ -34,11 +34,15 @@ namespace AScript.Test.Consoles
 
 			string s = @"
 整型 n=10;
-整型 x=0;
-如果 n<5 则 x=1+n;
-否则 如果 n<20 则 x=2+n;
-否则 x=3+n;
-x
+文本 s='';
+如果 n<5 则 {
+	s='小于5';
+} 否则 如果 n<20 则 {
+	s='大于等于5且小于20';
+} 否则 {
+	s='大于等于20';
+}
+返回 $'{n},{s}';
 ";
 			var script = new Script();
 			Console.WriteLine(script.Eval(s));

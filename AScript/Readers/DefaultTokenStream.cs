@@ -388,7 +388,7 @@ namespace AScript.Readers
 			if (IsNumber(c0)) return ETokenType.Number;
 			if (IsVar(c0)) return ETokenType.Word;
 			if (IsSingleChar(c0)) return ETokenType.None;
-			if (IsString(c0)) return ETokenType.String;
+			//if (IsString(c0)) return ETokenType.String;
 			if (IsOperator(c0)) return ETokenType.Operator;
 			return ETokenType.None;
 		}
@@ -400,7 +400,7 @@ namespace AScript.Readers
 
 		public virtual bool IsVar(char c)
 		{
-			return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' || c == '@';
+			return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' || c == '@' || c >= '\u4e00' && c <= '\u9fff';
 		}
 
 		public virtual bool IsString(char c0)
