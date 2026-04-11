@@ -344,7 +344,8 @@ namespace AScript.Syntaxs
 				//nextToken = tokenReader.Read();
 				nextToken = null;
 			}
-			else if (nextToken.HasValue && nextToken.Value.Type == ETokenType.Word)
+			else if (!(e.TreeBuilder.Current is OperatorNode opNode && opNode.Name == ".") &&
+				nextToken.HasValue && nextToken.Value.Type == ETokenType.Word)
 			{
 				// 类型定义 (int x 或 int Add(...))
 				var currentToken = e.CurrentToken;

@@ -28,7 +28,17 @@ namespace AScript.Nodes
 				else
 				{
 					var opNode = _Current as OperatorNode;
-					if (opNode.Right != null)
+					while (opNode != null && opNode.Name == ".")
+					{
+						c = opNode;
+						opNode = opNode.Parent;
+					}
+					_Current = opNode;
+					if (opNode == null)
+					{
+						_Root = null;
+					}
+					else if (opNode.Right != null)
 					{
 						opNode.Right = null;
 					}

@@ -55,6 +55,14 @@ namespace AScript.Nodes
 			return _Right == null ? 1 : 2;
 		}
 
+		public OperatorNode() { }
+		public OperatorNode(string name, int priority, int dataCount)
+		{
+			this.Name = name;
+			this.Priority = priority;
+			this.DataCount = dataCount;
+		}
+
 		private ITreeNode[] GetArgs(ScriptContext context)
 		{
 			int count = GetArgsCount();
