@@ -86,7 +86,7 @@ namespace AScript.Syntaxs
 			return BuildMultiStatement(buildContext, scriptContext, options, tokenReader, new EvalControl());
 		}
 
-		public virtual ITreeNode BuildMultiStatement(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false)
+		public virtual ITreeNode BuildMultiStatement(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)
 		{
 			var treeBuilder = ignore ? null : PoolManage.CreateTreeBuilder();
 			while (true)
@@ -95,7 +95,7 @@ namespace AScript.Syntaxs
 				{
 					treeBuilder.TryEvalRoot(buildContext, scriptContext, options, control);
 				}
-				var statement = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
+				var statement = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens: endTokens);
 				if (treeBuilder != null && statement != null)
 				{
 					treeBuilder.Add(buildContext, scriptContext, options, control, statement);
@@ -107,6 +107,7 @@ namespace AScript.Syntaxs
 				if (nextToken.Value.Value == ";" || nextToken.Value.Value == ",") continue;
 				tokenReader.Push(nextToken.Value);
 				if (nextToken.Value.Value == "}" || nextToken.Value.Value == ")" || nextToken.Value.Value == "]") break;
+				if (ScriptUtils.Contains(endTokens, nextToken.Value.Value)) break;
 			}
 			//if (treeBuilder != null)
 			//{

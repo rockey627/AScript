@@ -21,6 +21,11 @@ namespace AScript
 	{
 		public static readonly ScriptContext Root = new ScriptContext(null, true);
 
+		static ScriptContext()
+		{
+			Root.AddTokenHandler("#lang", LangTokenHandler.Instance);
+		}
+
 		/// <summary>
 		/// 上级
 		/// </summary>
@@ -556,7 +561,7 @@ namespace AScript
 				var langs = this.Langs;
 				if (langs == null || langs.Length == 0)
 				{
-					foreach (var lang in Script.Langs.Values.Where(a => a.Compatibility))
+					foreach (var lang in Script.Langs.Values.Where(a => a.Compatible))
 					{
 						lang.EvalFunc(functionEvalArgs);
 						if (functionEvalArgs.IsHandled)
@@ -756,7 +761,7 @@ namespace AScript
 				var langs = this.Langs;
 				if (langs == null || langs.Length == 0)
 				{
-					foreach (var lang in Script.Langs.Values.Where(a => a.Compatibility))
+					foreach (var lang in Script.Langs.Values.Where(a => a.Compatible))
 					{
 						lang.BuildFunc(functionBuildArgs);
 						if (functionBuildArgs.Result != null)
@@ -844,7 +849,7 @@ namespace AScript
 				var langs = this.Langs;
 				if (langs == null || langs.Length == 0)
 				{
-					foreach (var lang in Script.Langs.Values.Where(a => a.Compatibility))
+					foreach (var lang in Script.Langs.Values.Where(a => a.Compatible))
 					{
 						lang.BuildFunc(functionBuildArgs);
 						if (functionBuildArgs.Result != null)
@@ -1137,7 +1142,7 @@ namespace AScript
 			var langs = this.Langs;
 			if (langs == null || langs.Length == 0)
 			{
-				foreach (var lang in Script.Langs.Values.Where(a => a.Compatibility))
+				foreach (var lang in Script.Langs.Values.Where(a => a.Compatible))
 				{
 					var type = lang.EvalType(name);
 					if (type != null) return type;
@@ -1577,7 +1582,7 @@ namespace AScript
 			if (langs == null || langs.Length == 0)
 			{
 				// 所有可兼容脚本语言
-				foreach (var lang in Script.Langs.Values.Where(a => a.Compatibility))
+				foreach (var lang in Script.Langs.Values.Where(a => a.Compatible))
 				{
 					lang.HandleToken(analyzer, e);
 					if (e.IsHandled) return;

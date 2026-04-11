@@ -11,16 +11,29 @@ namespace AScript.Test.MSTests
 	[TestClass]
 	public class 中文Test
 	{
-		[TestInitialize]
-		public void Init()
+		[ClassInitialize]
+		public static void Init(TestContext context)
 		{
 			Script.Langs["中文"] = 中文语言.实例;
 		}
 
-		[TestCleanup]
-		public void Cleanup()
+		[ClassCleanup]
+		public static void Cleanup()
 		{
 			Script.Langs.TryRemove("中文", out _);
+		}
+
+		[TestMethod]
+		public void Test02()
+		{
+			string s = @"
+int n=10;
+#lang 中文,CSharp
+整型 m=20;
+#end
+m+n";
+			var script = new Script();
+			Assert.AreEqual(30, script.Eval(s));
 		}
 
 		[TestMethod]

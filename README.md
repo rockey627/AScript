@@ -218,6 +218,19 @@ script.Context.AddTokenHandler("中断", BreakTokenHandler.Instance);
 Assert.AreEqual(25, script.Eval(s));
 ```
 
+###### 多语言环境
+脚本中使用#lang语法集成其他语言
+```C#
+string s = @"
+int n=10;
+#lang 中文
+整型 m=20;
+#end
+m+n";
+var script = new Script();
+Assert.AreEqual(30, script.Eval(s));
+```
+
 ###### 编译
 ```C#
 var script = new Script();
