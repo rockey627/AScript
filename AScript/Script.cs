@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using AScript.Nodes;
+using System.Linq.Expressions;
 
 namespace AScript
 {
@@ -149,20 +150,42 @@ namespace AScript
 
 		Delegate IScriptProvider.Compile(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression)
 		{
+			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression);
+			//var node = (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Build(buildContext, scriptContext, options, new Readers.TokenReader(tokenStream, false));
+			//var body = node.Build(buildContext, scriptContext, options);
+			//PoolManage.Return(node);
+			//return buildContext.Compile(scriptContext, options, body);
+			return ((IScriptProvider)this).Lambda(buildContext, scriptContext, options, expression).Compile();
+		}
+
+		Delegate IScriptProvider.Compile(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression)
+		{
+			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
+			//var node = (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Build(buildContext, scriptContext, options, new Readers.TokenReader(tokenStream, false));
+			//var body = node.Build(buildContext, scriptContext, options);
+			//PoolManage.Return(node);
+			//return buildContext.Compile(scriptContext, options, body);
+			return ((IScriptProvider)this).Lambda(buildContext, scriptContext, options, expression).Compile();
+		}
+
+		LambdaExpression IScriptProvider.Lambda(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression)
+		{
 			var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression);
 			var node = (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Build(buildContext, scriptContext, options, new Readers.TokenReader(tokenStream, false));
 			var body = node.Build(buildContext, scriptContext, options);
 			PoolManage.Return(node);
-			return buildContext.Compile(scriptContext, options, body);
+			var bodys = body == null ? null : new[] { body };
+			return buildContext.Build(scriptContext, options, bodys);
 		}
 
-		Delegate IScriptProvider.Compile(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression)
+		LambdaExpression IScriptProvider.Lambda(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression)
 		{
 			var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
 			var node = (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Build(buildContext, scriptContext, options, new Readers.TokenReader(tokenStream, false));
 			var body = node.Build(buildContext, scriptContext, options);
 			PoolManage.Return(node);
-			return buildContext.Compile(scriptContext, options, body);
+			var bodys = body == null ? null : new[] { body };
+			return buildContext.Build(scriptContext, options, bodys);
 		}
 	}
 }
