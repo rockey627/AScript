@@ -371,6 +371,10 @@ namespace AScript.Readers
 
 				c = _reader.Read();
 			}
+			if (!c.HasValue)
+			{
+				throw new Exception($"invalid string at ({_reader.CurrentLine},{_reader.CurrentColumn}), expect {startChar}");
+			}
 		}
 
 		public virtual ETokenType GetTokenType(string token)

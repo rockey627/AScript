@@ -10,6 +10,111 @@ namespace AScript.Test.MSTests
 	public class ScriptStringTest
 	{
 		[TestMethod]
+		public void Test26_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			try
+			{
+				script.Eval("$'hello {'tom'}");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+				Assert.AreEqual("invalid string at (1,15), expect '", ex.Message);
+				return;
+			}
+			Assert.IsTrue(false);
+		}
+
+		[TestMethod]
+		public void Test26()
+		{
+			var script = new Script();
+			try
+			{
+				script.Eval("$'hello {'tom'}");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+				Assert.AreEqual("invalid string at (1,15), expect '", ex.Message);
+				return;
+			}
+			Assert.IsTrue(false);
+		}
+
+		[TestMethod]
+		public void Test25_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			try
+			{
+				script.Eval("$'hello");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+				Assert.AreEqual("invalid string at (1,7), expect '", ex.Message);
+				return;
+			}
+			Assert.IsTrue(false);
+		}
+
+		[TestMethod]
+		public void Test25()
+		{
+			var script = new Script();
+			try
+			{
+				script.Eval("$'hello");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+				Assert.AreEqual("invalid string at (1,7), expect '", ex.Message);
+				return;
+			}
+			Assert.IsTrue(false);
+		}
+
+		[TestMethod]
+		public void Test24_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			try
+			{
+				script.Eval("'hello");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+				Assert.AreEqual("invalid string at (1,6), expect '", ex.Message);
+				return;
+			}
+			Assert.IsTrue(false);
+		}
+
+		[TestMethod]
+		public void Test24()
+		{
+			var script = new Script();
+			try
+			{
+				script.Eval("'hello");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+				Assert.AreEqual("invalid string at (1,6), expect '", ex.Message);
+				return;
+			}
+			Assert.IsTrue(false);
+		}
+
+		[TestMethod]
 		public void Test23()
 		{
 			// 字符串内插中使用复杂表达式
@@ -34,7 +139,7 @@ namespace AScript.Test.MSTests
 			var script = new Script();
 			var name = "tom";
 			int age = 16;
-			Assert.AreEqual($"hello {name+"ok"}, {{age + 10}}", script.Eval(s));
+			Assert.AreEqual($"hello {name + "ok"}, {{age + 10}}", script.Eval(s));
 		}
 
 		[TestMethod]

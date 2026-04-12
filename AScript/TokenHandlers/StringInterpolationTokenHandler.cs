@@ -137,6 +137,12 @@ namespace AScript.TokenHandlers
 
 				c = _reader.Read();
 			}
+
+			if (!c.HasValue)
+			{
+				throw new Exception($"invalid string at ({_reader.CurrentLine},{_reader.CurrentColumn}), expect {startChar}");
+			}
+
 			if (!e.Options.CompileMode.HasValue || e.Options.CompileMode.Value != ECompileMode.All)
 			{
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectData(_buffer.ToString(), typeof(string)));
