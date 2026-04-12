@@ -4,15 +4,15 @@ using System;
 namespace AScript
 {
 	/// <summary>
-	/// 语法分析过程中的记号处理器
+	/// 语法分析过程中的token处理器
 	/// </summary>
 	public interface ITokenHandler
 	{
 		/// <summary>
-		/// 记号处理
+		/// token处理
 		/// </summary>
-		/// <param name="analyzer"></param>
-		/// <param name="e"></param>
+		/// <param name="analyzer">语法分析器</param>
+		/// <param name="e">当前token、语法树及上下文信息</param>
 		void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e);
 	}
 }

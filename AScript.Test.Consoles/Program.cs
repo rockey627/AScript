@@ -1,5 +1,4 @@
-﻿using AScript.Test.Consoles.中文;
-using BenchmarkDotNet.Configs;
+﻿using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using System.Linq.Expressions;
 using System.Text;
@@ -26,27 +25,6 @@ namespace AScript.Test.Consoles
 			//Console.WriteLine(typeof(int[]).FullName);
 			Console.WriteLine("end");
 			Console.ReadLine();
-		}
-
-		private static void Test12()
-		{
-			Script.Langs["中文"] = 中文语言.实例;
-
-			string s = @"
-整型 n=10;
-文本 s='';
-如果 n<5 则 {
-	s='小于5';
-} 否则 如果 n<20 则 {
-	s='大于等于5且小于20';
-} 否则 {
-	s='大于等于20';
-}
-返回 $'{n},{s}';
-";
-			var script = new Script();
-			Console.WriteLine(script.Eval(s));
-			Console.WriteLine(script.Eval(s, ECompileMode.All));
 		}
 
 		static void Test11_Convert()
