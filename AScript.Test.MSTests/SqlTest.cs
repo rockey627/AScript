@@ -28,12 +28,162 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
+		public void Test06_2()
+		{
+			string s = @"
+var matchedList = new List<Person>();
+foreach(var p in list) {
+	if (#lang sql p.Age>20 and p.Age<50 or p.Name like 'to%' or p.Name='pen') matchedList.Add(p);
+}
+matchedList;
+";
+			var list = new List<Person>
+			{
+				new Person("jim", 18),
+				new Person("tony", 60),
+				new Person("tom", 19),
+				new Person("san", 25)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			script.Context.SetVar("list", list);
+			var matchedList = script.Eval<List<Person>>(s);
+			Assert.AreEqual(3, matchedList.Count);
+			Assert.AreEqual("tony", matchedList[0].Name);
+			Assert.AreEqual("tom", matchedList[1].Name);
+			Assert.AreEqual("san", matchedList[2].Name);
+		}
+
+		[TestMethod]
+		public void Test06()
+		{
+			string s = @"
+var matchedList = new List<Person>();
+foreach(var p in list) {
+	if (#lang sql p.Age>20 and p.Age<50 or p.Name like 'to%' or p.Name='pen') matchedList.Add(p);
+}
+matchedList;
+";
+			var list = new List<Person>
+			{
+				new Person("jim", 18),
+				new Person("tony", 60),
+				new Person("tom", 19),
+				new Person("san", 25)
+			};
+			var script = new Script();
+			script.Context.AddType<Person>();
+			script.Context.SetVar("list", list);
+			var matchedList = script.Eval<List<Person>>(s);
+			Assert.AreEqual(3, matchedList.Count);
+			Assert.AreEqual("tony", matchedList[0].Name);
+			Assert.AreEqual("tom", matchedList[1].Name);
+			Assert.AreEqual("san", matchedList[2].Name);
+		}
+
+		[TestMethod]
+		public void Test05_2()
+		{
+			string s = @"
+bool isMatch(Person p) {
+	#lang sql
+	p.Age>20 and p.Age<50 or p.Name like 'to%' or p.Name='pen';
+}
+var matchedList = new List<Person>();
+foreach(var item in list) {
+	if (isMatch(item)) matchedList.Add(item);
+}
+matchedList;
+";
+			var list = new List<Person>
+			{
+				new Person("jim", 18),
+				new Person("tony", 60),
+				new Person("tom", 19),
+				new Person("san", 25)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			script.Context.SetVar("list", list);
+			var matchedList = script.Eval<List<Person>>(s);
+			Assert.AreEqual(3, matchedList.Count);
+			Assert.AreEqual("tony", matchedList[0].Name);
+			Assert.AreEqual("tom", matchedList[1].Name);
+			Assert.AreEqual("san", matchedList[2].Name);
+		}
+
+		[TestMethod]
+		public void Test05()
+		{
+			string s = @"
+bool isMatch(Person p) {
+	#lang sql
+	p.Age>20 and p.Age<50 or p.Name like 'to%' or p.Name='pen';
+}
+var matchedList = new List<Person>();
+foreach(var item in list) {
+	if (isMatch(item)) matchedList.Add(item);
+}
+matchedList;
+";
+			var list = new List<Person>
+			{
+				new Person("jim", 18),
+				new Person("tony", 60),
+				new Person("tom", 19),
+				new Person("san", 25)
+			};
+			var script = new Script();
+			script.Context.AddType<Person>();
+			script.Context.SetVar("list", list);
+			var matchedList = script.Eval<List<Person>>(s);
+			Assert.AreEqual(3, matchedList.Count);
+			Assert.AreEqual("tony", matchedList[0].Name);
+			Assert.AreEqual("tom", matchedList[1].Name);
+			Assert.AreEqual("san", matchedList[2].Name);
+		}
+
+		[TestMethod]
+		public void Test04_2()
+		{
+			string s = @"
+bool isMatch(Person p) => 
+#lang sql
+p.Age>20 and p.Age<50 or p.Name like 'to%' or p.Name='pen';
+#end
+var matchedList = new List<Person>();
+foreach(var item in list) {
+	if (isMatch(item)) matchedList.Add(item);
+}
+matchedList;
+";
+			var list = new List<Person>
+			{
+				new Person("jim", 18),
+				new Person("tony", 60),
+				new Person("tom", 19),
+				new Person("san", 25)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			script.Context.SetVar("list", list);
+			var matchedList = script.Eval<List<Person>>(s);
+			Assert.AreEqual(3, matchedList.Count);
+			Assert.AreEqual("tony", matchedList[0].Name);
+			Assert.AreEqual("tom", matchedList[1].Name);
+			Assert.AreEqual("san", matchedList[2].Name);
+		}
+
+		[TestMethod]
 		public void Test04()
 		{
 			string s = @"
 bool isMatch(Person p) => 
 #lang sql
-p.Age>20 and p.Age<50 or (p.Name like 'to%' or p.Name='pen');
+p.Age>20 and p.Age<50 or p.Name like 'to%' or p.Name='pen';
 #end
 var matchedList = new List<Person>();
 foreach(var item in list) {

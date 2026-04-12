@@ -48,7 +48,8 @@ namespace AScript.TokenHandlers
 			{
 				e.ScriptContext.Langs = oldScriptLangs;
 			}
-			analyzer.ValidateNextToken(e.TokenReader, "#end");
+			//analyzer.ValidateNextToken(e.TokenReader, "#end");
+			analyzer.TrySkipNextToken(e.TokenReader, "#end");
 			if (!e.Ignore)
 			{
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new LangNode { Langs = langs, Body = body });
