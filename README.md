@@ -239,3 +239,12 @@ var func = script.Compile<Func<int, int, int>>("a+b*2", new[] { "a", "b" });
 Assert.IsNotNull(func);
 Assert.AreEqual(11, func(3, 4));
 ```
+
+###### Lambda
+脚本生成Lambda表达式，应用场景：脚本->LINQ
+```C#
+var script = new Script();
+var whereCondition = script.Lambda<Person, bool>("p.Name=='tom' || p.Name='jim'", "p");
+IQueryable<Person> query = ...;
+var list = query.Where(whereCondition).ToList();
+```
