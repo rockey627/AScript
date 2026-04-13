@@ -110,7 +110,7 @@ namespace AScript.Nodes
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
 			//// 构建临时上下文
-			//var tempScriptContextExpression = Expression.Call(ExpressionUtils.Method_ScriptContext_Create2, buildContext.ScriptContextParameter ?? ExpressionUtils.Parameter_ScriptContext, Expression.Constant(false));
+			//var tempScriptContextExpression = Expression.Call(ExpressionUtils.Method_ScriptContext_Create2, buildContext.ScriptContextParameter ?? ExpressionUtils.Parameter_ScriptContext, ExpressionUtils.Constant_false);
 			var funcReturnType = this.ReturnSystemType;
 			if (funcReturnType == null && !string.IsNullOrEmpty(this.ReturnType))
 			{

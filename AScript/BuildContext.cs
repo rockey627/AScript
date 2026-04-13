@@ -17,6 +17,8 @@ namespace AScript
 		private LabelTarget _ContinueLabel;
 		private LabelTarget _BreakLabel;
 
+		private bool _UsedScriptContext;
+
 		public BuildContext Parent { get; set; }
 
 		public BuildContext Root
@@ -284,8 +286,9 @@ namespace AScript
 			list.Add(d);
 		}
 
-		public ParameterExpression GetScriptContextParameter()
+		public ParameterExpression GetScriptContextParameter(bool forUse = true)
 		{
+			if (forUse) this._UsedScriptContext = true;
 			var context = this;
 			do
 			{
@@ -353,10 +356,10 @@ namespace AScript
 		/// <returns></returns>
 		public Expression BuildBlock(ScriptContext scriptContext, BuildOptions options, params Expression[] body)
 		{
-			var scriptContextParameter = GetScriptContextParameter();
+			var scriptContextParameter = GetScriptContextParameter(false);
 			int _VariablesCount = _Variables == null ? 0 : _Variables.Count;
 			int _PrevExpressionsCount = _PrevExpressions == null ? 0 : _PrevExpressions.Count;
-			if (_PrevExpressionsCount == 0 && scriptContextParameter == ExpressionUtils.Parameter_ScriptContext && this.ReturnVariableExpression == null)
+			if (_PrevExpressionsCount == 0 && (!_UsedScriptContext || scriptContextParameter == ExpressionUtils.Parameter_ScriptContext) && this.ReturnVariableExpression == null)
 			{
 				if (_VariablesCount == 0)
 				{
@@ -390,7 +393,7 @@ namespace AScript
 			if (this.ReturnVariableExpression != null) blockCount++;
 			List<ParameterExpression> variables;
 			Expression variableAssignExpression;
-			if (scriptContextParameter != ExpressionUtils.Parameter_ScriptContext && this.ScriptContextParameter != null)
+			if (_UsedScriptContext && scriptContextParameter != ExpressionUtils.Parameter_ScriptContext && this.ScriptContextParameter != null)
 			{
 				// 增加参数赋值语句
 				blockCount++;
@@ -406,7 +409,7 @@ namespace AScript
 				}
 				else
 				{
-					variableAssignExpression = Expression.Assign(scriptContextParameter, Expression.Call(ExpressionUtils.Method_ScriptContext_Create2, this.Parent.GetScriptContextParameter(), Expression.Constant(false)));
+					variableAssignExpression = Expression.Assign(scriptContextParameter, Expression.Call(ExpressionUtils.Method_ScriptContext_Create2, this.Parent.GetScriptContextParameter(), ExpressionUtils.Constant_false));
 				}
 			}
 			else
@@ -514,7 +517,7 @@ namespace AScript
 			ParameterExpression[] parameters;
 			int parameterIndex;
 			int _ParameterCount = _Parameters == null ? 0 : _Parameters.Count;
-			var scriptContextParameter = GetScriptContextParameter();
+			var scriptContextParameter = GetScriptContextParameter(false);
 			if (!this.IsMain && scriptContextParameter == ExpressionUtils.Parameter_ScriptContext)
 			{
 				parameterIndex = 1;

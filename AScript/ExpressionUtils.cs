@@ -10,8 +10,12 @@ namespace AScript
 {
 	public class ExpressionUtils
 	{
+		public static readonly Expression Constant_false = Expression.Constant(false);
+		public static readonly Expression Constant_true = Expression.Constant(true);
+		public static readonly Expression Constant_null = Expression.Constant(null);
+		public static readonly Expression Constant_string_empty = Expression.Constant(string.Empty);
+
 		public static readonly ParameterExpression Parameter_ScriptContext = Expression.Parameter(typeof(ScriptContext));
-		//public static readonly ParameterExpression Variable_ScriptContext = Expression.Variable(typeof(ScriptContext));
 
 		public static readonly MethodInfo Method_ScriptContext_Create1 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(bool) });
 		public static readonly MethodInfo Method_ScriptContext_Create2 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(ScriptContext), typeof(bool) });
@@ -105,9 +109,6 @@ namespace AScript
 		public static readonly CallSiteBinder Binder_GreaterThanOrEqual = Microsoft.CSharp.RuntimeBinder.Binder.BinaryOperation(
 			CSharpBinderFlags.None, ExpressionType.GreaterThanOrEqual, null,
 			new[] { CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null), CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null) });
-
-		public static readonly Expression Constant_null = Expression.Constant(null);
-		public static readonly Expression Constant_string_empty = Expression.Constant(string.Empty);
 
 		/// <summary>
 		/// 调用node.Eval方法

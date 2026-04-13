@@ -7,8 +7,6 @@ namespace AScript.Test.MSTests.Sql
 {
 	public class LikeNode : TreeNode
 	{
-		private static readonly Expression Constant_false = Expression.Constant(false);
-		private static readonly Expression Constant_null = Expression.Constant(null);
 		private static readonly Expression Constant_StringComparison_OrdinalIgnoreCase = Expression.Constant(StringComparison.OrdinalIgnoreCase);
 		private static readonly MethodInfo Method_String_EndsWith = typeof(string).GetMethod("EndsWith", new[] { typeof(string), typeof(StringComparison) });
 		private static readonly MethodInfo Method_String_StartsWith = typeof(string).GetMethod("StartsWith", new[] { typeof(string), typeof(StringComparison) });
@@ -54,8 +52,8 @@ namespace AScript.Test.MSTests.Sql
 
 		public static Expression LikeBuild(Expression s1, string s2)
 		{
-			if (s2 == null) return Constant_false;
-			var s1NotNull = Expression.NotEqual(s1, Constant_null);
+			if (s2 == null) return ExpressionUtils.Constant_false;
+			var s1NotNull = Expression.NotEqual(s1, ExpressionUtils.Constant_null);
 			if (s2 == "") return s1NotNull;
 			Parse(s2, out int mode, out string pattern);
 			if (mode == 1)
