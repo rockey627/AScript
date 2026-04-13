@@ -10,6 +10,17 @@ namespace AScript.Test.MSTests
 	public class ScriptLambdaTest
 	{
 		[TestMethod]
+		public void Test04()
+		{
+			var script = new Script();
+			var expr = script.Lambda<Func<int>>("int test(int a,int b){ return a+b;}100 * test(5,5) * (6-2)", null);
+			Assert.IsNotNull(expr);
+			Console.WriteLine(expr.ToString());
+			var func = expr.Compile();
+			Assert.AreEqual(4000, func());
+		}
+
+		[TestMethod]
 		public void Test03()
 		{
 			var script = new Script();

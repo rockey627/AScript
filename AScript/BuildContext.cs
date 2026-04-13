@@ -347,6 +347,37 @@ namespace AScript
 		//	return Expression.Block(_Variables.Values, list);
 		//}
 
+		private List<Expression> TryExpandBodies(Expression[] bodies)
+		{
+			if (bodies == null || bodies.Length == 0) return null;
+			List<Expression> expandBodies = null;
+			for (int i = 0; i < bodies.Length; i++)
+			{
+				var body = bodies[i];
+				if (body is BlockExpression blockExpression && blockExpression.Variables.Count == 0)
+				{
+					if (expandBodies == null)
+					{
+						expandBodies = new List<Expression>();
+						for (int j = 0; j < i; j++)
+						{
+							expandBodies.Add(bodies[j]);
+						}
+					}
+					var exprs = blockExpression.Expressions;
+					for (int j = 0; j < exprs.Count; j++)
+					{
+						expandBodies.Add(exprs[j]);
+					}
+				}
+				else if (expandBodies != null)
+				{
+					expandBodies.Add(body);
+				}
+			}
+			return expandBodies;
+		}
+
 		/// <summary>
 		/// 构建Block表达式
 		/// </summary>
@@ -359,6 +390,7 @@ namespace AScript
 			var scriptContextParameter = GetScriptContextParameter(false);
 			int _VariablesCount = _Variables == null ? 0 : _Variables.Count;
 			int _PrevExpressionsCount = _PrevExpressions == null ? 0 : _PrevExpressions.Count;
+			List<Expression> expandBodies;
 			if (_PrevExpressionsCount == 0 && (!_UsedScriptContext || scriptContextParameter == ExpressionUtils.Parameter_ScriptContext) && this.ReturnVariableExpression == null)
 			{
 				if (_VariablesCount == 0)
@@ -371,15 +403,17 @@ namespace AScript
 					{
 						return body[0];
 					}
-					return Expression.Block(body);
+					expandBodies = TryExpandBodies(body);
+					return expandBodies == null ? Expression.Block(body) : Expression.Block(expandBodies);
 				}
 				//else
 				//{
 				//	return Expression.Lambda(Expression.Block(_Variables.Values, body), parameters);
 				//}
 			}
+			expandBodies = TryExpandBodies(body);
 			// 变量
-			int blockCount = _PrevExpressionsCount + (body == null ? 0 : body.Length);
+			int blockCount = _PrevExpressionsCount + (expandBodies == null ? (body == null ? 0 : body.Length) : expandBodies.Count);
 			// 变量回写语句数量
 			if (_VariablesCount > 0 && (options?.RewriteVariables ?? true))
 			{
@@ -442,7 +476,8 @@ namespace AScript
 				{
 					list.AddRange(_PrevExpressions);
 				}
-				if (body != null && body.Length > 0) list.AddRange(body);
+				if (expandBodies != null) list.AddRange(expandBodies);
+				else if (body != null && body.Length > 0) list.AddRange(body);
 			}
 			if (list != null && list.Count > 0)
 			{
