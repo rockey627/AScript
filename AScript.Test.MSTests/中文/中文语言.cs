@@ -11,6 +11,8 @@ namespace AScript.Test.MSTests.中文
 			AddType<int>("整型");
 			AddType<string>("文本");
 
+			AddFunc("=", AScript.Operators.AssignOperator.Instance);
+
 			AddTokenHandler("如果", new 如果语法处理器());
 			AddTokenHandler("返回", AScript.TokenHandlers.ReturnTokenHandler.Instance);
 		}

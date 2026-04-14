@@ -4,7 +4,7 @@ using System;
 namespace AScript.Test.MSTests
 {
 	[TestClass]
-	public class 中文Test
+	public class Lang_中文Test
 	{
 		[ClassInitialize]
 		public static void Init(TestContext context)
@@ -23,7 +23,7 @@ namespace AScript.Test.MSTests
 		{
 			string s = @"
 int n=10;
-#lang 中文,CSharp
+#lang 中文
 整型 m=20;
 #end
 m+n";

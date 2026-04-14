@@ -4,7 +4,7 @@ using System;
 namespace AScript.Test.MSTests
 {
 	[TestClass]
-	public class SqlTest
+	public class Lang_SqlTest
 	{
 		[ClassInitialize]
 		public static void Init(TestContext context)

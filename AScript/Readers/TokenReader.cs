@@ -21,7 +21,7 @@ namespace AScript.Readers
 		}
 
 		/// <summary>
-		/// 记号入栈
+		/// 记号入栈，后进先出，先进后出
 		/// </summary>
 		/// <param name="c"></param>
 		public void Push(Token c)
