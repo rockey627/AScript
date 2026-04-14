@@ -1,7 +1,6 @@
 ﻿using AScript.Nodes;
 using System;
 using System.IO;
-using System.Linq;
 using System.Linq.Expressions;
 
 namespace AScript
@@ -23,10 +22,20 @@ namespace AScript
 		/// </summary>
 		public static readonly Cache<Delegate> Cache = new Cache<Delegate>();
 
+		private ScriptContext _Context;
+
 		/// <summary>
 		/// 上下文
 		/// </summary>
-		public ScriptContext Context { get; private set; }
+		public ScriptContext Context
+		{
+			get => _Context;
+			set
+			{
+				_Context = value;
+				this._Context?.SetTempVar(SCRIPT_ENGINE_VAR_NAME, this, false);
+			}
+		}
 
 		/// <summary>
 		/// 编译选项
@@ -46,7 +55,6 @@ namespace AScript
 		protected ScriptEngine(ScriptContext context)
 		{
 			this.Context = context;
-			this.Context.SetTempVar(SCRIPT_ENGINE_VAR_NAME, this, false);
 		}
 		public ScriptEngine(IScriptProvider scriptProvider) : this()
 		{
@@ -1181,6 +1189,45 @@ namespace AScript
 			return this.ScriptProvider.Lambda(buildContext, this.Context, buildOptions, expression);
 		}
 
+		public LambdaExpression Lambda(ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			if (expression == null) return null;
+			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
+			int argNamesCount = argNames == null ? 0 : argNames.Length;
+			if (argTypesCount != argNamesCount)
+			{
+				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+			}
+
+			var buildContext = new BuildContext(null)
+			{
+				ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
+				ReturnType = returnType
+			};
+			if (argTypesCount > 0)
+			{
+				for (int i = 0; i < argTypesCount; i++)
+				{
+					string name = argNames[i];
+					Type type = argTypes[i];
+					buildContext.Parameters.Add(name, Expression.Parameter(type, name));
+				}
+			}
+			BuildOptions buildOptions;
+			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				buildOptions = this.Options;
+			}
+			else
+			{
+				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
+			}
+			var body = expression.Build(buildContext, this.Context, buildOptions);
+			PoolManage.Return(expression);
+			var bodys = body == null ? null : new[] { body };
+			return buildContext.Build(this.Context, buildOptions, bodys);
+		}
+
 		public Expression<TDelegate> Lambda<TDelegate>(string expression, string[] argNames) where TDelegate : Delegate
 		{
 			if (string.IsNullOrEmpty(expression)) return null;
@@ -1202,6 +1249,26 @@ namespace AScript
 		}
 
 		public Expression<TDelegate> Lambda<TDelegate>(Stream expression, string[] argNames) where TDelegate : Delegate
+		{
+			if (expression == null) return null;
+			var delegateType = typeof(TDelegate);
+			var argTypes = delegateType.GenericTypeArguments;
+			Type returnType;
+			if (delegateType.Name.StartsWith("Func"))
+			{
+				returnType = argTypes[argTypes.Length - 1];
+				var tmpTypes = new Type[argTypes.Length - 1];
+				Array.Copy(argTypes, 0, tmpTypes, 0, tmpTypes.Length);
+				argTypes = tmpTypes;
+			}
+			else
+			{
+				returnType = typeof(void);
+			}
+			return (Expression<TDelegate>)Lambda(expression, argTypes, argNames, returnType);
+		}
+
+		public Expression<TDelegate> Lambda<TDelegate>(ITreeNode expression, string[] argNames) where TDelegate : Delegate
 		{
 			if (expression == null) return null;
 			var delegateType = typeof(TDelegate);
@@ -1281,12 +1348,22 @@ namespace AScript
 			return Lambda(expression, argTypes, argNames, returnType)?.Compile();
 		}
 
+		public Delegate Compile(ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			return Lambda(expression, argTypes, argNames, returnType)?.Compile();
+		}
+
 		public TDelegate Compile<TDelegate>(string expression, string[] argNames) where TDelegate : Delegate
 		{
 			return Lambda<TDelegate>(expression, argNames)?.Compile();
 		}
 
 		public TDelegate Compile<TDelegate>(Stream expression, string[] argNames) where TDelegate : Delegate
+		{
+			return Lambda<TDelegate>(expression, argNames)?.Compile();
+		}
+
+		public TDelegate Compile<TDelegate>(ITreeNode expression, string[] argNames) where TDelegate : Delegate
 		{
 			return Lambda<TDelegate>(expression, argNames)?.Compile();
 		}

@@ -1,16 +1,12 @@
 ﻿using AScript.Nodes;
-using AScript.Operators;
 using AScript.Syntaxs;
 using AScript.TokenHandlers;
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Xml.Linq;
 
 namespace AScript
 {
@@ -1619,9 +1615,26 @@ namespace AScript
 			Init_CustomFunctions();
 			if (!_CustomFunctions.TryGetValue(customFunction.Name, out var list))
 			{
-				_CustomFunctions[customFunction.Name] = list = new List<CustomFunction>();
+				if (_CustomFunctions is ConcurrentDictionary<string, List<CustomFunction>> con)
+				{
+					list = con.GetOrAdd(customFunction.Name, key => new List<CustomFunction>());
+				}
+				else
+				{
+					_CustomFunctions[customFunction.Name] = list = new List<CustomFunction>();
+				}
 			}
-			list.Add(customFunction);
+			if (_ThreadSafely)
+			{
+				lock (this)
+				{
+					list.Add(customFunction);
+				}
+			}
+			else
+			{
+				list.Add(customFunction);
+			}
 		}
 
 		public void AddTempFunc(string name, Delegate d)
@@ -1629,9 +1642,26 @@ namespace AScript
 			Init_TempFunctions();
 			if (!_TempFunctions.TryGetValue(name, out var list))
 			{
-				_TempFunctions[name] = list = new List<Delegate>();
+				if (_TempFunctions is ConcurrentDictionary<string, List<Delegate>> con)
+				{
+					list = con.GetOrAdd(name, key => new List<Delegate>());
+				}
+				else
+				{
+					_TempFunctions[name] = list = new List<Delegate>();
+				}
 			}
-			list.Add(d);
+			if (_ThreadSafely)
+			{
+				lock (this)
+				{
+					list.Add(d);
+				}
+			}
+			else
+			{
+				list.Add(d);
+			}
 		}
 
 		/// <summary>
@@ -1825,9 +1855,26 @@ namespace AScript
 			Init_Functions();
 			if (!_Functions.TryGetValue(name, out var list))
 			{
-				_Functions[name] = list = new List<Delegate>();
+				if (_Functions is ConcurrentDictionary<string, List<Delegate>> con)
+				{
+					list = con.GetOrAdd(name, key => new List<Delegate>());
+				}
+				else
+				{
+					_Functions[name] = list = new List<Delegate>();
+				}
 			}
-			list.Add(d);
+			if (_ThreadSafely)
+			{
+				lock (this)
+				{
+					list.Add(d);
+				}
+			}
+			else
+			{
+				list.Add(d);
+			}
 		}
 
 		public void AddFunc<TReturn>(string name, Func<TReturn> func)

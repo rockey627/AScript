@@ -11,7 +11,7 @@ namespace AScript.Test.MSTests.Sql
 	{
 		public static readonly SqlLang Instance = new SqlLang();
 
-		public SqlLang()
+		public SqlLang() : base(true)
 		{
 			this.Compatible = false;
 
@@ -27,12 +27,9 @@ namespace AScript.Test.MSTests.Sql
 			AddFunc("or", OrElseOperator.Instance);
 
 			AddTokenHandler("and", AndTokenHandler.Instance);
-			AddTokenHandler("AND", AndTokenHandler.Instance);
 			AddTokenHandler("or", OrTokenHandler.Instance);
-			AddTokenHandler("OR", OrTokenHandler.Instance);
 			AddTokenHandler("=", EqualTokenHandler.Instance);
 			AddTokenHandler("like", LikeTokenHandler.Instance);
-			AddTokenHandler("LIKE", LikeTokenHandler.Instance);
 		}
 	}
 }

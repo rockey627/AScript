@@ -3,11 +3,9 @@ using AScript.Syntaxs;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Xml.Linq;
 
 namespace AScript
 {
@@ -25,38 +23,185 @@ namespace AScript
 		/// <summary>
 		/// 函数处理器（包含操作符处理）
 		/// </summary>
-		private readonly ConcurrentDictionary<string, IList<IFunctionEvaluator>> _FunctionEvaluators = new ConcurrentDictionary<string, IList<IFunctionEvaluator>>();
+		private ConcurrentDictionary<string, IList<IFunctionEvaluator>> _FunctionEvaluators;
 		/// <summary>
 		/// 语句处理器
 		/// </summary>
-		private readonly ConcurrentDictionary<string, ITokenHandler> _TokenHandlerDict = new ConcurrentDictionary<string, ITokenHandler>();
+		private ConcurrentDictionary<string, ITokenHandler> _TokenHandlerDict;
 
-		private readonly List<ITokenHandler> _TokenHandlers = new List<ITokenHandler>();
+		private List<ITokenHandler> _TokenHandlers;
 
 		/// <summary>
 		/// 程序集
 		/// </summary>
-		private readonly ConcurrentDictionary<string, Assembly> _Assemblies = new ConcurrentDictionary<string, Assembly>();
+		private ConcurrentDictionary<string, Assembly> _Assemblies;
 		/// <summary>
 		/// 类型定义
 		/// </summary>
-		private readonly ConcurrentDictionary<string, Type> _Types = new ConcurrentDictionary<string, Type>();
+		private ConcurrentDictionary<string, Type> _Types;
 		/// <summary>
 		/// 全局变量
 		/// </summary>
-		private readonly ConcurrentDictionary<string, object> _Variables = new ConcurrentDictionary<string, object>();
+		private ConcurrentDictionary<string, object> _Variables;
 		/// <summary>
 		/// 全局变量类型
 		/// </summary>
-		private readonly ConcurrentDictionary<string, Type> _VariableTypes = new ConcurrentDictionary<string, Type>();
+		private ConcurrentDictionary<string, Type> _VariableTypes;
+		/// <summary>
+		/// 函数列表
+		/// </summary>
+		private ConcurrentDictionary<string, List<Delegate>> _Functions;
 
-		// 函数列表
-		private readonly ConcurrentDictionary<string, List<Delegate>> _Functions = new ConcurrentDictionary<string, List<Delegate>>();
+		private readonly bool _IgnoreCase;
+
+		/// <summary>
+		/// 关键字（函数名、变量名、类名）是否忽略大小写
+		/// </summary>
+		public bool IgnoreCase => _IgnoreCase;
 
 		/// <summary>
 		/// 语言兼容性，表示是否与其他语言兼容运行，如果不兼容则需指定语言执行
 		/// </summary>
 		public bool Compatible { get; set; } = true;
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public ScriptLang() { }
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="ignoreCase">关键字是否忽略大小写</param>
+		public ScriptLang(bool ignoreCase)
+		{
+			this._IgnoreCase = ignoreCase;
+		}
+
+		private void Init_FunctionEvaluators()
+		{
+			if (_FunctionEvaluators == null)
+			{
+				lock (this)
+				{
+					if (_FunctionEvaluators == null)
+					{
+						_FunctionEvaluators = _IgnoreCase ?
+							new ConcurrentDictionary<string, IList<IFunctionEvaluator>>(StringComparer.OrdinalIgnoreCase) :
+							new ConcurrentDictionary<string, IList<IFunctionEvaluator>>();
+					}
+				}
+			}
+		}
+
+		private void Init_TokenHandlerDict()
+		{
+			if (_TokenHandlerDict == null)
+			{
+				lock (this)
+				{
+					if (_TokenHandlerDict == null)
+					{
+						_TokenHandlerDict = _IgnoreCase ?
+							new ConcurrentDictionary<string, ITokenHandler>(StringComparer.OrdinalIgnoreCase) :
+							new ConcurrentDictionary<string, ITokenHandler>();
+					}
+				}
+			}
+		}
+
+		private void Init_TokenHandlers()
+		{
+			if (_TokenHandlers == null)
+			{
+				lock (this)
+				{
+					if (_TokenHandlers == null)
+					{
+						_TokenHandlers = new List<ITokenHandler>();
+					}
+				}
+			}
+		}
+
+		private void Init_Assemblies()
+		{
+			if (_Assemblies == null)
+			{
+				lock (this)
+				{
+					if (_Assemblies == null)
+					{
+						_Assemblies = _IgnoreCase ?
+							new ConcurrentDictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase) :
+							new ConcurrentDictionary<string, Assembly>();
+					}
+				}
+			}
+		}
+
+		private void Init_Types()
+		{
+			if (_Types == null)
+			{
+				lock (this)
+				{
+					if (_Types == null)
+					{
+						_Types = _IgnoreCase ?
+							new ConcurrentDictionary<string, Type>(StringComparer.OrdinalIgnoreCase) :
+							new ConcurrentDictionary<string, Type>();
+					}
+				}
+			}
+		}
+
+		private void Init_Variables()
+		{
+			if (_Variables == null)
+			{
+				lock (this)
+				{
+					if (_Variables == null)
+					{
+						_Variables = _IgnoreCase ?
+							new ConcurrentDictionary<string, object>(StringComparer.OrdinalIgnoreCase) :
+							new ConcurrentDictionary<string, object>();
+					}
+				}
+			}
+		}
+
+		private void Init_VariableTypes()
+		{
+			if (_VariableTypes == null)
+			{
+				lock (this)
+				{
+					if (_VariableTypes == null)
+					{
+						_VariableTypes = _IgnoreCase ?
+							new ConcurrentDictionary<string, Type>(StringComparer.OrdinalIgnoreCase) :
+							new ConcurrentDictionary<string, Type>();
+					}
+				}
+			}
+		}
+
+		private void Init_Functions()
+		{
+			if (_Functions == null)
+			{
+				lock (this)
+				{
+					if (_Functions == null)
+					{
+						_Functions = _IgnoreCase ?
+							new ConcurrentDictionary<string, List<Delegate>>(StringComparer.OrdinalIgnoreCase) :
+							new ConcurrentDictionary<string, List<Delegate>>();
+					}
+				}
+			}
+		}
 
 		public object EvalVar(string name)
 		{
@@ -65,9 +210,16 @@ namespace AScript
 
 		public virtual object EvalVar(string name, out Type type)
 		{
-			if (_Variables.TryGetValue(name, out var v))
+			if (_Variables != null && _Variables.TryGetValue(name, out var v))
 			{
-				_VariableTypes.TryGetValue(name, out type);
+				if (_VariableTypes == null)
+				{
+					type = v?.GetType();
+				}
+				else if (!_VariableTypes.TryGetValue(name, out type))
+				{
+					type = v?.GetType();
+				}
 				return v;
 			}
 			// 没有变量，则查找类
@@ -83,7 +235,7 @@ namespace AScript
 
 		public virtual Type EvalType(string name)
 		{
-			if (this._Types.TryGetValue(name, out var type))
+			if (_Types != null && _Types.TryGetValue(name, out var type))
 			{
 				return type;
 			}
@@ -129,7 +281,7 @@ namespace AScript
 
 		public void EvalFunc(FunctionEvalArgs e)
 		{
-			if (this._Functions.TryGetValue(e.Name, out var list2))
+			if (_Functions != null && _Functions.TryGetValue(e.Name, out var list2))
 			{
 				var types = new Type[e.Args.Count];
 				var datas = new object[e.Args.Count];
@@ -166,7 +318,7 @@ namespace AScript
 
 		public void BuildFunc(FunctionBuildArgs e)
 		{
-			if (this._Functions.TryGetValue(e.Name, out var list2))
+			if (_Functions != null && _Functions.TryGetValue(e.Name, out var list2))
 			{
 				var argExprs = (e.ArgExprs is Expression[] eas) ? eas : e.ArgExprs?.ToArray();
 				Type[] argTypes = null;
@@ -182,6 +334,7 @@ namespace AScript
 
 		public void AddType(string name, Type type)
 		{
+			Init_Types();
 			this._Types[name] = type;
 		}
 
@@ -202,11 +355,12 @@ namespace AScript
 
 		public void RemoveType(string name)
 		{
-			this._Types.TryRemove(name, out _);
+			this._Types?.TryRemove(name, out _);
 		}
 
 		public void AddAssembly(string name, Assembly assembly)
 		{
+			Init_Assemblies();
 			this._Assemblies[name] = assembly;
 		}
 
@@ -217,7 +371,7 @@ namespace AScript
 
 		public void RemoveAssembly(string name)
 		{
-			this._Assemblies.TryRemove(name, out _);
+			this._Assemblies?.TryRemove(name, out _);
 		}
 
 		/// <summary>
@@ -242,6 +396,8 @@ namespace AScript
 			{
 				valueType = value?.GetType() ?? typeof(object);
 			}
+			Init_Variables();
+			Init_VariableTypes();
 			this._Variables[name] = value;
 			this._VariableTypes[name] = valueType;
 		}
@@ -259,12 +415,13 @@ namespace AScript
 
 		public virtual void RemoveVar(string name)
 		{
-			this._Variables.TryRemove(name, out _);
-			this._VariableTypes.TryRemove(name, out _);
+			this._Variables?.TryRemove(name, out _);
+			this._VariableTypes?.TryRemove(name, out _);
 		}
 
 		public void AddFunc(string name, IFunctionEvaluator evaluator)
 		{
+			Init_FunctionEvaluators();
 			if (!_FunctionEvaluators.TryGetValue(name, out var list))
 			{
 				list = _FunctionEvaluators.GetOrAdd(name, k => new List<IFunctionEvaluator>());
@@ -385,11 +542,15 @@ namespace AScript
 
 		public void AddFunc(string name, Delegate d)
 		{
+			Init_Functions();
 			if (!_Functions.TryGetValue(name, out var list))
 			{
-				_Functions[name] = list = new List<Delegate>();
+				list = _Functions.GetOrAdd(name, key => new List<Delegate>());
 			}
-			list.Add(d);
+			lock (this)
+			{
+				list.Add(d);
+			}
 		}
 
 		public void AddFunc<TReturn>(string name, Func<TReturn> func)
@@ -456,7 +617,7 @@ namespace AScript
 		{
 			if (e.IsHandled) return;
 
-			if (_FunctionEvaluators.TryGetValue(e.Name, out var list))
+			if (_FunctionEvaluators != null && _FunctionEvaluators.TryGetValue(e.Name, out var list))
 			{
 				foreach (var item in list)
 				{
@@ -472,7 +633,7 @@ namespace AScript
 		{
 			if (e.Result != null) return;
 
-			if (_FunctionEvaluators.TryGetValue(e.Name, out var list))
+			if (_FunctionEvaluators != null && _FunctionEvaluators.TryGetValue(e.Name, out var list))
 			{
 				foreach (var item in list)
 				{
@@ -489,26 +650,31 @@ namespace AScript
 
 		public void AddTokenHandler(string name, ITokenHandler handler)
 		{
+			Init_TokenHandlerDict();
 			_TokenHandlerDict[name] = handler;
 		}
 
 		public void AddTokenHandler(ITokenHandler handler)
 		{
+			Init_TokenHandlers();
 			_TokenHandlers.Add(handler);
 		}
 
 		public void HandleToken(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			if (e.IsHandled) return;
-			if (_TokenHandlerDict.TryGetValue(e.CurrentToken.Value, out var handler))
+			if (_TokenHandlerDict != null && _TokenHandlerDict.TryGetValue(e.CurrentToken.Value, out var handler))
 			{
 				handler.Build(analyzer, e);
 				if (e.IsHandled) return;
 			}
-			for (int i = 0; i < _TokenHandlers.Count; i++)
+			if (_TokenHandlers != null)
 			{
-				_TokenHandlers[i].Build(analyzer, e);
-				if (e.IsHandled) return;
+				for (int i = 0; i < _TokenHandlers.Count; i++)
+				{
+					_TokenHandlers[i].Build(analyzer, e);
+					if (e.IsHandled) return;
+				}
 			}
 		}
 	}

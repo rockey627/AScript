@@ -22,8 +22,8 @@ namespace AScript.Test.MSTests.中文
 
 			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: _StatementEndTokens);
 			analyzer.ValidateNextToken(e.TokenReader, "则");
-			var createAllOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			var body = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createAllOptions, e.TokenReader, e.Control, e.Ignore, endTokens: _StatementEndTokens);
+			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
+			var body = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: _StatementEndTokens);
 			var node = new IfNode { Condition = condition, Body = body };
 			var nextToken = e.TokenReader.Read();
 			if (nextToken.HasValue && nextToken.Value.Type != ETokenType.String && nextToken.Value.Value == ";")
@@ -34,7 +34,7 @@ namespace AScript.Test.MSTests.中文
 			{
 				if (nextToken.Value.Value == "否则")
 				{
-					node.Else = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createAllOptions, e.TokenReader, e.Control, e.Ignore);
+					node.Else = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
 				}
 				else
 				{

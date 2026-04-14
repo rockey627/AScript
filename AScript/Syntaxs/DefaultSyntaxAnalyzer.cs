@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Reflection;
 
 namespace AScript.Syntaxs
@@ -194,7 +193,7 @@ namespace AScript.Syntaxs
 						OnTokenAnalyzing(e);
 						if (!e.IsHandled)
 						{
-							ParseIdentifierOrOperator(e);
+							ParseIdentifierOrOperator(e, endTokens);
 						}
 						if (e.End) break;
 					}
@@ -325,7 +324,7 @@ namespace AScript.Syntaxs
 			}
 		}
 
-		private void ParseIdentifierOrOperator(TokenAnalyzingArgs e)
+		private void ParseIdentifierOrOperator(TokenAnalyzingArgs e, IEnumerable<string> endTokens = null)
 		{
 			if (e.Ignore) return;
 
@@ -346,7 +345,7 @@ namespace AScript.Syntaxs
 				nextToken = null;
 			}
 			else if (!(e.TreeBuilder.Current is OperatorNode opNode && opNode.Name == ".") &&
-				nextToken.HasValue && nextToken.Value.Type == ETokenType.Word)
+				nextToken.HasValue && nextToken.Value.Type == ETokenType.Word && !ScriptUtils.Contains(endTokens, nextToken.Value.Value))
 			{
 				// 类型定义 (int x 或 int Add(...))
 				var currentToken = e.CurrentToken;

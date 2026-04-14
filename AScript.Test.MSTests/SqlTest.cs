@@ -1,15 +1,5 @@
-﻿using AScript.Nodes;
-using AScript.Operators;
-using AScript.Syntaxs;
-using AScript.Test.MSTests.Sql;
+﻿using AScript.Test.MSTests.Sql;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AScript.Test.MSTests
 {
@@ -26,6 +16,41 @@ namespace AScript.Test.MSTests
 		public static void Cleanup()
 		{
 			Script.Langs.TryRemove("sql", out _);
+		}
+
+		[TestMethod]
+		public void Test07_2()
+		{
+			string s = @"
+bool a = #lang sql age=10 #end
+a = !a;
+a ? 1 : 2;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("age", 10);
+			Assert.AreEqual(2, script.Eval(s));
+			script.Context.SetVar("age", 12);
+			Assert.AreEqual(1, script.Eval(s));
+			script.Context.SetVar("age", 10);
+			Assert.AreEqual(2, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test07()
+		{
+			string s = @"
+bool a = #lang sql age=10 #end
+a = !a;
+a ? 1 : 2;
+";
+			var script = new Script();
+			script.Context.SetVar("age", 10);
+			Assert.AreEqual(2, script.Eval(s));
+			script.Context.SetVar("age", 12);
+			Assert.AreEqual(1, script.Eval(s));
+			script.Context.SetVar("age", 10);
+			Assert.AreEqual(2, script.Eval(s));
 		}
 
 		[TestMethod]
@@ -311,6 +336,80 @@ matchedList;
 			Assert.AreEqual("tony", matchedList[0].Name);
 			Assert.AreEqual("tom", matchedList[1].Name);
 			Assert.AreEqual("san", matchedList[2].Name);
+		}
+
+		[TestMethod]
+		public void Test01_6()
+		{
+			string s = "p.Age>20 AND p.Age<50 Or p.Name like 'to%' OR p.Name='san'";
+			var p = new Person("tom", 60);
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("p", p);
+			Assert.AreEqual(true, script.Eval(s));
+			p.Name = "jim";
+			Assert.AreEqual(false, script.Eval(s));
+			p.Name = "san";
+			Assert.AreEqual(true, script.Eval(s));
+			p.Name = "jim";
+			p.Age = 30;
+			Assert.AreEqual(true, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test01_5()
+		{
+			string s = "p.Age>20 AND p.Age<50 Or p.Name like 'to%' OR p.Name='san'";
+			var p = new Person("tom", 60);
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("p", p);
+			Assert.AreEqual(true, script.Eval(s));
+			p.Name = "jim";
+			Assert.AreEqual(false, script.Eval(s));
+			p.Name = "san";
+			Assert.AreEqual(true, script.Eval(s));
+			p.Name = "jim";
+			p.Age = 30;
+			Assert.AreEqual(true, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test01_4()
+		{
+			string s = "p.Age>20 AND p.Age<50 OR p.Name like 'to%' OR p.Name='san'";
+			var p = new Person("tom", 60);
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("p", p);
+			Assert.AreEqual(true, script.Eval(s));
+			p.Name = "jim";
+			Assert.AreEqual(false, script.Eval(s));
+			p.Name = "san";
+			Assert.AreEqual(true, script.Eval(s));
+			p.Name = "jim";
+			p.Age = 30;
+			Assert.AreEqual(true, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test01_3()
+		{
+			string s = "p.Age>20 AND p.Age<50 OR p.Name like 'to%' OR p.Name='san'";
+			var p = new Person("tom", 60);
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("p", p);
+			Assert.AreEqual(true, script.Eval(s));
+			p.Name = "jim";
+			Assert.AreEqual(false, script.Eval(s));
+			p.Name = "san";
+			Assert.AreEqual(true, script.Eval(s));
+			p.Name = "jim";
+			p.Age = 30;
+			Assert.AreEqual(true, script.Eval(s));
 		}
 
 		[TestMethod]
