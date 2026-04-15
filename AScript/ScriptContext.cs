@@ -386,7 +386,7 @@ namespace AScript
 			var langs = this.Langs;
 			if (langs == null || langs.Length == 0)
 			{
-				foreach (var item in Script.Langs.Values.Where(a=>a.Compatible))
+				foreach (var item in Script.Langs.Values.Where(a => a.Compatible))
 				{
 					var stream = item.GetTokenStream(charReader);
 					if (stream != null) return stream;
@@ -1050,6 +1050,19 @@ namespace AScript
 			//			}
 			//			return Expression.Call(Expression.Constant(d.Target), d.Method, argExprs);
 
+			if (argExprs != null)
+			{
+				var parameters = d.Method.GetParameters();
+				for (int i = 0; i < argExprs.Length; i++)
+				{
+					var p = parameters[hasClosure ? i + 1 : i];
+					var arg = argExprs[i];
+					if (arg.Type != p.ParameterType)
+					{
+						argExprs[i] = Expression.Convert(arg, p.ParameterType);
+					}
+				}
+			}
 			return Expression.Invoke(Expression.Constant(d), argExprs);
 		}
 
@@ -1110,6 +1123,19 @@ namespace AScript
 			//{
 			//	return Expression.Call(d.Method, argExprs);
 			//}
+			if (argExprs != null)
+			{
+				var parameters = d.Parameters;
+				for (int i = 0; i < argExprs.Length; i++)
+				{
+					var p = parameters[hasClosure ? i + 1 : i];
+					var arg = argExprs[i];
+					if (arg.Type != p.Type)
+					{
+						argExprs[i] = Expression.Convert(arg, p.Type);
+					}
+				}
+			}
 			return Expression.Invoke(d, argExprs);
 		}
 

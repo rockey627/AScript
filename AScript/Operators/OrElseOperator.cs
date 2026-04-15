@@ -13,6 +13,14 @@ namespace AScript.Operators
 			{
 				var arg0 = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
 				var arg1 = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+				if (arg0.Type != typeof(bool))
+				{
+					arg0 = Expression.Convert(arg0, typeof(bool));
+				}
+				if (arg1.Type != typeof(bool))
+				{
+					arg1 = Expression.Convert(arg1, typeof(bool));
+				}
 				e.Result = Expression.OrElse(arg0, arg1);
 			}
 		}

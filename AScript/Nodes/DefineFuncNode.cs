@@ -37,7 +37,7 @@ namespace AScript.Nodes
 					for (int i = 0; i < this.Args.Length; i++)
 					{
 						var arg = this.Args[i];
-						var type = context.EvalType(arg.Type);
+						var type = arg.SystemType ?? context.EvalType(arg.Type);
 						if (type == null)
 						{
 							throw new Exception($"unknown parameter type {arg.Type} in function {this.Name}");
@@ -66,7 +66,7 @@ namespace AScript.Nodes
 					for (int i = 0; i < this.Args.Length; i++)
 					{
 						var arg = this.Args[i];
-						var type = context.EvalType(arg.Type);
+						var type = arg.SystemType ?? context.EvalType(arg.Type);
 						if (type == null)
 						{
 							throw new Exception($"unknown parameter type {arg.Type} in function {this.Name}");
@@ -132,7 +132,7 @@ namespace AScript.Nodes
 				for (int i = 0; i < this.Args.Length; i++)
 				{
 					var arg = this.Args[i];
-					var type = scriptContext.EvalType(arg.Type);
+					var type = arg.SystemType ?? scriptContext.EvalType(arg.Type);
 					if (type == null)
 					{
 						throw new Exception($"unknown parameter type {arg.Type} in function {this.Name}");
@@ -180,7 +180,7 @@ namespace AScript.Nodes
 			base.Clear();
 
 			PoolManage.Return(this.Args);
-			PoolManage.Return(this.Body);
+			//PoolManage.Return(this.Body);
 
 			this.Name = null;
 			this.ReturnType = null;
