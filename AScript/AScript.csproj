@@ -17,8 +17,8 @@ Assert.AreEqual(15, result);
 			]]>
 		</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>1.0.6.0</Version>
-		<PackageReleaseNotes>ScriptLang设置关键字是否忽略大小写；ScriptLang自定义分词器</PackageReleaseNotes>
+		<Version>1.0.6.1</Version>
+		<PackageReleaseNotes>优化参数类型转换</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
