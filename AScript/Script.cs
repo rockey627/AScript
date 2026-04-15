@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using AScript.Nodes;
 using System.Linq.Expressions;
+using AScript.Readers;
 
 namespace AScript
 {
@@ -112,13 +113,26 @@ namespace AScript
 		public ITreeNode BuildNode(string expression)
 		{
 			var buildContext = new BuildContext();
-			var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression);
+			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression);
+			var tokenStream = GetTokenStream(expression);
 			var node = (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Build(buildContext, this.Context, new BuildOptions(this.Options) { CreateFullTreeNode = true }, new Readers.TokenReader(tokenStream, false));
 			if (node is TreeBuilder treeBuilder)
 			{
 				return treeBuilder.Root;
 			}
 			return node;
+		}
+
+		private ITokenStream GetTokenStream(string expression)
+		{
+			var charReader = new CharReader(new StringCharStream(expression), true);
+			return this.Context.GetTokenStream(charReader) ?? (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(charReader);
+		}
+
+		private ITokenStream GetTokenStream(Stream expression)
+		{
+			var charReader = new CharReader(new StreamCharStream(expression, true), true);
+			return this.Context.GetTokenStream(charReader) ?? (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(charReader);
 		}
 
 		/// <summary>
@@ -129,7 +143,8 @@ namespace AScript
 		public ITreeNode BuildNode(Stream expression)
 		{
 			var buildContext = new BuildContext();
-			var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
+			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
+			var tokenStream = GetTokenStream(expression);
 			var node = (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Build(buildContext, this.Context, new BuildOptions(this.Options) { CreateFullTreeNode = true }, new Readers.TokenReader(tokenStream, false));
 			if (node is TreeBuilder treeBuilder)
 			{
@@ -140,12 +155,16 @@ namespace AScript
 
 		object IScriptProvider.Eval(ScriptContext context, BuildOptions options, string expression, out Type returnType)
 		{
-			return (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Eval(context, options, (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression), out returnType);
+			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression);
+			var tokenStream = GetTokenStream(expression);
+			return (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Eval(context, options, tokenStream, out returnType);
 		}
 
 		object IScriptProvider.Eval(ScriptContext context, BuildOptions options, Stream expression, out Type returnType)
 		{
-			return (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Eval(context, options, (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true), out returnType);
+			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
+			var tokenStream = GetTokenStream(expression);
+			return (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Eval(context, options, tokenStream, out returnType);
 		}
 
 		Delegate IScriptProvider.Compile(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression)
@@ -170,7 +189,8 @@ namespace AScript
 
 		LambdaExpression IScriptProvider.Lambda(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression)
 		{
-			var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression);
+			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression);
+			var tokenStream = GetTokenStream(expression);
 			var node = (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Build(buildContext, scriptContext, options, new Readers.TokenReader(tokenStream, false));
 			var body = node.Build(buildContext, scriptContext, options);
 			PoolManage.Return(node);
@@ -180,7 +200,8 @@ namespace AScript
 
 		LambdaExpression IScriptProvider.Lambda(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression)
 		{
-			var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
+			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
+			var tokenStream = GetTokenStream(expression);
 			var node = (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Build(buildContext, scriptContext, options, new Readers.TokenReader(tokenStream, false));
 			var body = node.Build(buildContext, scriptContext, options);
 			PoolManage.Return(node);

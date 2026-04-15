@@ -124,11 +124,21 @@ namespace AScript.Syntaxs
 				if (t.Value.Type == ETokenType.Number)
 				{
 					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
+					else if (treeBuilder.IsFullStatement())
+					{
+						tokenReader.Push(t.Value);
+						break;
+					}
 					treeBuilder.AddData(buildContext, scriptContext, options, control, ScriptUtils.EvalNumber(t.Value.Value), null);
 				}
 				else if (t.Value.Type == ETokenType.String)
 				{
 					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
+					else if (treeBuilder.IsFullStatement())
+					{
+						tokenReader.Push(t.Value);
+						break;
+					}
 					treeBuilder.AddData(buildContext, scriptContext, options, control, t.Value.Value, typeof(string));
 				}
 				else if (t.Value.Value == ")" || t.Value.Value == "]" || t.Value.Value == "}" || t.Value.Value == "," || t.Value.Value == ";" || t.Value.Value == ":")
@@ -165,6 +175,11 @@ namespace AScript.Syntaxs
 				}
 				else if (t.Value.Value == "(")
 				{
+					if (treeBuilder != null && treeBuilder.IsFullStatement())
+					{
+						tokenReader.Push(t.Value);
+						break;
+					}
 					var statement0 = BuildMultiStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
 					ValidateNextToken(tokenReader, ")");
 					if (!ignore)
@@ -335,6 +350,13 @@ namespace AScript.Syntaxs
 				return;
 			}
 
+			if (e.TreeBuilder.IsFullStatement())
+			{
+				e.TokenReader.Push(e.CurrentToken);
+				e.End = true;
+				return;
+			}
+
 			// 标识符处理：变量、函数调用、类型定义
 			var nextToken = e.TokenReader.Read();
 			if (nextToken.HasValue && nextToken.Value.Value == "(")
@@ -344,8 +366,9 @@ namespace AScript.Syntaxs
 				//nextToken = tokenReader.Read();
 				nextToken = null;
 			}
-			else if (!(e.TreeBuilder.Current is OperatorNode opNode && opNode.Name == ".") &&
-				nextToken.HasValue && nextToken.Value.Type == ETokenType.Word && !ScriptUtils.Contains(endTokens, nextToken.Value.Value))
+			else if (!(e.TreeBuilder.Current is OperatorNode opNode && opNode.Name == ".") 
+				&& nextToken.HasValue && nextToken.Value.Type == ETokenType.Word 
+				&& !(ScriptUtils.Contains(endTokens, nextToken.Value.Value) || ScriptUtils.Contains(endTokens, "\n") && nextToken.Value.Line > e.CurrentToken.Line))
 			{
 				// 类型定义 (int x 或 int Add(...))
 				var currentToken = e.CurrentToken;

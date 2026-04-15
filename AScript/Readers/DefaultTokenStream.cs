@@ -20,9 +20,10 @@ namespace AScript.Readers
 
 		public DefaultTokenStream(string expression) : this(new StringCharStream(expression)) { }
 		public DefaultTokenStream(Stream expression, bool autoDisposeStream) : this(new StreamCharStream(expression, autoDisposeStream)) { }
-		public DefaultTokenStream(ICharStream stream)
+		public DefaultTokenStream(ICharStream stream) : this(new CharReader(stream, true)) { }
+		public DefaultTokenStream(CharReader charReader)
 		{
-			_reader = new CharReader(stream, true);
+			_reader = charReader;
 		}
 
 		public Token? Next()
@@ -32,14 +33,11 @@ namespace AScript.Readers
 			var startColumn = _reader.CurrentColumn;
 			while (c.HasValue)
 			{
-				if (c.Value == '/')
+				if (TryParseAnnotate(c.Value))
 				{
-					if (TryParseAnnotate())
-					{
-						if (_buffer.Length > 0) break;
-						c = _reader.Read();
-						continue;
-					}
+					if (_buffer.Length > 0) break;
+					c = _reader.Read();
+					continue;
 				}
 				// 
 				if (c.Value == '.')
@@ -98,6 +96,7 @@ namespace AScript.Readers
 				{
 					if (_buffer.Length > 0)
 					{
+						_reader.Push(c.Value);
 						break;
 					}
 					c = _reader.Read();
@@ -160,14 +159,11 @@ namespace AScript.Readers
 			var startColumn = _reader.CurrentColumn;
 			while (c.HasValue)
 			{
-				if (c.Value == '/')
+				if (TryParseAnnotate(c.Value))
 				{
-					if (TryParseAnnotate())
-					{
-						if (_buffer.Length > 0) break;
-						c = await _reader.ReadAsync().ConfigureAwait(false);
-						continue;
-					}
+					if (_buffer.Length > 0) break;
+					c = await _reader.ReadAsync().ConfigureAwait(false);
+					continue;
 				}
 				// 
 				if (c.Value == '.')
@@ -281,19 +277,21 @@ namespace AScript.Readers
 			return new Token(v, GetTokenType(v), startLine, startColumn);
 		}
 
-		protected virtual bool TryParseAnnotate()
+		protected virtual bool TryParseAnnotate(char currentChar)
 		{
+			if (currentChar != '/') return false;
 			var nextChar = _reader.Peek();
 			if (!nextChar.HasValue) return false;
 			// 行注释
 			if (nextChar == '/')
 			{
 				_reader.Read();
-				nextChar = _reader.Read();
-				while (nextChar.HasValue && nextChar.Value != '\n')
-				{
-					nextChar = _reader.Read();
-				}
+				//nextChar = _reader.Read();
+				//while (nextChar.HasValue && nextChar.Value != '\n')
+				//{
+				//	nextChar = _reader.Read();
+				//}
+				SkipLine();
 				return true;
 			}
 			// 块注释
@@ -315,6 +313,22 @@ namespace AScript.Readers
 			}
 			// 
 			return false;
+		}
+
+		/// <summary>
+		/// 跳过行
+		/// </summary>
+		protected void SkipLine()
+		{
+			var nextChar = _reader.Read();
+			while (nextChar.HasValue && nextChar.Value != '\n')
+			{
+				nextChar = _reader.Read();
+			}
+			if (nextChar.HasValue)
+			{
+				_reader.Push(nextChar.Value);
+			}
 		}
 
 		protected virtual void ParseString(char startChar)

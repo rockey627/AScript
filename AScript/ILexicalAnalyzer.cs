@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Readers;
+using System;
 using System.IO;
 
 namespace AScript
@@ -12,5 +13,6 @@ namespace AScript
 	{
 		ITokenStream Create(string expression);
 		ITokenStream Create(Stream expression, bool autoDisposeStream);
+		ITokenStream Create(CharReader expression);
 	}
 }

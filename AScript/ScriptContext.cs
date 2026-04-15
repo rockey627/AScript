@@ -1,4 +1,5 @@
 ﻿using AScript.Nodes;
+using AScript.Readers;
 using AScript.Syntaxs;
 using AScript.TokenHandlers;
 using System;
@@ -368,6 +369,41 @@ namespace AScript
 					_CustomFunctions = new Dictionary<string, List<CustomFunction>>();
 				}
 			}
+		}
+
+		public virtual ITokenStream GetTokenStream(CharReader charReader)
+		{
+			//var c = this;
+			//while (c != null)
+			//{
+			//	if (c._TempVariables != null && c._TempVariables.TryGetValue("__Lang_TokenStream__", out var obj))
+			//	{
+			//		return (ITokenStream)obj;
+			//	}
+			//	c = c.Parent;
+			//}
+			//Init_TempVariables();
+			var langs = this.Langs;
+			if (langs == null || langs.Length == 0)
+			{
+				foreach (var item in Script.Langs.Values.Where(a=>a.Compatible))
+				{
+					var stream = item.GetTokenStream(charReader);
+					if (stream != null) return stream;
+				}
+			}
+			else
+			{
+				for (int i = 0; i < langs.Length; i++)
+				{
+					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					{
+						var stream = lang.GetTokenStream(charReader);
+						if (stream != null) return stream;
+					}
+				}
+			}
+			return null;
 		}
 
 		/// <summary>

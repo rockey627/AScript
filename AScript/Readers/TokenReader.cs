@@ -8,15 +8,14 @@ namespace AScript.Readers
 	{
 		private readonly Stack<Token> _peekStack = new Stack<Token>();
 
-		private readonly ITokenStream _stream;
 		private readonly bool _autoDisposeStream;
 
-		public ITokenStream TokenStream => _stream;
-		public CharReader CharReader => (_stream as DefaultTokenStream).CharReader;
+		public ITokenStream TokenStream { get; internal set; }
+		public CharReader CharReader => (this.TokenStream as DefaultTokenStream).CharReader;
 
 		public TokenReader(ITokenStream stream, bool autoDisposeStream)
 		{
-			_stream = stream;
+			this.TokenStream = stream;
 			_autoDisposeStream = autoDisposeStream;
 		}
 
@@ -39,7 +38,7 @@ namespace AScript.Readers
 			{
 				return _peekStack.Pop();
 			}
-			return _stream.Next();
+			return this.TokenStream.Next();
 		}
 
 		/// <summary>
@@ -52,7 +51,7 @@ namespace AScript.Readers
 			{
 				return _peekStack.Pop();
 			}
-			return await _stream.NextAsync().ConfigureAwait(false);
+			return await this.TokenStream.NextAsync().ConfigureAwait(false);
 		}
 
 		public Token? Peek()
@@ -61,7 +60,7 @@ namespace AScript.Readers
 			{
 				return _peekStack.Peek();
 			}
-			var c1 = _stream.Next();
+			var c1 = this.TokenStream.Next();
 			if (c1.HasValue) _peekStack.Push(c1.Value);
 			return c1;
 		}
@@ -72,7 +71,7 @@ namespace AScript.Readers
 			{
 				return _peekStack.Peek();
 			}
-			var c1 = await _stream.NextAsync().ConfigureAwait(false);
+			var c1 = await this.TokenStream.NextAsync().ConfigureAwait(false);
 			if (c1.HasValue) _peekStack.Push(c1.Value);
 			return c1;
 		}
@@ -82,7 +81,7 @@ namespace AScript.Readers
 			_peekStack.Clear();
 			if (_autoDisposeStream)
 			{
-				(_stream as IDisposable)?.Dispose();
+				(this.TokenStream as IDisposable)?.Dispose();
 			}
 		}
 	}

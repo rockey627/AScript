@@ -104,7 +104,7 @@ namespace AScript.Nodes
 		public TreeBuilder Add(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, ITreeNode node)
 		{
 			if (node == null) return this;
-			if (node is OperatorNode operatorNode && operatorNode.IsFull())
+			if (node is OperatorNode operatorNode && !operatorNode.IsFull())
 			{
 				return AddOperator(buildContext, scriptContext, options, control, operatorNode);
 			}
@@ -360,6 +360,16 @@ namespace AScript.Nodes
 				Clear();
 				return PoolManage.CreateObjectData(result, resultType);
 			}
+		}
+
+		public bool IsFullStatement()
+		{
+			if (_Current == null) return false;
+			if (_Current is OperatorNode op)
+			{
+				return op.IsFull();
+			}
+			return true;
 		}
 
 		//public void EvalRoot(ExpressionBuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control)

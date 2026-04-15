@@ -1,4 +1,5 @@
 ﻿using AScript.Nodes;
+using AScript.Readers;
 using AScript.Syntaxs;
 using System;
 using System.Collections.Concurrent;
@@ -201,6 +202,25 @@ namespace AScript
 					}
 				}
 			}
+		}
+
+		/// <summary>
+		/// 自定义分词器
+		/// </summary>
+		/// <param name="charReader"></param>
+		/// <returns></returns>
+		public virtual ITokenStream GetTokenStream(CharReader charReader)
+		{
+			return null;
+		}
+
+		/// <summary>
+		/// 自定义语法分析器
+		/// </summary>
+		/// <returns></returns>
+		public virtual DefaultSyntaxAnalyzer GetSyntaxAnalyzer()
+		{
+			return null;
 		}
 
 		public object EvalVar(string name)

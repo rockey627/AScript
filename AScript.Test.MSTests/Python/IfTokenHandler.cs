@@ -25,55 +25,30 @@ namespace AScript.Test.MSTests.Python
 			e.IsHandled = true;
 			e.End = true;
 
-			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: PythonLang.EndTokens);
+			// if语句中不能立即执行，所以要先创建完整的if表达式树再编译或执行
+			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
+			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: PythonLang.EndTokens);
 			analyzer.ValidateNextToken(e.TokenReader, ":");
-			analyzer.TrySkipNextToken(e.TokenReader, "\n");
-			ITreeNode bodyNode = null;
+			ITreeNode bodyNode = PythonLang.BuildSubBlock(e.CurrentToken.Column, analyzer, e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: PythonLang.EndTokens);
+			//
 			ITreeNode elseNode = null;
 			var token = e.TokenReader.Read();
-			if (token.HasValue && token.Value.Column > e.CurrentToken.Column)
-			{
-				TreeBuilder builder = new TreeBuilder();
-				int column = token.Value.Column;
-				while (token.HasValue && token.Value.Column == column)
-				{
-					e.TokenReader.Push(token.Value);
-					var statement = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: PythonLang.EndTokens);
-					builder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, statement);
-					analyzer.TrySkipNextToken(e.TokenReader, "\n");
-					token = e.TokenReader.Read();
-				}
-				bodyNode = builder;
-			}
-			// 
 			if (token.HasValue && token.Value.Column == e.CurrentToken.Column)
 			{
 				if (token.Value.Type != ETokenType.String && token.Value.Value == "elif")
 				{
 					// else if
 					e.TokenReader.Push(new Token("if", ETokenType.Word, token.Value.Line, token.Value.Column));
-					elseNode = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: PythonLang.EndTokens);
+					elseNode = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: PythonLang.EndTokens);
 				}
 				else if (token.Value.Type != ETokenType.String && token.Value.Value == "else")
 				{
 					analyzer.ValidateNextToken(e.TokenReader, ":");
-					analyzer.TrySkipNextToken(e.TokenReader, "\n");
-
-					token = e.TokenReader.Read();
-					if (token.HasValue && token.Value.Column > e.CurrentToken.Column)
-					{
-						TreeBuilder builder = new TreeBuilder();
-						int column = token.Value.Column;
-						while (token.HasValue && token.Value.Column == column)
-						{
-							e.TokenReader.Push(token.Value);
-							var statement = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: PythonLang.EndTokens);
-							builder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, statement);
-							analyzer.TrySkipNextToken(e.TokenReader, "\n");
-							token = e.TokenReader.Read();
-						}
-						elseNode = builder;
-					}
+					elseNode = PythonLang.BuildSubBlock(e.CurrentToken.Column, analyzer, e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: PythonLang.EndTokens);
+				}
+				else
+				{
+					e.TokenReader.Push(token.Value);
 				}
 			}
 			else
@@ -83,7 +58,5 @@ namespace AScript.Test.MSTests.Python
 
 			e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, new IfNode { Condition = condition, Body = bodyNode, Else = elseNode });
 		}
-
-
 	}
 }

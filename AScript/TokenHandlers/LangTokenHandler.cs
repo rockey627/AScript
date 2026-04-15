@@ -1,4 +1,5 @@
 ﻿using AScript.Nodes;
+using AScript.Readers;
 using AScript.Syntaxs;
 using System;
 using System.Collections.Generic;
@@ -12,9 +13,16 @@ namespace AScript.TokenHandlers
 	/// </summary>
 	public class LangTokenHandler : ITokenHandler
 	{
-		public static readonly LangTokenHandler Instance = new LangTokenHandler();
+		public static readonly LangTokenHandler Instance = new LangTokenHandler("#end");
 
-		private static readonly HashSet<string> _EndTokens = new HashSet<string> { "#end" };
+		private string _EndToken;
+		private readonly HashSet<string> _EndTokens;
+
+		public LangTokenHandler(string endToken)
+		{
+			_EndToken = endToken;
+			_EndTokens = new HashSet<string> { endToken };
+		}
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
@@ -22,23 +30,41 @@ namespace AScript.TokenHandlers
 			e.End = true;
 			var langList = new List<string>();
 			var token = e.TokenReader.Read();
-			while (token.HasValue && (token.Value.Type == ETokenType.Word || token.Value.Type == ETokenType.String))
+			var charReader = e.TokenReader.CharReader;
+			while (token.HasValue)
 			{
-				langList.Add(token.Value.Value);
-				token = e.TokenReader.Read();
-				if (!token.HasValue) break;
-				if (token.Value.Type == ETokenType.String || token.Value.Value != ",")
+				if (token.Value.Type != ETokenType.Word && token.Value.Type != ETokenType.String)
 				{
-					break;
+					throw new Exception($"invalid {e.CurrentToken} '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
 				}
-				token = e.TokenReader.Read();
+				langList.Add(token.Value.Value);
+				//token = e.TokenReader.Read();
+				//if (!token.HasValue) break;
+				//if (token.Value.Type == ETokenType.String || token.Value.Value != ",")
+				//{
+				//	break;
+				//}
+				var c = charReader.Read();
+				if (!c.HasValue) return;
+				if (c.Value == ',')
+				{
+					token = e.TokenReader.Read();
+					continue;
+				}
+				if (!DefaultTokenStream.SpaceChars.Contains(c.Value))
+				{
+					throw new Exception($"invalid {e.CurrentToken} '{c.Value}' at ({charReader.CurrentLine},{charReader.CurrentColumn})");
+				}
+				break;
 			}
-			if (token.HasValue)
-			{
-				e.TokenReader.Push(token.Value);
-			}
+			//if (token.HasValue)
+			//{
+			//	e.TokenReader.Push(token.Value);
+			//}
 			var oldScriptLangs = e.ScriptContext.Langs;
+			var oldTokenStream = e.TokenReader.TokenStream;
 			var langs = e.ScriptContext.Langs = langList.ToArray();
+			e.TokenReader.TokenStream = e.ScriptContext.GetTokenStream(charReader) ?? oldTokenStream;
 			ITreeNode body;
 			try
 			{
@@ -47,9 +73,9 @@ namespace AScript.TokenHandlers
 			finally
 			{
 				e.ScriptContext.Langs = oldScriptLangs;
+				e.TokenReader.TokenStream = oldTokenStream;
 			}
-			//analyzer.ValidateNextToken(e.TokenReader, "#end");
-			analyzer.TrySkipNextToken(e.TokenReader, "#end");
+			analyzer.TrySkipNextToken(e.TokenReader, _EndToken);
 			if (!e.Ignore)
 			{
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new LangNode { Langs = langs, Body = body });

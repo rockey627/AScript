@@ -17,5 +17,10 @@ namespace AScript.Lexicals
         {
             return new DefaultTokenStream(expression, autoDisposeStream);
         }
+
+        public virtual ITokenStream Create(CharReader expression)
+        {
+            return new DefaultTokenStream(expression);
+        }
     }
 }

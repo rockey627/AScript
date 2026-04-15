@@ -1,4 +1,9 @@
-﻿using AScript.Operators;
+﻿using AScript.Nodes;
+using AScript.Operators;
+using AScript.Readers;
+using AScript.Syntaxs;
+using AScript.TokenHandlers;
+using Newtonsoft.Json.Linq;
 using System;
 
 namespace AScript.Test.MSTests.Python
@@ -27,12 +32,46 @@ namespace AScript.Test.MSTests.Python
 			AddFunc("and", AndAlsoOperator.Instance);
 			AddFunc("or", OrElseOperator.Instance);
 
-			AddTokenHandler(NewLineHandler.Instance);
-
-			AddTokenHandler("#", AScript.TokenHandlers.AnnotationLineTokenHandler.Instance);
 			AddTokenHandler("and", AndTokenHandler.Instance);
 			AddTokenHandler("or", OrTokenHandler.Instance);
 			AddTokenHandler("if", IfTokenHandler.Instance);
+			// python中不能使用#lang，用@lang代替
+			AddTokenHandler("@lang", new LangTokenHandler("@end"));
+		}
+
+		public override ITokenStream GetTokenStream(CharReader charReader)
+		{
+			return new PythonTokenStream(charReader);
+		}
+
+		public static TreeBuilder BuildSubBlock(int parentColumn, DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)
+		{
+			var token = tokenReader.Read();
+			if (!token.HasValue) return null;
+			if (token.Value.Column <= parentColumn)
+			{
+				tokenReader.Push(token.Value);
+				return null;
+			}
+
+			var builder = ignore ? null : new TreeBuilder();
+			int column = token.Value.Column;
+			while (token.HasValue && token.Value.Column == column)
+			{
+				tokenReader.Push(token.Value);
+				var statement = analyzer.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens: endTokens);
+				if (!ignore)
+				{
+					builder.Add(buildContext, scriptContext, options, control, statement);
+				}
+				token = tokenReader.Read();
+			}
+			if (token.HasValue)
+			{
+				tokenReader.Push(token.Value);
+			}
+
+			return builder;
 		}
 	}
 }
