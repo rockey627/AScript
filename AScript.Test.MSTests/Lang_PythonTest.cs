@@ -49,6 +49,7 @@ exec(26)
 			// 编译执行模式
 			script.Options.CompileMode = ECompileMode.All;
 			Assert.AreEqual("3,大于等于20且小于30", script.Eval(s));
+			Assert.AreEqual("2,大于等于10且小于20", script.Eval("exec(16)"));
 		}
 
 		[TestMethod]
@@ -79,6 +80,7 @@ exec(26)
 ";
 			var script = new Script();
 			Assert.AreEqual("3,大于等于20且小于30", script.Eval(s));
+			Assert.AreEqual("2,大于等于10且小于20", script.Eval("exec(16)"));
 		}
 
 		[TestMethod]
