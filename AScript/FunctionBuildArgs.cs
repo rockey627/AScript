@@ -8,7 +8,7 @@ namespace AScript
 {
 	public class FunctionBuildArgs : EventArgs
 	{
-		private static readonly ConcurrentQueue<FunctionBuildArgs> _FunctionBuildArgsPool = new ConcurrentQueue<FunctionBuildArgs>();
+		private static readonly ConcurrentQueue<FunctionBuildArgs> _pool = new ConcurrentQueue<FunctionBuildArgs>();
 
 		/// <summary>
 		/// 
@@ -74,7 +74,7 @@ namespace AScript
 
 		public static FunctionBuildArgs Create(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args)
 		{
-			if (_FunctionBuildArgsPool.TryDequeue(out var e))
+			if (_pool.TryDequeue(out var e))
 			{
 				e.BuildContext = buildContext;
 				e.ScriptContext = scriptContext;
@@ -92,7 +92,7 @@ namespace AScript
 
 		public static FunctionBuildArgs Create(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, string name, bool isPrefix, IList<Expression> args)
 		{
-			if (_FunctionBuildArgsPool.TryDequeue(out var e))
+			if (_pool.TryDequeue(out var e))
 			{
 				e.BuildContext = buildContext;
 				e.ScriptContext = scriptContext;
@@ -119,9 +119,9 @@ namespace AScript
 			e.Args = null;
 			e.ArgExprs = null;
 			e.Result = null;
-			if (_FunctionBuildArgsPool.Count < 10)
+			if (_pool.Count < 10)
 			{
-				_FunctionBuildArgsPool.Enqueue(e);
+				_pool.Enqueue(e);
 			}
 		}
 	}

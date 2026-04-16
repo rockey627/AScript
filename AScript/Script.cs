@@ -9,7 +9,7 @@ using AScript.Readers;
 namespace AScript
 {
 	/// <summary>
-	/// 脚本执行
+	/// 脚本执行（非线程安全）
 	/// </summary>
 	public class Script : ScriptEngine, IScriptProvider
 	{

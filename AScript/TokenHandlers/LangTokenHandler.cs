@@ -51,10 +51,10 @@ namespace AScript.TokenHandlers
 					token = e.TokenReader.Read();
 					continue;
 				}
-				if (!DefaultTokenStream.SpaceChars.Contains(c.Value))
-				{
-					throw new Exception($"invalid {e.CurrentToken} '{c.Value}' at ({charReader.CurrentLine},{charReader.CurrentColumn})");
-				}
+				//if (!DefaultTokenStream.SpaceChars.Contains(c.Value))
+				//{
+				//	throw new Exception($"invalid {e.CurrentToken} '{c.Value}' at ({charReader.CurrentLine},{charReader.CurrentColumn})");
+				//}
 				break;
 			}
 			//if (token.HasValue)

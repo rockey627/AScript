@@ -8,9 +8,9 @@ namespace AScript.Readers
 {
 	public class DefaultTokenStream : ITokenStream, IDisposable
 	{
-		public static readonly HashSet<char> SpaceChars = new HashSet<char> { ' ', '\r', '\t', '\n' };
-		public static readonly HashSet<char> OperatorChars = new HashSet<char> { '=', '+', '-', '*', '/', '&', '|', '>', '<', '!', '^', '%', '~', '.', '?', ':' };
-		public static readonly HashSet<char> SingleChars = new HashSet<char> { ';', ',', '(', ')', '{', '}', '[', ']' };
+		private static readonly HashSet<char> _SpaceChars = new HashSet<char> { ' ', '\r', '\t', '\n' };
+		private static readonly HashSet<char> _OperatorChars = new HashSet<char> { '=', '+', '-', '*', '/', '&', '|', '>', '<', '!', '^', '%', '~', '.', '?', ':' };
+		private static readonly HashSet<char> _SingleChars = new HashSet<char> { ';', ',', '(', ')', '{', '}', '[', ']' };
 
 		private readonly StringBuilder _buffer = new StringBuilder();
 
@@ -428,18 +428,18 @@ namespace AScript.Readers
 
 		public virtual bool IsSpace(char c)
 		{
-			return SpaceChars.Contains(c);
+			return _SpaceChars.Contains(c);
 		}
 
 		public virtual bool IsOperator(char c)
 		{
 			//return !IsVar(c) && !IsNumber(c);
-			return OperatorChars.Contains(c);
+			return _OperatorChars.Contains(c);
 		}
 
 		public virtual bool IsSingleChar(char c)
 		{
-			return SingleChars.Contains(c);
+			return _SingleChars.Contains(c);
 		}
 
 		public void Dispose()

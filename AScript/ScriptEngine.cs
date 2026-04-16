@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 namespace AScript
 {
 	/// <summary>
-	/// 脚本引擎
+	/// 脚本引擎（非线程安全）
 	/// </summary>
 	public class ScriptEngine
 	{
