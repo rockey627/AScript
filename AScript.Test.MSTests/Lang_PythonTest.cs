@@ -20,6 +20,85 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
+		public void Test06_2()
+		{
+			string s = @"
+string exec(int a) {
+#lang python
+	#使用python语言
+	m=0
+	s=''
+	if a>0 and a<10: 
+	  m=1
+	  s='大于0且小于10'
+	elif @lang csharp a>=10 && a<20 @end: # 条件嵌入csharp语言
+	  m=2
+	  s='大于等于10且小于20'
+	elif a>=20 and a<30:
+	  m=3
+	  s='大于等于20且小于30'
+	else :
+	  m=4
+	  s='大于等于30'
+    m+','+s
+#end
+}
+exec(26)
+";
+			var tasks = new Task[100];
+			for (int i = 0; i < tasks.Length; i++)
+			{
+				tasks[i] = Task.Run(() =>
+				{
+					var script = new Script();
+					script.Options.CompileMode = ECompileMode.All;
+					Assert.AreEqual("3,大于等于20且小于30", script.Eval(s));
+					Assert.AreEqual("2,大于等于10且小于20", script.Eval("exec(16)"));
+				});
+			}
+			Task.WaitAll(tasks);
+		}
+
+		[TestMethod]
+		public void Test06()
+		{
+			string s = @"
+string exec(int a) {
+#lang python
+	#使用python语言
+	m=0
+	s=''
+	if a>0 and a<10: 
+	  m=1
+	  s='大于0且小于10'
+	elif @lang csharp a>=10 && a<20 @end: # 条件嵌入csharp语言
+	  m=2
+	  s='大于等于10且小于20'
+	elif a>=20 and a<30:
+	  m=3
+	  s='大于等于20且小于30'
+	else :
+	  m=4
+	  s='大于等于30'
+    m+','+s
+#end
+}
+exec(26)
+";
+			var tasks = new Task[100];
+			for (int i = 0; i < tasks.Length; i++)
+			{
+				tasks[i] = Task.Run(() =>
+				{
+					var script = new Script();
+					Assert.AreEqual("3,大于等于20且小于30", script.Eval(s));
+					Assert.AreEqual("2,大于等于10且小于20", script.Eval("exec(16)"));
+				});
+			}
+			Task.WaitAll(tasks);
+		}
+
+		[TestMethod]
 		public void Test05_2()
 		{
 			string s = @"
