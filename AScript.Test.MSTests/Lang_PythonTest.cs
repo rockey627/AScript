@@ -178,7 +178,7 @@ string exec(int a) {
 	else :
 	  m=4
 	  s='大于等于30'
-    m+','+s
+    return m+','+s
 #end
 }
 exec(26)
@@ -211,7 +211,7 @@ string exec(int a) {
 	else :
 	  m=4
 	  s='大于等于30'
-    m+','+s
+    return m+','+s
 #end
 }
 exec(26)

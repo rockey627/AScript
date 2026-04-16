@@ -36,6 +36,7 @@ namespace AScript.Test.MSTests.Python
 			AddTokenHandler("or", OrTokenHandler.Instance);
 			AddTokenHandler("if", IfTokenHandler.Instance);
 			AddTokenHandler("def", DefTokenHandler.Instance);
+			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			// python中不能使用#lang，用@lang代替
 			AddTokenHandler("@lang", new LangTokenHandler("@end"));
 		}
