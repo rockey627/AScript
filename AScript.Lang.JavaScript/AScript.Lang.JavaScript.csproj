@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>netstandard2.0;netstandard2.1;net45</TargetFrameworks>
+	  <GenerateDocumentationFile>true</GenerateDocumentationFile>
+	  <Authors>rockey627</Authors>
+	  <PackageTags>C# javascript js Expression Eval Evaluator Execute Function Compile Compiler Script Scripting 脚本执行 动态脚本 表达式 计算</PackageTags>
+	  <PackageLicenseUrl>https://gitee.com/rockey627/ascript/blob/master/LICENSE</PackageLicenseUrl>
+	  <PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
+	  <Description>
+		  <![CDATA[
+基于AScript扩展的javascript脚本语言；
+快速开始：
+// 添加JavaScript脚本语言
+Script.Langs.Set("js", JavaScriptLang.Instance);
+string s = @"
+#lang js // 嵌入js脚本
+function sum(int a, int b) { 
+	return a+b;
+}
+var n=10;
+sum(n,5)
+";
+var script = new Script();
+var result = script.Eval(s);
+Assert.AreEqual(15, result);
+			]]>
+	  </Description>
+	  <Version>0.0.0.0</Version>
+	  <PackageReleaseNotes></PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AScript\AScript.csproj" />
+  </ItemGroup>
+
+</Project>
