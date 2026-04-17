@@ -1,4 +1,4 @@
-﻿using AScript.Test.MSTests.Sql;
+﻿using AScript.Lang.Sql;
 using System;
 
 namespace AScript.Test.MSTests
@@ -16,6 +16,25 @@ namespace AScript.Test.MSTests
 		public static void Cleanup()
 		{
 			Script.Langs.TryRemove("sql", out _);
+		}
+		[TestMethod]
+		public void Test08()
+		{
+			var s = @"from list as a where a.age=10";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("jim", result[0].Name);
+			Assert.AreEqual("qin", result[1].Name);
 		}
 
 		[TestMethod]

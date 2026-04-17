@@ -1,5 +1,4 @@
-﻿using AScript.Test.MSTests.Python;
-using AScript.Test.MSTests.Sql;
+﻿using AScript.Lang.Python3;
 using System;
 
 namespace AScript.Test.MSTests
@@ -10,7 +9,7 @@ namespace AScript.Test.MSTests
 		[ClassInitialize]
 		public static void Init(TestContext context)
 		{
-			Script.Langs["python"] = PythonLang.Instance;
+			Script.Langs["python"] = Python3Lang.Instance;
 		}
 
 		[ClassCleanup]
