@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net45</TargetFrameworks>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<Authors>rockey627</Authors>
+		<PackageTags>C# sql mysql sqlserver Expression Eval Evaluator Execute Function Compile Compiler Script Scripting 脚本执行 动态脚本 表达式 计算</PackageTags>
+		<PackageLicenseUrl>https://gitee.com/rockey627/ascript/blob/master/LICENSE</PackageLicenseUrl>
+		<PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
+		<Description>
+			<![CDATA[
+基于AScript扩展的SQL脚本语言；
+快速开始：
+// 添加sql脚本语言
+Script.Langs.Set("sql", SqlLang.Instance);
+string s = @"
+#lang sql // 嵌入sql脚本
+from list as a where a.name like 'to%' and a.age=10
+";
+var script = new Script();
+script.Context.SetVar("list", new [] { new Person("tommy", 15), new Person("tony", 10) });
+var result = script.Eval(s);
+Assert.AreEqual(typeof(IEnumerable<Person>), result.GetType());
+			]]>
+		</Description>
+		<Version>0.0.0.0</Version>
+		<PackageReleaseNotes></PackageReleaseNotes>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AScript\AScript.csproj" />
+	</ItemGroup>
+
+</Project>
