@@ -13,8 +13,6 @@ namespace AScript.Test.MSTests.Sql
 
 		public SqlLang() : base(true)
 		{
-			this.Compatible = false;
-
 			AddFunc(".", DotOperator.Instance);
 			AddFunc("!", BoolNotOperator.Instance);
 			AddFunc("<", LessThanOperator.Instance);

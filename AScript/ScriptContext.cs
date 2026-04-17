@@ -386,10 +386,13 @@ namespace AScript
 			var langs = this.Langs;
 			if (langs == null || langs.Length == 0)
 			{
-				foreach (var item in Script.Langs.Values.Where(a => a.Compatible))
+				foreach (var item in Script.Langs.GetDefaults())
 				{
-					var stream = item.GetTokenStream(charReader);
-					if (stream != null) return stream;
+					if (Script.Langs.TryGetValue(item, out var lang))
+					{
+						var stream = lang.GetTokenStream(charReader);
+						if (stream != null) return stream;
+					}
 				}
 			}
 			else
@@ -593,13 +596,16 @@ namespace AScript
 				var langs = this.Langs;
 				if (langs == null || langs.Length == 0)
 				{
-					foreach (var lang in Script.Langs.Values.Where(a => a.Compatible))
+					foreach (var item in Script.Langs.GetDefaults())
 					{
-						lang.EvalFunc(functionEvalArgs);
-						if (functionEvalArgs.IsHandled)
+						if (Script.Langs.TryGetValue(item, out var lang))
 						{
-							returnType = functionEvalArgs.ResultType;
-							return functionEvalArgs.Result;
+							lang.EvalFunc(functionEvalArgs);
+							if (functionEvalArgs.IsHandled)
+							{
+								returnType = functionEvalArgs.ResultType;
+								return functionEvalArgs.Result;
+							}
 						}
 					}
 				}
@@ -793,12 +799,15 @@ namespace AScript
 				var langs = this.Langs;
 				if (langs == null || langs.Length == 0)
 				{
-					foreach (var lang in Script.Langs.Values.Where(a => a.Compatible))
+					foreach (var langName in Script.Langs.GetDefaults())
 					{
-						lang.BuildFunc(functionBuildArgs);
-						if (functionBuildArgs.Result != null)
+						if (Script.Langs.TryGetValue(langName, out var lang))
 						{
-							return functionBuildArgs.Result;
+							lang.BuildFunc(functionBuildArgs);
+							if (functionBuildArgs.Result != null)
+							{
+								return functionBuildArgs.Result;
+							}
 						}
 					}
 				}
@@ -881,12 +890,15 @@ namespace AScript
 				var langs = this.Langs;
 				if (langs == null || langs.Length == 0)
 				{
-					foreach (var lang in Script.Langs.Values.Where(a => a.Compatible))
+					foreach (var langName in Script.Langs.GetDefaults())
 					{
-						lang.BuildFunc(functionBuildArgs);
-						if (functionBuildArgs.Result != null)
+						if (Script.Langs.TryGetValue(langName, out var lang))
 						{
-							return functionBuildArgs.Result;
+							lang.BuildFunc(functionBuildArgs);
+							if (functionBuildArgs.Result != null)
+							{
+								return functionBuildArgs.Result;
+							}
 						}
 					}
 				}
@@ -1200,10 +1212,13 @@ namespace AScript
 			var langs = this.Langs;
 			if (langs == null || langs.Length == 0)
 			{
-				foreach (var lang in Script.Langs.Values.Where(a => a.Compatible))
+				foreach (var langName in Script.Langs.GetDefaults())
 				{
-					var type = lang.EvalType(name);
-					if (type != null) return type;
+					if (Script.Langs.TryGetValue(langName, out var lang))
+					{
+						var type = lang.EvalType(name);
+						if (type != null) return type;
+					}
 				}
 			}
 			else
@@ -1640,10 +1655,13 @@ namespace AScript
 			if (langs == null || langs.Length == 0)
 			{
 				// 所有可兼容脚本语言
-				foreach (var lang in Script.Langs.Values.Where(a => a.Compatible))
+				foreach (var langName in Script.Langs.GetDefaults())
 				{
-					lang.HandleToken(analyzer, e);
-					if (e.IsHandled) return;
+					if (Script.Langs.TryGetValue(langName, out var lang))
+					{
+						lang.HandleToken(analyzer, e);
+						if (e.IsHandled) return;
+					}
 				}
 			}
 			else

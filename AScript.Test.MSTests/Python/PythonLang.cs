@@ -16,8 +16,6 @@ namespace AScript.Test.MSTests.Python
 
 		public PythonLang()
 		{
-			this.Compatible = false;
-
 			AddFunc("=", AssignOperator.Instance);
 			AddFunc("+", PlusOperator.Instance);
 			AddFunc("-", SubtractOperator.Instance);

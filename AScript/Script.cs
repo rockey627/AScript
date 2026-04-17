@@ -16,7 +16,7 @@ namespace AScript
 		/// <summary>
 		/// 脚本语言列表
 		/// </summary>
-		public static readonly ConcurrentDictionary<string, ScriptLang> Langs = new ConcurrentDictionary<string, ScriptLang>(StringComparer.OrdinalIgnoreCase);
+		public static readonly ScriptLangCollection Langs = new ScriptLangCollection();
 
 		/// <summary>
 		/// 默认词法分析器
@@ -29,7 +29,7 @@ namespace AScript
 
 		static Script()
 		{
-			Langs["CSharp"] = CSharpLang.Instance;
+			Langs.TryAdd("CSharp", CSharpLang.Instance, true);
 		}
 
 		/// <summary>

@@ -9,7 +9,7 @@ namespace AScript.Test.MSTests
 		[ClassInitialize]
 		public static void Init(TestContext context)
 		{
-			Script.Langs["中文"] = 中文语言.实例;
+			Script.Langs.TryAdd("中文", 中文语言.实例, true);
 		}
 
 		[ClassCleanup]
