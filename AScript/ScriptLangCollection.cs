@@ -55,6 +55,26 @@ namespace AScript
 			return r;
 		}
 
+		public void Set(string name, ScriptLang lang)
+		{
+			_LangDict[name] = lang;
+		}
+
+		/// <summary>
+		/// 设置脚本语言，并设置为默认语言
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="lang"></param>
+		/// <param name="setDefault"></param>
+		public void Set(string name, ScriptLang lang, bool setDefault)
+		{
+			_LangDict[name] = lang;
+			if (setDefault)
+			{
+				SetDefault(name);
+			}
+		}
+
 		public bool TryGetValue(string name, out ScriptLang lang)
 		{
 			return _LangDict.TryGetValue(name, out lang);

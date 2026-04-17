@@ -29,7 +29,7 @@ namespace AScript
 
 		static Script()
 		{
-			Langs.TryAdd("CSharp", CSharpLang.Instance, true);
+			Langs.Set("CSharp", CSharpLang.Instance, true);
 		}
 
 		/// <summary>
