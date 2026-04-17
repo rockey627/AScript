@@ -9,6 +9,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AScript.Test.MSTests", "ASc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AScript.Test.Consoles", "AScript.Test.Consoles\AScript.Test.Consoles.csproj", "{08F7E4CD-9A0E-4CFB-A92E-09B08428DDAD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AScript.Lang.JavaScript", "AScript.Lang.JavaScript\AScript.Lang.JavaScript.csproj", "{D0DE7CA8-EB20-4F54-934E-DD987BFCB6EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AScript.Lang.Sql", "AScript.Lang.Sql\AScript.Lang.Sql.csproj", "{8954BE09-1AF8-4D46-B252-5C39E061BEE5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AScript.Lang.Python3", "AScript.Lang.Python3\AScript.Lang.Python3.csproj", "{1544317A-8F2A-43F0-BCF5-99F016F2697D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +33,18 @@ Global
 		{08F7E4CD-9A0E-4CFB-A92E-09B08428DDAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08F7E4CD-9A0E-4CFB-A92E-09B08428DDAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08F7E4CD-9A0E-4CFB-A92E-09B08428DDAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0DE7CA8-EB20-4F54-934E-DD987BFCB6EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0DE7CA8-EB20-4F54-934E-DD987BFCB6EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0DE7CA8-EB20-4F54-934E-DD987BFCB6EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0DE7CA8-EB20-4F54-934E-DD987BFCB6EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8954BE09-1AF8-4D46-B252-5C39E061BEE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8954BE09-1AF8-4D46-B252-5C39E061BEE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8954BE09-1AF8-4D46-B252-5C39E061BEE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8954BE09-1AF8-4D46-B252-5C39E061BEE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1544317A-8F2A-43F0-BCF5-99F016F2697D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1544317A-8F2A-43F0-BCF5-99F016F2697D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1544317A-8F2A-43F0-BCF5-99F016F2697D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1544317A-8F2A-43F0-BCF5-99F016F2697D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
