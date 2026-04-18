@@ -26,10 +26,16 @@ namespace AScript.Test.MSTests
 			var script = new Script();
 			script.Context.Langs = new[] { "python3" };
 			Assert.AreEqual(2.5, script.Eval("10/4"));
+			Assert.AreEqual(2.5, script.Eval("n=10\nn/=4"));
 			Assert.AreEqual(2, script.Eval("10//4"));
+			Assert.AreEqual(2, script.Eval("n=10\nn//=4"));
 			Assert.AreEqual(2.0, script.Eval("10.4//4"));
+			Assert.AreEqual(2.0, script.Eval("n:=10.4//4"));
+			Assert.AreEqual(2.0, script.Eval("n=10.4\nn//=4"));
 			Assert.AreEqual(4, script.Eval("9//2"));
 			Assert.AreEqual(-5, script.Eval("-9//2"));
+			Assert.AreEqual(-5, script.Eval("n:=-9//2"));
+			Assert.AreEqual(-5, script.Eval("n=-9\nn//=2"));
 		}
 
 		[TestMethod]

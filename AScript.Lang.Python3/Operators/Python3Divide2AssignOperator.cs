@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using AScript.Nodes;
+using System;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace AScript.Lang.Python3.Operators
 {
-	public class Python3Divide2Operator : IFunctionEvaluator, IFunctionBuilder
+	public class Python3Divide2AssignOperator : IFunctionEvaluator, IFunctionBuilder
 	{
-		public static readonly Python3Divide2Operator Instance = new Python3Divide2Operator();
+		public static readonly Python3Divide2AssignOperator Instance = new Python3Divide2AssignOperator();
 
 		public void Build(FunctionBuildArgs e)
 		{
@@ -20,32 +19,33 @@ namespace AScript.Lang.Python3.Operators
 			if (ScriptUtils.IsIntegerType(left.Type) && ScriptUtils.IsIntegerType(right.Type))
 			{
 				var maxType = ScriptUtils.GetMaxType(left.Type, right.Type);
-				e.Result = Expression.Convert(r, maxType);
+				var r2 = Expression.Convert(r, maxType);
+				e.Result = Expression.Assign(left, Expression.Convert(r2, left.Type));
 			}
 			else
 			{
-				e.Result = r;
+				e.Result = Expression.Assign(left, Expression.Convert(r, left.Type));
 			}
 		}
 
 		public void Eval(FunctionEvalArgs e)
 		{
-			if (e.Args.Count == 2)
+			if (e.Args.Count == 2 && e.Args[0] is VariableNode varNode)
 			{
-				var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
-				var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
-				var type0 = arg0.GetType();
-				var type1 = arg1.GetType();
+				var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out var type0);
+				var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type1);
 				double r = Math.Floor(Convert.ToDouble(arg0) / Convert.ToDouble(arg1));
 				if (ScriptUtils.IsIntegerType(type0) && ScriptUtils.IsIntegerType(type1))
 				{
 					var maxType = ScriptUtils.GetMaxType(type0, type1);
-					e.SetResult(ScriptUtils.Convert(r, maxType), maxType);
+					var r2 = ScriptUtils.Convert(r, maxType);
+					e.SetResult(ScriptUtils.Convert(r2, type0), type0);
 				}
 				else
 				{
 					e.SetResult(r);
 				}
+				e.Context.SetTempVar(varNode.Name, e.Result, true);
 			}
 		}
 	}
