@@ -12,7 +12,7 @@ namespace AScript.Readers
 		private static readonly HashSet<char> _OperatorChars = new HashSet<char> { '=', '+', '-', '*', '/', '&', '|', '>', '<', '!', '^', '%', '~', '.', '?', ':' };
 		private static readonly HashSet<char> _SingleChars = new HashSet<char> { ';', ',', '(', ')', '{', '}', '[', ']' };
 
-		private readonly StringBuilder _buffer = new StringBuilder();
+		protected readonly StringBuilder _buffer = new StringBuilder();
 
 		private readonly CharReader _reader;
 
@@ -31,6 +31,7 @@ namespace AScript.Readers
 			var c = _reader.Read();
 			var startLine = _reader.CurrentLine;
 			var startColumn = _reader.CurrentColumn;
+			ETokenType? tokenType = null;
 			while (c.HasValue)
 			{
 				if (TryParseAnnotate(c.Value))
@@ -38,6 +39,15 @@ namespace AScript.Readers
 					if (_buffer.Length > 0) break;
 					c = _reader.Read();
 					continue;
+				}
+				//
+				if (TryCustomParse(c.Value, out var customTokenType))
+				{
+					if (customTokenType.HasValue)
+					{
+						tokenType = customTokenType;
+					}
+					break;
 				}
 				// 
 				if (c.Value == '.')
@@ -87,9 +97,11 @@ namespace AScript.Readers
 						break;
 					}
 					ParseString(c.Value);
-					string s = _buffer.ToString();
-					_buffer.Clear();
-					return new Token(s, ETokenType.String, startLine, startColumn);
+					tokenType = ETokenType.String;
+					break;
+					//string s = _buffer.ToString();
+					//_buffer.Clear();
+					//return new Token(s, ETokenType.String, startLine, startColumn);
 				}
 				// 
 				if (IsSpace(c.Value))
@@ -146,10 +158,10 @@ namespace AScript.Readers
 				c = _reader.Read();
 			}
 			// 
-			if (_buffer.Length == 0) return null;
+			if (_buffer.Length == 0 && !tokenType.HasValue) return null;
 			string v = _buffer.ToString();
 			_buffer.Clear();
-			return new Token(v, GetTokenType(v), startLine, startColumn);
+			return new Token(v, tokenType ?? GetTokenType(v), startLine, startColumn);
 		}
 
 		public async Task<Token?> NextAsync()
@@ -157,6 +169,7 @@ namespace AScript.Readers
 			var c = await _reader.ReadAsync().ConfigureAwait(false);
 			var startLine = _reader.CurrentLine;
 			var startColumn = _reader.CurrentColumn;
+			ETokenType? tokenType = null;
 			while (c.HasValue)
 			{
 				if (TryParseAnnotate(c.Value))
@@ -164,6 +177,15 @@ namespace AScript.Readers
 					if (_buffer.Length > 0) break;
 					c = await _reader.ReadAsync().ConfigureAwait(false);
 					continue;
+				}
+				//
+				if (TryCustomParse(c.Value, out var customTokenType))
+				{
+					if (customTokenType.HasValue)
+					{
+						tokenType = customTokenType;
+					}
+					break;
 				}
 				// 
 				if (c.Value == '.')
@@ -213,9 +235,11 @@ namespace AScript.Readers
 						break;
 					}
 					ParseString(c.Value);
-					string s = _buffer.ToString();
-					_buffer.Clear();
-					return new Token(s, ETokenType.String, startLine, startColumn);
+					tokenType = ETokenType.String;
+					break;
+					//string s = _buffer.ToString();
+					//_buffer.Clear();
+					//return new Token(s, ETokenType.String, startLine, startColumn);
 				}
 				// 
 				if (IsSpace(c.Value))
@@ -271,10 +295,10 @@ namespace AScript.Readers
 				c = await _reader.ReadAsync().ConfigureAwait(false);
 			}
 			// 
-			if (_buffer.Length == 0) return null;
+			if (_buffer.Length == 0 && !tokenType.HasValue) return null;
 			string v = _buffer.ToString();
 			_buffer.Clear();
-			return new Token(v, GetTokenType(v), startLine, startColumn);
+			return new Token(v, tokenType ?? GetTokenType(v), startLine, startColumn);
 		}
 
 		protected virtual bool TryParseAnnotate(char currentChar)
@@ -312,6 +336,12 @@ namespace AScript.Readers
 				return true;
 			}
 			// 
+			return false;
+		}
+
+		protected virtual bool TryCustomParse(char currentChar, out ETokenType? tokenType)
+		{
+			tokenType = null;
 			return false;
 		}
 
