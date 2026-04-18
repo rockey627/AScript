@@ -25,6 +25,7 @@ namespace AScript.Syntaxs
 			["+="] = ASSIGN,
 			["-="] = ASSIGN,
 			["*="] = ASSIGN,
+			["**="] = ASSIGN,
 			["/="] = ASSIGN,
 			["^="] = ASSIGN,
 			["&="] = ASSIGN,

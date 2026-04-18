@@ -4,6 +4,20 @@ namespace AScript.Test.MSTests
 	public class ScriptMathTest
 	{
 		[TestMethod]
+		public void Test14()
+		{
+			var script = new Script();
+			Assert.AreEqual(-5.0, script.Eval("Math.Floor(-9.0/2)"));
+		}
+
+		[TestMethod]
+		public void Test13_Power()
+		{
+			var script = new Script();
+			Assert.AreEqual(8, script.Eval("2**3"));
+		}
+
+		[TestMethod]
 		public void Test12()
 		{
 			var script = new Script();

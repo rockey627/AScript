@@ -221,7 +221,8 @@ namespace AScript.Nodes
 			else
 			{
 				var current = _Current;
-				while (current.Parent != null && current.Parent.Priority >= operatorNode.Priority)
+				while (current.Parent != null && 
+					(current.Parent.Priority >= operatorNode.Priority || current.Parent.Left == null && current.Parent.Right != null && operatorNode.Priority < DefaultSyntaxAnalyzer.OperatorPriorities["**"]))
 				{
 					current = current.Parent;
 				}

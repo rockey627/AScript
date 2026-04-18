@@ -11,11 +11,6 @@ namespace AScript.Lang.Python3.Operators
 
 		private static readonly MethodInfo Method_Math_Floor = typeof(Math).GetMethod("Floor", new[] { typeof(double) });
 
-		private static readonly HashSet<Type> _integerTypes = new HashSet<Type>
-		{
-			typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(short), typeof(ushort), typeof(byte)
-		};
-
 		public void Build(FunctionBuildArgs e)
 		{
 			var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
@@ -24,7 +19,7 @@ namespace AScript.Lang.Python3.Operators
 			var d2 = Expression.Convert(right, typeof(double));
 			var d = Expression.Divide(d1, d2);
 			var r = Expression.Call(Method_Math_Floor, d);
-			if (IsInteger(left.Type) && IsInteger(right.Type))
+			if (ScriptUtils.IsIntegerType(left.Type) && ScriptUtils.IsIntegerType(right.Type))
 			{
 				var maxType = ScriptUtils.GetMaxType(left.Type, right.Type);
 				e.Result = Expression.Convert(r, maxType);
@@ -44,7 +39,7 @@ namespace AScript.Lang.Python3.Operators
 				var type0 = arg0.GetType();
 				var type1 = arg1.GetType();
 				double r = Math.Floor(Convert.ToDouble(arg0) / Convert.ToDouble(arg1));
-				if (IsInteger(type0) && IsInteger(type1))
+				if (ScriptUtils.IsIntegerType(type0) && ScriptUtils.IsIntegerType(type1))
 				{
 					var maxType = ScriptUtils.GetMaxType(type0, type1);
 					if (maxType == typeof(long))
@@ -65,11 +60,6 @@ namespace AScript.Lang.Python3.Operators
 					e.SetResult(r);
 				}
 			}
-		}
-
-		private bool IsInteger(Type type)
-		{
-			return _integerTypes.Contains(type);
 		}
 	}
 }

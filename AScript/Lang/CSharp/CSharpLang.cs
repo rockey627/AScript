@@ -62,6 +62,7 @@ namespace AScript.Lang.CSharp
 			AddFunc("+=", PlusAssignOperator.Instance);
 			AddFunc("-=", SubtractAssignOperator.Instance);
 			AddFunc("*=", MultiplyAssignOperator.Instance);
+			AddFunc("**=", PowerAssignOperator.Instance);
 			AddFunc("/=", DivideAssignOperator.Instance);
 			AddFunc("%=", ModuloAssignOperator.Instance);
 			AddFunc("^=", XOrAssignOperator.Instance);
@@ -75,6 +76,7 @@ namespace AScript.Lang.CSharp
 			AddFunc("+", PlusOperator.Instance);
 			AddFunc("-", SubtractOperator.Instance);
 			AddFunc("*", MultiplyOperator.Instance);
+			AddFunc("**", PowerOperator.Instance);
 			AddFunc("/", DivideOperator.Instance);
 			AddFunc("%", ModuloOperator.Instance);
 			AddFunc("&", AndOperator.Instance);

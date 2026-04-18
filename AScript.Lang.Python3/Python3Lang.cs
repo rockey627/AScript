@@ -23,6 +23,7 @@ namespace AScript.Lang.Python3
 			AddFunc("+=", PlusAssignOperator.Instance);
 			AddFunc("-=", SubtractAssignOperator.Instance);
 			AddFunc("*=", MultiplyAssignOperator.Instance);
+			AddFunc("**=", PowerAssignOperator.Instance);
 			AddFunc("/=", DivideAssignOperator.Instance);
 			AddFunc("%=", ModuloAssignOperator.Instance);
 			AddFunc("^=", XOrAssignOperator.Instance);
@@ -34,6 +35,7 @@ namespace AScript.Lang.Python3
 			AddFunc("+", PlusOperator.Instance);
 			AddFunc("-", SubtractOperator.Instance);
 			AddFunc("*", MultiplyOperator.Instance);
+			AddFunc("**", PowerOperator.Instance);
 			AddFunc("/", Python3DivideOperator.Instance);
 			AddFunc("//", Python3Divide2Operator.Instance);
 			AddFunc("%", ModuloOperator.Instance);

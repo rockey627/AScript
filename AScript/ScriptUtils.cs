@@ -16,29 +16,75 @@ namespace AScript
 			[typeof(short)] = 30,
 			[typeof(uint)] = 40,
 			[typeof(int)] = 50,
-			[typeof(float)] = 60,
-			[typeof(decimal)] = 70,
-			[typeof(double)] = 80,
+			[typeof(long)] = 60,
+			[typeof(ulong)] = 70,
+			[typeof(float)] = 80,
+			[typeof(decimal)] = 90,
+			[typeof(double)] = 100,
 			[typeof(string)] = 500,
 		};
 
 		public static bool IsIntegerType(Type type)
 		{
 			if (type == null) return false;
-			return type == typeof(long) || type == typeof(int) || type == typeof(short) ||
-				type == typeof(byte);
+			return _TypeSize.TryGetValue(type, out var size) && size <= 70;
 		}
 
 		public static bool IsFloatType(Type type)
 		{
 			if (type == null) return false;
-			return type == typeof(double) || type == typeof(float) || type == typeof(decimal);
+			return _TypeSize.TryGetValue(type, out var size) && size > 70 && size < 500;
 		}
 
 		public static bool IsNumberType(Type type)
 		{
 			if (type == null) return false;
-			return IsIntegerType(type) || IsFloatType(type);
+			return _TypeSize.TryGetValue(type, out var size) && size < 500;
+		}
+
+		public static object Convert(object v, Type type)
+		{
+			switch (Type.GetTypeCode(type))
+			{
+				case TypeCode.Boolean:
+					return System.Convert.ToBoolean(v);
+				case TypeCode.Byte:
+					return System.Convert.ToByte(v);
+				case TypeCode.Char:
+					return System.Convert.ToChar(v);
+				case TypeCode.DateTime:
+					return System.Convert.ToDateTime(v);
+				case TypeCode.DBNull:
+					return System.Convert.DBNull;
+				case TypeCode.Decimal:
+					return System.Convert.ToDecimal(v);
+				case TypeCode.Double:
+					return System.Convert.ToDouble(v);
+				case TypeCode.Empty:
+					return v;
+				case TypeCode.Int16:
+					return System.Convert.ToInt16(v);
+				case TypeCode.Int32:
+					return System.Convert.ToInt32(v);
+				case TypeCode.Int64:
+					return System.Convert.ToInt64(v);
+				case TypeCode.Object:
+					return v;
+				case TypeCode.SByte:
+					return System.Convert.ToSByte(v);
+				case TypeCode.Single:
+					return System.Convert.ToSingle(v);
+				case TypeCode.String:
+					return System.Convert.ToString(v);
+				case TypeCode.UInt16:
+					return System.Convert.ToUInt16(v);
+				case TypeCode.UInt32:
+					return System.Convert.ToUInt32(v);
+				case TypeCode.UInt64:
+					return System.Convert.ToUInt64(v);
+				default:
+					return v;
+			}
 		}
 
 		public static bool IsMatchArgType(Type inType, Type defineType)
@@ -269,8 +315,8 @@ namespace AScript
 				var c1 = number[1];
 				if (c0 == '0' && (c1 == 'x' || c1 == 'X'))
 				{
-					if (number.Length <= 10) return Convert.ToInt32(number, 16);
-					return Convert.ToInt64(number, 16);
+					if (number.Length <= 10) return System.Convert.ToInt32(number, 16);
+					return System.Convert.ToInt64(number, 16);
 				}
 			}
 			return int.Parse(number);
