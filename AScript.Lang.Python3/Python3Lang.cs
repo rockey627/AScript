@@ -8,6 +8,7 @@ using AScript.Syntaxs;
 using AScript.TokenHandlers;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace AScript.Lang.Python3
 {
@@ -60,6 +61,8 @@ namespace AScript.Lang.Python3
 			AddFunc("or", OrElseOperator.Instance);
 
 			AddFunc<ScriptContext, string, object>("exec", Exec);
+			AddFunc<int, IReadOnlyList<int>>("range", Range);
+			AddFunc<int, int, IReadOnlyList<int>>("range", Range);
 			AddAction<object>("print", s => Console.WriteLine(s));
 
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);
@@ -98,6 +101,26 @@ namespace AScript.Lang.Python3
 			var engine = ScriptEngine.GetCurrent(context);
 			if (engine == null) throw new Exception("unkown inner ScriptEngine");
 			return engine.Eval(context, expression);
+		}
+
+		private static IReadOnlyList<int> Range(int stop)
+		{
+			var arr = new int[stop];
+			for (int i = 0; i < stop; i++)
+			{
+				arr[i] = i;
+			}
+			return new ReadOnlyCollection<int>(arr);
+		}
+
+		private static IReadOnlyList<int> Range(int start, int stop)
+		{
+			var arr = new int[stop - start];
+			for (int i = start; i < stop; i++)
+			{
+				arr[i - start] = i;
+			}
+			return new ReadOnlyCollection<int>(arr);
 		}
 
 		public static TreeBuilder BuildSubBlock(int parentColumn, DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)

@@ -19,6 +19,68 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
+		public void Test11_range_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "python3" };
+			var r = script.Eval("range(-2, 4)");
+			Assert.IsTrue(r is IReadOnlyList<int>);
+			var list = (IReadOnlyList<int>)r;
+			Assert.AreEqual(6, list.Count);
+			for (int i = 0; i < list.Count; i++)
+			{
+				Assert.AreEqual(i - 2, list[i]);
+			}
+		}
+
+		[TestMethod]
+		public void Test11_range()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+			var r = script.Eval("range(-2, 4)");
+			Assert.IsTrue(r is IReadOnlyList<int>);
+			var list = (IReadOnlyList<int>)r;
+			Assert.AreEqual(6, list.Count);
+			for (int i = 0; i < list.Count; i++)
+			{
+				Assert.AreEqual(i - 2, list[i]);
+			}
+		}
+
+		[TestMethod]
+		public void Test10_range_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "python3" };
+			var r = script.Eval("range(4)");
+			Assert.IsTrue(r is IReadOnlyList<int>);
+			var list = (IReadOnlyList<int>)r;
+			Assert.AreEqual(4, list.Count);
+			for (int i = 0; i < list.Count; i++)
+			{
+				Assert.AreEqual(i, list[i]);
+			}
+		}
+
+		[TestMethod]
+		public void Test10_range()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+			var r = script.Eval("range(4)");
+			Assert.IsTrue(r is IReadOnlyList<int>);
+			var list = (IReadOnlyList<int>)r;
+			Assert.AreEqual(4, list.Count);
+			for (int i = 0; i < list.Count; i++)
+			{
+				Assert.AreEqual(i, list[i]);
+			}
+		}
+
+		[TestMethod]
 		public void Test09()
 		{
 			Console.WriteLine(Math.Floor(-9.0 / 2));
