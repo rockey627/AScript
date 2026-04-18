@@ -3,6 +3,9 @@ using System.Linq.Expressions;
 
 namespace AScript.Operators
 {
+	/// <summary>
+	/// 幂运算：2**3=8
+	/// </summary>
 	public class PowerOperator : IFunctionEvaluator, IFunctionBuilder
 	{
 		public static readonly PowerOperator Instance = new PowerOperator();

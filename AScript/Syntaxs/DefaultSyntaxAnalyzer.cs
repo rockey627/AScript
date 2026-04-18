@@ -345,7 +345,7 @@ namespace AScript.Syntaxs
 			if (e.Ignore) return;
 
 			// 检查是否是操作符
-			if (e.CurrentToken.Type == ETokenType.Operator || OperatorPriorities.TryGetValue(e.CurrentToken.Value, out _))
+			if (e.CurrentToken.Type == ETokenType.Operator)// || OperatorPriorities.TryGetValue(e.CurrentToken.Value, out _))
 			{
 				ParseOperator(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.TreeBuilder, e.CurrentToken);
 				return;
@@ -410,9 +410,10 @@ namespace AScript.Syntaxs
 
 		private void ParseOperator(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, TreeBuilder treeBuilder, Token currentToken)
 		{
-			if (OperatorPriorities.TryGetValue(currentToken.Value, out var currentPriority))
+			var currentPriority = scriptContext.GetOperatorPriority(currentToken.Value);
+			if (currentPriority.HasValue)
 			{
-				treeBuilder.AddOperator(buildContext, scriptContext, options, control, currentToken.Value, GetDataCount(currentToken.Value), currentPriority);
+				treeBuilder.AddOperator(buildContext, scriptContext, options, control, currentToken.Value, GetDataCount(currentToken.Value), currentPriority.Value);
 				return;
 			}
 			if (currentToken.Value.Length == 1)
@@ -425,7 +426,8 @@ namespace AScript.Syntaxs
 			while (s0.Length > 0)
 			{
 				string s1 = cc == s0.Length ? s0 : s0.Substring(0, cc);
-				if (OperatorPriorities.TryGetValue(s1, out var s1Priority))
+				var s1Priority = scriptContext.GetOperatorPriority(s1);
+				if (s1Priority.HasValue)
 				{
 					//treeBuilder.AddOperator(buildContext, scriptContext, options, control, s1, GetDataCount(s1), s1Priority);
 					s0 = s0.Substring(cc);

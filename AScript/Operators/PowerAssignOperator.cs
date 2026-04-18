@@ -4,6 +4,9 @@ using System.Linq.Expressions;
 
 namespace AScript.Operators
 {
+	/// <summary>
+	/// 幂运算：a**=3
+	/// </summary>
 	public class PowerAssignOperator : IFunctionEvaluator, IFunctionBuilder
 	{
 		public static readonly PowerAssignOperator Instance = new PowerAssignOperator();

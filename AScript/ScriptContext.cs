@@ -373,16 +373,6 @@ namespace AScript
 
 		public virtual ITokenStream GetTokenStream(CharReader charReader)
 		{
-			//var c = this;
-			//while (c != null)
-			//{
-			//	if (c._TempVariables != null && c._TempVariables.TryGetValue("__Lang_TokenStream__", out var obj))
-			//	{
-			//		return (ITokenStream)obj;
-			//	}
-			//	c = c.Parent;
-			//}
-			//Init_TempVariables();
 			var langs = this.Langs;
 			if (langs == null || langs.Length == 0)
 			{
@@ -405,6 +395,38 @@ namespace AScript
 						if (stream != null) return stream;
 					}
 				}
+			}
+			return null;
+		}
+
+		public virtual int? GetOperatorPriority(string op)
+		{
+			var langs = this.Langs;
+			if (langs == null || langs.Length == 0)
+			{
+				foreach (var item in Script.Langs.GetDefaults())
+				{
+					if (Script.Langs.TryGetValue(item, out var lang))
+					{
+						var priority = lang.GetOperatorPriority(op);
+						if (priority != null) return priority;
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < langs.Length; i++)
+				{
+					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					{
+						var priority = lang.GetOperatorPriority(op);
+						if (priority != null) return priority;
+					}
+				}
+			}
+			if (DefaultSyntaxAnalyzer.OperatorPriorities.TryGetValue(op, out var p))
+			{
+				return p;
 			}
 			return null;
 		}

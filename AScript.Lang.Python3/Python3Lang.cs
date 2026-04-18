@@ -19,12 +19,15 @@ namespace AScript.Lang.Python3
 
 		public Python3Lang()
 		{
-			AddFunc("=", AssignOperator.Instance);
+			AddFunc("=", Python3AssignOperator.Instance);
+			// 海象运算符：同时进行赋值和返回赋值的值
+			AddFunc(":=", Python3AssignOperator.Instance);
 			AddFunc("+=", PlusAssignOperator.Instance);
 			AddFunc("-=", SubtractAssignOperator.Instance);
 			AddFunc("*=", MultiplyAssignOperator.Instance);
 			AddFunc("**=", PowerAssignOperator.Instance);
-			AddFunc("/=", DivideAssignOperator.Instance);
+			AddFunc("/=", Python3DivideAssignOperator.Instance);
+			AddFunc("//=", Python3Divide2AssignOperator.Instance);
 			AddFunc("%=", ModuloAssignOperator.Instance);
 			AddFunc("^=", XOrAssignOperator.Instance);
 			AddFunc("&=", AndAssignOperator.Instance);
@@ -59,7 +62,6 @@ namespace AScript.Lang.Python3
 			AddFunc<ScriptContext, string, object>("exec", Exec);
 			AddAction<object>("print", s => Console.WriteLine(s));
 
-			AddTokenHandler("//", new OperatorTokenHandler("/"));
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);
 			AddTokenHandler("or", OrElseTokenHandler.Instance);
 			AddTokenHandler("if", Python3IfTokenHandler.Instance);
@@ -73,6 +75,22 @@ namespace AScript.Lang.Python3
 		public override ITokenStream GetTokenStream(CharReader charReader)
 		{
 			return new Python3TokenStream(charReader);
+		}
+
+		public override int? GetOperatorPriority(string op)
+		{
+			switch (op)
+			{
+				case ":=":
+					return DefaultSyntaxAnalyzer.OperatorPriorities["="];
+				case "//":
+					return DefaultSyntaxAnalyzer.OperatorPriorities["/"];
+				case "//=":
+					return DefaultSyntaxAnalyzer.OperatorPriorities["/="];
+				default:
+					break;
+			}
+			return base.GetOperatorPriority(op);
 		}
 
 		private static object Exec(ScriptContext context, string expression)

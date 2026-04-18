@@ -28,13 +28,13 @@ namespace AScript.Operators
 
 		public void Eval(FunctionEvalArgs e)
 		{
-			if (e.Args.Count == 2 && e.Args[0] is VariableNode)
+			if (e.Args.Count == 2 && e.Args[0] is VariableNode varNode)
 			{
 				dynamic arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out var type0);
 				dynamic arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
 				arg0 /= arg1;
 				e.SetResult(arg0, type0);
-				e.Context.SetTempVar(((VariableNode)e.Args[0]).Name, e.Result, true);
+				e.Context.SetTempVar(varNode.Name, e.Result, true);
 			}
 		}
 	}

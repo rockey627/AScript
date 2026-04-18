@@ -1,5 +1,6 @@
 ﻿using AScript.Lang.Sql.TokenHandlers;
 using AScript.Operators;
+using AScript.Syntaxs;
 using AScript.TokenHandlers;
 using System;
 
@@ -27,9 +28,20 @@ namespace AScript.Lang.Sql
 
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);
 			AddTokenHandler("or", OrElseTokenHandler.Instance);
-			AddTokenHandler("=", EqualTokenHandler.Instance);
 			AddTokenHandler("like", SqlLikeTokenHandler.Instance);
 			AddTokenHandler("from", SqlFromTokenHandler.Instance);
+		}
+
+		public override int? GetOperatorPriority(string op)
+		{
+			switch (op)
+			{
+				case "=":
+					return DefaultSyntaxAnalyzer.OperatorPriorities["=="];
+				default:
+					break;
+			}
+			return base.GetOperatorPriority(op);
 		}
 	}
 }

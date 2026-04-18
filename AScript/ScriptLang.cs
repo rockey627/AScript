@@ -223,6 +223,16 @@ namespace AScript
 			return null;
 		}
 
+		/// <summary>
+		/// 自定义操作符
+		/// </summary>
+		/// <param name="op"></param>
+		/// <returns></returns>
+		public virtual int? GetOperatorPriority(string op)
+		{
+			return null;
+		}
+
 		public object EvalVar(string name)
 		{
 			return EvalVar(name, out _);
