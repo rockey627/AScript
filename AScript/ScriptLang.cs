@@ -218,7 +218,7 @@ namespace AScript
 		/// 自定义语法分析器
 		/// </summary>
 		/// <returns></returns>
-		public virtual DefaultSyntaxAnalyzer GetSyntaxAnalyzer()
+		public virtual ISyntaxAnalyzer GetSyntaxAnalyzer()
 		{
 			return null;
 		}
