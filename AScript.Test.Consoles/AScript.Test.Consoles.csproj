@@ -8,9 +8,13 @@
 
 	<ItemGroup>
 		<PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+		<PackageReference Include="IronPython" Version="3.4.2" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\AScript.Lang.JavaScript\AScript.Lang.JavaScript.csproj" />
+		<ProjectReference Include="..\AScript.Lang.Python3\AScript.Lang.Python3.csproj" />
+		<ProjectReference Include="..\AScript.Lang.Sql\AScript.Lang.Sql.csproj" />
 		<ProjectReference Include="..\AScript\AScript.csproj" />
 	</ItemGroup>
 

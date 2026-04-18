@@ -1,5 +1,7 @@
 ﻿using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
+using IronPython.Hosting;
+using Microsoft.Scripting.Hosting;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -10,7 +12,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			Test01_Benchmark();
+			//Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -21,10 +23,40 @@ namespace AScript.Test.Consoles
 			//Test09_Antlr4();
 			//Test10_Lambda();
 			//Test11_Convert();
-			//Test12();
+			Test12_IronPython();
 			//Console.WriteLine(typeof(int[]).FullName);
 			Console.WriteLine("end");
 			Console.ReadLine();
+		}
+
+		static void Test12_IronPython()
+		{
+			string s = @"
+def exec2(a) :
+    m=0
+    s=''
+    if a>0 and a<10 : 
+        m=1
+        s='大于0且小于10'
+    elif a>=10 and a<20 :
+        m=2
+        s='大于等于10且小于20'
+    elif a>=20 and a<30 :
+        m=3
+        s='大于等于20且小于30'
+    else :
+        m=4
+        s='大于等于30'
+    return (f'{m},{s}')
+
+exec2(26)
+";
+			var engine = Python.CreateEngine();
+			ScriptScope scope = engine.CreateScope();
+			var result = engine.Execute(s, scope);
+			Console.WriteLine(result);
+			Console.WriteLine(result.GetType());
+			Console.WriteLine(engine.Execute("exec2(16)", scope));
 		}
 
 		static void Test11_Convert()
@@ -163,7 +195,7 @@ namespace AScript.Test.Consoles
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest03_Func>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest04_Var>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest05_Var>(config);
-			BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func>(config);
+			//BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func2>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest07_Type>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest08_For>(config);
@@ -174,6 +206,8 @@ namespace AScript.Test.Consoles
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest13>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest14_For>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest15_rec>(config);
+			BenchmarkRunner.Run<Benchmarks.PythonTest01>(config);
+			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();
 			//new Benchmarks.ExpressionTest06_Func().AScript1_3();
 			//new Benchmarks.ExpressionTest06_Func().AScript2_NoCache();
