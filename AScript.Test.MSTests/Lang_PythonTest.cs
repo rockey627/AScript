@@ -19,6 +19,25 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
+		public void Test12_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "python3" };
+			script.Context.SetVar("name", "tom");
+			Assert.AreEqual("hello tom", script.Eval("f'hello {name}'"));
+		}
+
+		[TestMethod]
+		public void Test12()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+			script.Context.SetVar("name", "tom");
+			Assert.AreEqual("hello tom", script.Eval("f'hello {name}'"));
+		}
+
+		[TestMethod]
 		public void Test11_range_2()
 		{
 			var script = new Script();
@@ -424,6 +443,34 @@ m+','+s
 			Assert.AreEqual("3,大于等于20且小于30", script.Eval(s));
 			script.Context.SetVar("a", 36);
 			Assert.AreEqual("4,大于等于30", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test00()
+		{
+			string s = @"
+def exec(a) :
+    m=0
+    s=''
+    if a>0 and a<10 : 
+        m=1
+        s='大于0且小于10'
+    elif a>=10 and a<20 :
+        m=2
+        s='大于等于10且小于20'
+    elif a>=20 and a<30 :
+        m=3
+        s='大于等于20且小于30'
+    else :
+        m=4
+        s='大于等于30'
+    return f'{m},{s}'
+
+exec(26)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+			Assert.AreEqual("3,大于等于20且小于30", script.Eval(s));
 		}
 	}
 }

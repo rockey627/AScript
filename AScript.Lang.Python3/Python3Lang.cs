@@ -70,6 +70,8 @@ namespace AScript.Lang.Python3
 			AddTokenHandler("if", Python3IfTokenHandler.Instance);
 			AddTokenHandler("def", Python3DefTokenHandler.Instance);
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
+			// 字符串内插值：f'{m},{n}'
+			AddTokenHandler("f", StringInterpolationTokenHandler.Instance);
 
 			// python中不能使用#lang，用@lang代替
 			AddTokenHandler("@lang", new LangTokenHandler("@end"));
