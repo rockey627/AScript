@@ -1,4 +1,5 @@
-﻿using AScript.Lang.Python3.Readers;
+﻿using AScript.Lang.Python3.Operators;
+using AScript.Lang.Python3.Readers;
 using AScript.Lang.Python3.TokenHandlers;
 using AScript.Nodes;
 using AScript.Operators;
@@ -19,10 +20,31 @@ namespace AScript.Lang.Python3
 		public Python3Lang()
 		{
 			AddFunc("=", AssignOperator.Instance);
+			AddFunc("+=", PlusAssignOperator.Instance);
+			AddFunc("-=", SubtractAssignOperator.Instance);
+			AddFunc("*=", MultiplyAssignOperator.Instance);
+			AddFunc("/=", DivideAssignOperator.Instance);
+			AddFunc("%=", ModuloAssignOperator.Instance);
+			AddFunc("^=", XOrAssignOperator.Instance);
+			AddFunc("&=", AndAssignOperator.Instance);
+			AddFunc("|=", OrAssignOperator.Instance);
+			AddFunc("?=", QuestionAssignOperator.Instance);
+			AddFunc(">>=", RightShiftAssignOperator.Instance);
+			AddFunc("<<=", LeftShiftAssignOperator.Instance);
 			AddFunc("+", PlusOperator.Instance);
 			AddFunc("-", SubtractOperator.Instance);
 			AddFunc("*", MultiplyOperator.Instance);
-			AddFunc("/", DivideOperator.Instance);
+			AddFunc("/", Python3DivideOperator.Instance);
+			AddFunc("//", Python3Divide2Operator.Instance);
+			AddFunc("%", ModuloOperator.Instance);
+			AddFunc("&", AndOperator.Instance);
+			AddFunc("|", OrOperator.Instance);
+			AddFunc("^", XOrOperator.Instance);
+			AddFunc("~", NotOperator.Instance);
+			AddFunc("<<", LeftShiftOperator.Instance);
+			AddFunc(">>", RightShiftOperator.Instance);
+			AddFunc("++", IncrementAssignOperator.Instance);
+			AddFunc("--", DecrementAssignOperator.Instance);
 			AddFunc("<", LessThanOperator.Instance);
 			AddFunc(">", GreaterThanOperator.Instance);
 			AddFunc(">=", GreaterThanOrEqualOperator.Instance);
@@ -32,11 +54,16 @@ namespace AScript.Lang.Python3
 			AddFunc("and", AndAlsoOperator.Instance);
 			AddFunc("or", OrElseOperator.Instance);
 
+			AddFunc<ScriptContext, string, object>("exec", Exec);
+			AddAction<object>("print", s => Console.WriteLine(s));
+
+			AddTokenHandler("//", new OperatorTokenHandler("/"));
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);
 			AddTokenHandler("or", OrElseTokenHandler.Instance);
-			AddTokenHandler("if", TokenHandlers.IfTokenHandler.Instance);
-			AddTokenHandler("def", TokenHandlers.DefTokenHandler.Instance);
+			AddTokenHandler("if", Python3IfTokenHandler.Instance);
+			AddTokenHandler("def", Python3DefTokenHandler.Instance);
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
+
 			// python中不能使用#lang，用@lang代替
 			AddTokenHandler("@lang", new LangTokenHandler("@end"));
 		}
@@ -44,6 +71,13 @@ namespace AScript.Lang.Python3
 		public override ITokenStream GetTokenStream(CharReader charReader)
 		{
 			return new Python3TokenStream(charReader);
+		}
+
+		private static object Exec(ScriptContext context, string expression)
+		{
+			var engine = ScriptEngine.GetCurrent(context);
+			if (engine == null) throw new Exception("unkown inner ScriptEngine");
+			return engine.Eval(context, expression);
 		}
 
 		public static TreeBuilder BuildSubBlock(int parentColumn, DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)

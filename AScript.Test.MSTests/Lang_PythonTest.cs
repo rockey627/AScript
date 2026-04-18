@@ -9,13 +9,56 @@ namespace AScript.Test.MSTests
 		[ClassInitialize]
 		public static void Init(TestContext context)
 		{
-			Script.Langs["python"] = Python3Lang.Instance;
+			Script.Langs["python3"] = Python3Lang.Instance;
 		}
 
 		[ClassCleanup]
 		public static void Cleanup()
 		{
-			Script.Langs.TryRemove("python", out _);
+			Script.Langs.TryRemove("python3");
+		}
+
+		[TestMethod]
+		public void Test09()
+		{
+			Console.WriteLine(Math.Floor(-9.0 / 2));
+			//Console.WriteLine(2 ** 3);
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+			Assert.AreEqual(2.5, script.Eval("10/4"));
+			Assert.AreEqual(2, script.Eval("10//4"));
+			Assert.AreEqual(2.0, script.Eval("10.4//4"));
+			Assert.AreEqual(4, script.Eval("9//2"));
+			Assert.AreEqual(-5, script.Eval("-9//2"));
+		}
+
+		[TestMethod]
+		public void Test08()
+		{
+			string s = @"
+'''
+多行文本1
+多行文本2
+多行文本3
+'''
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+			string r = @"
+多行文本1
+多行文本2
+多行文本3
+";
+			Assert.AreEqual(r, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test07()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+			script.Eval("print('hello')");
+			script.Eval("exec('print(\\'hello everyone\\')')");
 		}
 
 		[TestMethod]
@@ -23,8 +66,8 @@ namespace AScript.Test.MSTests
 		{
 			string s = @"
 string exec(int a) {
-#lang python
-	#使用python语言
+#lang python3
+	#使用python3语言
 	m=0
 	s=''
 	if a>0 and a<10: 
@@ -63,8 +106,8 @@ exec(26)
 		{
 			string s = @"
 string exec(int a) {
-#lang python
-	#使用python语言
+#lang python3
+	#使用python3语言
 	m=0
 	s=''
 	if a>0 and a<10: 
@@ -122,7 +165,7 @@ exec(26)
 ";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
-			script.Context.Langs = new[] { "python" };
+			script.Context.Langs = new[] { "python3" };
 			Assert.AreEqual("3,大于等于20且小于30", script.Eval(s));
 			Assert.AreEqual("2,大于等于10且小于20", script.Eval("exec(16)"));
 		}
@@ -151,7 +194,7 @@ def exec(a) :
 exec(26)
 ";
 			var script = new Script();
-			script.Context.Langs = new[] { "python" };
+			script.Context.Langs = new[] { "python3" };
 			Assert.AreEqual("3,大于等于20且小于30", script.Eval(s));
 			Assert.AreEqual("2,大于等于10且小于20", script.Eval("exec(16)"));
 		}
@@ -161,8 +204,8 @@ exec(26)
 		{
 			string s = @"
 string exec(int a) {
-#lang python
-	#使用python语言
+#lang python3
+	#使用python3语言
 	m=0
 	s=''
 	if a>0 and a<10: 
@@ -194,8 +237,8 @@ exec(26)
 		{
 			string s = @"
 string exec(int a) {
-#lang python
-	#使用python语言
+#lang python3
+	#使用python3语言
 	m=0
 	s=''
 	if a>0 and a<10: 
@@ -225,8 +268,8 @@ exec(26)
 		{
 			string s = @"
 string exec(int a) {
-#lang python
-	#使用python语言
+#lang python3
+	#使用python3语言
 	m=0
 	s=''
 	if a>0 and a<10: 
@@ -256,29 +299,29 @@ exec(26)
 			string s = @"
 m=0
 s=''#行注释
-if a>0'''中间注释''' and a<10: #行注释 (0~10)
+if a>0 and a<10: #行注释 (0~10)
   m=1
-'''
+  '''
 多行注释1
 多行注释2
 多选注释3
 '''
   s='大于0且小于10' #行注释说明
-''''''#空注释
-elif a>=10 and a""""""中间注释""""""<20:#行注释[10,20)
+  ''''''#空注释
+elif a>=10 and a<20:#行注释[10,20)
   m=2
   s='大于等于10且小于20'
 else :
-'''
-多行注释1
-多行注释2
-多选注释3
+  '''
+多行文本1
+多行文本2
+多选文本3
 '''
   m=3#其他
 m+','+s
 ";
 			var script = new Script();
-			script.Context.Langs = new[] { "python" };
+			script.Context.Langs = new[] { "python3" };
 			script.Context.SetVar("a", 6);
 			Assert.AreEqual("1,大于0且小于10", script.Eval(s));
 		}
@@ -304,7 +347,7 @@ else :
 m+','+s
 ";
 			var script = new Script();
-			script.Context.Langs = new[] { "python" };
+			script.Context.Langs = new[] { "python3" };
 			script.Context.SetVar("a", 6);
 			Assert.AreEqual("1,大于0且小于10", script.Eval(s));
 			script.Context.SetVar("a", 16);

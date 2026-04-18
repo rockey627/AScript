@@ -16,14 +16,19 @@ namespace AScript.Lang.Python3.TokenHandlers
 	/// <para>    statement2</para>
 	/// <para>other</para>
 	/// </summary>
-	public class IfTokenHandler : ITokenHandler
+	public class Python3IfTokenHandler : ITokenHandler
 	{
-		public static readonly IfTokenHandler Instance = new IfTokenHandler();
+		public static readonly Python3IfTokenHandler Instance = new Python3IfTokenHandler();
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;
 			e.End = true;
+			if (e.TreeBuilder.Root != null)
+			{
+				e.TokenReader.Push(e.CurrentToken);
+				return;
+			}
 
 			// if语句中不能立即执行，所以要先创建完整的if表达式树再编译或执行
 			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };

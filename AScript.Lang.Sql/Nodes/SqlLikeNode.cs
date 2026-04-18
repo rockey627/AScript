@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace AScript.Lang.Sql.Nodes
 {
-	public class LikeNode : TreeNode
+	public class SqlLikeNode : TreeNode
 	{
 		private static readonly Expression Constant_StringComparison_OrdinalIgnoreCase = Expression.Constant(StringComparison.OrdinalIgnoreCase);
 		private static readonly MethodInfo Method_String_EndsWith = typeof(string).GetMethod("EndsWith", new[] { typeof(string), typeof(StringComparison) });

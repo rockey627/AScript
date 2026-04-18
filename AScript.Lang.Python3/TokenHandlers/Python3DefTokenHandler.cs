@@ -11,13 +11,19 @@ namespace AScript.Lang.Python3.TokenHandlers
 	/// <para>def 函数名（参数1,参数2,...）:</para>
 	/// <para>    函数体</para>
 	/// </summary>
-	public class DefTokenHandler : ITokenHandler
+	public class Python3DefTokenHandler : ITokenHandler
 	{
-		public static readonly DefTokenHandler Instance = new DefTokenHandler();
+		public static readonly Python3DefTokenHandler Instance = new Python3DefTokenHandler();
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;
+			e.End = true;
+			if (e.TreeBuilder.IsFullStatement())
+			{
+				e.TokenReader.Push(e.CurrentToken);
+				return;
+			}
 			// 函数名
 			var token = e.TokenReader.Read();
 			if (!token.HasValue)

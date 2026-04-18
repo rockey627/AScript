@@ -28,8 +28,8 @@ namespace AScript.Lang.Sql
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);
 			AddTokenHandler("or", OrElseTokenHandler.Instance);
 			AddTokenHandler("=", EqualTokenHandler.Instance);
-			AddTokenHandler("like", LikeTokenHandler.Instance);
-			AddTokenHandler("from", FromTokenHandler.Instance);
+			AddTokenHandler("like", SqlLikeTokenHandler.Instance);
+			AddTokenHandler("from", SqlFromTokenHandler.Instance);
 		}
 	}
 }

@@ -15,7 +15,7 @@ namespace AScript.Test.MSTests
 		[ClassCleanup]
 		public static void Cleanup()
 		{
-			Script.Langs.TryRemove("中文", out _);
+			Script.Langs.TryRemove("中文");
 		}
 
 		[TestMethod]

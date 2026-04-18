@@ -15,7 +15,7 @@ namespace AScript.Test.MSTests
 		[ClassCleanup]
 		public static void Cleanup()
 		{
-			Script.Langs.TryRemove("sql", out _);
+			Script.Langs.TryRemove("sql");
 		}
 		[TestMethod]
 		public void Test08()

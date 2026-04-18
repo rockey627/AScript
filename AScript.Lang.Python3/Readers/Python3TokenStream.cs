@@ -17,9 +17,15 @@ namespace AScript.Lang.Python3.Readers
 				SkipLine();
 				return true;
 			}
-			// 由三个单引号 ''' 或三个双引号 """ 包围的文本块用作多行注释
+			return false;
+		}
+
+		protected override bool TryCustomParse(char currentChar, out ETokenType? tokenType)
+		{
+			// 由三个单引号 ''' 或三个双引号 """ 包围的文本块用作多行文本
 			if (currentChar == '\'' || currentChar == '"')
 			{
+				tokenType = null;
 				var c2 = this.CharReader.Read();
 				if (!c2.HasValue) return false;
 				if (c2.Value != currentChar)
@@ -41,6 +47,7 @@ namespace AScript.Lang.Python3.Readers
 				{
 					if (d != currentChar)
 					{
+						_buffer.Append(d.Value);
 						d = this.CharReader.Read();
 						continue;
 					}
@@ -49,6 +56,8 @@ namespace AScript.Lang.Python3.Readers
 					if (!d2.HasValue) break;
 					if (d2.Value != currentChar)
 					{
+						_buffer.Append(d.Value);
+						_buffer.Append(d2.Value);
 						d = this.CharReader.Read();
 						continue;
 					}
@@ -57,6 +66,9 @@ namespace AScript.Lang.Python3.Readers
 					if (!d3.HasValue) break;
 					if (d3.Value != currentChar)
 					{
+						_buffer.Append(d.Value);
+						_buffer.Append(d2.Value);
+						_buffer.Append(d3.Value);
 						d = this.CharReader.Read();
 						continue;
 					}
@@ -64,9 +76,10 @@ namespace AScript.Lang.Python3.Readers
 					break;
 				}
 
+				tokenType = ETokenType.String;
 				return true;
 			}
-			return false;
+			return base.TryCustomParse(currentChar, out tokenType);
 		}
 	}
 }

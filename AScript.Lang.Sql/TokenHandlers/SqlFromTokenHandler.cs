@@ -9,9 +9,9 @@ namespace AScript.Lang.Sql.TokenHandlers
 	/// <summary>
 	/// from xxx where xxx
 	/// </summary>
-	public class FromTokenHandler : ITokenHandler
+	public class SqlFromTokenHandler : ITokenHandler
 	{
-		public static readonly FromTokenHandler Instance = new FromTokenHandler();
+		public static readonly SqlFromTokenHandler Instance = new SqlFromTokenHandler();
 
 		private static readonly HashSet<string> _EndTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "where", "as" };
 
@@ -51,7 +51,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 #else
 			var tables = new[] { Tuple.Create(table, itemName) };
 #endif
-			e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new FromNode { Tables = tables, Where = where });
+			e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new SqlFromNode { Tables = tables, Where = where });
 		}
 	}
 }

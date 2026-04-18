@@ -11,7 +11,7 @@ namespace AScript.Lang.Sql.Nodes
 	/// <summary>
 	/// 
 	/// </summary>
-	public class FromNode : TreeNode
+	public class SqlFromNode : TreeNode
 	{
 		public static readonly MethodInfo Method_Enumerable_Where = typeof(Enumerable).GetMethods(BindingFlags.Public | BindingFlags.Static) // 静态公共方法
 			.FirstOrDefault(m =>

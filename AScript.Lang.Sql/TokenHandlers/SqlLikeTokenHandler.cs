@@ -7,9 +7,9 @@ namespace AScript.Lang.Sql.TokenHandlers
 	/// <summary>
 	/// title like '%happy%'
 	/// </summary>
-	public class LikeTokenHandler : ITokenHandler
+	public class SqlLikeTokenHandler : ITokenHandler
 	{
-		public static readonly LikeTokenHandler Instance = new LikeTokenHandler();
+		public static readonly SqlLikeTokenHandler Instance = new SqlLikeTokenHandler();
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
@@ -18,7 +18,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 			var arg2String = analyzer.ValidateNextToken(e.TokenReader, ETokenType.String).Value.Value;
 			if (!e.Ignore)
 			{
-				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new LikeNode { Arg1 = arg1, Arg2 = arg2String });
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new SqlLikeNode { Arg1 = arg1, Arg2 = arg2String });
 			}
 		}
 	}
