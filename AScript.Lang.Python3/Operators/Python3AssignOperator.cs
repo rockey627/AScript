@@ -69,7 +69,7 @@ namespace AScript.Lang.Python3.Operators
 				}
 				e.Result = Expression.Assign(left, rightExpr);
 			}
-			else if (arg0 is OperatorNode opNode && opNode.Name == "[")
+			else if (arg0 is OperatorNode opNode && opNode.Name == "[]")
 			{
 				// 索引器赋值
 				var obj = opNode.Left.Build(e.BuildContext, e.ScriptContext, e.Options);
@@ -206,7 +206,7 @@ namespace AScript.Lang.Python3.Operators
 					ScriptUtils.SetValue(opLeftValue, opRightNode.Name, value);
 					e.SetResult(value, type);
 				}
-				else if (opNode.Name == "[")
+				else if (opNode.Name == "[]")
 				{
 					// 设置索引值
 					var obj = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);

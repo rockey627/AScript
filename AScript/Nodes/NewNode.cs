@@ -164,7 +164,7 @@ namespace AScript.Nodes
 								}
 							}
 						}
-						else if (opNode.Name == "[")
+						else if (opNode.Name == "[]")
 						{
 							// 索引器赋值: ["key"] = value 或 [0] = value
 							var indexExpr = opNode.Left.Build(buildContext, scriptContext, options);
@@ -411,7 +411,7 @@ namespace AScript.Nodes
 								ScriptUtils.SetValue(instance, propNameNode.Name, propValue);
 							}
 						}
-						else if (opNode.Name == "[")
+						else if (opNode.Name == "[]")
 						{
 							// 索引器赋值: ["key"] = value 或 [0] = value
 							var indexKey = opNode.Left.Eval(context, options, control, out _);

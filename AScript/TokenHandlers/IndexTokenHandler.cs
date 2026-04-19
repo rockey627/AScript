@@ -19,7 +19,7 @@ namespace AScript.TokenHandlers
 			analyzer.ValidateNextToken(e.TokenReader, "]", e.CurrentToken.Line, e.CurrentToken.Column);
 			if (!e.Ignore)
 			{
-				e.TreeBuilder.AddOperator(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateOperatorNode("[", 2, DefaultSyntaxAnalyzer.OperatorPriorities["["]));
+				e.TreeBuilder.AddOperator(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateOperatorNode("[]", 2, DefaultSyntaxAnalyzer.OperatorPriorities["["]));
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, statement0);
 			}
 		}
