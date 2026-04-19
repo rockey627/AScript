@@ -271,7 +271,7 @@ namespace AScript.Syntaxs
 		{
 			var nextToken = tokenReader.Read();
 			if (!nextToken.HasValue) return;
-			if (nextToken.Value.Type != ETokenType.String 
+			if (nextToken.Value.Type != ETokenType.String
 				&& nextToken.Value.Value == nextTokenForSkip) return;
 			tokenReader.Push(nextToken.Value);
 		}
@@ -347,7 +347,7 @@ namespace AScript.Syntaxs
 			// 检查是否是操作符
 			if (e.CurrentToken.Type == ETokenType.Operator)// || OperatorPriorities.TryGetValue(e.CurrentToken.Value, out _))
 			{
-				ParseOperator(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.TreeBuilder, e.CurrentToken);
+				ParseOperator(e, endTokens: endTokens);
 				return;
 			}
 
@@ -367,8 +367,8 @@ namespace AScript.Syntaxs
 				//nextToken = tokenReader.Read();
 				nextToken = null;
 			}
-			else if (!(e.TreeBuilder.Current is OperatorNode opNode && opNode.Name == ".") 
-				&& nextToken.HasValue && nextToken.Value.Type == ETokenType.Word 
+			else if (!(e.TreeBuilder.Current is OperatorNode opNode && opNode.Name == ".")
+				&& nextToken.HasValue && nextToken.Value.Type == ETokenType.Word
 				&& !(ScriptUtils.Contains(endTokens, nextToken.Value.Value) || ScriptUtils.Contains(endTokens, "\n") && nextToken.Value.Line > e.CurrentToken.Line))
 			{
 				// 类型定义 (int x 或 int Add(...))
@@ -408,41 +408,46 @@ namespace AScript.Syntaxs
 			}
 		}
 
-		private void ParseOperator(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, TreeBuilder treeBuilder, Token currentToken)
+		private void ParseOperator(TokenAnalyzingArgs e, IEnumerable<string> endTokens = null)
 		{
-			var currentPriority = scriptContext.GetOperatorPriority(currentToken.Value);
+			var currentPriority = e.ScriptContext.GetOperatorPriority(e.CurrentToken.Value);
 			if (currentPriority.HasValue)
 			{
-				treeBuilder.AddOperator(buildContext, scriptContext, options, control, currentToken.Value, GetDataCount(currentToken.Value), currentPriority.Value);
+				e.TreeBuilder.AddOperator(e.BuildContext, e.ScriptContext, e.Options, e.Control, e.CurrentToken.Value, GetDataCount(e.CurrentToken.Value), currentPriority.Value);
 				return;
 			}
-			if (currentToken.Value.Length == 1)
+			if (e.CurrentToken.Value.Length == 1)
 			{
-				throw new Exception("unknown operator:" + currentToken);
+				throw new Exception($"unknown operator '{e.CurrentToken.Value}'");
 			}
 			// 拆分运算符
-			string s0 = currentToken.Value;
+			string s0 = e.CurrentToken.Value;
 			int cc = s0.Length - 1;
 			while (s0.Length > 0)
 			{
 				string s1 = cc == s0.Length ? s0 : s0.Substring(0, cc);
-				var s1Priority = scriptContext.GetOperatorPriority(s1);
+				var s1Priority = e.ScriptContext.GetOperatorPriority(s1);
 				if (s1Priority.HasValue)
 				{
 					//treeBuilder.AddOperator(buildContext, scriptContext, options, control, s1, GetDataCount(s1), s1Priority);
 					s0 = s0.Substring(cc);
 					//cc = s0.Length;
-					tokenReader.Push(new Token(s0, ETokenType.Operator, currentToken.Line, currentToken.Column + s1.Length));
-					tokenReader.Push(new Token(s1, ETokenType.Operator, currentToken.Line, currentToken.Column));
+					e.TokenReader.Push(new Token(s0, ETokenType.Operator, e.CurrentToken.Line, e.CurrentToken.Column + s1.Length));
+					e.TokenReader.Push(new Token(s1, ETokenType.Operator, e.CurrentToken.Line, e.CurrentToken.Column));
 					break;
 				}
-				else
+				if (ScriptUtils.Contains(endTokens, s1))
 				{
-					cc--;
-					if (cc == 0)
-					{
-						throw new Exception("unknown operator:" + currentToken);
-					}
+					e.End = true;
+					s0 = s0.Substring(cc);
+					e.TokenReader.Push(new Token(s0, ETokenType.Operator, e.CurrentToken.Line, e.CurrentToken.Column + s1.Length));
+					e.TokenReader.Push(new Token(s1, ETokenType.Operator, e.CurrentToken.Line, e.CurrentToken.Column));
+					break;
+				}
+				cc--;
+				if (cc == 0)
+				{
+					throw new Exception($"unknown operator '{e.CurrentToken.Value}'");
 				}
 			}
 		}

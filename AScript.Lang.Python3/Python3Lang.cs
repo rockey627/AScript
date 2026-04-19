@@ -58,6 +58,8 @@ namespace AScript.Lang.Python3
 			AddFunc("!=", NotEqualOperator.Instance);
 			AddFunc("and", AndAlsoOperator.Instance);
 			AddFunc("or", OrElseOperator.Instance);
+			AddFunc("[]", IndexOperator.Instance);
+			AddFunc("[:]", IndexStartEndOperator.Instance);
 
 			AddFunc<ScriptContext, string, object>("exec", Exec);
 			AddFunc<int, IReadOnlyList<int>>("range", Range);
@@ -71,7 +73,6 @@ namespace AScript.Lang.Python3
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			// 字符串内插值：f'{m},{n}'
 			AddTokenHandler("f", StringInterpolationTokenHandler.Instance);
-
 			// python中不能使用#lang，用@lang代替
 			AddTokenHandler("@lang", new LangTokenHandler("@end"));
 		}

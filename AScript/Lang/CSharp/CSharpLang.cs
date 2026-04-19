@@ -98,6 +98,7 @@ namespace AScript.Lang.CSharp
 			AddFunc("||", OrElseOperator.Instance);
 			AddFunc(".", DotOperator.Instance);
 			AddFunc("[]", IndexOperator.Instance);
+			AddFunc("[:]", IndexStartEndOperator.Instance);
 
 			// 内置Convert方法，调用示例：'12'.ToInt32()
 			AddFunc(typeof(Convert));

@@ -30,6 +30,26 @@ namespace AScript.Readers
 			HandleLineAndColumn(c, true);
 		}
 
+		public void Push(string s)
+		{
+			Push(s, 0, s.Length);
+		}
+
+		public void Push(string s, int from)
+		{
+			Push(s, from, -1);
+		}
+
+		public void Push(string s, int from, int count)
+		{
+			if (string.IsNullOrEmpty(s)) return;
+			int to = count > 0 ? from + count - 1 : s.Length - 1;
+			for (int i = to; i >= from ; i--)
+			{
+				Push(s[i]);
+			}
+		}
+
 		/// <summary>
 		/// 读取下一个字符，如果栈中有字符则优先从栈中读取，否则从流中读取
 		/// </summary>
