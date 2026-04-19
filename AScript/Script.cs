@@ -84,7 +84,7 @@ namespace AScript
 		/// <returns></returns>
 		protected object Eval(BuildOptions options, ITokenStream tokenStream, out Type returnType)
 		{
-			return (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Eval(this.Context, options, tokenStream, out returnType);
+			return GetSyntaxAnalyzer().Eval(this.Context, options, tokenStream, out returnType);
 		}
 
 		public Delegate CompileGlobal(ITokenStream tokenStream)
@@ -99,7 +99,7 @@ namespace AScript
 			{
 				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
 			}
-			var node = (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Build(buildContext, this.Context, buildOptions, new Readers.TokenReader(tokenStream, false));
+			var node = GetSyntaxAnalyzer().Build(buildContext, this.Context, buildOptions, new Readers.TokenReader(tokenStream, false));
 			var body = node.Build(buildContext, this.Context, buildOptions);
 			PoolManage.Return(node);
 			return buildContext.Compile(this.Context, buildOptions, body);
@@ -115,7 +115,7 @@ namespace AScript
 			var buildContext = new BuildContext();
 			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression);
 			var tokenStream = GetTokenStream(expression);
-			var node = (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Build(buildContext, this.Context, new BuildOptions(this.Options) { CreateFullTreeNode = true }, new Readers.TokenReader(tokenStream, false));
+			var node = GetSyntaxAnalyzer().Build(buildContext, this.Context, new BuildOptions(this.Options) { CreateFullTreeNode = true }, new Readers.TokenReader(tokenStream, false));
 			if (node is TreeBuilder treeBuilder)
 			{
 				return treeBuilder.Root;
@@ -135,6 +135,11 @@ namespace AScript
 			return this.Context.GetTokenStream(charReader) ?? (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(charReader);
 		}
 
+		private ISyntaxAnalyzer GetSyntaxAnalyzer()
+		{
+			return this.Context.GetSyntaxAnalyzer() ?? this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer;
+		}
+
 		/// <summary>
 		/// 构建表达式树
 		/// </summary>
@@ -145,7 +150,7 @@ namespace AScript
 			var buildContext = new BuildContext();
 			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
 			var tokenStream = GetTokenStream(expression);
-			var node = (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Build(buildContext, this.Context, new BuildOptions(this.Options) { CreateFullTreeNode = true }, new Readers.TokenReader(tokenStream, false));
+			var node = GetSyntaxAnalyzer().Build(buildContext, this.Context, new BuildOptions(this.Options) { CreateFullTreeNode = true }, new Readers.TokenReader(tokenStream, false));
 			if (node is TreeBuilder treeBuilder)
 			{
 				return treeBuilder.Root;
@@ -157,14 +162,14 @@ namespace AScript
 		{
 			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression);
 			var tokenStream = GetTokenStream(expression);
-			return (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Eval(context, options, tokenStream, out returnType);
+			return GetSyntaxAnalyzer().Eval(context, options, tokenStream, out returnType);
 		}
 
 		object IScriptProvider.Eval(ScriptContext context, BuildOptions options, Stream expression, out Type returnType)
 		{
 			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
 			var tokenStream = GetTokenStream(expression);
-			return (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Eval(context, options, tokenStream, out returnType);
+			return GetSyntaxAnalyzer().Eval(context, options, tokenStream, out returnType);
 		}
 
 		Delegate IScriptProvider.Compile(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression)
@@ -180,7 +185,7 @@ namespace AScript
 		Delegate IScriptProvider.Compile(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression)
 		{
 			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
-			//var node = (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Build(buildContext, scriptContext, options, new Readers.TokenReader(tokenStream, false));
+			//var node = GetSyntaxAnalyzer().Build(buildContext, scriptContext, options, new Readers.TokenReader(tokenStream, false));
 			//var body = node.Build(buildContext, scriptContext, options);
 			//PoolManage.Return(node);
 			//return buildContext.Compile(scriptContext, options, body);
@@ -191,7 +196,7 @@ namespace AScript
 		{
 			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression);
 			var tokenStream = GetTokenStream(expression);
-			var node = (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Build(buildContext, scriptContext, options, new Readers.TokenReader(tokenStream, false));
+			var node = GetSyntaxAnalyzer().Build(buildContext, scriptContext, options, new Readers.TokenReader(tokenStream, false));
 			var body = node.Build(buildContext, scriptContext, options);
 			PoolManage.Return(node);
 			var bodys = body == null ? null : new[] { body };
@@ -202,7 +207,7 @@ namespace AScript
 		{
 			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
 			var tokenStream = GetTokenStream(expression);
-			var node = (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Build(buildContext, scriptContext, options, new Readers.TokenReader(tokenStream, false));
+			var node = GetSyntaxAnalyzer().Build(buildContext, scriptContext, options, new Readers.TokenReader(tokenStream, false));
 			var body = node.Build(buildContext, scriptContext, options);
 			PoolManage.Return(node);
 			var bodys = body == null ? null : new[] { body };
