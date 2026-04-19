@@ -1,7 +1,7 @@
 ﻿using AScript.Readers;
 using System;
 
-namespace AScript.Lang.Python3.Readers
+namespace AScript.Lang.Python3
 {
 	public class Python3TokenStream : DefaultTokenStream
 	{
@@ -26,50 +26,50 @@ namespace AScript.Lang.Python3.Readers
 			if (currentChar == '\'' || currentChar == '"')
 			{
 				tokenType = null;
-				var c2 = this.CharReader.Read();
+				var c2 = CharReader.Read();
 				if (!c2.HasValue) return false;
 				if (c2.Value != currentChar)
 				{
-					this.CharReader.Push(c2.Value);
+					CharReader.Push(c2.Value);
 					return false;
 				}
-				var c3 = this.CharReader.Read();
+				var c3 = CharReader.Read();
 				if (!c3.HasValue) return false;
 				if (c3.Value != currentChar)
 				{
-					this.CharReader.Push(c3.Value);
-					this.CharReader.Push(c2.Value);
+					CharReader.Push(c3.Value);
+					CharReader.Push(c2.Value);
 					return false;
 				}
 
-				var d = this.CharReader.Read();
+				var d = CharReader.Read();
 				while (d.HasValue)
 				{
 					if (d != currentChar)
 					{
 						_buffer.Append(d.Value);
-						d = this.CharReader.Read();
+						d = CharReader.Read();
 						continue;
 					}
 
-					var d2 = this.CharReader.Read();
+					var d2 = CharReader.Read();
 					if (!d2.HasValue) break;
 					if (d2.Value != currentChar)
 					{
 						_buffer.Append(d.Value);
 						_buffer.Append(d2.Value);
-						d = this.CharReader.Read();
+						d = CharReader.Read();
 						continue;
 					}
 
-					var d3 = this.CharReader.Read();
+					var d3 = CharReader.Read();
 					if (!d3.HasValue) break;
 					if (d3.Value != currentChar)
 					{
 						_buffer.Append(d.Value);
 						_buffer.Append(d2.Value);
 						_buffer.Append(d3.Value);
-						d = this.CharReader.Read();
+						d = CharReader.Read();
 						continue;
 					}
 

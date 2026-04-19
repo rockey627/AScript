@@ -1,5 +1,4 @@
 ﻿using AScript.Lang.Python3.Operators;
-using AScript.Lang.Python3.Readers;
 using AScript.Lang.Python3.TokenHandlers;
 using AScript.Nodes;
 using AScript.Operators;
@@ -80,6 +79,11 @@ namespace AScript.Lang.Python3
 		public override ITokenStream GetTokenStream(CharReader charReader)
 		{
 			return new Python3TokenStream(charReader);
+		}
+
+		public override ISyntaxAnalyzer GetSyntaxAnalyzer()
+		{
+			return Python3SyntaxAnalyzer.Instance;
 		}
 
 		public override int? GetOperatorPriority(string op)

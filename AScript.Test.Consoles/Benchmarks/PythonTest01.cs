@@ -27,11 +27,11 @@ def exec(a) :
     else :
         m=4
         s='大于等于30'
-    return (s)
+    return f'{m},{s}'
 
 exec(26)
 ";
-		private static readonly string r = "大于等于20且小于30";
+		private static readonly string r = "3,大于等于20且小于30";
 
 		private Microsoft.Scripting.Hosting.ScriptEngine engine = Python.CreateEngine();
 
