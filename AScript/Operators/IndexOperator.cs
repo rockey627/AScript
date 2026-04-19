@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -119,6 +120,30 @@ namespace AScript.Operators
 			{
 				dynamic arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
 				dynamic arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
+				if (arg0 is IList list)
+				{
+					if (arg1 is int index)
+					{
+						if (index < 0)
+						{
+							index = list.Count + index;
+						}
+						e.SetResult(list[index]);
+						return;
+					}
+				}
+				else if (arg0 is string s)
+				{
+					if (arg1 is int index)
+					{
+						if (index < 0)
+						{
+							index = s.Length + index;
+						}
+						e.SetResult(s[index]);
+						return;
+					}
+				}
 				e.SetResult(arg0[arg1]);
 			}
 		}
