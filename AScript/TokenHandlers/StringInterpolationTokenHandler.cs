@@ -27,6 +27,7 @@ namespace AScript.TokenHandlers
 
 			e.IsHandled = true;
 
+			List<ITreeNode> concatArgs = null;
 			List<Expression> exprs = null;
 			char startChar = c.Value;
 			var _buffer = new StringBuilder();
@@ -68,14 +69,26 @@ namespace AScript.TokenHandlers
 						_reader.Push(c.Value);
 						// 插值计算
 						var node = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
-						if (!e.Options.CompileMode.HasValue || e.Options.CompileMode.Value != ECompileMode.All)
+						if (e.Options.CreateFullTreeNode.HasValue && e.Options.CreateFullTreeNode.Value)
+						{
+							if (concatArgs == null) concatArgs = new List<ITreeNode>();
+							if (_buffer.Length > 0)
+							{
+								concatArgs.Add(PoolManage.CreateObjectData(_buffer.ToString(), typeof(string)));
+								_buffer.Clear();
+							}
+							concatArgs.Add(node);
+						}
+						else if (!e.Options.CompileMode.HasValue || e.Options.CompileMode.Value != ECompileMode.All)
 						{
 							var obj = node.Eval(e.ScriptContext, e.Options, e.Control, out _);
 							if (obj != null) _buffer.Append(obj.ToString());
+							PoolManage.Return(node);
 						}
 						else
 						{
 							var v = node.Build(e.BuildContext, e.ScriptContext, e.Options);
+							PoolManage.Return(node);
 							Expression vs;
 							if (v.Type.IsValueType)
 							{
@@ -94,7 +107,6 @@ namespace AScript.TokenHandlers
 							}
 							exprs.Add(vs);
 						}
-						PoolManage.Return(node);
 						analyzer.ValidateNextToken(e.TokenReader, "}");
 						c = _reader.Read();
 						continue;
@@ -143,7 +155,29 @@ namespace AScript.TokenHandlers
 				throw new Exception($"invalid string at ({_reader.CurrentLine},{_reader.CurrentColumn}), expect {startChar}");
 			}
 
-			if (!e.Options.CompileMode.HasValue || e.Options.CompileMode.Value != ECompileMode.All)
+			if (e.Options.CreateFullTreeNode.HasValue && e.Options.CreateFullTreeNode.Value)
+			{
+				if (concatArgs == null || concatArgs.Count == 0)
+				{
+					if (!e.Options.CompileMode.HasValue || e.Options.CompileMode.Value != ECompileMode.All)
+					{
+						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectData(_buffer.ToString(), typeof(string)));
+					}
+					else
+					{
+						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateExpressionNode(Expression.Constant(_buffer.ToString())));
+					}
+				}
+				else
+				{
+					if (_buffer.Length > 0)
+					{
+						concatArgs.Add(PoolManage.CreateObjectData(_buffer.ToString(), typeof(string)));
+					}
+					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new StringConcatNode { Args = concatArgs });
+				}
+			}
+			else if (!e.Options.CompileMode.HasValue || e.Options.CompileMode.Value != ECompileMode.All)
 			{
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectData(_buffer.ToString(), typeof(string)));
 			}
