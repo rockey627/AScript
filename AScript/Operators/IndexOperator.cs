@@ -39,7 +39,7 @@ namespace AScript.Operators
 			}
 
 			// 处理 IList、string 和数组的负索引
-			if (target.Type == typeof(string) || target.Type == typeof(IList) || target.Type.GetInterfaces().Contains(typeof(IList)))
+			if (target.Type == typeof(string) || target.Type.GetInterfaces().Contains(typeof(IList)))
 			{
 				var indexer = target.Type.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
 				if (indexer != null)
@@ -47,9 +47,9 @@ namespace AScript.Operators
 					var adjustedIndex = Expression.Condition(
 						Expression.LessThan(index, Expression.Constant(0)),
 						Expression.Add(
-							target.Type == typeof(IList)
-								? Expression.Property(target, "Count")
-								: Expression.Property(target, "Length"),
+							target.Type == typeof(string)
+								? Expression.Property(target, "Length")
+								: Expression.Property(target, "Count"),
 							index),
 						index);
 					e.Result = Expression.Property(target, indexer, adjustedIndex);
