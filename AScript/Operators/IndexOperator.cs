@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -24,58 +25,80 @@ namespace AScript.Operators
 		{
 			if (e.Args.Count != 2) return;
 
-			var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
-			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+			var target = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
+			var index = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 
 			// 如果right是object类型，转换为实际需要的类型
-			if (right.Type == typeof(object))
+			if (index.Type == typeof(object))
 			{
-				var elementType = GetIndexType(left.Type);
+				var elementType = GetIndexType(target.Type);
 				if (elementType != null)
 				{
-					right = Expression.Convert(right, elementType);
+					index = Expression.Convert(index, elementType);
 				}
 			}
 
-			// 判断是否为数组类型
-			if (left.Type.IsArray)
+			// 处理 IList、string 和数组的负索引
+			if (target.Type == typeof(string) || target.Type == typeof(IList) || target.Type.GetInterfaces().Contains(typeof(IList)))
 			{
-				e.Result = Expression.ArrayIndex(left, right);
+				var indexer = target.Type.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
+				if (indexer != null)
+				{
+					var adjustedIndex = Expression.Condition(
+						Expression.LessThan(index, Expression.Constant(0)),
+						Expression.Add(
+							target.Type == typeof(IList)
+								? Expression.Property(target, "Count")
+								: Expression.Property(target, "Length"),
+							index),
+						index);
+					e.Result = Expression.Property(target, indexer, adjustedIndex);
+				}
+				return;
+			}
+
+			// 数组类型
+			if (target.Type.IsArray)
+			{
+				var adjustedIndex = Expression.Condition(
+					Expression.LessThan(index, Expression.Constant(0)),
+					Expression.Add(Expression.ArrayLength(target), index),
+					index);
+				e.Result = Expression.ArrayIndex(target, adjustedIndex);
+				return;
+			}
+
+			// 使用索引器（Item属性）访问
+			var indexerProp = target.Type.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
+			if (indexerProp != null)
+			{
+				e.Result = Expression.Property(target, indexerProp, index);
 			}
 			else
 			{
-				// 使用索引器（Item属性）访问
-				var indexer = left.Type.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
-				if (indexer != null)
+				// 如果没有索引器，尝试使用泛型Dictionary接口
+				if (target.Type.IsGenericType)
 				{
-					e.Result = Expression.Property(left, indexer, right);
-				}
-				else
-				{
-					// 如果没有索引器，尝试使用泛型Dictionary接口
-					if (left.Type.IsGenericType)
+					var genericTypeDef = target.Type.GetGenericTypeDefinition();
+					if (genericTypeDef == typeof(Dictionary<,>)
+						|| genericTypeDef == typeof(IDictionary<,>))
 					{
-						var genericTypeDef = left.Type.GetGenericTypeDefinition();
-						if (genericTypeDef == typeof(Dictionary<,>)
-							|| genericTypeDef == typeof(IDictionary<,>))
+						// Dictionary访问
+						var getItemMethod = target.Type.GetMethod("get_Item");
+						if (getItemMethod != null)
 						{
-							// Dictionary访问
-							var getItemMethod = left.Type.GetMethod("get_Item");
-							if (getItemMethod != null)
-							{
-								e.Result = Expression.Call(left, getItemMethod, right);
-								return;
-							}
+							e.Result = Expression.Call(target, getItemMethod, index);
+							return;
 						}
 					}
-
-					// 使用动态表达式进行动态访问
-					e.Result = Expression.Dynamic(
-						IndexBinder,
-						typeof(object),
-						left,
-						right);
 				}
+
+				// 使用动态表达式进行动态访问
+				e.Result = Expression.Dynamic(
+					IndexBinder,
+					typeof(object),
+					target,
+					index);
 			}
 		}
 
