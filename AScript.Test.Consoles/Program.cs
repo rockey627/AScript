@@ -12,7 +12,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			Test01_Benchmark();
+			//Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -24,9 +24,16 @@ namespace AScript.Test.Consoles
 			//Test10_Lambda();
 			//Test11_Convert();
 			//Test12_IronPython();
+			Test13_ElementType();
 			//Console.WriteLine(typeof(int[]).FullName);
 			Console.WriteLine("end");
 			Console.ReadLine();
+		}
+
+		static void Test13_ElementType()
+		{
+			var type1 = typeof(int[]);
+			var type2 = typeof(List<int>);
 		}
 
 		static void Test12_IronPython()

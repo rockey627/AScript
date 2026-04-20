@@ -10,6 +10,22 @@ namespace AScript.Test.MSTests
 	public class ScriptStringTest
 	{
 		[TestMethod]
+		public void Test27_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual("12", script.Eval("'012345'[1:3]"));
+			Assert.AreEqual("12", script.Eval("'012345'[-5:3]"));
+			Assert.AreEqual("012", script.Eval("'012345'[:3]"));
+			Assert.AreEqual("012", script.Eval("'012345'[:-3]"));
+			Assert.AreEqual("12345", script.Eval("'012345'[1:]"));
+			Assert.AreEqual("12345", script.Eval("'012345'[-5:]"));
+			Assert.AreEqual("012345", script.Eval("'012345'[:]"));
+			Assert.AreEqual('1', script.Eval("'012345'[1]"));
+			Assert.AreEqual('5', script.Eval("'012345'[-1]"));
+		}
+
+		[TestMethod]
 		public void Test27()
 		{
 			var script = new Script();
