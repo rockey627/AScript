@@ -1740,33 +1740,6 @@ namespace AScript
 			_TokenHandlers.Add(handler);
 		}
 
-		public void AddCustomFunc(CustomFunction customFunction)
-		{
-			Init_CustomFunctions();
-			if (!_CustomFunctions.TryGetValue(customFunction.Name, out var list))
-			{
-				if (_CustomFunctions is ConcurrentDictionary<string, List<CustomFunction>> con)
-				{
-					list = con.GetOrAdd(customFunction.Name, key => new List<CustomFunction>());
-				}
-				else
-				{
-					_CustomFunctions[customFunction.Name] = list = new List<CustomFunction>();
-				}
-			}
-			if (_ThreadSafely)
-			{
-				lock (this)
-				{
-					list.Add(customFunction);
-				}
-			}
-			else
-			{
-				list.Add(customFunction);
-			}
-		}
-
 		public void AddTempFunc(string name, Delegate d)
 		{
 			Init_TempFunctions();
@@ -1830,6 +1803,33 @@ namespace AScript
 			if (del != null)
 			{
 				AddTempFunc(string.IsNullOrEmpty(name) ? method.Name : name, del);
+			}
+		}
+
+		public void AddFunc(CustomFunction customFunction)
+		{
+			Init_CustomFunctions();
+			if (!_CustomFunctions.TryGetValue(customFunction.Name, out var list))
+			{
+				if (_CustomFunctions is ConcurrentDictionary<string, List<CustomFunction>> con)
+				{
+					list = con.GetOrAdd(customFunction.Name, key => new List<CustomFunction>());
+				}
+				else
+				{
+					_CustomFunctions[customFunction.Name] = list = new List<CustomFunction>();
+				}
+			}
+			if (_ThreadSafely)
+			{
+				lock (this)
+				{
+					list.Add(customFunction);
+				}
+			}
+			else
+			{
+				list.Add(customFunction);
 			}
 		}
 

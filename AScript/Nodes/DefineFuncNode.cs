@@ -97,7 +97,7 @@ namespace AScript.Nodes
 				var customFunc = new CustomFunction(name, funcReturnType, argNames, argTypes, this.Body);
 				if (!string.IsNullOrEmpty(this.Name) && this.Name != "_")
 				{
-					context.AddCustomFunc(customFunc);
+					context.AddFunc(customFunc);
 				}
 				returnType = typeof(CustomFunctionObject);
 				return new CustomFunctionObject(customFunc, context);
