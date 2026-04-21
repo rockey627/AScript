@@ -19,6 +19,25 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
+		public void Test13_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "python3" };
+			Assert.AreEqual(true, script.Eval("True"));
+			Assert.AreEqual(false, script.Eval("False"));
+		}
+
+		[TestMethod]
+		public void Test13()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+			Assert.AreEqual(true, script.Eval("True"));
+			Assert.AreEqual(false, script.Eval("False"));
+		}
+
+		[TestMethod]
 		public void Test12_2()
 		{
 			var script = new Script();

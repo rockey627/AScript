@@ -56,31 +56,45 @@ namespace AScript.TokenHandlers
 			var args = e.Ignore ? null : new List<ITreeNode>();
 			var tokenReader = e.TokenReader;
 
-			while (true)
+			var nextToken = tokenReader.Read();
+			if (!nextToken.HasValue)
 			{
-				var element = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, tokenReader, e.Control, e.Ignore);
-				if (!e.Ignore)
+				throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect ']'");
+			}
+			if (nextToken.Value.Type != ETokenType.String && nextToken.Value.Value == ",")
+			{
+				throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect value or ']'");
+			}
+			if (nextToken.Value.Type == ETokenType.String || nextToken.Value.Value != "]")
+			{
+				e.TokenReader.Push(nextToken.Value);
+				while (true)
 				{
-					args.Add(element);
-				}
+					var element = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, tokenReader, e.Control, e.Ignore);
+					
+					if (!e.Ignore)
+					{
+						args.Add(element);
+					}
 
-				var nextToken = tokenReader.Read();
-				if (!nextToken.HasValue)
-				{
-					throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect ']'");
-				}
-				if (nextToken.Value.Type == ETokenType.String)
-				{
-					throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
-				}
-				if (nextToken.Value.Value == "]")
-				{
-					break;
-				}
+					nextToken = tokenReader.Read();
+					if (!nextToken.HasValue)
+					{
+						throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect ']'");
+					}
+					if (nextToken.Value.Type == ETokenType.String)
+					{
+						throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
+					}
+					if (nextToken.Value.Value == "]")
+					{
+						break;
+					}
 
-				if (nextToken.Value.Value != ",")
-				{
-					throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
+					if (nextToken.Value.Value != ",")
+					{
+						throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
+					}
 				}
 			}
 

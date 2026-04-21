@@ -66,6 +66,10 @@ namespace AScript.Lang.Python3
 			AddFunc<int, int, IReadOnlyList<int>>("range", Range);
 			AddAction<object>("print", s => Console.WriteLine(s));
 
+			AddTokenHandler("?", QuestionIIFTokenHandler.Instance);
+			AddTokenHandler("[", Python3BracketTokenHandler.Instance);
+			AddTokenHandler("True", BoolTokenHandler.Instance);
+			AddTokenHandler("False", BoolTokenHandler.Instance);
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);
 			AddTokenHandler("or", OrElseTokenHandler.Instance);
 			AddTokenHandler("if", Python3IfTokenHandler.Instance);

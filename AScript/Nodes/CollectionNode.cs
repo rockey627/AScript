@@ -22,7 +22,100 @@ namespace AScript.Nodes
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
-			return null;
+			if (this.CollectionType == null)
+			{
+				throw new Exception("unknown collection type");
+			}
+
+			// Build each item expression
+			var itemExprs = new Expression[Items.Count];
+			Type elementType = null;
+			var objType = typeof(object);
+			for (int i = 0; i < Items.Count; i++)
+			{
+				var itemExpr = Items[i].Build(buildContext, scriptContext, options);
+				itemExprs[i] = itemExpr;
+				if (this.ElementType == null)
+				{
+					if (elementType == null)
+					{
+						elementType = itemExpr.Type;
+					}
+					else if (elementType != objType && itemExpr.Type != elementType)
+					{
+						elementType = objType;
+					}
+				}
+			}
+
+			// Determine element type
+			if (this.ElementType != null)
+			{
+				elementType = this.ElementType;
+			}
+			else if (elementType == null)
+			{
+				elementType = objType;
+			}
+
+			if (CollectionType == typeof(Array))
+			{
+				// Create array expression: new[] { elem1, elem2, ... }
+				var convertedExprs = new Expression[itemExprs.Length];
+				for (int i = 0; i < itemExprs.Length; i++)
+				{
+					if (itemExprs[i].Type != elementType)
+					{
+						convertedExprs[i] = Expression.Convert(itemExprs[i], elementType);
+					}
+					else
+					{
+						convertedExprs[i] = itemExprs[i];
+					}
+				}
+				return Expression.NewArrayInit(elementType, convertedExprs);
+			}
+
+			// Handle List<T>
+			Type listType;
+			if (CollectionType.IsGenericType && CollectionType.GetGenericTypeDefinition() == typeof(List<>))
+			{
+				listType = CollectionType;
+				elementType = CollectionType.GetGenericArguments()[0];
+			}
+			else
+			{
+				listType = typeof(List<>).MakeGenericType(elementType);
+			}
+
+			// Get Add method
+			var addMethod = listType.GetMethod("Add");
+			if (addMethod == null)
+			{
+				throw new Exception($"type {listType.Name} does not have an Add method");
+			}
+
+			// Create instance variable
+			var instanceVar = Expression.Variable(listType, "instance");
+
+			// Build statements: instance = new List<T>(); instance.Add(elem1); instance.Add(elem2); ...; return instance;
+			var statements = new List<Expression>(2 + itemExprs.Length);
+			var constructorInfo = listType.GetConstructor(new[] { typeof(int) });
+			statements.Add(Expression.Assign(instanceVar, Expression.New(constructorInfo, new[] { Expression.Constant(itemExprs.Length) })));
+
+			for (int i = 0; i < itemExprs.Length; i++)
+			{
+				Expression itemExpr = itemExprs[i];
+				if (itemExpr.Type != elementType)
+				{
+					itemExpr = Expression.Convert(itemExpr, elementType);
+				}
+				statements.Add(Expression.Call(instanceVar, addMethod, itemExpr));
+			}
+
+			statements.Add(instanceVar);
+
+			return Expression.Block(new[] { instanceVar }, statements);
 		}
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
@@ -57,6 +150,10 @@ namespace AScript.Nodes
 			{
 				elementType = this.ElementType;
 			}
+			else if (elementType == null)
+			{
+				elementType = objType;
+			}
 
 			if (CollectionType == typeof(Array))
 			{
@@ -75,6 +172,7 @@ namespace AScript.Nodes
 			if (CollectionType.IsGenericType && CollectionType.GetGenericTypeDefinition() == typeof(List<>))
 			{
 				listType = CollectionType;
+				elementType = CollectionType.GetGenericArguments()[0];
 			}
 			else
 			{
