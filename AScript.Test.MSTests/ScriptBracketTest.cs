@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace AScript.Test.MSTests
 {
 	[TestClass]
-	public class ScriptIndexTest
+	public class ScriptBracketTest
 	{
 		#region IndexOperator - 负索引测试
 
