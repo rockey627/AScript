@@ -12,7 +12,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			//Test01_Benchmark();
+			Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -24,7 +24,7 @@ namespace AScript.Test.Consoles
 			//Test10_Lambda();
 			//Test11_Convert();
 			//Test12_IronPython();
-			Test13_ElementType();
+			//Test13_ElementType();
 			//Console.WriteLine(typeof(int[]).FullName);
 			Console.WriteLine("end");
 			Console.ReadLine();
@@ -202,7 +202,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest03_Func>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest04_Var>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest05_Var>(config);
-			//BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func>(config);
+			BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func2>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest07_Type>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest08_For>(config);
@@ -213,7 +213,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest13>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest14_For>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest15_rec>(config);
-			BenchmarkRunner.Run<Benchmarks.PythonTest01>(config);
+			//BenchmarkRunner.Run<Benchmarks.PythonTest01>(config);
 			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();
 			//new Benchmarks.ExpressionTest06_Func().AScript1_3();

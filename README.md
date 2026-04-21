@@ -174,6 +174,26 @@ var script = new Script();
 Assert.AreEqual("hello tom, 5+8=13", script.Eval(s));
 ```
 
+###### 字符串索引和截取
+```C#
+var script = new Script();
+Assert.AreEqual('e', script.Eval("'hello'[1]"));
+Assert.AreEqual('e', script.Eval("'hello'[-4]"));
+Assert.AreEqual("ell", script.Eval("'hello'[1:4]"));
+Assert.AreEqual("ell", script.Eval("'hello'[-4:-1]"));
+```
+
+###### 数组
+```C#
+var script = new Script();
+var result1 = (List<int>)script.Eval("var arr1 = [0,1,2,3,4]; arr1[1:4]");
+var result2 = (List<int>)script.Eval("var arr1 = [0,1,2,3,4]; arr2[-4:-1]");
+CollectionAssert.AreEqual(new List<int> { 1, 2, 3 }, result1);
+CollectionAssert.AreEqual(new List<int> { 1, 2, 3 }, result2);
+Assert.AreEqual(1, script.Eval("arr1[1]"));
+Assert.AreEqual(1, script.Eval("arr1[-4]"));
+```
+
 ###### 点操作符
 ```C#
 var script = new Script();
