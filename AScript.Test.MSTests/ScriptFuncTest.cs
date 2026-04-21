@@ -10,6 +10,16 @@ namespace AScript.Test.MSTests
 	public class ScriptFuncTest
 	{
 		[TestMethod]
+		public void Test21()
+		{
+			var random = new System.Random();
+			random.Next(1, 10);
+			var script = new Script();
+			script.Context.AddFunc(random);
+			Console.WriteLine(script.Eval("Next(1, 10)")); // random.Next(1, 10)
+		}
+
+		[TestMethod]
 		public void Test20_2()
 		{
 			string s = @"

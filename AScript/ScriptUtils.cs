@@ -418,6 +418,7 @@ namespace AScript
 		public static Delegate CreateDelegate(MethodInfo methodInfo, object target = null)
 		{
 			if (methodInfo == null) return null;
+			if (methodInfo.IsGenericMethod) return null;
 			var delegateType = GetDelegateType(methodInfo);
 			if (delegateType == null) return null;
 			return target == null ? Delegate.CreateDelegate(delegateType, methodInfo) : Delegate.CreateDelegate(delegateType, target, methodInfo);

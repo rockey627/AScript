@@ -1883,7 +1883,7 @@ namespace AScript
 		/// 添加类型中的所有公开静态方法
 		/// </summary>
 		/// <param name="type"></param>
-		/// <param name="methodNameMap">方法名映射</param>
+		/// <param name="methodNameMap">方法名映射，如果返回名称为空则不添加该方法</param>
 		public void AddFunc(Type type, Func<MethodInfo, string> methodNameMap)
 		{
 			AddFunc(type, null, methodNameMap);
@@ -1894,7 +1894,7 @@ namespace AScript
 		/// </summary>
 		/// <param name="type"></param>
 		/// <param name="target">实例对象</param>
-		/// <param name="methodNameMap">方法名映射</param>
+		/// <param name="methodNameMap">方法名映射，如果返回名称为空则不添加该方法</param>
 		public void AddFunc(Type type, object target, Func<MethodInfo, string> methodNameMap)
 		{
 			var methods = target == null ? type.GetMethods(BindingFlags.Public | BindingFlags.Static) : type.GetMethods(BindingFlags.Public | BindingFlags.Instance);
@@ -1902,12 +1902,17 @@ namespace AScript
 			{
 				// 跳过属性访问器等特殊方法
 				if (method.IsSpecialName) continue;
-				// 
-				var del = ScriptUtils.CreateDelegate(method, target);
-				if (del != null)
+				// 方法名
+				string name;
+				if (methodNameMap == null) name = method.Name;
+				else
 				{
-					AddFunc(methodNameMap?.Invoke(method) ?? method.Name, del);
+					name = methodNameMap(method);
+					if (string.IsNullOrEmpty(name)) continue;
 				}
+				// 创建方法委托
+				var del = ScriptUtils.CreateDelegate(method, target);
+				if (del != null) AddFunc(name, del);
 			}
 		}
 

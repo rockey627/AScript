@@ -5,6 +5,7 @@
 * [AScript轻量级动态脚本引擎](https://mp.weixin.qq.com/s/0n17ecNjLd96FgujBUNt9w)
 * [AScript如何实现中文脚本引擎](https://mp.weixin.qq.com/s/x7Pb2dRlKu83cdDsHd0KLQ)
 * [AScript扩展多种脚本语言](https://mp.weixin.qq.com/s/TJE20AvQGQjRxOKM5U3Tow)
+* [AScript函数体系详解](https://mp.weixin.qq.com/s/rzLzCrTAvOEFTtAGtTX6BQ)
 
 #### 介绍
 
@@ -187,7 +188,7 @@ Assert.AreEqual("ell", script.Eval("'hello'[-4:-1]"));
 ```C#
 var script = new Script();
 var result1 = (List<int>)script.Eval("var arr1 = [0,1,2,3,4]; arr1[1:4]");
-var result2 = (List<int>)script.Eval("var arr1 = [0,1,2,3,4]; arr2[-4:-1]");
+var result2 = (List<int>)script.Eval("var arr2 = [0,1,2,3,4]; arr2[-4:-1]");
 CollectionAssert.AreEqual(new List<int> { 1, 2, 3 }, result1);
 CollectionAssert.AreEqual(new List<int> { 1, 2, 3 }, result2);
 Assert.AreEqual(1, script.Eval("arr1[1]"));
@@ -270,7 +271,7 @@ Assert.AreEqual(11, func(3, 4));
 脚本生成Lambda表达式，应用场景：脚本->LINQ
 ```C#
 var script = new Script();
-var whereCondition = script.Lambda<Person, bool>("p.Name=='tom' || p.Name='jim'", "p");
+var whereCondition = script.Lambda<Person, bool>("p.Name=='tom' || p.Name=='jim'", "p");
 IQueryable<Person> query = ...;
 var list = query.Where(whereCondition).ToList();
 ```
