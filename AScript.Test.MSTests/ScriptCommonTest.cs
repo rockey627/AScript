@@ -10,6 +10,68 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test27()
+		{
+			{
+				string s = @"
+int sum(int a, int b) {
+	return a + b;
+}
+sum(3, 5);  // 8
+";
+				var script = new Script();
+				Assert.AreEqual(8, script.Eval(s));
+			}
+
+			{
+				string s = @"
+int sum(int a, int b) => a + b;
+sum(3, 5);  // 8
+";
+				var script = new Script();
+				Assert.AreEqual(8, script.Eval(s));
+			}
+
+			{
+				string s = @"
+var sum = int _(int a, int b) => a + b;
+sum.Invoke(3, 5);  // 8
+";
+				var script = new Script();
+				Assert.AreEqual(8, script.Eval(s));
+			}
+
+			{
+				string s = @"
+var sum = int _(int a, int b) => a + b;
+sum.Invoke(3, 5);  // 8
+";
+				var script = new Script();
+				Assert.AreEqual(8, script.Eval(s));
+			}
+
+			{
+				string s = @"
+int fib(int n) {
+    if (n <= 1) return n;
+    return fib(n - 1) + fib(n - 2);
+}
+fib(10);  // 55
+";
+				var script = new Script();
+				Assert.AreEqual(55, script.Eval(s));
+				Assert.AreEqual(55, fib(10));
+			}
+
+		}
+
+		private int fib(int n)
+		{
+			if (n <= 1) return n;
+			return fib(n - 1) + fib(n - 2);
+		}
+
+		[TestMethod]
 		public void Test26_null_2()
 		{
 			string s = "FileInfo a = null;a==null";

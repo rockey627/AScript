@@ -114,7 +114,7 @@ namespace AScript.Lang.CSharp
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);
 			AddTokenHandler("?", QuestionIIFTokenHandler.Instance);
-			AddTokenHandler("[", IndexTokenHandler.Instance);
+			AddTokenHandler("[", BracketTokenHandler.Instance);
 			AddTokenHandler("null", NullTokenHandler.Instance);
 			AddTokenHandler("new", NewTokenHandler.Instance);
 			AddTokenHandler("if", IfTokenHandler.Instance);
