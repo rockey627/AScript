@@ -2,7 +2,7 @@
 
 #### 相关文章
 
-* [AScript - C#轻量级动态脚本引擎](https://mp.weixin.qq.com/s/0n17ecNjLd96FgujBUNt9w)
+* [AScript轻量级动态脚本引擎](https://mp.weixin.qq.com/s/0n17ecNjLd96FgujBUNt9w)
 * [AScript如何实现中文脚本引擎](https://mp.weixin.qq.com/s/x7Pb2dRlKu83cdDsHd0KLQ)
 * [AScript扩展多种脚本语言](https://mp.weixin.qq.com/s/TJE20AvQGQjRxOKM5U3Tow)
 

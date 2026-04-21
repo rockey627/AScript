@@ -18,7 +18,7 @@ namespace AScript.TokenHandlers
 		public virtual void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;
-			if (e.TreeBuilder.Current == null)
+			if (e.TreeBuilder.Current == null || e.TreeBuilder.Current is OperatorNode opNode && !opNode.IsFull())
 			{
 				// 创建数组：[1,2,3,4]
 				if (BuildCollection(analyzer, e)) return;
@@ -84,41 +84,31 @@ namespace AScript.TokenHandlers
 				}
 			}
 
-			if (!e.Ignore)
-			{
-				var arr = CreateCollection(args.Select(a => a.Eval(e.ScriptContext, e.Options, e.Control, out _)).ToList());
-				var arrNode = PoolManage.CreateObjectData(arr);
-				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, arrNode);
-			}
+			if (e.Ignore) return true;
 
+			var collectionNode = CreateCollection(args);
+			if (e.Options.CreateFullTreeNode ?? false)
+			{
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, collectionNode);
+			}
+			else if ((e.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				var expr = collectionNode.Build(e.BuildContext, e.ScriptContext, e.Options);
+				PoolManage.Return(collectionNode);
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateExpressionNode(expr));
+			}
+			else
+			{
+				var arr = collectionNode.Eval(e.ScriptContext, e.Options, out _);
+				PoolManage.Return(collectionNode);
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectData(arr));
+			}
 			return true;
 		}
 
-		protected virtual object CreateCollection(List<object> list)
+		protected virtual CollectionNode CreateCollection(IList<ITreeNode> items)
 		{
-			Type elementType = null;
-			foreach (var item in list)
-			{
-				if (item == null) continue;
-				var itemType = item.GetType();
-				if (elementType == null)
-				{
-					elementType = itemType;
-					continue;
-				}
-				if (itemType != elementType)
-				{
-					elementType = null;
-					break;
-				}
-			}
-			if (elementType == null) elementType = typeof(object);
-			var arr = Array.CreateInstance(elementType, list.Count);
-			for (int i = 0; i < list.Count; i++)
-			{
-				arr.SetValue(list[i], i);
-			}
-			return arr;
+			return new CollectionNode { Items = items, CollectionType = typeof(Array) };
 		}
 
 		protected virtual bool TryBuildNext(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, ITreeNode statement0, Token nextToken)

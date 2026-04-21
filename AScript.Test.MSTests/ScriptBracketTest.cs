@@ -340,6 +340,224 @@ namespace AScript.Test.MSTests
 
 		#endregion
 
+		#region ArrayLiteral - 数组字面量测试
+
+		[TestMethod]
+		public void TestArrayLiteral_Int()
+		{
+			var script = new Script();
+			var result = (Array)script.Eval("[1,2,3,4,5]");
+			Assert.AreEqual(5, result.Length);
+			Assert.AreEqual(1, result.GetValue(0));
+			Assert.AreEqual(3, result.GetValue(2));
+			Assert.AreEqual(5, result.GetValue(4));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_Int_Compiled()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var result = (Array)script.Eval("[1,2,3,4,5]");
+			Assert.AreEqual(5, result.Length);
+			Assert.AreEqual(1, result.GetValue(0));
+			Assert.AreEqual(3, result.GetValue(2));
+			Assert.AreEqual(5, result.GetValue(4));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_String()
+		{
+			var script = new Script();
+			var result = (Array)script.Eval("['a','b','c']");
+			Assert.AreEqual(3, result.Length);
+			Assert.AreEqual("a", result.GetValue(0));
+			Assert.AreEqual("c", result.GetValue(2));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_String_Compiled()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var result = (Array)script.Eval("['a','b','c']");
+			Assert.AreEqual(3, result.Length);
+			Assert.AreEqual("a", result.GetValue(0));
+			Assert.AreEqual("c", result.GetValue(2));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_Mixed()
+		{
+			var script = new Script();
+			var result = (Array)script.Eval("[1,'hello',3.14,true]");
+			Assert.AreEqual(4, result.Length);
+			Assert.AreEqual(1, result.GetValue(0));
+			Assert.AreEqual("hello", result.GetValue(1));
+			Assert.AreEqual(3.14, result.GetValue(2));
+			Assert.AreEqual(true, result.GetValue(3));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_Mixed_Compiled()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var result = (Array)script.Eval("[1,'hello',3.14,true]");
+			Assert.AreEqual(4, result.Length);
+			Assert.AreEqual(1, result.GetValue(0));
+			Assert.AreEqual("hello", result.GetValue(1));
+			Assert.AreEqual(3.14, result.GetValue(2));
+			Assert.AreEqual(true, result.GetValue(3));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_Empty()
+		{
+			var script = new Script();
+			var result = (Array)script.Eval("[]");
+			Assert.AreEqual(0, result.Length);
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_Empty_Compiled()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var result = (Array)script.Eval("[]");
+			Assert.AreEqual(0, result.Length);
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_SingleElement()
+		{
+			var script = new Script();
+			var result = (Array)script.Eval("[42]");
+			Assert.AreEqual(1, result.Length);
+			Assert.AreEqual(42, result.GetValue(0));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_SingleElement_Compiled()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var result = (Array)script.Eval("[42]");
+			Assert.AreEqual(1, result.Length);
+			Assert.AreEqual(42, result.GetValue(0));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_AssignToVar()
+		{
+			var script = new Script();
+			script.Eval("var arr = [10,20,30]");
+			Assert.AreEqual(20, script.Eval("arr[1]"));
+			Assert.AreEqual(30, script.Eval("arr[2]"));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_AssignToVar_Compiled()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Eval("var arr = [10,20,30]");
+			Assert.AreEqual(20, script.Eval("arr[1]"));
+			Assert.AreEqual(30, script.Eval("arr[2]"));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_NestedIndex()
+		{
+			var script = new Script();
+			var result = script.Eval("[[1,2],[3,4]][0]");
+			var arr = (Array)result;
+			Assert.AreEqual(1, arr.GetValue(0));
+			Assert.AreEqual(2, arr.GetValue(1));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_NestedIndex_Compiled()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var result = script.Eval("[[1,2],[3,4]][0]");
+			var arr = (Array)result;
+			Assert.AreEqual(1, arr.GetValue(0));
+			Assert.AreEqual(2, arr.GetValue(1));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_WithVariable()
+		{
+			var script = new Script();
+			script.Context.SetVar("x", 100);
+			script.Context.SetVar("y", 200);
+			var result = (Array)script.Eval("[x, y, x + y]");
+			Assert.AreEqual(100, result.GetValue(0));
+			Assert.AreEqual(200, result.GetValue(1));
+			Assert.AreEqual(300, result.GetValue(2));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_WithVariable_Compiled()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("x", 100);
+			script.Context.SetVar("y", 200);
+			var result = (Array)script.Eval("[x, y, x + y]");
+			Assert.AreEqual(100, result.GetValue(0));
+			Assert.AreEqual(200, result.GetValue(1));
+			Assert.AreEqual(300, result.GetValue(2));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_Double()
+		{
+			var script = new Script();
+			var result = (Array)script.Eval("[1.1, 2.2, 3.3]");
+			Assert.AreEqual(3, result.Length);
+			Assert.AreEqual(1.1, result.GetValue(0));
+			Assert.AreEqual(3.3, result.GetValue(2));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_Double_Compiled()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var result = (Array)script.Eval("[1.1, 2.2, 3.3]");
+			Assert.AreEqual(3, result.Length);
+			Assert.AreEqual(1.1, result.GetValue(0));
+			Assert.AreEqual(3.3, result.GetValue(2));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_Bool()
+		{
+			var script = new Script();
+			var result = (Array)script.Eval("[true, false, true]");
+			Assert.AreEqual(3, result.Length);
+			Assert.AreEqual(true, result.GetValue(0));
+			Assert.AreEqual(false, result.GetValue(1));
+			Assert.AreEqual(true, result.GetValue(2));
+		}
+
+		[TestMethod]
+		public void TestArrayLiteral_Bool_Compiled()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var result = (Array)script.Eval("[true, false, true]");
+			Assert.AreEqual(3, result.Length);
+			Assert.AreEqual(true, result.GetValue(0));
+			Assert.AreEqual(false, result.GetValue(1));
+			Assert.AreEqual(true, result.GetValue(2));
+		}
+
+		#endregion
+
 		#region 边界情况测试
 
 		[TestMethod]
