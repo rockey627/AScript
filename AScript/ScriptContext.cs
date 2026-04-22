@@ -729,7 +729,6 @@ namespace AScript
 					types[i] = type;
 					if (!(arg is ObjectNode))
 					{
-						PoolManage.Return(arg);
 						args[i] = PoolManage.CreateObjectData(value, type);
 					}
 				}
@@ -747,7 +746,7 @@ namespace AScript
 			return true;
 		}
 
-		protected bool EvalFunc(BuildOptions options, EvalControl control, IDictionary<string, List<Delegate>> functions, string name, bool isPrefix, IList<ITreeNode> args, ref object[] argValues, ref Type[] argTypes, out object result, out Type returnType)
+		internal bool EvalFunc(BuildOptions options, EvalControl control, IDictionary<string, List<Delegate>> functions, string name, bool isPrefix, IList<ITreeNode> args, ref object[] argValues, ref Type[] argTypes, out object result, out Type returnType)
 		{
 			if (functions == null || !functions.TryGetValue(name, out var list3))
 			{
@@ -768,7 +767,6 @@ namespace AScript
 					argTypes[i] = type;
 					if (!(arg is ObjectNode))
 					{
-						PoolManage.Return(arg);
 						args[i] = PoolManage.CreateObjectData(value, type);
 					}
 				}
@@ -787,7 +785,6 @@ namespace AScript
 			{
 				var datas2 = new object[(argValues?.Length ?? 0) + 1];
 				datas2[0] = this;
-				//datas2[0] = Create(this);
 				if (argValues != null && argValues.Length > 0)
 				{
 					Array.Copy(argValues, 0, datas2, 1, argValues.Length);
@@ -1000,7 +997,7 @@ namespace AScript
 			return ExpressionUtils.BuildEval(buildContext, this, options, name, args);
 		}
 
-		public Expression BuildFunc(BuildContext buildContext, BuildOptions options, IDictionary<string, List<Delegate>> functions, string name, IList<ITreeNode> args, ref Expression[] argExprs, ref Type[] argTypes)
+		internal Expression BuildFunc(BuildContext buildContext, BuildOptions options, IDictionary<string, List<Delegate>> functions, string name, IList<ITreeNode> args, ref Expression[] argExprs, ref Type[] argTypes)
 		{
 			if (functions == null || !functions.TryGetValue(name, out var list3)) return null;
 
@@ -1016,7 +1013,6 @@ namespace AScript
 					argTypes[i] = expr.Type;
 					if (!(arg is ExpressionNode))
 					{
-						PoolManage.Return(arg);
 						args[i] = PoolManage.CreateExpressionNode(expr);
 					}
 				}
@@ -1034,7 +1030,7 @@ namespace AScript
 			return BuildFunc(d, argExprs, useScriptContext, hasClosure);
 		}
 
-		public Expression BuildFunc(BuildContext buildContext, BuildOptions options, IList<Delegate> functions, IList<ITreeNode> args, ref Expression[] argExprs, ref Type[] argTypes)
+		internal Expression BuildFunc(BuildContext buildContext, BuildOptions options, IList<Delegate> functions, IList<ITreeNode> args, ref Expression[] argExprs, ref Type[] argTypes)
 		{
 			if (argExprs == null && args != null && args.Count > 0)
 			{
@@ -1048,7 +1044,6 @@ namespace AScript
 					argTypes[i] = expr.Type;
 					if (!(arg is ExpressionNode))
 					{
-						PoolManage.Return(arg);
 						args[i] = PoolManage.CreateExpressionNode(expr);
 					}
 				}

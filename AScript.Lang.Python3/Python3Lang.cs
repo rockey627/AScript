@@ -65,6 +65,8 @@ namespace AScript.Lang.Python3
 			AddFunc<ScriptContext, string, object>("exec", Exec);
 			AddFunc<long, IReadOnlyList<long>>("range", Range);
 			AddFunc<long, long, IReadOnlyList<long>>("range", Range);
+			AddFunc<List<object>, List<object>, List<object>>("+", List_Plus);
+			AddFunc<IList, long>("len", list => list == null ? 0L : (long)list.Count);
 			AddAction<object>("print", Println);
 			AddAction<IList, object>("append", (list, value) => list.Add(value));
 			AddAction<IList, long, object>("insert", (list, index, value) => list.Insert((int)index, value));
@@ -166,6 +168,14 @@ namespace AScript.Lang.Python3
 				arr[i - start] = i;
 			}
 			return new ReadOnlyCollection<long>(arr);
+		}
+
+		private static List<object> List_Plus(List<object> list1, List<object> list2)
+		{
+			var list = new List<object>((list1 == null ? 0 : list1.Count) + (list2 == null ? 0 : list2.Count));
+			if (list1 != null) list.AddRange(list1);
+			if (list2 != null) list.AddRange(list2);
+			return list;
 		}
 
 		public static TreeBuilder BuildSubBlock(int parentColumn, DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)

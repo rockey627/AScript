@@ -19,6 +19,31 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
+		public void Test24()
+		{
+			string s = @"
+def exec(a) :
+	m=5
+	s='hello'
+	m+','+a+','+s
+
+exec(26)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+			Assert.AreEqual("5,26,hello", script.Eval(s));
+			Assert.AreEqual("5,16,hello", script.Eval("exec(16)"));
+		}
+
+		[TestMethod]
+		public void Test23()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+			Assert.AreEqual("8hello", script.Eval("3+5+'hello'"));
+		}
+
+		[TestMethod]
 		public void Test22_2()
 		{
 			int m = 10;
