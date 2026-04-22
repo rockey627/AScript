@@ -1,4 +1,4 @@
-﻿using AScript.Lang.Python3;
+using AScript.Lang.Python3;
 using System;
 
 namespace AScript.Test.MSTests
@@ -16,6 +16,485 @@ namespace AScript.Test.MSTests
 		public static void Cleanup()
 		{
 			Script.Langs.TryRemove("python3");
+		}
+
+		[TestMethod]
+		public void Test22_2()
+		{
+			int m = 10;
+			Python3Lang.Instance.AddFunc<int, int, int>("sum", (a, b) => a + b + m);
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+			Assert.AreEqual(18, script.Eval("sum(3,5)"));
+		}
+
+		[TestMethod]
+		public void Test22()
+		{
+			int m = 10;
+			Python3Lang.Instance.AddFunc<int, int, int>("sum", (a, b) => a + b + m);
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+			Assert.AreEqual(18, script.Eval("sum(3,5)"));
+		}
+
+		[TestMethod]
+		public void Test21_2()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+			int m = 10;
+			script.Context.AddFunc<int, int, int>("sum", (a, b) => a + b + m);
+			Assert.AreEqual(18, script.Eval("sum(3,5)"));
+		}
+
+		[TestMethod]
+		public void Test21()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+			int m = 10;
+			script.Context.AddFunc<int, int, int>("sum", (a, b) => a + b + m);
+			Assert.AreEqual(18, script.Eval("sum(3,5)"));
+		}
+
+		[TestMethod]
+		public void Test20_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "python3" };
+			script.Context.AddFunc<int, int, int>("sum", (a, b) => a + b);
+			Assert.AreEqual(8, script.Eval("sum(3,5)"));
+		}
+
+		[TestMethod]
+		public void Test20()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+			script.Context.AddFunc<int, int, int>("sum", (a, b) => a + b);
+			Assert.AreEqual(8, script.Eval("sum(3,5)"));
+		}
+
+		[TestMethod]
+		public void Test19_list_mixed_types_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "python3" };
+
+			// 多种元素类型
+			var code1 = @"
+lst = [1, 'hello', True, 3.14, [1, 2], {'key': 'value'}]
+len(lst)
+";
+			Assert.AreEqual(6L, script.Eval(code1));
+
+			// 嵌套列表
+			var code2 = @"
+lst = [[1, 2], [3, 4], [5, 6]]
+lst[1][0]
+";
+			Assert.AreEqual(3L, script.Eval(code2));
+
+			// 混合类型遍历
+			var code3 = @"
+result = ''
+for x in [1, 'a', True, None]:
+    result += str(type(x).__name__) + ','
+result
+";
+			Assert.AreEqual("int,str,bool,NoneType,", script.Eval(code3));
+
+			// 空列表
+			Assert.AreEqual(0L, script.Eval("len([])"));
+			Assert.AreEqual(true, script.Eval("[] == []"));
+		}
+
+		[TestMethod]
+		public void Test19_list_mixed_types()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+
+			// 多种元素类型
+			var code1 = @"
+lst = [1, 'hello', True, 3.14, [1, 2], {'key': 'value'}]
+len(lst)
+";
+			Assert.AreEqual(6L, script.Eval(code1));
+
+			// 嵌套列表
+			var code2 = @"
+lst = [[1, 2], [3, 4], [5, 6]]
+lst[1][0]
+";
+			Assert.AreEqual(3L, script.Eval(code2));
+
+			// 混合类型遍历
+			var code3 = @"
+result = ''
+for x in [1, 'a', True, None]:
+    result += str(type(x).__name__) + ','
+result
+";
+			Assert.AreEqual("int,str,bool,NoneType,", script.Eval(code3));
+
+			// 空列表
+			Assert.AreEqual(0L, script.Eval("len([])"));
+			Assert.AreEqual(true, script.Eval("[] == []"));
+		}
+
+		[TestMethod]
+		public void Test18_list_iterate_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "python3" };
+
+			// for in 遍历
+			var code1 = @"
+total = 0
+for x in [1, 2, 3]:
+    total += x
+total
+";
+			Assert.AreEqual(6L, script.Eval(code1));
+
+			// 遍历索引
+			var code2 = @"
+result = ''
+for i, x in enumerate([1, 2, 3]):
+    result += f'{i}:{x},'
+result
+";
+			Assert.AreEqual("0:1,1:2,2:3,", script.Eval(code2));
+
+			// 列表推导式
+			var code3 = @"
+[x * 2 for x in [1, 2, 3]]
+";
+			var list = (List<object>)script.Eval(code3);
+			Assert.AreEqual(3, list.Count);
+			Assert.AreEqual(2L, list[0]);
+			Assert.AreEqual(4L, list[1]);
+			Assert.AreEqual(6L, list[2]);
+		}
+
+		[TestMethod]
+		public void Test18_list_iterate()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+
+			// for in 遍历
+			var code1 = @"
+total = 0
+for x in [1, 2, 3]:
+    total += x
+total
+";
+			Assert.AreEqual(6L, script.Eval(code1));
+
+			// 遍历索引
+			var code2 = @"
+result = ''
+for i, x in enumerate([1, 2, 3]):
+    result += f'{i}:{x},'
+result
+";
+			Assert.AreEqual("0:1,1:2,2:3,", script.Eval(code2));
+
+			// 列表推导式
+			var code3 = @"
+[x * 2 for x in [1, 2, 3]]
+";
+			var list = (List<object>)script.Eval(code3);
+			Assert.AreEqual(3, list.Count);
+			Assert.AreEqual(2L, list[0]);
+			Assert.AreEqual(4L, list[1]);
+			Assert.AreEqual(6L, list[2]);
+		}
+
+		[TestMethod]
+		public void Test17_list_modify_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "python3" };
+
+			// 修改指定索引元素
+			var code1 = @"
+lst = [1, 2, 3]
+lst[0] = 99
+lst[1] = 100
+lst
+";
+			var list = script.Eval(code1);
+			var arr = (IReadOnlyList<object>)list;
+			Assert.AreEqual(99L, arr[0]);
+			Assert.AreEqual(100L, arr[1]);
+			Assert.AreEqual(3L, arr[2]);
+
+			// 切片修改
+			var code2 = @"
+lst = [1, 2, 3, 4, 5]
+lst[1:3] = [20, 30]
+lst
+";
+			list = script.Eval(code2);
+			arr = (List<object>)list;
+			Assert.AreEqual(1L, arr[0]);
+			Assert.AreEqual(20L, arr[1]);
+			Assert.AreEqual(30L, arr[2]);
+			Assert.AreEqual(4L, arr[3]);
+			Assert.AreEqual(5L, arr[4]);
+		}
+
+		[TestMethod]
+		public void Test17_list_modify()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+
+			// 修改指定索引元素
+			var code1 = @"
+lst = [1, 2, 3]
+lst[0] = 99
+lst[1] = 100
+lst
+";
+			var list = script.Eval(code1);
+			var arr = (List<object>)list;
+			Assert.AreEqual(99L, arr[0]);
+			Assert.AreEqual(100L, arr[1]);
+			Assert.AreEqual(3L, arr[2]);
+
+			// 切片修改
+			var code2 = @"
+lst = [1, 2, 3, 4, 5]
+lst[1:3] = [20, 30]
+lst
+";
+			list = script.Eval(code2);
+			arr = (List<object>)list;
+			Assert.AreEqual(1L, arr[0]);
+			Assert.AreEqual(20L, arr[1]);
+			Assert.AreEqual(30L, arr[2]);
+			Assert.AreEqual(4L, arr[3]);
+			Assert.AreEqual(5L, arr[4]);
+		}
+
+		[TestMethod]
+		public void Test16_list_remove_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "python3" };
+
+			// pop 删除末尾元素
+			var code1 = @"
+lst = [1, 2, 3]
+lst.pop()
+lst
+";
+			var list = script.Eval(code1);
+			var arr = (List<object>)list;
+			Assert.AreEqual(2, arr.Count);
+			Assert.AreEqual(1L, arr[0]);
+			Assert.AreEqual(2L, arr[1]);
+
+			// pop(index) 删除指定位置元素
+			var code2 = @"
+lst = [1, 2, 3]
+lst.pop(0)
+lst
+";
+			list = script.Eval(code2);
+			arr = (List<object>)list;
+			Assert.AreEqual(2, arr.Count);
+			Assert.AreEqual(2L, arr[0]);
+			Assert.AreEqual(3L, arr[1]);
+
+			// remove 删除第一个匹配元素
+			var code3 = @"
+lst = [1, 2, 3, 2]
+lst.remove(2)
+lst
+";
+			list = script.Eval(code3);
+			arr = (List<object>)list;
+			Assert.AreEqual(3, arr.Count);
+			Assert.AreEqual(1L, arr[0]);
+			Assert.AreEqual(3L, arr[1]);
+			Assert.AreEqual(2L, arr[2]);
+		}
+
+		[TestMethod]
+		public void Test16_list_remove()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+
+			// pop 删除末尾元素
+			var code1 = @"
+lst = [1, 2, 3]
+lst.pop()
+lst
+";
+			var list = script.Eval(code1);
+			var arr = (List<object>)list;
+			Assert.AreEqual(2, arr.Count);
+			Assert.AreEqual(1L, arr[0]);
+			Assert.AreEqual(2L, arr[1]);
+
+			// pop(index) 删除指定位置元素
+			var code2 = @"
+lst = [1, 2, 3]
+lst.pop(0)
+lst
+";
+			list = script.Eval(code2);
+			arr = (List<object>)list;
+			Assert.AreEqual(2, arr.Count);
+			Assert.AreEqual(2L, arr[0]);
+			Assert.AreEqual(3L, arr[1]);
+
+			// remove 删除第一个匹配元素
+			var code3 = @"
+lst = [1, 2, 3, 2]
+lst.remove(2)
+lst
+";
+			list = script.Eval(code3);
+			arr = (List<object>)list;
+			Assert.AreEqual(3, arr.Count);
+			Assert.AreEqual(1L, arr[0]);
+			Assert.AreEqual(3L, arr[1]);
+			Assert.AreEqual(2L, arr[2]);
+		}
+
+		[TestMethod]
+		public void Test15_list_add_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "python3" };
+
+			// append 添加元素
+			var code = @"
+lst = [1, 2, 3]
+lst.append(4)
+lst.append(5)
+lst
+";
+			var list = script.Eval(code);
+			var arr = (IReadOnlyList<object>)list;
+			Assert.AreEqual(5, arr.Count);
+			Assert.AreEqual(4L, arr[3]);
+			Assert.AreEqual(5L, arr[4]);
+
+			// insert 插入元素
+			var code2 = @"
+lst = [1, 2, 3]
+lst.insert(1, 99)
+lst
+";
+			list = script.Eval(code2);
+			arr = (List<object>)list;
+			Assert.AreEqual(4, arr.Count);
+			Assert.AreEqual(99L, arr[1]);
+			Assert.AreEqual(2L, arr[2]);
+
+			// + 连接列表
+			Assert.AreEqual(5L, script.Eval("len([1, 2] + [3, 4, 5])"));
+			var result = (List<object>)script.Eval("[1, 2] + [3, 4]");
+			Assert.AreEqual(4, result.Count);
+		}
+
+		[TestMethod]
+		public void Test15_list_add()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+
+			// append 添加元素
+			var code = @"
+lst = [1, 2, 3]
+lst.append(4)
+lst.append(5)
+lst
+";
+			var list = script.Eval(code);
+			var arr = (List<object>)list;
+			Assert.AreEqual(5, arr.Count);
+			Assert.AreEqual(4L, arr[3]);
+			Assert.AreEqual(5L, arr[4]);
+
+			// insert 插入元素
+			var code2 = @"
+lst = [1, 2, 3]
+lst.insert(1, 99)
+lst
+";
+			list = script.Eval(code2);
+			arr = (List<object>)list;
+			Assert.AreEqual(4, arr.Count);
+			Assert.AreEqual(99L, arr[1]);
+			Assert.AreEqual(2L, arr[2]);
+
+			// + 连接列表
+			Assert.AreEqual(5L, script.Eval("len([1, 2] + [3, 4, 5])"));
+			var result = (List<object>)script.Eval("[1, 2] + [3, 4]");
+			Assert.AreEqual(4, result.Count);
+		}
+
+		[TestMethod]
+		public void Test14_list_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "python3" };
+
+			// 基本列表创建和访问
+			var list = script.Eval("[1, 2, 3]");
+			Assert.IsTrue(list is List<object>);
+			var arr = (List<object>)list;
+			Assert.AreEqual(3, arr.Count);
+			Assert.AreEqual(1L, arr[0]);
+			Assert.AreEqual(2L, arr[1]);
+			Assert.AreEqual(3L, arr[2]);
+
+			// 负索引访问
+			Assert.AreEqual(3L, script.Eval("[1, 2, 3][-1]"));
+			Assert.AreEqual(2L, script.Eval("[1, 2, 3][-2]"));
+
+			script.Eval("print([1,2,3,4])");
+			script.Eval("print([[1,2,3],2,3,4,'hello'])");
+		}
+
+		[TestMethod]
+		public void Test14_list()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+
+			// 基本列表创建和访问
+			var list = script.Eval("[1, 2, 3]");
+			Assert.IsTrue(list is List<object>);
+			var arr = (List<object>)list;
+			Assert.AreEqual(3, arr.Count);
+			Assert.AreEqual(1L, arr[0]);
+			Assert.AreEqual(2L, arr[1]);
+			Assert.AreEqual(3L, arr[2]);
+
+			// 负索引访问
+			Assert.AreEqual(3L, script.Eval("[1, 2, 3][-1]"));
+			Assert.AreEqual(2L, script.Eval("[1, 2, 3][-2]"));
+
+			script.Eval("print([1,2,3,4])");
+			script.Eval("print([[1,2,3],2,3,4,'hello'])");
 		}
 
 		[TestMethod]
@@ -63,12 +542,12 @@ namespace AScript.Test.MSTests
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "python3" };
 			var r = script.Eval("range(-2, 4)");
-			Assert.IsTrue(r is IReadOnlyList<int>);
-			var list = (IReadOnlyList<int>)r;
+			Assert.IsTrue(r is IReadOnlyList<long>);
+			var list = (IReadOnlyList<long>)r;
 			Assert.AreEqual(6, list.Count);
 			for (int i = 0; i < list.Count; i++)
 			{
-				Assert.AreEqual(i - 2, list[i]);
+				Assert.AreEqual((long)(i - 2), list[i]);
 			}
 		}
 
@@ -78,12 +557,12 @@ namespace AScript.Test.MSTests
 			var script = new Script();
 			script.Context.Langs = new[] { "python3" };
 			var r = script.Eval("range(-2, 4)");
-			Assert.IsTrue(r is IReadOnlyList<int>);
-			var list = (IReadOnlyList<int>)r;
+			Assert.IsTrue(r is IReadOnlyList<long>);
+			var list = (IReadOnlyList<long>)r;
 			Assert.AreEqual(6, list.Count);
 			for (int i = 0; i < list.Count; i++)
 			{
-				Assert.AreEqual(i - 2, list[i]);
+				Assert.AreEqual((long)(i - 2), list[i]);
 			}
 		}
 
@@ -94,12 +573,12 @@ namespace AScript.Test.MSTests
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "python3" };
 			var r = script.Eval("range(4)");
-			Assert.IsTrue(r is IReadOnlyList<int>);
-			var list = (IReadOnlyList<int>)r;
+			Assert.IsTrue(r is IReadOnlyList<long>);
+			var list = (IReadOnlyList<long>)r;
 			Assert.AreEqual(4, list.Count);
 			for (int i = 0; i < list.Count; i++)
 			{
-				Assert.AreEqual(i, list[i]);
+				Assert.AreEqual((long)i, list[i]);
 			}
 		}
 
@@ -109,12 +588,12 @@ namespace AScript.Test.MSTests
 			var script = new Script();
 			script.Context.Langs = new[] { "python3" };
 			var r = script.Eval("range(4)");
-			Assert.IsTrue(r is IReadOnlyList<int>);
-			var list = (IReadOnlyList<int>)r;
+			Assert.IsTrue(r is IReadOnlyList<long>);
+			var list = (IReadOnlyList<long>)r;
 			Assert.AreEqual(4, list.Count);
 			for (int i = 0; i < list.Count; i++)
 			{
-				Assert.AreEqual(i, list[i]);
+				Assert.AreEqual((long)i, list[i]);
 			}
 		}
 
@@ -127,15 +606,15 @@ namespace AScript.Test.MSTests
 			script.Context.Langs = new[] { "python3" };
 			Assert.AreEqual(2.5, script.Eval("10/4"));
 			Assert.AreEqual(2.5, script.Eval("n=10\nn/=4"));
-			Assert.AreEqual(2, script.Eval("10//4"));
-			Assert.AreEqual(2, script.Eval("n=10\nn//=4"));
+			Assert.AreEqual(2L, script.Eval("10//4"));
+			Assert.AreEqual(2L, script.Eval("n=10\nn//=4"));
 			Assert.AreEqual(2.0, script.Eval("10.4//4"));
 			Assert.AreEqual(2.0, script.Eval("n:=10.4//4"));
 			Assert.AreEqual(2.0, script.Eval("n=10.4\nn//=4"));
-			Assert.AreEqual(4, script.Eval("9//2"));
-			Assert.AreEqual(-5, script.Eval("-9//2"));
-			Assert.AreEqual(-5, script.Eval("n:=-9//2"));
-			Assert.AreEqual(-5, script.Eval("n=-9\nn//=2"));
+			Assert.AreEqual(4L, script.Eval("9//2"));
+			Assert.AreEqual(-5L, script.Eval("-9//2"));
+			Assert.AreEqual(-5L, script.Eval("n:=-9//2"));
+			Assert.AreEqual(-5L, script.Eval("n=-9\nn//=2"));
 		}
 
 		[TestMethod]
@@ -176,7 +655,7 @@ string exec(int a) {
 	#使用python3语言
 	m=0
 	s=''
-	if a>0 and a<10: 
+	if a>0 and a<10:
 	  m=1
 	  s='大于0且小于10'
 	elif @lang csharp a>=10 && a<20 @end: # 条件嵌入csharp语言
@@ -216,7 +695,7 @@ string exec(int a) {
 	#使用python3语言
 	m=0
 	s=''
-	if a>0 and a<10: 
+	if a>0 and a<10:
 	  m=1
 	  s='大于0且小于10'
 	elif @lang csharp a>=10 && a<20 @end: # 条件嵌入csharp语言
@@ -253,7 +732,7 @@ exec(26)
 def exec(a) :
 	m=0
 	s=''
-	if a>0 and a<10: 
+	if a>0 and a<10:
 	  m=1
 	  s='大于0且小于10'
 	elif @lang csharp a>=10 && a<20 @end: # 条件嵌入csharp语言
@@ -283,7 +762,7 @@ exec(26)
 def exec(a) :
 	m=0
 	s=''
-	if a>0 and a<10: 
+	if a>0 and a<10:
 	  m=1
 	  s='大于0且小于10'
 	elif @lang csharp a>=10 && a<20 @end: # 条件嵌入csharp语言
@@ -314,7 +793,7 @@ string exec(int a) {
 	#使用python3语言
 	m=0
 	s=''
-	if a>0 and a<10: 
+	if a>0 and a<10:
 	  m=1
 	  s='大于0且小于10'
 	elif @lang csharp a>=10 && a<20 @end : # 条件嵌入csharp语言
@@ -347,7 +826,7 @@ string exec(int a) {
 	#使用python3语言
 	m=0
 	s=''
-	if a>0 and a<10: 
+	if a>0 and a<10:
 	  m=1
 	  s='大于0且小于10'
 	elif @lang csharp a>=10 && a<20 @end: # 条件嵌入csharp语言
@@ -378,7 +857,7 @@ string exec(int a) {
 	#使用python3语言
 	m=0
 	s=''
-	if a>0 and a<10: 
+	if a>0 and a<10:
 	  m=1
 	  s='大于0且小于10'
 	elif a>=10 and a<20:
@@ -438,7 +917,7 @@ m+','+s
 			string s = @"
 m=0
 s=''
-if a>0 and a<10: 
+if a>0 and a<10:
   m=1
   s='大于0且小于10'
 elif a>=10 and a<20:
@@ -471,7 +950,7 @@ m+','+s
 def exec(a) :
     m=0
     s=''
-    if a>0 and a<10 : 
+    if a>0 and a<10 :
         m=1
         s='大于0且小于10'
     elif a>=10 and a<20 :
@@ -500,7 +979,7 @@ exec(26)
 def exec(a) :
     m=0
     s=''
-    if a>0 and a<10 : 
+    if a>0 and a<10 :
         m=1
         s='大于0且小于10'
     elif a>=10 and a<20 :

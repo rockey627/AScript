@@ -12,7 +12,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			Test01_Benchmark();
+			//Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -23,7 +23,7 @@ namespace AScript.Test.Consoles
 			//Test09_Antlr4();
 			//Test10_Lambda();
 			//Test11_Convert();
-			//Test12_IronPython();
+			Test12_IronPython();
 			//Test13_ElementType();
 			//Console.WriteLine(typeof(int[]).FullName);
 			Console.WriteLine("end");
@@ -64,6 +64,7 @@ exec2(26)
 			Console.WriteLine(result);
 			Console.WriteLine(result.GetType());
 			Console.WriteLine(engine.Execute("exec2(16)", scope));
+			Console.WriteLine(engine.Execute("5", scope).GetType());
 		}
 
 		static void Test11_Convert()

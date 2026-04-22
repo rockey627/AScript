@@ -23,5 +23,15 @@ namespace AScript.Lang.Python3
 			if (endTokens == null) endTokens = _EndTokens;
 			return base.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore, noblock, endTokens);
 		}
+
+		protected override object EvalNumber(string num)
+		{
+			var n = base.EvalNumber(num);
+			if (ScriptUtils.IsIntegerType(n.GetType()))
+			{
+				return Convert.ToInt64(n);
+			}
+			return Convert.ToDouble(n);
+		}
 	}
 }

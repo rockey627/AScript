@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.CSharp.RuntimeBinder;
 using AScript.Nodes;
+using System.Collections;
 
 namespace AScript.Lang.Python3.Operators
 {
@@ -224,6 +225,10 @@ namespace AScript.Lang.Python3.Operators
 					{
 						// Dictionary赋值
 						dict[idx] = value;
+					}
+					else if (obj is IList list)
+					{
+						list[Convert.ToInt32(idx)] = value;
 					}
 					else if (obj != null)
 					{

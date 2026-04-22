@@ -6,6 +6,7 @@ using AScript.Readers;
 using AScript.Syntaxs;
 using AScript.TokenHandlers;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
@@ -62,9 +63,11 @@ namespace AScript.Lang.Python3
 			AddFunc("[:]", IndexStartEndOperator.Instance);
 
 			AddFunc<ScriptContext, string, object>("exec", Exec);
-			AddFunc<int, IReadOnlyList<int>>("range", Range);
-			AddFunc<int, int, IReadOnlyList<int>>("range", Range);
-			AddAction<object>("print", s => Console.WriteLine(s));
+			AddFunc<long, IReadOnlyList<long>>("range", Range);
+			AddFunc<long, long, IReadOnlyList<long>>("range", Range);
+			AddAction<object>("print", Println);
+			AddAction<IList, object>("append", (list, value) => list.Add(value));
+			AddAction<IList, long, object>("insert", (list, index, value) => list.Insert((int)index, value));
 
 			AddTokenHandler("?", QuestionIIFTokenHandler.Instance);
 			AddTokenHandler("[", Python3BracketTokenHandler.Instance);
@@ -114,24 +117,55 @@ namespace AScript.Lang.Python3
 			return engine.Eval(context, expression);
 		}
 
-		private static IReadOnlyList<int> Range(int stop)
+		private static void Println(object obj)
 		{
-			var arr = new int[stop];
+			Print(obj);
+			Console.WriteLine();
+		}
+
+		private static void Print(object obj)
+		{
+			if (obj == null) return;
+			if (obj is string s)
+			{
+				Console.Write(s);
+				return;
+			}
+			if (obj is IList list)
+			{
+				Console.Write('[');
+				for (int i = 0; i < list.Count; i++)
+				{
+					Print(list[i]);
+					if (i < list.Count - 1)
+					{
+						Console.Write(", ");
+					}
+				}
+				Console.Write(']');
+				return;
+			}
+			Console.Write(obj.ToString());
+		}
+
+		private static IReadOnlyList<long> Range(long stop)
+		{
+			var arr = new long[stop];
 			for (int i = 0; i < stop; i++)
 			{
 				arr[i] = i;
 			}
-			return new ReadOnlyCollection<int>(arr);
+			return new ReadOnlyCollection<long>(arr);
 		}
 
-		private static IReadOnlyList<int> Range(int start, int stop)
+		private static IReadOnlyList<long> Range(long start, long stop)
 		{
-			var arr = new int[stop - start];
-			for (int i = start; i < stop; i++)
+			var arr = new long[stop - start];
+			for (long i = start; i < stop; i++)
 			{
 				arr[i - start] = i;
 			}
-			return new ReadOnlyCollection<int>(arr);
+			return new ReadOnlyCollection<long>(arr);
 		}
 
 		public static TreeBuilder BuildSubBlock(int parentColumn, DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)
