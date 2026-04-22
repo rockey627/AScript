@@ -182,7 +182,8 @@ namespace AScript.Nodes
 			var list = (IList)Activator.CreateInstance(listType, itemValues.Length);
 			for (int i = 0; i < itemValues.Length; i++)
 			{
-				list.Add(Convert.ChangeType(itemValues[i], elementType));
+				//list.Add(Convert.ChangeType(itemValues[i], elementType));
+				list.Add(itemValues[i]);
 			}
 			returnType = listType;
 			return list;

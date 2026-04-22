@@ -44,6 +44,10 @@ namespace AScript.Operators
 				var indexer = target.Type.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
 				if (indexer != null)
 				{
+					if (index.Type != typeof(int))
+					{
+						index = Expression.Convert(index, typeof(int));
+					}
 					var adjustedIndex = Expression.Condition(
 						Expression.LessThan(index, Expression.Constant(0)),
 						Expression.Add(
@@ -60,6 +64,10 @@ namespace AScript.Operators
 			// 数组类型
 			if (target.Type.IsArray)
 			{
+				if (index.Type != typeof(int))
+				{
+					index = Expression.Convert(index, typeof(int));
+				}
 				var adjustedIndex = Expression.Condition(
 					Expression.LessThan(index, Expression.Constant(0)),
 					Expression.Add(Expression.ArrayLength(target), index),
@@ -145,8 +153,9 @@ namespace AScript.Operators
 				dynamic arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
 				if (arg0 is IList list)
 				{
-					if (arg1 is int index)
+					if (arg1 is int || arg1 is long)
 					{
+						int index = (int)arg1;
 						if (index < 0)
 						{
 							index = list.Count + index;
@@ -157,8 +166,9 @@ namespace AScript.Operators
 				}
 				else if (arg0 is string s)
 				{
-					if (arg1 is int index)
+					if (arg1 is int || arg1 is long)
 					{
+						int index = (int)arg1;
 						if (index < 0)
 						{
 							index = s.Length + index;

@@ -130,7 +130,7 @@ namespace AScript.Syntaxs
 						tokenReader.Push(t.Value);
 						break;
 					}
-					treeBuilder.AddData(buildContext, scriptContext, options, control, ScriptUtils.EvalNumber(t.Value.Value), null);
+					treeBuilder.AddData(buildContext, scriptContext, options, control, EvalNumber(t.Value.Value), null);
 				}
 				else if (t.Value.Type == ETokenType.String)
 				{
@@ -708,6 +708,11 @@ namespace AScript.Syntaxs
 			if (op == "!" || op == "~") return 1;
 			if (op == "++" || op == "--") return 1;
 			return 2;
+		}
+
+		protected virtual object EvalNumber(string num)
+		{
+			return ScriptUtils.EvalNumber(num);
 		}
 
 		protected virtual void OnTokenAnalyzing(TokenAnalyzingArgs e)

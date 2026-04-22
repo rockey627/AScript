@@ -774,7 +774,7 @@ namespace AScript
 				}
 			}
 
-			var d = GetFunc(list3, argTypes, out var useScriptContext, out _);
+			var d = GetFunc(list3, argTypes, out var useScriptContext, out var hasClosure);
 			if (d == null)
 			{
 				result = null;
@@ -793,6 +793,27 @@ namespace AScript
 					Array.Copy(argValues, 0, datas2, 1, argValues.Length);
 				}
 				argValues = datas2;
+			}
+			if (argValues != null && argValues.Length > 0)
+			{
+				int startIndex = 0;
+				if (hasClosure) startIndex++;
+				if (useScriptContext) startIndex++;
+				var parameters = d.Method.GetParameters();
+				for (int i = 0; i < argValues.Length; i++)
+				{
+					if (i < startIndex) continue;
+					var paramType = parameters[i].ParameterType;
+					var dataType = argTypes[i - startIndex];
+					if (dataType != paramType)
+					{
+						var data = argValues[hasClosure ? i - 1 : i];
+						if (data is IConvertible)
+						{
+							argValues[hasClosure ? i - 1 : i] = Convert.ChangeType(data, paramType);
+						}
+					}
+				}
 			}
 			result = d.DynamicInvoke(argValues);
 			return true;

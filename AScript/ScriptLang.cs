@@ -338,6 +338,21 @@ namespace AScript
 						Array.Copy(datas, 0, datas2, 1, datas.Length);
 						datas = datas2;
 					}
+					var parameters = d.Method.GetParameters();
+					for (int i = 0; i < datas.Length; i++)
+					{
+						if (useScriptContext && i == 0) continue;
+						var paramType = parameters[i].ParameterType;
+						var dataType = types[useScriptContext ? i - 1 : i];
+						if (dataType != paramType)
+						{
+							var data = datas[i];
+							if (data is IConvertible)
+							{
+								datas[i] = Convert.ChangeType(data, paramType);
+							}
+						}
+					}
 					e.SetResult(d.DynamicInvoke(datas), returnType);
 					return;
 				}

@@ -128,7 +128,9 @@ namespace AScript.Nodes
 								return result2;
 							}
 						}
-						catch { }
+						catch (Exception ex)
+						{
+						}
 					}
 					if (methodInfo == null)
 					{
