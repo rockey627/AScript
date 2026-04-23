@@ -20,7 +20,10 @@ namespace AScript
 
 		public static object Eval(this ISyntaxAnalyzer analyzer, ScriptContext context, BuildOptions options, ITokenStream tokenStream, out Type returnType)
 		{
-			var buildContext = new BuildContext();
+			var buildContext = new BuildContext
+			{
+				Dynamic = context.Dynamic ?? context.IsDynamicLang(),
+			};
 			var treeBuilder = analyzer.Build(buildContext, context, options, new Readers.TokenReader(tokenStream, false));
 			if (treeBuilder == null)
 			{

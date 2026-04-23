@@ -20,9 +20,11 @@ namespace AScript.Lang.Python3
 
 		public Python3Lang()
 		{
-			AddFunc("=", Python3AssignOperator.Instance);
+			//AddFunc("=", Python3AssignOperator.Instance);
+			//AddFunc(":=", Python3AssignOperator.Instance);
+			AddFunc("=", AssignOperator.Instance);
 			// 海象运算符：同时进行赋值和返回赋值的值
-			AddFunc(":=", Python3AssignOperator.Instance);
+			AddFunc(":=", AssignOperator.Instance);
 			AddFunc("+=", PlusAssignOperator.Instance);
 			AddFunc("-=", SubtractAssignOperator.Instance);
 			AddFunc("*=", MultiplyAssignOperator.Instance);
@@ -110,6 +112,11 @@ namespace AScript.Lang.Python3
 					break;
 			}
 			return base.GetOperatorPriority(op);
+		}
+
+		public override bool IsDynamic()
+		{
+			return true;
 		}
 
 		private static object Exec(ScriptContext context, string expression)

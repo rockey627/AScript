@@ -42,14 +42,6 @@ namespace AScript
 			set => _ThrowIfVariableNotExists = value;
 		}
 		/// <summary>
-		/// 是否支持动态变量类型，默认为false
-		/// </summary>
-		public bool? DynamicVariableType
-		{
-			get => _DynamicVariableType ?? this.Parent?.DynamicVariableType;
-			set => _DynamicVariableType = value;
-		}
-		/// <summary>
 		/// 是否回写变量到上下文，默认为true，如果设置为false可提高性能
 		/// </summary>
 		public bool? RewriteVariables

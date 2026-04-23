@@ -12,12 +12,15 @@ namespace AScript
 		private List<Expression> _PrevExpressions;
 		private Dictionary<string, ParameterExpression> _Variables;
 		private Dictionary<string, ParameterExpression> _Parameters;
+		private Dictionary<string, Type> _LastTypes;
 		private HashSet<string> _LocalVariables;
 
 		private LabelTarget _ContinueLabel;
 		private LabelTarget _BreakLabel;
 
 		private bool _UsedScriptContext;
+
+		private bool? _Dynamic;
 
 		public BuildContext Parent { get; set; }
 
@@ -32,6 +35,15 @@ namespace AScript
 				}
 				return r;
 			}
+		}
+
+		/// <summary>
+		/// 是否动态语言
+		/// </summary>
+		public bool? Dynamic
+		{
+			get => _Dynamic ?? this.Parent?.Dynamic;
+			set => _Dynamic = value;
 		}
 
 		/// <summary>
@@ -70,8 +82,20 @@ namespace AScript
 				return _Variables;
 			}
 		}
+
+		public Dictionary<string, Type> LastTypes
+		{
+			get
+			{
+				if (_LastTypes == null)
+				{
+					_LastTypes = new Dictionary<string, Type>();
+				}
+				return _LastTypes;
+			}
+		}
 		/// <summary>
-		/// 
+		/// 本地语句块内的变量
 		/// </summary>
 		public HashSet<string> LocalVariables
 		{
@@ -217,6 +241,11 @@ namespace AScript
 
 		public bool TryGetVariableOrParameter(string name, out ParameterExpression v, out BuildContext ownerBuildContext, out bool outer)
 		{
+			return TryGetVariableOrParameter(name, out v, out ownerBuildContext, out outer, out _);
+		}
+
+		public bool TryGetVariableOrParameter(string name, out ParameterExpression v, out BuildContext ownerBuildContext, out bool outer, out Type lastType)
+		{
 			var context = this;
 			outer = false;
 			do
@@ -225,12 +254,16 @@ namespace AScript
 					&& context._Variables.TryGetValue(name, out v))
 				{
 					ownerBuildContext = context;
+					if (context._LastTypes == null) lastType = null;
+					else context._LastTypes.TryGetValue(name, out lastType);
 					return true;
 				}
 				if (context._Parameters != null
 					&& context._Parameters.TryGetValue(name, out v))
 				{
 					ownerBuildContext = context;
+					if (context._LastTypes == null) lastType = null;
+					else context._LastTypes.TryGetValue(name, out lastType);
 					return true;
 				}
 				if (context.IsMain) outer = true;
@@ -238,6 +271,7 @@ namespace AScript
 			} while (context != null);
 			v = null;
 			ownerBuildContext = null;
+			lastType = null;
 			return false;
 		}
 

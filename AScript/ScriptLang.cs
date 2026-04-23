@@ -61,11 +61,6 @@ namespace AScript
 		/// </summary>
 		public bool IgnoreCase => _IgnoreCase;
 
-		///// <summary>
-		///// 语言兼容性，表示是否与其他语言兼容运行，如果不兼容则需指定语言执行
-		///// </summary>
-		//public bool Compatible { get; set; } = true;
-
 		/// <summary>
 		/// 
 		/// </summary>
@@ -232,6 +227,15 @@ namespace AScript
 		public virtual int? GetOperatorPriority(string op)
 		{
 			return null;
+		}
+
+		/// <summary>
+		/// 是否动态语言
+		/// </summary>
+		/// <returns></returns>
+		public virtual bool IsDynamic()
+		{
+			return false;
 		}
 
 		public object EvalVar(string name)

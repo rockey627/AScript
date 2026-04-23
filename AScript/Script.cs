@@ -89,7 +89,10 @@ namespace AScript
 
 		public Delegate CompileGlobal(ITokenStream tokenStream)
 		{
-			var buildContext = new BuildContext();
+			var buildContext = new BuildContext
+			{
+				Dynamic = this.Context.Dynamic ?? this.Context.IsDynamicLang(),
+			};
 			BuildOptions buildOptions;
 			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
@@ -112,7 +115,10 @@ namespace AScript
 		/// <returns></returns>
 		public ITreeNode BuildNode(string expression)
 		{
-			var buildContext = new BuildContext();
+			var buildContext = new BuildContext
+			{
+				Dynamic = this.Context.Dynamic ?? this.Context.IsDynamicLang(),
+			};
 			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression);
 			var tokenStream = GetTokenStream(expression);
 			var node = GetSyntaxAnalyzer().Build(buildContext, this.Context, new BuildOptions(this.Options) { CreateFullTreeNode = true }, new Readers.TokenReader(tokenStream, false));
@@ -147,7 +153,10 @@ namespace AScript
 		/// <returns></returns>
 		public ITreeNode BuildNode(Stream expression)
 		{
-			var buildContext = new BuildContext();
+			var buildContext = new BuildContext
+			{
+				Dynamic = this.Context.Dynamic ?? this.Context.IsDynamicLang(),
+			};
 			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
 			var tokenStream = GetTokenStream(expression);
 			var node = GetSyntaxAnalyzer().Build(buildContext, this.Context, new BuildOptions(this.Options) { CreateFullTreeNode = true }, new Readers.TokenReader(tokenStream, false));

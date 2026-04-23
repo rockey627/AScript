@@ -24,6 +24,7 @@ namespace AScript.Operators
 				ParameterExpression left;
 				// 获取变量声明的类型（如果有）
 				Type declaredType = null;
+				BuildContext ownerBuildContext = null;
 				if (arg0 is DefineVarNode defineVar)
 				{
 					declaredType = defineVar.SystemType ?? e.ScriptContext.EvalType(defineVar.Type);
@@ -36,7 +37,7 @@ namespace AScript.Operators
 				}
 				else
 				{
-					e.BuildContext.TryGetVariableOrParameter(v.Name, out left);
+					e.BuildContext.TryGetVariableOrParameter(v.Name, out left, out ownerBuildContext, out var outer);
 					// 是否在执行上下文中存在变量
 					var ownerContext = e.ScriptContext.GetOwnerContext(v.Name, out _, out _);
 					if (ownerContext == null)
@@ -48,6 +49,12 @@ namespace AScript.Operators
 				if (declaredType == null && left != null)
 				{
 					declaredType = left.Type;
+				}
+
+				// 记录最新类型
+				if (declaredType == typeof(object) && right.Type != typeof(object))
+				{
+					(ownerBuildContext ?? e.BuildContext).LastTypes[v.Name] = right.Type;
 				}
 
 				// 如果声明了类型，进行类型转换

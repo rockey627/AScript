@@ -65,17 +65,18 @@ namespace AScript.TokenHandlers
 			var oldTokenStream = e.TokenReader.TokenStream;
 			var langs = e.ScriptContext.Langs = langList.ToArray();
 			e.TokenReader.TokenStream = e.ScriptContext.GetTokenStream(charReader) ?? oldTokenStream;
+			var analyzer2 = (DefaultSyntaxAnalyzer)(e.ScriptContext.GetSyntaxAnalyzer() ?? analyzer);
 			ITreeNode body;
 			try
 			{
-				body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: _EndTokens);
+				body = analyzer2.BuildMultiStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: _EndTokens);
 			}
 			finally
 			{
 				e.ScriptContext.Langs = oldScriptLangs;
 				e.TokenReader.TokenStream = oldTokenStream;
 			}
-			analyzer.TrySkipNextToken(e.TokenReader, _EndToken);
+			analyzer2.TrySkipNextToken(e.TokenReader, _EndToken);
 			if (!e.Ignore)
 			{
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new LangNode { Langs = langs, Body = body });

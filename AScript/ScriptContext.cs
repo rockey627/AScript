@@ -81,6 +81,8 @@ namespace AScript
 
 		private string[] _Langs;
 
+		private bool? _Dynamic;
+
 		/// <summary>
 		/// 指定关联的脚本语言
 		/// </summary>
@@ -88,6 +90,15 @@ namespace AScript
 		{
 			get => _Langs ?? this.Parent?.Langs;
 			set => _Langs = value;
+		}
+
+		/// <summary>
+		/// 是否启用动态语言特性
+		/// </summary>
+		public bool? Dynamic
+		{
+			get => _Dynamic ?? this.Parent?.Dynamic;
+			set => _Dynamic = value;
 		}
 
 		/// <summary>
@@ -455,6 +466,36 @@ namespace AScript
 			if (DefaultSyntaxAnalyzer.OperatorPriorities.TryGetValue(op, out var p))
 			{
 				return p;
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// 当前语言是否动态语言
+		/// </summary>
+		/// <returns></returns>
+		public bool? IsDynamicLang()
+		{
+			var langs = this.Langs;
+			if (langs == null || langs.Length == 0)
+			{
+				foreach (var item in Script.Langs.GetDefaults())
+				{
+					if (Script.Langs.TryGetValue(item, out var lang))
+					{
+						return lang.IsDynamic();
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < langs.Length; i++)
+				{
+					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					{
+						return lang.IsDynamic();
+					}
+				}
 			}
 			return null;
 		}

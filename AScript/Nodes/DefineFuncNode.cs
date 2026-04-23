@@ -27,6 +27,7 @@ namespace AScript.Nodes
 			{
 				var tempBuildContext = new BuildContext
 				{
+					Dynamic = context.Dynamic ?? context.IsDynamicLang(),
 					//ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
 					RewriteLocalVariables = false,
 					ReturnType = funcReturnType,
