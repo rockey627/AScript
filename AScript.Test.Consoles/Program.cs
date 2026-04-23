@@ -3,6 +3,7 @@ using BenchmarkDotNet.Running;
 using IronPython.Hosting;
 using Microsoft.Scripting.Hosting;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 
 namespace AScript.Test.Consoles
@@ -33,14 +34,16 @@ namespace AScript.Test.Consoles
 		static void Test13_Convert()
 		{
 			object n = 5L;
-			Console.WriteLine(Convert.ToDouble(n));
+			Console.WriteLine(ScriptUtils.Convert(n, typeof(double)));
 
+			var p = Expression.Parameter(typeof(object));
 			var v = Expression.Variable(typeof(object));
-			var assi = Expression.Assign(v, Expression.Convert(Expression.Constant(5L), typeof(object)));
-			var conv = Expression.Convert(v, typeof(double));
-			var expr = Expression.Lambda(Expression.Block(new[] { v }, assi, conv));
-			var func = (Func<double>)expr.Compile();
-			Console.WriteLine(func());
+			var block = Expression.Block(new[] { v },
+				Expression.Assign(v, Expression.Convert(p, typeof(object))),
+				Expression.Call(ExpressionUtils.Method_ScriptUtils_Convert, v, ExpressionUtils.Constant_typeof_double));
+			var expr = Expression.Lambda<Func<object, object>>(block, new ParameterExpression[] { p });
+			var func = expr.Compile();
+			Console.WriteLine(func(5L).GetType());
 		}
 
 		static void Test12_IronPython()

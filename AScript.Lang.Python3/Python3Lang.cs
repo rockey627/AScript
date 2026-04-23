@@ -67,11 +67,14 @@ namespace AScript.Lang.Python3
 			AddFunc<ScriptContext, string, object>("exec", Exec);
 			AddFunc<long, IReadOnlyList<long>>("range", Range);
 			AddFunc<long, long, IReadOnlyList<long>>("range", Range);
-			AddFunc<List<object>, List<object>, List<object>>("+", List_Plus);
+			AddFunc<List<object>, List<object>, List<object>>("+", List_plus);
 			AddFunc<IList, long>("len", list => list == null ? 0L : (long)list.Count);
+			AddFunc<List<object>, object>("pop", List_pop);
+			AddFunc<List<object>, long, object>("pop", List_pop);
 			AddAction<object>("print", Println);
-			AddAction<IList, object>("append", (list, value) => list.Add(value));
-			AddAction<IList, long, object>("insert", (list, index, value) => list.Insert((int)index, value));
+			AddAction<List<object>, object>("remove", List_remove);
+			AddAction<List<object>, object>("append", (list, value) => list.Add(value));
+			AddAction<List<object>, long, object>("insert", (list, index, value) => list.Insert((int)index, value));
 
 			AddTokenHandler("?", QuestionIIFTokenHandler.Instance);
 			AddTokenHandler("[", Python3BracketTokenHandler.Instance);
@@ -177,12 +180,48 @@ namespace AScript.Lang.Python3
 			return new ReadOnlyCollection<long>(arr);
 		}
 
-		private static List<object> List_Plus(List<object> list1, List<object> list2)
+		/// <summary>
+		/// 2个列表相加
+		/// </summary>
+		/// <param name="list1"></param>
+		/// <param name="list2"></param>
+		/// <returns></returns>
+		private static List<object> List_plus(List<object> list1, List<object> list2)
 		{
 			var list = new List<object>((list1 == null ? 0 : list1.Count) + (list2 == null ? 0 : list2.Count));
 			if (list1 != null) list.AddRange(list1);
 			if (list2 != null) list.AddRange(list2);
 			return list;
+		}
+
+		/// <summary>
+		/// 列表移除最后1个元素
+		/// </summary>
+		/// <param name="list"></param>
+		/// <returns></returns>
+		private static object List_pop(List<object> list)
+		{
+			return List_pop(list, -1L);
+		}
+
+		/// <summary>
+		/// 列表移除1个元素
+		/// </summary>
+		/// <param name="list"></param>
+		/// <param name="index"></param>
+		/// <returns></returns>
+		private static object List_pop(List<object> list, long index)
+		{
+			if (index < 0) index += list.Count;
+			int intIndex = (int)index;
+			var v = list[intIndex];
+			list.RemoveAt(intIndex);
+			return v;
+		}
+
+		private static void List_remove(List<object> list, object v)
+		{
+			list.Remove(v);
 		}
 
 		public static TreeBuilder BuildSubBlock(int parentColumn, DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)

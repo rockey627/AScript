@@ -17,8 +17,8 @@ namespace AScript.Operators
 			{
 				// dynamic方式作用/=无效
 				//e.Result = Expression.Dynamic(ExpressionUtils.Binder_AddAssign, typeof(object), left, right);
-				var addExpr = Expression.Dynamic(ExpressionUtils.Binder_Divide, typeof(object), left, right);
-				e.Result = Expression.Assign(left, addExpr);
+				var expr = Expression.Dynamic(ExpressionUtils.Binder_Divide, typeof(object), left, right);
+				e.Result = Expression.Assign(left, expr);
 			}
 			else
 			{

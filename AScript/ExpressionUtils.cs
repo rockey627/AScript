@@ -14,8 +14,11 @@ namespace AScript
 		public static readonly Expression Constant_true = Expression.Constant(true);
 		public static readonly Expression Constant_null = Expression.Constant(null);
 		public static readonly Expression Constant_string_empty = Expression.Constant(string.Empty);
+		public static readonly Expression Constant_typeof_double = Expression.Constant(typeof(double));
 
 		public static readonly ParameterExpression Parameter_ScriptContext = Expression.Parameter(typeof(ScriptContext));
+
+		public static readonly MethodInfo Method_ScriptUtils_Convert = typeof(ScriptUtils).GetMethod("Convert", new[] { typeof(object), typeof(Type) });
 
 		public static readonly MethodInfo Method_ScriptContext_Create1 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(bool) });
 		public static readonly MethodInfo Method_ScriptContext_Create2 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(ScriptContext), typeof(bool) });

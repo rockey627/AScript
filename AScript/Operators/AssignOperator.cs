@@ -162,7 +162,7 @@ namespace AScript.Operators
 			if (e.Args.Count != 2) return;
 			var arg0 = e.Args[0];
 
-			if (arg0 is VariableNode || arg0 is DefineVarNode)
+			if (arg0 is VariableNode)
 			{
 				// 获取变量名和声明类型
 				string varName;
@@ -188,8 +188,12 @@ namespace AScript.Operators
 
 				var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
 
+				if (e.Options.Dynamic ?? e.Context.IsDynamicLang() ?? false)
+				{
+					// 动态语言
+				}
 				// 如果声明了类型，进行类型转换
-				if (declaredType != null && declaredType != typeof(object) && declaredType != typeof(void)
+				else if (declaredType != null && declaredType != typeof(object) && declaredType != typeof(void)
 					&& type != null && type != declaredType && type != typeof(void))
 				{
 					try
@@ -230,7 +234,7 @@ namespace AScript.Operators
 						int index = Convert.ToInt32(idx);
 						array.SetValue(value, index);
 					}
-					else if (obj is System.Collections.IDictionary dict)
+					else if (obj is IDictionary dict)
 					{
 						// Dictionary赋值
 						dict[idx] = value;

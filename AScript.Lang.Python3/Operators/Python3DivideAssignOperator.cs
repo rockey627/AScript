@@ -12,12 +12,25 @@ namespace AScript.Lang.Python3.Operators
 		{
 			if (e.Args[0] is VariableNode leftVar)
 			{
-				if (!e.BuildContext.TryGetVariableOrParameter(leftVar.Name, out var left))
+				if (!e.BuildContext.TryGetVariableOrParameter(leftVar.Name, out var left, out _, out _, out var lastType))
 				{
 					throw new Exception($"invalid expression: {leftVar.Name} is not exists");
 				}
 				var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-				var r = Expression.Divide(Expression.Convert(left, typeof(double)), Expression.Convert(right, typeof(double)));
+				var leftType = lastType ?? left.Type;
+
+				Expression leftExpr, rightExpr;
+				// 
+				if (leftType == typeof(object)) leftExpr = Expression.Call(ExpressionUtils.Method_ScriptUtils_Convert, left, ExpressionUtils.Constant_typeof_double);
+				else if (left.Type == typeof(double)) leftExpr = left;
+				else if (lastType == null || left.Type == lastType) leftExpr = Expression.Convert(left, typeof(double));
+				else leftExpr = Expression.Convert(Expression.Convert(left, lastType), typeof(double));
+				// 
+				if (right.Type == typeof(object)) rightExpr = Expression.Call(ExpressionUtils.Method_ScriptUtils_Convert, right, ExpressionUtils.Constant_typeof_double);
+				else if (right.Type == typeof(double)) rightExpr = right;
+				else rightExpr = Expression.Convert(right, typeof(double));
+				// 
+				var r = Expression.Divide(leftExpr, rightExpr);
 				e.Result = Expression.Assign(left, Expression.Convert(r, left.Type));
 			}
 		}
