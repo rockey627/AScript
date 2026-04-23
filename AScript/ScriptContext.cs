@@ -81,8 +81,6 @@ namespace AScript
 
 		private string[] _Langs;
 
-		private bool? _Dynamic;
-
 		/// <summary>
 		/// 指定关联的脚本语言
 		/// </summary>
@@ -90,15 +88,6 @@ namespace AScript
 		{
 			get => _Langs ?? this.Parent?.Langs;
 			set => _Langs = value;
-		}
-
-		/// <summary>
-		/// 是否启用动态语言特性
-		/// </summary>
-		public bool? Dynamic
-		{
-			get => _Dynamic ?? this.Parent?.Dynamic;
-			set => _Dynamic = value;
 		}
 
 		/// <summary>

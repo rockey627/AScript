@@ -20,8 +20,6 @@ namespace AScript
 
 		private bool _UsedScriptContext;
 
-		private bool? _Dynamic;
-
 		public BuildContext Parent { get; set; }
 
 		public BuildContext Root
@@ -35,15 +33,6 @@ namespace AScript
 				}
 				return r;
 			}
-		}
-
-		/// <summary>
-		/// 是否动态语言
-		/// </summary>
-		public bool? Dynamic
-		{
-			get => _Dynamic ?? this.Parent?.Dynamic;
-			set => _Dynamic = value;
 		}
 
 		/// <summary>

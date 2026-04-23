@@ -6,10 +6,10 @@ namespace AScript
 	{
 		private ECompileMode? _CompileMode;
 		private bool? _ThrowIfVariableNotExists;
-		private bool? _DynamicVariableType;
 		private bool? _CreateFullTreeNode;
 		private bool? _RewriteVariables;
 		private bool? _RewriteFunctions;
+		private bool? _Dynamic;
 
 		/// <summary>
 		/// 
@@ -56,6 +56,14 @@ namespace AScript
 		{
 			get => _RewriteFunctions ?? this.Parent?.RewriteFunctions;
 			set => _RewriteFunctions = value;
+		}
+		/// <summary>
+		/// 是否启用动态语言特性
+		/// </summary>
+		public bool? Dynamic
+		{
+			get => _Dynamic ?? this.Parent?.Dynamic;
+			set => _Dynamic = value;
 		}
 
 		public BuildOptions() { }

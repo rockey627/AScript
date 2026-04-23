@@ -12,9 +12,7 @@ namespace AScript.Nodes
 		{
 			if (this.Body == null) return null;
 			var oldLangs = scriptContext.Langs;
-			var oldDynamic = buildContext.Dynamic;
 			scriptContext.Langs = this.Langs;
-			buildContext.Dynamic = scriptContext.Dynamic ?? scriptContext.IsDynamicLang();
 			try
 			{
 				return this.Body.Build(buildContext, scriptContext, options);
@@ -22,7 +20,6 @@ namespace AScript.Nodes
 			finally
 			{
 				scriptContext.Langs = oldLangs;
-				buildContext.Dynamic = oldDynamic;
 			}
 		}
 

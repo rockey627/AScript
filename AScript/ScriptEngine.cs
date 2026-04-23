@@ -624,10 +624,7 @@ namespace AScript
 				}
 			}
 
-			var buildContext = new BuildContext
-			{
-				Dynamic = this.Context.Dynamic ?? this.Context.IsDynamicLang(),
-			};
+			var buildContext = new BuildContext();
 			BuildOptions buildOptions;
 			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
@@ -673,10 +670,7 @@ namespace AScript
 				return d;
 			}
 
-			var buildContext = new BuildContext
-			{
-				Dynamic = this.Context.Dynamic ?? this.Context.IsDynamicLang(),
-			};
+			var buildContext = new BuildContext();
 			BuildOptions buildOptions;
 			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
@@ -730,10 +724,7 @@ namespace AScript
 				}
 			}
 
-			var buildContext = new BuildContext
-			{
-				Dynamic = this.Context.Dynamic ?? this.Context.IsDynamicLang(),
-			};
+			var buildContext = new BuildContext();
 			BuildOptions buildOptions;
 			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
@@ -778,10 +769,7 @@ namespace AScript
 				return d;
 			}
 
-			var buildContext = new BuildContext
-			{
-				Dynamic = this.Context.Dynamic ?? this.Context.IsDynamicLang(),
-			};
+			var buildContext = new BuildContext();
 			BuildOptions buildOptions;
 			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
@@ -810,10 +798,7 @@ namespace AScript
 		public Delegate CompileGlobal(ITreeNode node)
 		{
 			if (node == null) return null;
-			var buildContext = new BuildContext
-			{
-				Dynamic = this.Context.Dynamic ?? this.Context.IsDynamicLang(),
-			};
+			var buildContext = new BuildContext();
 			BuildOptions buildOptions;
 			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
@@ -838,10 +823,7 @@ namespace AScript
 				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
 			}
 
-			var buildContext = new BuildContext
-			{
-				Dynamic = this.Context.Dynamic ?? this.Context.IsDynamicLang(),
-			};
+			var buildContext = new BuildContext();
 			if (argTypesCount > 0)
 			{
 				for (int i = 0; i < argTypesCount; i++)
@@ -873,10 +855,7 @@ namespace AScript
 				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
 			}
 
-			var buildContext = new BuildContext
-			{
-				Dynamic = this.Context.Dynamic ?? this.Context.IsDynamicLang(),
-			};
+			var buildContext = new BuildContext();
 			if (argTypesCount > 0)
 			{
 				for (int i = 0; i < argTypesCount; i++)

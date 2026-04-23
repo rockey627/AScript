@@ -89,10 +89,7 @@ namespace AScript
 
 		public Delegate CompileGlobal(ITokenStream tokenStream)
 		{
-			var buildContext = new BuildContext
-			{
-				Dynamic = this.Context.Dynamic ?? this.Context.IsDynamicLang(),
-			};
+			var buildContext = new BuildContext();
 			BuildOptions buildOptions;
 			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
@@ -100,7 +97,10 @@ namespace AScript
 			}
 			else
 			{
-				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
+				buildOptions = new BuildOptions(this.Options)
+				{
+					CompileMode = ECompileMode.All
+				};
 			}
 			var node = GetSyntaxAnalyzer().Build(buildContext, this.Context, buildOptions, new Readers.TokenReader(tokenStream, false));
 			var body = node.Build(buildContext, this.Context, buildOptions);
@@ -115,10 +115,7 @@ namespace AScript
 		/// <returns></returns>
 		public ITreeNode BuildNode(string expression)
 		{
-			var buildContext = new BuildContext
-			{
-				Dynamic = this.Context.Dynamic ?? this.Context.IsDynamicLang(),
-			};
+			var buildContext = new BuildContext();
 			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression);
 			var tokenStream = GetTokenStream(expression);
 			var node = GetSyntaxAnalyzer().Build(buildContext, this.Context, new BuildOptions(this.Options) { CreateFullTreeNode = true }, new Readers.TokenReader(tokenStream, false));
@@ -153,10 +150,7 @@ namespace AScript
 		/// <returns></returns>
 		public ITreeNode BuildNode(Stream expression)
 		{
-			var buildContext = new BuildContext
-			{
-				Dynamic = this.Context.Dynamic ?? this.Context.IsDynamicLang(),
-			};
+			var buildContext = new BuildContext();
 			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
 			var tokenStream = GetTokenStream(expression);
 			var node = GetSyntaxAnalyzer().Build(buildContext, this.Context, new BuildOptions(this.Options) { CreateFullTreeNode = true }, new Readers.TokenReader(tokenStream, false));
