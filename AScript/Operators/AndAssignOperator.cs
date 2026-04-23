@@ -10,18 +10,24 @@ namespace AScript.Operators
 
 		public void Build(FunctionBuildArgs e)
 		{
-			var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
-			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-			if (left.Type == typeof(object) || right.Type == typeof(object))
+			if (e.Args[0] is VariableNode leftVar)
 			{
-				// dynamic方式作用+=无效
-				//e.Result = Expression.Dynamic(ExpressionUtils.Binder_AndAssign, typeof(object), left, right);
-				var addExpr = Expression.Dynamic(ExpressionUtils.Binder_And, typeof(object), left, right);
-				e.Result = Expression.Assign(left, addExpr);
-			}
-			else
-			{
-				e.Result = Expression.AndAssign(left, right);
+				if (!e.BuildContext.TryGetVariableOrParameter(leftVar.Name, out var left))
+				{
+					throw new Exception($"invalid expression: {leftVar.Name} is not exists");
+				}
+				var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+				if (left.Type == typeof(object) || right.Type == typeof(object))
+				{
+					// dynamic方式作用+=无效
+					//e.Result = Expression.Dynamic(ExpressionUtils.Binder_AndAssign, typeof(object), left, right);
+					var addExpr = Expression.Dynamic(ExpressionUtils.Binder_And, typeof(object), left, right);
+					e.Result = Expression.Assign(left, addExpr);
+				}
+				else
+				{
+					e.Result = Expression.AndAssign(left, right);
+				}
 			}
 		}
 

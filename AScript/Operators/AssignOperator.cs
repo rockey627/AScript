@@ -46,9 +46,16 @@ namespace AScript.Operators
 					}
 				}
 
-				if (declaredType == null && left != null)
+				if (declaredType == null)
 				{
-					declaredType = left.Type;
+					if (left != null)
+					{
+						declaredType = left.Type;
+					}
+					else if (e.Options.Dynamic ?? e.ScriptContext.IsDynamicLang() ?? false)
+					{
+						declaredType = typeof(object);
+					}
 				}
 
 				// 记录最新类型
@@ -59,7 +66,7 @@ namespace AScript.Operators
 
 				// 如果声明了类型，进行类型转换
 				Expression rightExpr = right;
-				if (declaredType != null && declaredType != typeof(object) && right.Type != declaredType)
+				if (declaredType != null && right.Type != declaredType)
 				{
 					rightExpr = Expression.Convert(right, declaredType);
 				}

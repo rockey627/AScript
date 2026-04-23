@@ -623,6 +623,27 @@ lst
 		}
 
 		[TestMethod]
+		public void Test09_2()
+		{
+			Console.WriteLine(Math.Floor(-9.0 / 2));
+			//Console.WriteLine(2 ** 3);
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "python3" };
+			Assert.AreEqual(2.5, script.Eval("10/4"));
+			Assert.AreEqual(2.5, script.Eval("n=10\nn/=4"));
+			Assert.AreEqual(2L, script.Eval("10//4"));
+			Assert.AreEqual(2L, script.Eval("n=10\nn//=4"));
+			Assert.AreEqual(2.0, script.Eval("10.4//4"));
+			Assert.AreEqual(2.0, script.Eval("n:=10.4//4"));
+			Assert.AreEqual(2.0, script.Eval("n=10.4\nn//=4"));
+			Assert.AreEqual(4L, script.Eval("9//2"));
+			Assert.AreEqual(-5L, script.Eval("-9//2"));
+			Assert.AreEqual(-5L, script.Eval("n:=-9//2"));
+			Assert.AreEqual(-5L, script.Eval("n=-9\nn//=2"));
+		}
+
+		[TestMethod]
 		public void Test09()
 		{
 			Console.WriteLine(Math.Floor(-9.0 / 2));

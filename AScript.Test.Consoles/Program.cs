@@ -12,7 +12,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			Test01_Benchmark();
+			//Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -24,16 +24,23 @@ namespace AScript.Test.Consoles
 			//Test10_Lambda();
 			//Test11_Convert();
 			//Test12_IronPython();
-			//Test13_ElementType();
+			Test13_Convert();
 			//Console.WriteLine(typeof(int[]).FullName);
 			Console.WriteLine("end");
 			Console.ReadLine();
 		}
 
-		static void Test13_ElementType()
+		static void Test13_Convert()
 		{
-			var type1 = typeof(int[]);
-			var type2 = typeof(List<int>);
+			object n = 5L;
+			Console.WriteLine(Convert.ToDouble(n));
+
+			var v = Expression.Variable(typeof(object));
+			var assi = Expression.Assign(v, Expression.Convert(Expression.Constant(5L), typeof(object)));
+			var conv = Expression.Convert(v, typeof(double));
+			var expr = Expression.Lambda(Expression.Block(new[] { v }, assi, conv));
+			var func = (Func<double>)expr.Compile();
+			Console.WriteLine(func());
 		}
 
 		static void Test12_IronPython()
@@ -81,7 +88,7 @@ exec2(26)
 			var list2 = list.Where(a => a % 2 == 0).ToList();
 
 			var type = typeof(Enumerable);
-			var methods = type.GetMethods().Where(a=>a.Name == "Where").ToList();
+			var methods = type.GetMethods().Where(a => a.Name == "Where").ToList();
 			var method = methods[0];
 			var para = method.GetParameters()[0];
 			var isExt = para.IsDefined(typeof(System.Runtime.CompilerServices.ExtensionAttribute), false);

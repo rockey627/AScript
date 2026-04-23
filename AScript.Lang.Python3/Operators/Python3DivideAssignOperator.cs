@@ -10,10 +10,16 @@ namespace AScript.Lang.Python3.Operators
 
 		public void Build(FunctionBuildArgs e)
 		{
-			var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
-			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-			var r = Expression.Divide(Expression.Convert(left, typeof(double)), Expression.Convert(right, typeof(double)));
-			e.Result = Expression.Assign(left, Expression.Convert(r, left.Type));
+			if (e.Args[0] is VariableNode leftVar)
+			{
+				if (!e.BuildContext.TryGetVariableOrParameter(leftVar.Name, out var left))
+				{
+					throw new Exception($"invalid expression: {leftVar.Name} is not exists");
+				}
+				var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+				var r = Expression.Divide(Expression.Convert(left, typeof(double)), Expression.Convert(right, typeof(double)));
+				e.Result = Expression.Assign(left, Expression.Convert(r, left.Type));
+			}
 		}
 
 		public void Eval(FunctionEvalArgs e)

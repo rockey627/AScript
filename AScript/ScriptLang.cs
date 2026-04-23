@@ -230,9 +230,9 @@ namespace AScript
 		}
 
 		/// <summary>
-		/// 是否动态语言
+		/// 动态语言特性
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>false表示静态语言；true表示动态语言</returns>
 		public virtual bool IsDynamic()
 		{
 			return false;
