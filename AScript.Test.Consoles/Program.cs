@@ -13,7 +13,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			//Test01_Benchmark();
+			Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -25,7 +25,7 @@ namespace AScript.Test.Consoles
 			//Test10_Lambda();
 			//Test11_Convert();
 			//Test12_IronPython();
-			Test13_Convert();
+			//Test13_Convert();
 			//Console.WriteLine(typeof(int[]).FullName);
 			Console.WriteLine("end");
 			Console.ReadLine();

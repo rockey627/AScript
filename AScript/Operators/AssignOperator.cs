@@ -253,6 +253,36 @@ namespace AScript.Operators
 					e.SetResult(value, type);
 				}
 			}
+			else if (arg0 is CallFuncNode callFuncNode && callFuncNode.Name == "[:]")
+			{
+				// 切片赋值 a[1:3] = [10, 20]
+				// callFuncNode.Args[0] 是列表
+				// callFuncNode.Args[1] 是起始索引
+				// callFuncNode.Args[2] 是 end 索引
+				// e.Args[1] 是要赋值的值列表
+				var list = callFuncNode.Args[0].Eval(e.Context, e.Options, e.Control, out _);
+				var start = callFuncNode.Args[1].Eval(e.Context, e.Options, e.Control, out _);
+				var end = callFuncNode.Args[2].Eval(e.Context, e.Options, e.Control, out _);
+				var values = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
+
+				if (list is IList listObj && values is IList valuesObj)
+				{
+					int listLen = listObj.Count;
+					int startIdx = Convert.ToInt32(start);
+					int endIdx = Convert.ToInt32(end);
+
+					// 负数索引从结尾计算
+					if (startIdx < 0) startIdx = listLen + startIdx;
+					if (endIdx < 0) endIdx = listLen + endIdx;
+
+					for (int i = startIdx; i < endIdx && i - startIdx < valuesObj.Count; i++)
+					{
+						listObj[i] = valuesObj[i - startIdx];
+					}
+				}
+
+				e.SetResult(values, type);
+			}
 		}
 
 		/// <summary>
