@@ -433,5 +433,29 @@ namespace AScript
 			}
 			return list.Contains(s);
 		}
+
+		/// <summary>
+		/// 列表切片赋值（运行时执行）
+		/// </summary>
+		/// <param name="list">目标列表</param>
+		/// <param name="start">起始索引（支持负数）</param>
+		/// <param name="end">结束索引（支持负数）</param>
+		/// <param name="values">要赋值的值列表</param>
+		/// <returns>赋值后的值列表</returns>
+		public static void SliceAssign(IList list, int start, int end, IList values)
+		{
+			if (list == null || values == null) return;
+
+			int listLen = list.Count;
+
+			// 负数索引从结尾计算
+			if (start < 0) start = listLen + start;
+			if (end < 0) end = listLen + end;
+
+			for (int i = start; i < end && i - start < values.Count; i++)
+			{
+				list[i] = values[i - start];
+			}
+		}
 	}
 }

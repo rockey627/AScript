@@ -116,10 +116,19 @@ namespace AScript.Operators
 				else
 				{
 					// 尝试使用索引器（Item属性）赋值
+					if (idx.Type != typeof(int))
+					{
+						idx = Expression.Convert(idx, typeof(int));
+					}
 					var indexer = obj.Type.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
 					if (indexer != null)
 					{
-						e.Result = Expression.Assign(Expression.Property(obj, indexer, idx), valueExpr);
+						var property = Expression.Property(obj, indexer, idx);
+						if (valueExpr.Type != property.Type)
+						{
+							valueExpr = Expression.Convert(valueExpr, property.Type);
+						}
+						e.Result = Expression.Assign(property, valueExpr);
 					}
 					else
 					{
@@ -141,6 +150,24 @@ namespace AScript.Operators
 						}
 					}
 				}
+			}
+			else if (arg0 is CallFuncNode callFuncNode && callFuncNode.Name == "[:]")
+			{
+				// 切片赋值 a[1:3] = [10, 20]
+				// callFuncNode.Args[0] 是列表
+				// callFuncNode.Args[1] 是起始索引
+				// callFuncNode.Args[2] 是 end 索引
+				// e.Args[1] 是要赋值的值列表
+				var list = callFuncNode.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
+				var start = callFuncNode.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+				var end = callFuncNode.Args[2].Build(e.BuildContext, e.ScriptContext, e.Options);
+				var values = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+
+				var listExpr = Expression.Convert(list, typeof(IList));
+				var startExpr = Expression.Convert(start, typeof(int));
+				var endExpr = Expression.Convert(end, typeof(int));
+				var valuesExpr = Expression.Convert(values, typeof(IList));
+				e.Result = Expression.Call(ExpressionUtils.Method_ScriptUtils_SliceAssign, listExpr, startExpr, endExpr, valuesExpr);
 			}
 			else
 			{
@@ -260,28 +287,14 @@ namespace AScript.Operators
 				// callFuncNode.Args[1] 是起始索引
 				// callFuncNode.Args[2] 是 end 索引
 				// e.Args[1] 是要赋值的值列表
-				var list = callFuncNode.Args[0].Eval(e.Context, e.Options, e.Control, out _);
+				var list = callFuncNode.Args[0].Eval(e.Context, e.Options, e.Control, out var type);
 				var start = callFuncNode.Args[1].Eval(e.Context, e.Options, e.Control, out _);
 				var end = callFuncNode.Args[2].Eval(e.Context, e.Options, e.Control, out _);
-				var values = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
+				var values = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
 
-				if (list is IList listObj && values is IList valuesObj)
-				{
-					int listLen = listObj.Count;
-					int startIdx = Convert.ToInt32(start);
-					int endIdx = Convert.ToInt32(end);
+				ScriptUtils.SliceAssign(list as IList, Convert.ToInt32(start), Convert.ToInt32(end), values as IList);
 
-					// 负数索引从结尾计算
-					if (startIdx < 0) startIdx = listLen + startIdx;
-					if (endIdx < 0) endIdx = listLen + endIdx;
-
-					for (int i = startIdx; i < endIdx && i - startIdx < valuesObj.Count; i++)
-					{
-						listObj[i] = valuesObj[i - startIdx];
-					}
-				}
-
-				e.SetResult(values, type);
+				e.SetResult(list, list == null ? type : list.GetType());
 			}
 		}
 

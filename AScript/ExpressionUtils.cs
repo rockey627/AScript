@@ -19,6 +19,7 @@ namespace AScript
 		public static readonly ParameterExpression Parameter_ScriptContext = Expression.Parameter(typeof(ScriptContext));
 
 		public static readonly MethodInfo Method_ScriptUtils_Convert = typeof(ScriptUtils).GetMethod("Convert", new[] { typeof(object), typeof(Type) });
+		public static readonly MethodInfo Method_ScriptUtils_SliceAssign = typeof(ScriptUtils).GetMethod("SliceAssign");
 
 		public static readonly MethodInfo Method_ScriptContext_Create1 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(bool) });
 		public static readonly MethodInfo Method_ScriptContext_Create2 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(ScriptContext), typeof(bool) });
