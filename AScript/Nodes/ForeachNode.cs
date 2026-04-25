@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace AScript.Nodes
@@ -129,28 +130,111 @@ namespace AScript.Nodes
 			var enumerator = Expression.Variable(getEnumerator.Method.ReturnType);
 			var currentProperty = enumerator.Type.GetProperty("Current");
 			var moveNextMethod = typeof(IEnumerator).GetMethod("MoveNext");
-			this.VarDefine.SystemType = currentProperty.PropertyType;
-			var itemVar = this.VarDefine.Build(tempBuildContext, scriptContext, options);
-			// 
-			var bodyBuildContext = new BuildContext(tempBuildContext)
+
+			if (this.VarDefines != null)
 			{
-				ContinueLabel = continueLabel,
-				BreakLabel = breakLabel
-			};
-			var body = this.Body.Build(bodyBuildContext, scriptContext, options);
-			// 
-			var loopBody = Expression.Block(
-				Expression.IfThenElse(
-					Expression.Call(enumerator, moveNextMethod),
-					bodyBuildContext.BuildBlock(scriptContext, options,
-						Expression.Assign(itemVar, Expression.Property(enumerator, currentProperty)),
-						body,
-						Expression.Label(continueLabel)),
-					Expression.Break(breakLabel)
-				));
-			var loop = Expression.Loop(loopBody, breakLabel);
-			return Expression.Block(new[] { enumerator },
-				tempBuildContext.BuildBlock(scriptContext, options, Expression.Assign(enumerator, getEnumerator), loop));
+				// VarDefines 解构模式
+				var itemType = currentProperty.PropertyType;
+				var elementTypes = new List<Type>();
+				var isTuple = false;
+				var isValueTuple = false;
+
+				if (itemType.IsGenericType)
+				{
+					var genericTypeDefinition = itemType.GetGenericTypeDefinition();
+					isTuple = genericTypeDefinition.Name.StartsWith("Tuple`");
+					isValueTuple = genericTypeDefinition.Name.StartsWith("ValueTuple`");
+					if (isTuple || isValueTuple)
+					{
+						elementTypes.AddRange(itemType.GetGenericArguments());
+					}
+				}
+
+				// 为每个变量定义创建变量表达式
+				var itemVars = new List<ParameterExpression>();
+				for (int i = 0; i < this.VarDefines.Count; i++)
+				{
+					var elementType = i < elementTypes.Count ? elementTypes[i] : typeof(object);
+					var vd = this.VarDefines[i];
+					vd.SystemType = elementType;
+					var itemVar = (ParameterExpression)vd.Build(tempBuildContext, scriptContext, options);
+					itemVars.Add(itemVar);
+				}
+
+				var bodyBuildContext = new BuildContext(tempBuildContext)
+				{
+					ContinueLabel = continueLabel,
+					BreakLabel = breakLabel
+				};
+				var body = this.Body.Build(bodyBuildContext, scriptContext, options);
+
+				// 构建解构赋值表达式列表
+				var assignExpressions = new List<Expression>();
+				var itemVar2 = Expression.Variable(itemType, "_item");
+				assignExpressions.Add(Expression.Assign(itemVar2, Expression.Property(enumerator, currentProperty)));
+
+				for (int i = 0; i < this.VarDefines.Count; i++)
+				{
+					var memberName = "Item" + (i + 1);
+					Expression memberAccess;
+					if (isTuple)
+					{
+						var prop = itemType.GetProperty(memberName);
+						memberAccess = Expression.Property(itemVar2, prop);
+					}
+					else if (isValueTuple)
+					{
+						var field = itemType.GetField(memberName);
+						memberAccess = Expression.Field(itemVar2, field);
+					}
+					else
+					{
+						// 非 Tuple 类型，使用索引访问 IList
+						memberAccess = Expression.Call(
+							Expression.Convert(itemVar2, typeof(IList<object>)),
+							typeof(IList<object>).GetMethod("get_Item"),
+							Expression.Constant(i));
+					}
+					assignExpressions.Add(Expression.Assign(itemVars[i], memberAccess));
+				}
+
+				var loopBody = Expression.Block(
+					new[] { itemVar2 },
+					Expression.IfThenElse(
+						Expression.Call(enumerator, moveNextMethod),
+						Expression.Block(assignExpressions.Concat(new[] { body, Expression.Label(continueLabel) })),
+						Expression.Break(breakLabel)
+					));
+				var loop = Expression.Loop(loopBody, breakLabel);
+				return Expression.Block(new[] { enumerator },
+					tempBuildContext.BuildBlock(scriptContext, options, Expression.Assign(enumerator, getEnumerator), loop));
+			}
+			else
+			{
+				// 单变量模式
+				this.VarDefine.SystemType = currentProperty.PropertyType;
+				var itemVar = this.VarDefine.Build(tempBuildContext, scriptContext, options);
+				//
+				var bodyBuildContext = new BuildContext(tempBuildContext)
+				{
+					ContinueLabel = continueLabel,
+					BreakLabel = breakLabel
+				};
+				var body = this.Body.Build(bodyBuildContext, scriptContext, options);
+				//
+				var loopBody = Expression.Block(
+					Expression.IfThenElse(
+						Expression.Call(enumerator, moveNextMethod),
+						bodyBuildContext.BuildBlock(scriptContext, options,
+							Expression.Assign(itemVar, Expression.Property(enumerator, currentProperty)),
+							body,
+							Expression.Label(continueLabel)),
+						Expression.Break(breakLabel)
+					));
+				var loop = Expression.Loop(loopBody, breakLabel);
+				return Expression.Block(new[] { enumerator },
+					tempBuildContext.BuildBlock(scriptContext, options, Expression.Assign(enumerator, getEnumerator), loop));
+			}
 		}
 
 		public override void Clear()

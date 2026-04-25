@@ -19,6 +19,8 @@ namespace AScript.Operators
 			typeof(object),
 			new[] { CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null), CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null) });
 
+		private static readonly MethodInfo Method_GetItem = typeof(IndexOperator).GetMethod("GetItem");
+
 		public static readonly IndexOperator Instance = new IndexOperator();
 
 		public void Build(FunctionBuildArgs e)
@@ -101,12 +103,13 @@ namespace AScript.Operators
 					}
 				}
 
-				// 使用动态表达式进行动态访问
-				e.Result = Expression.Dynamic(
-					IndexBinder,
-					typeof(object),
-					target,
-					index);
+				//// 使用动态表达式进行动态访问
+				//e.Result = Expression.Dynamic(
+				//	IndexBinder,
+				//	typeof(object),
+				//	target,
+				//	index);
+				e.Result = Expression.Call(Method_GetItem, target, Expression.Convert(index, typeof(object)));
 			}
 		}
 
@@ -149,36 +152,35 @@ namespace AScript.Operators
 		{
 			if (e.Args.Count == 2)
 			{
-				dynamic arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
-				dynamic arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
-				if (arg0 is IList list)
-				{
-					if (arg1 is int || arg1 is long)
-					{
-						int index = (int)arg1;
-						if (index < 0)
-						{
-							index = list.Count + index;
-						}
-						e.SetResult(list[index]);
-						return;
-					}
-				}
-				else if (arg0 is string s)
-				{
-					if (arg1 is int || arg1 is long)
-					{
-						int index = (int)arg1;
-						if (index < 0)
-						{
-							index = s.Length + index;
-						}
-						e.SetResult(s[index]);
-						return;
-					}
-				}
-				e.SetResult(arg0[arg1]);
+				var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
+				var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
+				e.SetResult(GetItem(arg0, arg1));
 			}
+		}
+
+		public static object GetItem(object arg0, object arg1)
+		{
+			if (arg0 is IList list)
+			{
+				int index = Convert.ToInt32(arg1);
+				if (index < 0)
+				{
+					index = list.Count + index;
+				}
+				return list[index];
+			}
+			if (arg0 is string s)
+			{
+				int index = Convert.ToInt32(arg1);
+				if (index < 0)
+				{
+					index = s.Length + index;
+				}
+				return s[index];
+			}
+			dynamic obj = arg0;
+			dynamic key = arg1;
+			return obj[key];
 		}
 	}
 }
