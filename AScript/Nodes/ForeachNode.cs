@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace AScript.Nodes
 {
-    public class ForeachNode : TreeNode
+	public class ForeachNode : TreeNode
 	{
 		public DefineVarNode VarDefine { get; set; }
 		public IList<DefineVarNode> VarDefines { get; set; }
@@ -14,7 +14,7 @@ namespace AScript.Nodes
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl controll, out Type returnType)
 		{
-			if (this.VarDefine == null)
+			if (this.VarDefine == null && this.VarDefines == null)
 			{
 				throw new Exception("require variable define in foreach statement");
 			}
@@ -32,7 +32,7 @@ namespace AScript.Nodes
 			{
 				throw new Exception($"invalid foreach collection {listType}");
 			}
-			// 
+			//
 			object bodyResult = null;
 			Type bodyType = null;
 			if (this.Body != null)
@@ -40,11 +40,74 @@ namespace AScript.Nodes
 				var tempContext = ScriptContext.Create(context);
 				var tempController = new EvalControl(controll, true);
 				// 定义变量
-				this.VarDefine.Eval(tempContext, options, out var varType);
+				if (this.VarDefines != null)
+				{
+					foreach (var vd in this.VarDefines)
+					{
+						vd.Eval(tempContext, options, out _);
+					}
+				}
+				else
+				{
+					this.VarDefine.Eval(tempContext, options, out _);
+				}
 				// 循环
 				foreach (var item in en)
 				{
-					tempContext.SetVar(this.VarDefine.Name, item, item == null ? varType : null);
+					if (this.VarDefines != null)
+					{
+						// 解构列表项赋值到各个变量
+						var itemList = new List<object>();
+						if (item is IList list)
+						{
+							foreach (var i in list)
+							{
+								itemList.Add(i);
+							}
+						}
+						else
+						{
+							// 支持 Tuple/ValueTuple 解构
+							var itemType = item.GetType();
+							if (itemType.IsGenericType)
+							{
+								var genericType = itemType.GetGenericTypeDefinition();
+								if (genericType.Name.StartsWith("Tuple`"))
+								{
+									foreach (var prop in itemType.GetProperties())
+									{
+										itemList.Add(prop.GetValue(item));
+									}
+								}
+#if NETSTANDARD
+								else if (genericType.Name.StartsWith("ValueTuple`"))
+								{
+									foreach (var field in itemType.GetFields())
+									{
+										itemList.Add(field.GetValue(item));
+									}
+								}
+#endif
+							}
+						}
+						if (itemList == null)
+						{
+							throw new Exception($"cannot unpack item of type {item?.GetType()} into {this.VarDefines.Count} variables");
+						}
+						if (itemList.Count < this.VarDefines.Count)
+						{
+							throw new Exception($"not enough values to unpack (expected {this.VarDefines.Count}, got {itemList.Count})");
+						}
+						for (int i = 0; i < this.VarDefines.Count; i++)
+						{
+							tempContext.SetVar(this.VarDefines[i].Name, itemList[i], null);
+						}
+					}
+					else
+					{
+						this.VarDefine.Eval(tempContext, options, out var varType);
+						tempContext.SetVar(this.VarDefine.Name, item, item == null ? varType : null);
+					}
 					bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempController, out bodyType);
 					if (tempController.Terminal || tempController.Break) break;
 					tempController.Continue = false;
@@ -94,11 +157,19 @@ namespace AScript.Nodes
 		{
 			base.Clear();
 
+			if (this.VarDefines != null)
+			{
+				foreach (var vd in this.VarDefines)
+				{
+					PoolManage.Return(vd);
+				}
+			}
 			PoolManage.Return(this.VarDefine);
 			PoolManage.Return(this.Collection);
 			PoolManage.Return(this.Body);
 
 			this.VarDefine = null;
+			this.VarDefines = null;
 			this.Collection = null;
 			this.Body = null;
 		}

@@ -12,7 +12,8 @@ namespace AScript.Lang.Python3.Operators
 		{
 			if (e.Args[0] is VariableNode leftVar)
 			{
-				if (!e.BuildContext.TryGetVariableOrParameter(leftVar.Name, out var left, out _, out _, out var lastType))
+				var left = leftVar.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out _, out var lastType);
+				if (left == null)
 				{
 					throw new Exception($"invalid expression: {leftVar.Name} is not exists");
 				}

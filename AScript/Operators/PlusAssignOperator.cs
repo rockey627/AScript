@@ -10,20 +10,36 @@ namespace AScript.Operators
 
 		public void Build(FunctionBuildArgs e)
 		{
-			var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
+			if (e.Args.Count != 2) return;
+			var arg0 = e.Args[0];
+			Expression left;
+			if (arg0 is VariableNode leftVar)
+			{
+				left = leftVar.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out _, out var lastType);
+				if (left == null)
+				{
+					throw new Exception($"invalid expression: {leftVar.Name} is not exists");
+				}
+			}
+			else
+			{
+				left = arg0.Build(e.BuildContext, e.ScriptContext, e.Options);
+			}
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+			Expression leftExpr = left;
+			Expression rightExpr = right;
 			if (left.Type == typeof(object) || right.Type == typeof(object)
-				|| !ExpressionUtils.ConvertMaxType(ref left, ref right))
+				|| !ExpressionUtils.ConvertMaxType(ref leftExpr, ref rightExpr))
 			{
 				// dynamic方式作用+=无效
 				//e.Result = Expression.Dynamic(ExpressionUtils.Binder_AddAssign, typeof(object), left, right);
-				var addExpr = Expression.Dynamic(ExpressionUtils.Binder_Add, typeof(object), left, right);
+				var addExpr = Expression.Dynamic(ExpressionUtils.Binder_Add, typeof(object), leftExpr, rightExpr);
 				e.Result = Expression.Assign(left, addExpr);
 			}
 			else if (left.Type == typeof(string) && right.Type == typeof(string))
 			{
 				// 字符串相加使用string.Concat方法
-				e.Result = Expression.Assign(left, Expression.Call(null, ExpressionUtils.Method_String_Concat2, left, right));
+				e.Result = Expression.Assign(left, Expression.Call(ExpressionUtils.Method_String_Concat2, left, right));
 			}
 			else
 			{

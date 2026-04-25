@@ -65,6 +65,36 @@ namespace AScript.Nodes
 			}
 		}
 
+		public ParameterExpression BuildForAssign(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, out BuildContext ownerBuildContext, out Type lastType)
+		{
+			// 是否在执行上下文中存在变量
+			var ownerContext = scriptContext.GetOwnerContext(this.Name, out _, out var type);
+			if (ownerContext == null)
+			{
+				buildContext.LocalVariables.Add(this.Name);
+			}
+			if (buildContext.TryGetVariableOrParameter(this.Name, out var varExpr, out ownerBuildContext, out _, out lastType))
+			{
+				return varExpr;
+			}
+			if (type == null)
+			{
+				//if (options.ThrowIfVariableNotExists ?? false)
+				//{
+				//	throw new Exception($"variable {this.Name} is not exists");
+				//}
+				//type = typeof(object);
+				return null;
+			}
+			varExpr = Expression.Variable(type, this.Name);
+			// 从ScriptContext中取值
+			var call = Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_EvalVar, Expression.Constant(this.Name));
+			var assign = Expression.Assign(varExpr, Expression.Convert(call, type));
+			buildContext.Variables[this.Name] = varExpr;
+			buildContext.PrevExpressions.Add(assign);
+			return varExpr;
+		}
+
 		public override void Clear()
 		{
 			base.Clear();

@@ -37,13 +37,14 @@ namespace AScript.Operators
 				}
 				else
 				{
-					e.BuildContext.TryGetVariableOrParameter(v.Name, out left, out ownerBuildContext, out var outer);
-					// 是否在执行上下文中存在变量
-					var ownerContext = e.ScriptContext.GetOwnerContext(v.Name, out _, out _);
-					if (ownerContext == null)
-					{
-						e.BuildContext.LocalVariables.Add(v.Name);
-					}
+					//e.BuildContext.TryGetVariableOrParameter(v.Name, out left, out ownerBuildContext, out _);
+					//// 是否在执行上下文中存在变量
+					//var ownerContext = e.ScriptContext.GetOwnerContext(v.Name, out _, out _);
+					//if (ownerContext == null)
+					//{
+					//	e.BuildContext.LocalVariables.Add(v.Name);
+					//}
+					left = v.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out ownerBuildContext, out _);
 				}
 
 				if (declaredType == null)
