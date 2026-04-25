@@ -27,12 +27,12 @@ namespace AScript.Nodes
 
 		private PoolManage() { }
 
-		public static ObjectNode CreateObjectData(object data)
+		public static ObjectNode CreateObjectNode(object data)
 		{
-			return CreateObjectData(data, null);
+			return CreateObjectNode(data, null);
 		}
 
-		public static ObjectNode CreateObjectData(object data, Type dataType)
+		public static ObjectNode CreateObjectNode(object data, Type dataType)
 		{
 			if (_ObjectDataPool.TryDequeue(out var obj))
 			{
@@ -57,7 +57,7 @@ namespace AScript.Nodes
 			return new DefineVarNode { Name = name, Type = type, SystemType = systemType };
 		}
 
-		public static VariableNode CreateVariableData(string name)
+		public static VariableNode CreateVariableNode(string name)
 		{
 			if (_VariableDataPool.TryDequeue(out var v))
 			{

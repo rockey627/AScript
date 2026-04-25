@@ -88,7 +88,7 @@ namespace AScript.Nodes
 		public void SetLastResult(object data, Type dataType)
 		{
 			Clear();
-			_LastResult = PoolManage.CreateObjectData(data, dataType);
+			_LastResult = PoolManage.CreateObjectNode(data, dataType);
 		}
 
 		/// <summary>
@@ -113,7 +113,7 @@ namespace AScript.Nodes
 
 		public TreeBuilder AddData(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, object data, Type dataType)
 		{
-			return AddData(buildContext, scriptContext, options, control, PoolManage.CreateObjectData(data, dataType));
+			return AddData(buildContext, scriptContext, options, control, PoolManage.CreateObjectNode(data, dataType));
 		}
 
 		public TreeBuilder AddData(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, TreeBuilder dataNode)
@@ -199,7 +199,7 @@ namespace AScript.Nodes
 							// 计算节点
 							var currentResult = current.Eval(scriptContext, options, control, out var currentType);
 							PoolManage.Return(current);
-							operatorNode.Left = PoolManage.CreateObjectData(currentResult, currentType);
+							operatorNode.Left = PoolManage.CreateObjectNode(currentResult, currentType);
 						}
 					}
 					if (pp == null)
@@ -245,7 +245,7 @@ namespace AScript.Nodes
 						// 计算节点
 						var currentResult = current.Eval(scriptContext, options, control, out var currentType);
 						PoolManage.Return(current);
-						operatorNode.Left = PoolManage.CreateObjectData(currentResult, currentType);
+						operatorNode.Left = PoolManage.CreateObjectNode(currentResult, currentType);
 					}
 				}
 				_Current = operatorNode;
@@ -331,7 +331,7 @@ namespace AScript.Nodes
 				{
 					var result = _Root.Eval(scriptContext, options, control, out var resultType);
 					Clear();
-					_LastResult = PoolManage.CreateObjectData(result, resultType);
+					_LastResult = PoolManage.CreateObjectNode(result, resultType);
 				}
 			}
 		}
@@ -359,7 +359,7 @@ namespace AScript.Nodes
 			{
 				var result = _Root.Eval(scriptContext, options, control, out var resultType);
 				Clear();
-				return PoolManage.CreateObjectData(result, resultType);
+				return PoolManage.CreateObjectNode(result, resultType);
 			}
 		}
 

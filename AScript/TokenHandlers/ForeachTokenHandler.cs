@@ -18,7 +18,7 @@ namespace AScript.TokenHandlers
 				return;
 			}
 
-			analyzer.ValidateNextToken(e.TokenReader, "(", e.CurrentToken.Line, e.CurrentToken.Column);
+			analyzer.ValidateNextToken(e.TokenReader, "(");
 			// 类型
 			var nextToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word, expect: "type word");
 			var itemType = nextToken.Value.Value;
@@ -28,10 +28,10 @@ namespace AScript.TokenHandlers
 			// in
 			analyzer.ValidateNextToken(e.TokenReader, "in");
 
-			var createTreeNodeOnlyOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			var listBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, e.Control, e.Ignore);
+			var listBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
 			analyzer.ValidateNextToken(e.TokenReader, ")");
-			var bodyBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, e.Control, e.Ignore, noblock: true);
+			var createFullTreeNodeOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
+			var bodyBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullTreeNodeOptions, e.TokenReader, e.Control, e.Ignore, noblock: true);
 
 			if (e.Ignore) return;
 

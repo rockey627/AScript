@@ -28,10 +28,10 @@ namespace AScript.TokenHandlers
 
 		private void BuildIf(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
-			analyzer.ValidateNextToken(e.TokenReader, "(", e.CurrentToken.Line, e.CurrentToken.Column);
+			analyzer.ValidateNextToken(e.TokenReader, "(");
 
 			var conditionBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
-			analyzer.ValidateNextToken(e.TokenReader, ")", e.CurrentToken.Line, e.CurrentToken.Column);
+			analyzer.ValidateNextToken(e.TokenReader, ")");
 
 			if ((e.Options.CreateFullTreeNode ?? false) || (e.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{

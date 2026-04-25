@@ -8,6 +8,7 @@ namespace AScript.Nodes
     public class ForeachNode : TreeNode
 	{
 		public DefineVarNode VarDefine { get; set; }
+		public IList<DefineVarNode> VarDefines { get; set; }
 		public ITreeNode Collection { get; set; }
 		public ITreeNode Body { get; set; }
 

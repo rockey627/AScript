@@ -54,7 +54,7 @@ namespace AScript.TokenHandlers
 				contains = true;
 				dimension = 1;
 				var lengthStatement = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control);
-				analyzer.ValidateNextToken(e.TokenReader, "]", nextToken.Value.Line, nextToken.Value.Column);
+				analyzer.ValidateNextToken(e.TokenReader, "]");
 				if (lengthStatement != null)
 				{
 					args = new List<ITreeNode> { lengthStatement };

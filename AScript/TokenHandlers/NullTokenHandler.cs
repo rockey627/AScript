@@ -13,7 +13,7 @@ namespace AScript.TokenHandlers
 		{
 			e.IsHandled = true;
 			if (e.Ignore) return;
-			e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectData(null));
+			e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(null));
 		}
 	}
 }

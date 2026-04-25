@@ -21,7 +21,7 @@ namespace AScript.TokenHandlers
 			var createTreeNodeOnlyOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
 			if (e.Ignore)
 			{
-				analyzer.ValidateNextToken(e.TokenReader, "(", e.CurrentToken.Line, e.CurrentToken.Column);
+				analyzer.ValidateNextToken(e.TokenReader, "(");
 				// init
 				analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, null, ignore: true);
 				analyzer.TrySkipNextToken(e.TokenReader, ";");
@@ -36,7 +36,7 @@ namespace AScript.TokenHandlers
 				return;
 			}
 
-			analyzer.ValidateNextToken(e.TokenReader, "(", e.CurrentToken.Line, e.CurrentToken.Column);
+			analyzer.ValidateNextToken(e.TokenReader, "(");
 			// 执行初始化语句
 			var initBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, e.Control, e.Ignore);
 			analyzer.TrySkipNextToken(e.TokenReader, ";");

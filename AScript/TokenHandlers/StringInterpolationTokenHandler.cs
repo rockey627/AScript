@@ -74,7 +74,7 @@ namespace AScript.TokenHandlers
 							if (concatArgs == null) concatArgs = new List<ITreeNode>();
 							if (_buffer.Length > 0)
 							{
-								concatArgs.Add(PoolManage.CreateObjectData(_buffer.ToString(), typeof(string)));
+								concatArgs.Add(PoolManage.CreateObjectNode(_buffer.ToString(), typeof(string)));
 								_buffer.Clear();
 							}
 							concatArgs.Add(node);
@@ -161,7 +161,7 @@ namespace AScript.TokenHandlers
 				{
 					if (!e.Options.CompileMode.HasValue || e.Options.CompileMode.Value != ECompileMode.All)
 					{
-						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectData(_buffer.ToString(), typeof(string)));
+						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(_buffer.ToString(), typeof(string)));
 					}
 					else
 					{
@@ -172,14 +172,14 @@ namespace AScript.TokenHandlers
 				{
 					if (_buffer.Length > 0)
 					{
-						concatArgs.Add(PoolManage.CreateObjectData(_buffer.ToString(), typeof(string)));
+						concatArgs.Add(PoolManage.CreateObjectNode(_buffer.ToString(), typeof(string)));
 					}
 					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new StringConcatNode { Args = concatArgs });
 				}
 			}
 			else if (!e.Options.CompileMode.HasValue || e.Options.CompileMode.Value != ECompileMode.All)
 			{
-				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectData(_buffer.ToString(), typeof(string)));
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(_buffer.ToString(), typeof(string)));
 			}
 			else
 			{

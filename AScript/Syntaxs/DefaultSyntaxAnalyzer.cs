@@ -231,20 +231,16 @@ namespace AScript.Syntaxs
 			return result;
 		}
 
-		public virtual Token? ValidateNextToken(TokenReader tokenReader, string nextTokenForValid, int currentLine = -1, int currentColumn = -1)
+		public virtual Token? ValidateNextToken(TokenReader tokenReader, string nextTokenForValid)
 		{
 			var nextToken = tokenReader.Read();
 			if (!nextToken.HasValue)
 			{
-				if (currentLine > 0)
-				{
-					throw new Exception($"invalid expression at {currentLine},{currentColumn}, expect {nextTokenForValid}");
-				}
-				throw new Exception($"invalid expression expect {nextTokenForValid}");
+					throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect {nextTokenForValid}");
 			}
 			if (nextToken.Value.Type == ETokenType.String || nextToken.Value.Value != nextTokenForValid)
 			{
-				throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect {nextTokenForValid}");
+				throw new Exception($"invalid expression '{nextToken.Value.Value}' at {nextToken.Value.Line},{nextToken.Value.Column}, expect {nextTokenForValid}");
 			}
 			return nextToken;
 		}
@@ -399,7 +395,7 @@ namespace AScript.Syntaxs
 			else
 			{
 				// 变量引用
-				e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateVariableData(e.CurrentToken.Value));
+				e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateVariableNode(e.CurrentToken.Value));
 			}
 
 			if (nextToken.HasValue)

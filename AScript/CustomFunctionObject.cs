@@ -31,7 +31,7 @@ namespace AScript
 				}
 				for (int i = 0; i < args.Length; i++)
 				{
-					_nodes[i] = PoolManage.CreateObjectData(args[i]);
+					_nodes[i] = PoolManage.CreateObjectNode(args[i]);
 				}
 			}
 			try

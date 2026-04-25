@@ -77,7 +77,7 @@ namespace AScript.Lang.Python3.TokenHandlers
 				throw new Exception($"invalid argument name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
 			}
 			// :
-			analyzer.ValidateNextToken(e.TokenReader, ":", token.Value.Line, token.Value.Column);
+			analyzer.ValidateNextToken(e.TokenReader, ":");
 			// 函数体
 			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
 			var body = Python3Lang.BuildSubBlock(e.CurrentToken.Column, analyzer, e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, Python3Lang.EndTokens);

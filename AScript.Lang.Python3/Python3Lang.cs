@@ -72,9 +72,18 @@ namespace AScript.Lang.Python3
 			AddFunc<List<object>, object>("pop", List_pop);
 			AddFunc<List<object>, long, object>("pop", List_pop);
 			AddAction<object>("print", Println);
+			AddAction<object, object>("print", Println);
+			AddAction<object, object, object>("print", Println);
+			AddAction<object, object, object, object>("print", Println);
+			AddAction<object, object, object, object, object>("print", Println);
 			AddAction<List<object>, object>("remove", List_remove);
 			AddAction<List<object>, object>("append", (list, value) => list.Add(value));
 			AddAction<List<object>, long, object>("insert", (list, index, value) => list.Insert((int)index, value));
+#if NETFRAMEWORK
+			AddFunc<IEnumerable, IEnumerable<Tuple<long, object>>>("enumerate", enumerate);
+#else
+			AddFunc<IEnumerable, IEnumerable<(long, object)>>("enumerate", enumerate);
+#endif
 
 			AddTokenHandler("?", QuestionIIFTokenHandler.Instance);
 			AddTokenHandler("[", Python3BracketTokenHandler.Instance);
@@ -83,8 +92,11 @@ namespace AScript.Lang.Python3
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);
 			AddTokenHandler("or", OrElseTokenHandler.Instance);
 			AddTokenHandler("if", Python3IfTokenHandler.Instance);
+			AddTokenHandler("for", Python3ForTokenHandler.Instance);
 			AddTokenHandler("def", Python3DefTokenHandler.Instance);
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
+			AddTokenHandler("break", BreakTokenHandler.Instance);
+			AddTokenHandler("continue", ContinueTokenHandler.Instance);
 			// 字符串内插值：f'{m},{n}'
 			AddTokenHandler("f", StringInterpolationTokenHandler.Instance);
 			// python中不能使用#lang，用@lang代替
@@ -132,6 +144,40 @@ namespace AScript.Lang.Python3
 		private static void Println(object obj)
 		{
 			Print(obj);
+			Console.WriteLine();
+		}
+
+		private static void Println(object obj1, object obj2)
+		{
+			Print(obj1);
+			Print(obj2);
+			Console.WriteLine();
+		}
+
+		private static void Println(object obj1, object obj2, object obj3)
+		{
+			Print(obj1);
+			Print(obj2);
+			Print(obj3);
+			Console.WriteLine();
+		}
+
+		private static void Println(object obj1, object obj2, object obj3, object obj4)
+		{
+			Print(obj1);
+			Print(obj2);
+			Print(obj3);
+			Print(obj4);
+			Console.WriteLine();
+		}
+
+		private static void Println(object obj1, object obj2, object obj3, object obj4, object obj5)
+		{
+			Print(obj1);
+			Print(obj2);
+			Print(obj3);
+			Print(obj4);
+			Print(obj5);
 			Console.WriteLine();
 		}
 
@@ -223,6 +269,46 @@ namespace AScript.Lang.Python3
 		{
 			list.Remove(v);
 		}
+
+#if NETFRAMEWORK
+		private static IEnumerable<Tuple<long, object>> enumerate(IEnumerable list)
+		{
+			if (list is IList a)
+			{
+				for (int i = 0; i < a.Count; i++)
+				{
+					yield return Tuple.Create((long)i, a[i]);
+				}
+			}
+			else
+			{
+				int i = 0;
+				foreach (var item in list)
+				{
+					yield return Tuple.Create((long)(i++), item);
+				}
+			}
+		}
+#else
+		private static IEnumerable<(long, object)> enumerate(IEnumerable list)
+		{
+			if (list is IList a)
+			{
+				for (int i = 0; i < a.Count; i++)
+				{
+					yield return ((long)i, a[i]);
+				}
+			}
+			else
+			{
+				int i = 0;
+				foreach (var item in list)
+				{
+					yield return ((long)(i++), item);
+				}
+			}
+		}
+#endif
 
 		public static TreeBuilder BuildSubBlock(int parentColumn, DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)
 		{

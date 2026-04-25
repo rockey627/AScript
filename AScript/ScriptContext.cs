@@ -759,7 +759,7 @@ namespace AScript
 					types[i] = type;
 					if (!(arg is ObjectNode))
 					{
-						args[i] = PoolManage.CreateObjectData(value, type);
+						args[i] = PoolManage.CreateObjectNode(value, type);
 					}
 				}
 			}
@@ -797,7 +797,7 @@ namespace AScript
 					argTypes[i] = type;
 					if (!(arg is ObjectNode))
 					{
-						args[i] = PoolManage.CreateObjectData(value, type);
+						args[i] = PoolManage.CreateObjectNode(value, type);
 					}
 				}
 			}
@@ -1273,7 +1273,7 @@ namespace AScript
 			var args = new ITreeNode[argCount];
 			for (int i = 0; i < argCount; i++)
 			{
-				args[i] = PoolManage.CreateObjectData(argValues[i], argTypes[i]);
+				args[i] = PoolManage.CreateObjectNode(argValues[i], argTypes[i]);
 			}
 			var result = EvalFunc(null, null, name, isPrefix, args, out returnType);
 			PoolManage.Return(args);

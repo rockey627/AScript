@@ -22,7 +22,7 @@ namespace AScript.TokenHandlers
 			{
 				throw new Exception($"invalid expression '?' at {e.CurrentToken.Line},{e.CurrentToken.Column}");
 			}
-			analyzer.ValidateNextToken(e.TokenReader, ":", e.CurrentToken.Line, e.CurrentToken.Column);
+			analyzer.ValidateNextToken(e.TokenReader, ":");
 			var value2 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, new BuildOptions(e.Options) { CreateFullTreeNode = true }, e.TokenReader, e.Control, e.Ignore);
 			if (value2 == null)
 			{

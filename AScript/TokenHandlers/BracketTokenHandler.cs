@@ -115,7 +115,7 @@ namespace AScript.TokenHandlers
 			{
 				var arr = collectionNode.Eval(e.ScriptContext, e.Options, out _);
 				PoolManage.Return(collectionNode);
-				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectData(arr));
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(arr));
 			}
 			return true;
 		}
@@ -131,7 +131,7 @@ namespace AScript.TokenHandlers
 			{
 				// [1:3]
 				var end = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
-				analyzer.ValidateNextToken(e.TokenReader, "]", e.CurrentToken.Line, e.CurrentToken.Column);
+				analyzer.ValidateNextToken(e.TokenReader, "]");
 				if (!e.Ignore)
 				{
 					var target = e.TreeBuilder.Pop();

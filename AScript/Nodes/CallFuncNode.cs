@@ -159,7 +159,7 @@ namespace AScript.Nodes
 						else
 						{
 							var v = arg.Eval(context, options, control, out var type);
-							args[i] = PoolManage.CreateObjectData(v, type);
+							args[i] = PoolManage.CreateObjectNode(v, type);
 						}
 					}
 				}
