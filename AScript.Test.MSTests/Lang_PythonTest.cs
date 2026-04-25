@@ -172,6 +172,43 @@ result
 		}
 
 		[TestMethod]
+		public void Test18_list_iterate_4()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "python3" };
+
+			// for in 遍历
+			var code1 = @"
+total = 0
+print(total,';')
+for x in [1, 2, 3]:
+    #total += x
+	print(x,',')
+#total
+";
+			script.Eval(code1);
+			//Assert.AreEqual(6L, script.Eval(code1));
+		}
+
+		[TestMethod]
+		public void Test18_list_iterate_3()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "python3" };
+
+			// for in 遍历
+			var code1 = @"
+total = 0
+for x in [1, 2, 3]:
+    total += x
+total
+";
+			Assert.AreEqual(6L, script.Eval(code1));
+		}
+
+		[TestMethod]
 		public void Test18_list_iterate_2()
 		{
 			var script = new Script();

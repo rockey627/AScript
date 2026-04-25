@@ -10,6 +10,22 @@ namespace AScript.Test.MSTests
 	public class ScriptForeachTest
 	{
 		[TestMethod]
+		public void Test04_2()
+		{
+			// foreach 遍历
+			var code1 = @"
+total = 0
+foreach(var x in [1, 2, 3]){
+    total += x;
+}
+total
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(6, script.Eval(code1));
+		}
+
+		[TestMethod]
 		public void Test03_2()
 		{
 			string s = @"

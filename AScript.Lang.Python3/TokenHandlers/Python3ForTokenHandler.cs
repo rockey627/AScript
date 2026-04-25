@@ -16,6 +16,11 @@ namespace AScript.Lang.Python3.TokenHandlers
 		{
 			e.IsHandled = true;
 			e.End = true;
+			if (e.TreeBuilder.Root != null)
+			{
+				e.TokenReader.Push(e.CurrentToken);
+				return;
+			}
 			var nextToken = e.TokenReader.Read();
 			if (!nextToken.HasValue)
 			{
