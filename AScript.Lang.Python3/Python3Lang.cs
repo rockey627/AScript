@@ -78,6 +78,7 @@ namespace AScript.Lang.Python3
 			AddFunc<ScriptContext, string, object>("exec", Exec);
 			AddFunc<long, IReadOnlyList<long>>("range", Range);
 			AddFunc<long, long, IReadOnlyList<long>>("range", Range);
+			AddFunc<IList, IList, bool>("==", List_Equal);
 			AddFunc<List<object>, List<object>, List<object>>("+", List_plus);
 			AddFunc<IList, long>("len", list => list == null ? 0L : (long)list.Count);
 			AddFunc<List<object>, object>("pop", List_pop);
@@ -151,6 +152,36 @@ namespace AScript.Lang.Python3
 			var engine = ScriptEngine.GetCurrent(context);
 			if (engine == null) throw new Exception("unkown inner ScriptEngine");
 			return engine.Eval(context, expression);
+		}
+
+		private static bool List_Equal(IList list1, IList list2)
+		{
+			if (list1 == null) return list2 == null;
+			if (list1.Count != list2.Count) return false;
+			for (int i = 0; i < list1.Count; i++)
+			{
+				if (!Equal2(list1[i], list2[i])) return false;
+			}
+			return true;
+		}
+
+		private static bool Equal2(object a, object b)
+		{
+			if (a == null) return b == null;
+			if (a is IList list1)
+			{
+				if (b is IList list2)
+				{
+					if (list1.Count != list2.Count) return false;
+					for (int i = 0; i < list1.Count; i++)
+					{
+						if (!Equal2(list1[i], list2[i])) return false;
+					}
+					return true;
+				}
+				return false;
+			}
+			return a.Equals(b);
 		}
 
 		private static void Println(object obj)

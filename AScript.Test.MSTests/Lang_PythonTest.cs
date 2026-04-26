@@ -115,6 +115,7 @@ lst = [1, 'hello', True, 3.14, [1, 2], {'key': 'value'}]
 len(lst)
 ";
 			Assert.AreEqual(6L, script.Eval(code1));
+			Assert.AreEqual("value", script.Eval("lst[5]['key']"));
 
 			// 嵌套列表
 			var code2 = @"
@@ -149,6 +150,7 @@ lst = [1, 'hello', True, 3.14, [1, 2], {'key': 'value'}]
 len(lst)
 ";
 			Assert.AreEqual(6L, script.Eval(code1));
+			Assert.AreEqual("value", script.Eval("lst[5]['key']"));
 
 			// 嵌套列表
 			var code2 = @"
