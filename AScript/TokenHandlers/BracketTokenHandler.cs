@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 using AScript.Nodes;
 using AScript.Syntaxs;
 
@@ -14,6 +15,7 @@ namespace AScript.TokenHandlers
 		public static readonly BracketTokenHandler Instance = new BracketTokenHandler();
 
 		private static readonly HashSet<string> _EndTokens = new HashSet<string> { ":" };
+		private static readonly HashSet<string> _EndTokens2 = new HashSet<string> { "for", "foreach" };
 
 		public virtual void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
@@ -24,6 +26,7 @@ namespace AScript.TokenHandlers
 				if (BuildCollection(analyzer, e)) return;
 				throw new Exception($"invalid expression '[' at {e.CurrentToken.Line},{e.CurrentToken.Column}");
 			}
+			// 索引器、集合切片
 			var statement0 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: _EndTokens);
 			var nextToken = e.TokenReader.Read();
 			if (!nextToken.HasValue)
@@ -67,33 +70,67 @@ namespace AScript.TokenHandlers
 			}
 			if (nextToken.Value.Type == ETokenType.String || nextToken.Value.Value != "]")
 			{
-				e.TokenReader.Push(nextToken.Value);
-				while (true)
+				tokenReader.Push(nextToken.Value);
+				// 推导式：x+2 for x in [1,2,3]
+				var createFullNodeOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
+				var s0 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullNodeOptions, tokenReader, e.Control, e.Ignore, endTokens: _EndTokens2);
+				nextToken = tokenReader.Read();
+				if (!nextToken.HasValue)
 				{
-					var element = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, tokenReader, e.Control, e.Ignore);
-					
+					throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect ']'");
+				}
+				if (nextToken.Value.Type == ETokenType.Word && _EndTokens2.Contains(nextToken.Value.Value))
+				{
+					// x+2 for x in [1,2,3]
+				}
+				else if (nextToken.Value.Type == ETokenType.String)
+				{
+					throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
+				}
+				else if (nextToken.Value.Value == "]")
+				{
 					if (!e.Ignore)
 					{
-						args.Add(element);
+						args.Add(s0);
 					}
+				}
+				else if (nextToken.Value.Value != ",")
+				{
+					throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
+				}
+				else
+				{
+					if (!e.Ignore)
+					{
+						args.Add(s0);
+					}
+					while (true)
+					{
+						var element = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, tokenReader, e.Control, e.Ignore);
 
-					nextToken = tokenReader.Read();
-					if (!nextToken.HasValue)
-					{
-						throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect ']'");
-					}
-					if (nextToken.Value.Type == ETokenType.String)
-					{
-						throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
-					}
-					if (nextToken.Value.Value == "]")
-					{
-						break;
-					}
+						if (!e.Ignore)
+						{
+							args.Add(element);
+						}
 
-					if (nextToken.Value.Value != ",")
-					{
-						throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
+						nextToken = tokenReader.Read();
+						if (!nextToken.HasValue)
+						{
+							throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect ']'");
+						}
+						if (nextToken.Value.Type == ETokenType.String)
+						{
+							throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
+						}
+						if (nextToken.Value.Value == "]")
+						{
+							break;
+						}
+
+						if (nextToken.Value.Value != ",")
+						{
+							throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
+						}
 					}
 				}
 			}

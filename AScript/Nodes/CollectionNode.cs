@@ -163,7 +163,7 @@ namespace AScript.Nodes
 				{
 					arr.SetValue(Convert.ChangeType(itemValues[i], elementType), i);
 				}
-				returnType = typeof(Array);
+				returnType = arr.GetType();
 				return arr;
 			}
 
