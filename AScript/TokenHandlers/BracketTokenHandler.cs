@@ -56,7 +56,8 @@ namespace AScript.TokenHandlers
 		protected virtual bool BuildCollection(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			// 解析 [1,2,3,4] 数组
-			var args = e.Ignore ? null : new List<ITreeNode>();
+			List<ITreeNode> args = null;
+			ForeachNode foreachNode = null;
 			var tokenReader = e.TokenReader;
 
 			var nextToken = tokenReader.Read();
@@ -71,7 +72,6 @@ namespace AScript.TokenHandlers
 			if (nextToken.Value.Type == ETokenType.String || nextToken.Value.Value != "]")
 			{
 				tokenReader.Push(nextToken.Value);
-				// 推导式：x+2 for x in [1,2,3]
 				var createFullNodeOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
 				var s0 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullNodeOptions, tokenReader, e.Control, e.Ignore, endTokens: _EndTokens2);
 				nextToken = tokenReader.Read();
@@ -81,7 +81,68 @@ namespace AScript.TokenHandlers
 				}
 				if (nextToken.Value.Type == ETokenType.Word && _EndTokens2.Contains(nextToken.Value.Value))
 				{
-					// x+2 for x in [1,2,3]
+					// 推导式：x+2 for x in [1,2,3]
+					nextToken = e.TokenReader.Read();
+					if (!nextToken.HasValue)
+					{
+						throw new Exception($"invalid {e.CurrentToken.Value} expression at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
+					}
+					if (nextToken.Value.Type != ETokenType.Word)
+					{
+						throw new Exception($"invalid '{nextToken.Value.Value}' of {e.CurrentToken.Value} expression at ({nextToken.Value.Line},{nextToken.Value.Column})");
+					}
+					var varName = nextToken.Value.Value;
+					List<DefineVarNode> varDefines = null;
+
+					// 检查是否是变量名列表 (for x, y, z in ...)
+					nextToken = e.TokenReader.Read();
+
+					if (nextToken.HasValue && nextToken.Value.Type != ETokenType.String && nextToken.Value.Value == ",")
+					{
+						if (!e.Ignore)
+						{
+							varDefines = new List<DefineVarNode>();
+							varDefines.Add(PoolManage.CreateDefineVarNode(varName, null, typeof(object)));
+						}
+						while (nextToken.HasValue && nextToken.Value.Type != ETokenType.String && nextToken.Value.Value == ",")
+						{
+							var varToken = e.TokenReader.Read();
+							if (!varToken.HasValue || varToken.Value.Type != ETokenType.Word || varToken.Value.Value == "in")
+							{
+								throw new Exception($"invalid variable name at ({varToken.Value.Line},{varToken.Value.Column})");
+							}
+							if (!e.Ignore)
+							{
+								varName = varToken.Value.Value;
+								varDefines.Add(PoolManage.CreateDefineVarNode(varName, null, typeof(object)));
+							}
+							nextToken = e.TokenReader.Read();
+						}
+					}
+
+					if (!nextToken.HasValue)
+					{
+						throw new Exception($"invalid {e.CurrentToken.Value} expression at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+					}
+					if (nextToken.Value.Type == ETokenType.String || nextToken.Value.Value != "in")
+					{
+						throw new Exception($"invalid {nextToken.Value.Value} of {e.CurrentToken.Value} expression at ({nextToken.Value.Line},{nextToken.Value.Column})");
+					}
+					//analyzer.ValidateNextToken(e.TokenReader, "in");
+					// 
+					var listBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+					
+					if (!e.Ignore)
+					{
+						foreachNode = new ForeachNode
+						{
+							VarDefine = varDefines == null ? PoolManage.CreateDefineVarNode(varName, null, typeof(object)) : null,
+							VarDefines = varDefines,
+							Collection = listBuilder,
+							Body = s0
+						};
+						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, foreachNode);
+					}
 				}
 				else if (nextToken.Value.Type == ETokenType.String)
 				{
@@ -91,6 +152,7 @@ namespace AScript.TokenHandlers
 				{
 					if (!e.Ignore)
 					{
+						args = new List<ITreeNode>();
 						args.Add(s0);
 					}
 				}
@@ -102,6 +164,7 @@ namespace AScript.TokenHandlers
 				{
 					if (!e.Ignore)
 					{
+						args = new List<ITreeNode>();
 						args.Add(s0);
 					}
 					while (true)
@@ -137,7 +200,7 @@ namespace AScript.TokenHandlers
 
 			if (e.Ignore) return true;
 
-			var collectionNode = CreateCollection(args);
+			var collectionNode = CreateCollection(args, foreachNode);
 			if (e.Options.CreateFullTreeNode ?? false)
 			{
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, collectionNode);
@@ -157,9 +220,15 @@ namespace AScript.TokenHandlers
 			return true;
 		}
 
-		protected virtual CollectionNode CreateCollection(IList<ITreeNode> items)
+		/// <summary>
+		/// items与foreachNode设置一个值
+		/// </summary>
+		/// <param name="items">集合列表</param>
+		/// <param name="foreachNode">推导式</param>
+		/// <returns></returns>
+		protected virtual CollectionNode CreateCollection(IList<ITreeNode> items, ForeachNode foreachNode)
 		{
-			return new CollectionNode { Items = items, CollectionType = typeof(Array) };
+			return new CollectionNode { Items = items, ForeachNode = foreachNode, CollectionType = typeof(Array) };
 		}
 
 		protected virtual bool TryBuildNext(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, ITreeNode statement0, Token nextToken)

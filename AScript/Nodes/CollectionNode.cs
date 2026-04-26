@@ -12,6 +12,10 @@ namespace AScript.Nodes
 		/// </summary>
 		public IList<ITreeNode> Items { get; set; }
 		/// <summary>
+		/// 推导式
+		/// </summary>
+		public ForeachNode ForeachNode { get; set; }
+		/// <summary>
 		/// 集合中的元素类型，如果为null则取Items中的值类型
 		/// </summary>
 		public Type ElementType { get; set; }
@@ -27,25 +31,39 @@ namespace AScript.Nodes
 				throw new Exception("unknown collection type");
 			}
 
-			// Build each item expression
-			var itemExprs = new Expression[Items.Count];
+			Expression[] itemExprs;
 			Type elementType = null;
 			var objType = typeof(object);
-			for (int i = 0; i < Items.Count; i++)
+
+			if (this.Items != null)
 			{
-				var itemExpr = Items[i].Build(buildContext, scriptContext, options);
-				itemExprs[i] = itemExpr;
-				if (this.ElementType == null)
+				// Build each item expression
+				itemExprs = new Expression[Items.Count];
+				for (int i = 0; i < Items.Count; i++)
 				{
-					if (elementType == null)
+					var itemExpr = Items[i].Build(buildContext, scriptContext, options);
+					itemExprs[i] = itemExpr;
+					if (this.ElementType == null)
 					{
-						elementType = itemExpr.Type;
-					}
-					else if (elementType != objType && itemExpr.Type != elementType)
-					{
-						elementType = objType;
+						if (elementType == null)
+						{
+							elementType = itemExpr.Type;
+						}
+						else if (elementType != objType && itemExpr.Type != elementType)
+						{
+							elementType = objType;
+						}
 					}
 				}
+			}
+			else if (this.ForeachNode != null)
+			{
+				// 推导式
+			}
+			else
+			{
+				itemExprs = new Expression[0];
+				elementType = typeof(object);
 			}
 
 			// Determine element type
@@ -125,24 +143,38 @@ namespace AScript.Nodes
 				throw new Exception("unknown collection type");
 			}
 
-			// Evaluate all items to get their values
-			var itemValues = new object[Items.Count];
+			object[] itemValues;
 			Type elementType = null;
 			var objType = typeof(object);
-			for (int i = 0; i < Items.Count; i++)
+
+			if (this.Items != null)
 			{
-				itemValues[i] = Items[i].Eval(context, options, control, out var itemType);
-				if (this.ElementType == null)
+				// Evaluate all items to get their values
+				itemValues = new object[Items.Count];
+				for (int i = 0; i < Items.Count; i++)
 				{
-					if (elementType == null)
+					itemValues[i] = Items[i].Eval(context, options, control, out var itemType);
+					if (this.ElementType == null)
 					{
-						elementType = itemType;
-					}
-					else if (elementType != objType && itemType != elementType)
-					{
-						elementType = objType;
+						if (elementType == null)
+						{
+							elementType = itemType;
+						}
+						else if (elementType != objType && itemType != elementType)
+						{
+							elementType = objType;
+						}
 					}
 				}
+			}
+			else if (this.ForeachNode != null)
+			{
+				// 推导式
+			}
+			else
+			{
+				itemValues = new object[0];
+				elementType = typeof(object);
 			}
 
 			// Determine element type

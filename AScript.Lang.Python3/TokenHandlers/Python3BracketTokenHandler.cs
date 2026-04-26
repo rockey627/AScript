@@ -9,9 +9,9 @@ namespace AScript.Lang.Python3.TokenHandlers
 	{
 		public static readonly Python3BracketTokenHandler Instance = new Python3BracketTokenHandler();
 
-		protected override CollectionNode CreateCollection(IList<ITreeNode> items)
+		protected override CollectionNode CreateCollection(IList<ITreeNode> items, ForeachNode foreachNode)
 		{
-			return new CollectionNode { Items = items, CollectionType = typeof(List<object>)};
+			return new CollectionNode { Items = items, ForeachNode = foreachNode, CollectionType = typeof(List<object>)};
 		}
 	}
 }

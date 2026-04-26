@@ -38,8 +38,11 @@ namespace AScript.Lang.Python3.TokenHandlers
 
 			if (nextToken.HasValue && nextToken.Value.Type != ETokenType.String && nextToken.Value.Value == ",")
 			{
-				varDefines = new List<DefineVarNode>();
-				varDefines.Add(PoolManage.CreateDefineVarNode(varName, null, typeof(object)));
+				if (!e.Ignore)
+				{
+					varDefines = new List<DefineVarNode>();
+					varDefines.Add(PoolManage.CreateDefineVarNode(varName, null, typeof(object)));
+				}
 				while (nextToken.HasValue && nextToken.Value.Type != ETokenType.String && nextToken.Value.Value == ",")
 				{
 					var varToken = e.TokenReader.Read();
@@ -47,9 +50,11 @@ namespace AScript.Lang.Python3.TokenHandlers
 					{
 						throw new Exception($"invalid variable name at ({varToken.Value.Line},{varToken.Value.Column})");
 					}
-					varName = varToken.Value.Value;
-					varDefines.Add(PoolManage.CreateDefineVarNode(varName, null, typeof(object)));
-
+					if (!e.Ignore)
+					{
+						varName = varToken.Value.Value;
+						varDefines.Add(PoolManage.CreateDefineVarNode(varName, null, typeof(object)));
+					}
 					nextToken = e.TokenReader.Read();
 				}
 			}
@@ -69,16 +74,17 @@ namespace AScript.Lang.Python3.TokenHandlers
 			var createFullTreeNodeOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
 			var bodyBuilder = Python3Lang.BuildSubBlock(e.CurrentToken.Column, analyzer, e.BuildContext, e.ScriptContext, createFullTreeNodeOptions, e.TokenReader, e.Control, e.Ignore, endTokens: Python3Lang.EndTokens);
 
-			if (e.Ignore) return;
-
-			var foreachNode = new ForeachNode
+			if (!e.Ignore)
 			{
-				VarDefine = varDefines == null ? PoolManage.CreateDefineVarNode(varName, null, typeof(object)) : null,
-				VarDefines = varDefines,
-				Collection = listBuilder,
-				Body = bodyBuilder
-			};
-			e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, foreachNode);
+				var foreachNode = new ForeachNode
+				{
+					VarDefine = varDefines == null ? PoolManage.CreateDefineVarNode(varName, null, typeof(object)) : null,
+					VarDefines = varDefines,
+					Collection = listBuilder,
+					Body = bodyBuilder
+				};
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, foreachNode);
+			}
 		}
 	}
 }
