@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace AScript.Nodes
@@ -55,85 +56,134 @@ namespace AScript.Nodes
 						}
 					}
 				}
+
+				// Determine element type
+				if (this.ElementType != null)
+				{
+					elementType = this.ElementType;
+				}
+				else if (elementType == null)
+				{
+					elementType = objType;
+				}
+
+				if (CollectionType == typeof(Array))
+				{
+					// Create array expression: new[] { elem1, elem2, ... }
+					var convertedExprs = new Expression[itemExprs.Length];
+					for (int i = 0; i < itemExprs.Length; i++)
+					{
+						if (itemExprs[i].Type != elementType)
+						{
+							convertedExprs[i] = Expression.Convert(itemExprs[i], elementType);
+						}
+						else
+						{
+							convertedExprs[i] = itemExprs[i];
+						}
+					}
+					return Expression.NewArrayInit(elementType, convertedExprs);
+				}
+
+				// Handle List<T>
+				Type listType;
+				if (CollectionType.IsGenericType && CollectionType.GetGenericTypeDefinition() == typeof(List<>))
+				{
+					listType = CollectionType;
+					elementType = CollectionType.GetGenericArguments()[0];
+				}
+				else
+				{
+					listType = typeof(List<>).MakeGenericType(elementType);
+				}
+
+				// Get Add method
+				var addMethod = listType.GetMethod("Add");
+				if (addMethod == null)
+				{
+					throw new Exception($"type {listType.Name} does not have an Add method");
+				}
+
+				// Create instance variable
+				var instanceVar = Expression.Variable(listType, "instance");
+
+				// Build statements: instance = new List<T>(); instance.Add(elem1); instance.Add(elem2); ...; return instance;
+				var statements = new List<Expression>(2 + itemExprs.Length);
+				var constructorInfo = listType.GetConstructor(new[] { typeof(int) });
+				statements.Add(Expression.Assign(instanceVar, Expression.New(constructorInfo, new[] { Expression.Constant(itemExprs.Length) })));
+
+				for (int i = 0; i < itemExprs.Length; i++)
+				{
+					Expression itemExpr = itemExprs[i];
+					if (itemExpr.Type != elementType)
+					{
+						itemExpr = Expression.Convert(itemExpr, elementType);
+					}
+					statements.Add(Expression.Call(instanceVar, addMethod, itemExpr));
+				}
+
+				statements.Add(instanceVar);
+
+				return Expression.Block(new[] { instanceVar }, statements);
 			}
 			else if (this.ForeachNode != null)
 			{
-				// 推导式
+				// 推导式：使用 Enumerable.Select 直接创建集合
+				var tempBuildContext = new BuildContext(buildContext);
+				var collectionExpr = this.ForeachNode.Collection.Build(tempBuildContext, scriptContext, options);
+
+				// 获取集合元素类型
+				var elementType2 = ScriptUtils.GetElementType(collectionExpr.Type);
+				if (elementType2 == null)
+				{
+					elementType2 = typeof(object);
+				}
+
+				// 创建循环变量
+				this.ForeachNode.VarDefine.SystemType = elementType2;
+				var itemVar = this.ForeachNode.VarDefine.Build(tempBuildContext, scriptContext, options);
+
+				// 构建 body 表达式
+				var bodyExpr = this.ForeachNode.Body.Build(tempBuildContext, scriptContext, options);
+
+				// 构建 lambda: x => body
+				var lambda = Expression.Lambda(bodyExpr, (ParameterExpression)itemVar);
+
+				// 获取 Enumerable.Select 泛型方法
+				var selectMethod = ExpressionUtils.Method_Enumerable_Select1;
+				selectMethod = selectMethod.MakeGenericMethod(elementType2, bodyExpr.Type);
+
+				// 生成表达式: Enumerable.Select(collection, lambda)
+				var selectExpr = Expression.Call(null, selectMethod, collectionExpr, lambda);
+
+				// 根据 CollectionType 决定是 ToArray 还是 ToList 并直接返回
+				if (CollectionType == typeof(Array))
+				{
+					var toArrayMethod = ExpressionUtils.Method_Enumerable_ToArray;
+					toArrayMethod = toArrayMethod.MakeGenericMethod(bodyExpr.Type);
+					return Expression.Call(null, toArrayMethod, selectExpr);
+				}
+				else
+				{
+					// List<T>
+					var toListMethod = ExpressionUtils.Method_Enumerable_ToList;
+					toListMethod = toListMethod.MakeGenericMethod(bodyExpr.Type);
+					return Expression.Call(null, toListMethod, selectExpr);
+				}
 			}
 			else
 			{
-				itemExprs = new Expression[0];
-				elementType = typeof(object);
-			}
-
-			// Determine element type
-			if (this.ElementType != null)
-			{
-				elementType = this.ElementType;
-			}
-			else if (elementType == null)
-			{
-				elementType = objType;
-			}
-
-			if (CollectionType == typeof(Array))
-			{
-				// Create array expression: new[] { elem1, elem2, ... }
-				var convertedExprs = new Expression[itemExprs.Length];
-				for (int i = 0; i < itemExprs.Length; i++)
+				// 空集合
+				if (CollectionType == typeof(Array))
 				{
-					if (itemExprs[i].Type != elementType)
-					{
-						convertedExprs[i] = Expression.Convert(itemExprs[i], elementType);
-					}
-					else
-					{
-						convertedExprs[i] = itemExprs[i];
-					}
+					return Expression.NewArrayInit(typeof(object));
 				}
-				return Expression.NewArrayInit(elementType, convertedExprs);
-			}
-
-			// Handle List<T>
-			Type listType;
-			if (CollectionType.IsGenericType && CollectionType.GetGenericTypeDefinition() == typeof(List<>))
-			{
-				listType = CollectionType;
-				elementType = CollectionType.GetGenericArguments()[0];
-			}
-			else
-			{
-				listType = typeof(List<>).MakeGenericType(elementType);
-			}
-
-			// Get Add method
-			var addMethod = listType.GetMethod("Add");
-			if (addMethod == null)
-			{
-				throw new Exception($"type {listType.Name} does not have an Add method");
-			}
-
-			// Create instance variable
-			var instanceVar = Expression.Variable(listType, "instance");
-
-			// Build statements: instance = new List<T>(); instance.Add(elem1); instance.Add(elem2); ...; return instance;
-			var statements = new List<Expression>(2 + itemExprs.Length);
-			var constructorInfo = listType.GetConstructor(new[] { typeof(int) });
-			statements.Add(Expression.Assign(instanceVar, Expression.New(constructorInfo, new[] { Expression.Constant(itemExprs.Length) })));
-
-			for (int i = 0; i < itemExprs.Length; i++)
-			{
-				Expression itemExpr = itemExprs[i];
-				if (itemExpr.Type != elementType)
+				else
 				{
-					itemExpr = Expression.Convert(itemExpr, elementType);
+					var listType = typeof(List<object>);
+					return Expression.New(listType);
 				}
-				statements.Add(Expression.Call(instanceVar, addMethod, itemExpr));
 			}
-
-			statements.Add(instanceVar);
-
-			return Expression.Block(new[] { instanceVar }, statements);
 		}
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
@@ -169,7 +219,35 @@ namespace AScript.Nodes
 			}
 			else if (this.ForeachNode != null)
 			{
-				// 推导式
+				// 推导式：遍历集合并收集 body 结果
+				var listResult = this.ForeachNode.Collection.Eval(context, options, control, out var collectionType2);
+				if (listResult == null)
+				{
+					throw new NullReferenceException("foreach collection is null");
+				}
+				if (!(listResult is IEnumerable en))
+				{
+					throw new Exception($"invalid foreach collection {collectionType2}");
+				}
+
+				var tempContext = ScriptContext.Create(context);
+				var tempController = new EvalControl(control, true);
+				var varType = this.ForeachNode.VarDefine.SystemType ?? typeof(object);
+				this.ForeachNode.VarDefine.Eval(tempContext, options, out _);
+
+				var results = new List<object>();
+				foreach (var item in en)
+				{
+					tempContext.SetVar(this.ForeachNode.VarDefine.Name, item, item == null ? varType : null);
+					var bodyResult = this.ForeachNode.Body.Eval(ScriptContext.Create(tempContext), options, tempController, out var bodyType);
+					results.Add(bodyResult);
+				}
+
+				itemValues = results.ToArray();
+				if (itemValues.Length > 0 && itemValues[0] != null)
+				{
+					elementType = itemValues[0].GetType();
+				}
 			}
 			else
 			{
@@ -226,8 +304,10 @@ namespace AScript.Nodes
 			base.Clear();
 
 			PoolManage.Return(this.Items);
+			PoolManage.Return(this.ForeachNode);
 
 			this.Items = null;
+			this.ForeachNode = null;
 			this.ElementType = null;
 			this.CollectionType = null;
 		}

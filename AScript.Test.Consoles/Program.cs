@@ -83,6 +83,9 @@ exec2(26)
 			var methodInfo = type.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
 				.FirstOrDefault(a => a.Name == "ToInt32");
 			//var d = methodInfo.CreateDelegate()
+
+			var s1 = ExpressionUtils.Method_Enumerable_Select1;
+			var s2 = ExpressionUtils.Method_Enumerable_Select2;
 		}
 
 		static void Test10_Lambda()

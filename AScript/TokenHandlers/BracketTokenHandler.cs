@@ -141,7 +141,6 @@ namespace AScript.TokenHandlers
 							Collection = listBuilder,
 							Body = s0
 						};
-						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, foreachNode);
 					}
 				}
 				else if (nextToken.Value.Type == ETokenType.String)

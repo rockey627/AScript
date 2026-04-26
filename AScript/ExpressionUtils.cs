@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.CSharp.RuntimeBinder;
 using AScript.Nodes;
+using System.Linq;
 
 namespace AScript
 {
@@ -44,6 +45,11 @@ namespace AScript
 
 		public static readonly MethodInfo Method_Math_Power = typeof(Math).GetMethod("Power", new[] { typeof(double), typeof(double) });
 		public static readonly MethodInfo Method_Math_Floor = typeof(Math).GetMethod("Floor", new[] { typeof(double) });
+
+		public static readonly MethodInfo Method_Enumerable_Select1 = typeof(Enumerable).GetMethods().FirstOrDefault(a => a.Name == "Select" && a.GetParameters()[1].ParameterType.Name == "Func`2");
+		public static readonly MethodInfo Method_Enumerable_Select2 = typeof(Enumerable).GetMethods().FirstOrDefault(a => a.Name == "Select" && a.GetParameters()[1].ParameterType.Name == "Func`3");
+		public static readonly MethodInfo Method_Enumerable_ToArray = typeof(Enumerable).GetMethod("ToArray");
+		public static readonly MethodInfo Method_Enumerable_ToList = typeof(Enumerable).GetMethod("ToList");
 
 		public static readonly PropertyInfo Property_TypeWrapper_Type = typeof(TypeWrapper).GetProperty("Type");
 
