@@ -20,6 +20,11 @@ namespace AScript.Lang.Python3
 
 		public Python3Lang()
 		{
+			AddType<long>("int");
+			AddType<double>("float");
+			AddType<string>("str");
+			AddType<bool>("bool");
+
 			//AddFunc("=", Python3AssignOperator.Instance);
 			//AddFunc(":=", Python3AssignOperator.Instance);
 			AddFunc("=", AssignOperator.Instance);
@@ -61,9 +66,15 @@ namespace AScript.Lang.Python3
 			AddFunc("!=", NotEqualOperator.Instance);
 			AddFunc("and", AndAlsoOperator.Instance);
 			AddFunc("or", OrElseOperator.Instance);
+			AddFunc(".", DotOperator.Instance);
 			AddFunc("[]", IndexOperator.Instance);
 			AddFunc("[:]", IndexStartEndOperator.Instance);
 
+			AddFunc<object, Python3Type>("type", a => new Python3Type(a?.GetType()));
+			AddFunc<object, string>("str", a => a?.ToString());
+			AddFunc<object, long>("int", a => Convert.ToInt64(a));
+			AddFunc<object, double>("float", a => Convert.ToDouble(a));
+			AddFunc<object, bool>("bool", a => Convert.ToBoolean(a));
 			AddFunc<ScriptContext, string, object>("exec", Exec);
 			AddFunc<long, IReadOnlyList<long>>("range", Range);
 			AddFunc<long, long, IReadOnlyList<long>>("range", Range);
@@ -89,6 +100,7 @@ namespace AScript.Lang.Python3
 			AddTokenHandler("[", Python3BracketTokenHandler.Instance);
 			AddTokenHandler("True", BoolTokenHandler.Instance);
 			AddTokenHandler("False", BoolTokenHandler.Instance);
+			AddTokenHandler("None", NullTokenHandler.Instance);
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);
 			AddTokenHandler("or", OrElseTokenHandler.Instance);
 			AddTokenHandler("if", Python3IfTokenHandler.Instance);
