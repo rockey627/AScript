@@ -3,6 +3,7 @@ using AScript.Readers;
 using AScript.Syntaxs;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AScript.Lang.Python3
 {
@@ -59,6 +60,55 @@ namespace AScript.Lang.Python3
 				}
 			}
 			base.ParseIdentifierOrOperator(e, endTokens);
+		}
+
+		protected override ITreeNode BuildBlock(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false)
+		{
+			// 解析字典：{ key1:value1, key2:value2 }
+			var initProperties = ignore ? null : new List<ITreeNode>();
+
+			// 循环解析 key:value 对
+			while (true)
+			{
+				var token = tokenReader.Read();
+				if (!token.HasValue)
+				{
+					throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect '}}'");
+				}
+				if (token.Value.Value == "}")
+				{
+					break;
+				}
+				tokenReader.Push(token.Value);
+				var keyNode = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
+				this.ValidateNextToken(tokenReader, ":");
+				var valueNode = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
+				if (!ignore)
+				{
+					var indexAssign = PoolManage.CreateOperatorNode("[]", 2, OperatorPriorities["["]);
+					indexAssign.Left = keyNode;
+					indexAssign.Right = valueNode;
+					initProperties.Add(indexAssign);
+				}
+
+				// 读取 , 或 }
+				token = tokenReader.Read();
+				if (!token.HasValue)
+				{
+					throw new Exception("invalid dictionary syntax, expect ',' or '}'");
+				}
+				if (token.Value.Value == "}")
+				{
+					break;
+				}
+				if (token.Value.Value != ",")
+				{
+					throw new Exception($"invalid dictionary syntax at {token.Value.Line},{token.Value.Column}, expect ',' or '}}'");
+				}
+			}
+
+			if (ignore) return null;
+			return new NewNode { SystemType = typeof(Dictionary<object, object>), InitProperties = initProperties };
 		}
 
 		protected override object EvalNumber(string num)

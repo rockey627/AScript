@@ -310,7 +310,7 @@ namespace AScript.Syntaxs
 			return list;
 		}
 
-		private ITreeNode BuildBlock(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false)
+		protected virtual ITreeNode BuildBlock(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false)
 		{
 			if (!(options.CreateFullTreeNode ?? false) && (options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{

@@ -16,6 +16,10 @@ namespace AScript.Nodes
 		/// </summary>
 		public IList<string> GenericTypes { get; set; }
 		/// <summary>
+		/// 
+		/// </summary>
+		public Type SystemType { get; set; }
+		/// <summary>
 		/// 参数列表
 		/// </summary>
 		public IList<ITreeNode> Args { get; set; }
@@ -30,22 +34,45 @@ namespace AScript.Nodes
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
-			string name = this.Name;
-			if (this.GenericTypes != null && this.GenericTypes.Count > 0)
+			Type type;
+			if (this.SystemType != null)
 			{
-				if (this.GenericTypes.Count == 1)
-				{
-					name = $"{this.Name}<>";
-				}
-				else
-				{
-					name = this.Name + "<" + new string(',', this.GenericTypes.Count - 1) + ">";
-				}
+				type = this.SystemType;
 			}
-			var type = scriptContext.EvalType(name);
-			if (type == null)
+			else
 			{
-				throw new Exception($"unknow type {this.Name}");
+				string name = this.Name;
+				if (this.GenericTypes != null && this.GenericTypes.Count > 0)
+				{
+					if (this.GenericTypes.Count == 1)
+					{
+						name = $"{this.Name}<>";
+					}
+					else
+					{
+						name = this.Name + "<" + new string(',', this.GenericTypes.Count - 1) + ">";
+					}
+				}
+				type = scriptContext.EvalType(name);
+				if (type == null)
+				{
+					throw new Exception($"unknow type {this.Name}");
+				}
+				if (this.GenericTypes != null && this.GenericTypes.Count > 0)
+				{
+					var genericTypes = new Type[this.GenericTypes.Count];
+					for (int i = 0; i < this.GenericTypes.Count; i++)
+					{
+						var typeName = this.GenericTypes[i];
+						var type0 = scriptContext.EvalType(typeName);
+						if (type0 == null)
+						{
+							throw new Exception($"unknown type '{typeName}'");
+						}
+						genericTypes[i] = type0;
+					}
+					type = type.MakeGenericType(genericTypes);
+				}
 			}
 			Expression[] argValues;
 			Type[] argTypes;
@@ -68,21 +95,6 @@ namespace AScript.Nodes
 					argValues[i] = argValue;
 					argTypes[i] = argValue.Type;
 				}
-			}
-			if (this.GenericTypes != null && this.GenericTypes.Count > 0)
-			{
-				var genericTypes = new Type[this.GenericTypes.Count];
-				for (int i = 0; i < this.GenericTypes.Count; i++)
-				{
-					var typeName = this.GenericTypes[i];
-					var type0 = scriptContext.EvalType(typeName);
-					if (type0 == null)
-					{
-						throw new Exception($"unknown type '{typeName}'");
-					}
-					genericTypes[i] = type0;
-				}
-				type = type.MakeGenericType(genericTypes);
 			}
 
 			if (this.ArrayDimension > 0)
@@ -302,22 +314,45 @@ namespace AScript.Nodes
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
-			string name = this.Name;
-			if (this.GenericTypes != null && this.GenericTypes.Count > 0)
+			Type type;
+			if (this.SystemType != null)
 			{
-				if (this.GenericTypes.Count == 1)
-				{
-					name = $"{this.Name}<>";
-				}
-				else
-				{
-					name = this.Name + "<" + new string(',', this.GenericTypes.Count - 1) + ">";
-				}
+				type = this.SystemType;
 			}
-			var type = context.EvalType(name);
-			if (type == null)
+			else
 			{
-				throw new Exception($"unknow type {name}");
+				string name = this.Name;
+				if (this.GenericTypes != null && this.GenericTypes.Count > 0)
+				{
+					if (this.GenericTypes.Count == 1)
+					{
+						name = $"{this.Name}<>";
+					}
+					else
+					{
+						name = this.Name + "<" + new string(',', this.GenericTypes.Count - 1) + ">";
+					}
+				}
+				type = context.EvalType(name);
+				if (type == null)
+				{
+					throw new Exception($"unknow type {name}");
+				}
+				if (this.GenericTypes != null && this.GenericTypes.Count > 0)
+				{
+					var genericTypes = new Type[this.GenericTypes.Count];
+					for (int i = 0; i < this.GenericTypes.Count; i++)
+					{
+						var typeName = this.GenericTypes[i];
+						var type0 = context.EvalType(typeName);
+						if (type0 == null)
+						{
+							throw new Exception($"unknown type '{typeName}'");
+						}
+						genericTypes[i] = type0;
+					}
+					type = type.MakeGenericType(genericTypes);
+				}
 			}
 			object[] argValues;
 			Type[] argTypes;
@@ -339,21 +374,6 @@ namespace AScript.Nodes
 					argValues[i] = this.Args[i].Eval(context, options, control, out var argType);
 					argTypes[i] = argType;
 				}
-			}
-			if (this.GenericTypes != null && this.GenericTypes.Count > 0)
-			{
-				var genericTypes = new Type[this.GenericTypes.Count];
-				for (int i = 0; i < this.GenericTypes.Count; i++)
-				{
-					var typeName = this.GenericTypes[i];
-					var type0 = context.EvalType(typeName);
-					if (type0 == null)
-					{
-						throw new Exception($"unknown type '{typeName}'");
-					}
-					genericTypes[i] = type0;
-				}
-				type = type.MakeGenericType(genericTypes);
 			}
 
 			if (this.ArrayDimension > 0)
