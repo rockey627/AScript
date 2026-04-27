@@ -236,7 +236,7 @@ namespace AScript.Syntaxs
 			var nextToken = tokenReader.Read();
 			if (!nextToken.HasValue)
 			{
-					throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect {nextTokenForValid}");
+				throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect {nextTokenForValid}");
 			}
 			if (nextToken.Value.Type == ETokenType.String || nextToken.Value.Value != nextTokenForValid)
 			{
@@ -293,7 +293,11 @@ namespace AScript.Syntaxs
 			var list = ignore ? null : new List<ITreeNode>();
 			while (true)
 			{
-				list.Add(BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore));
+				var s = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
+				if (!ignore)
+				{
+					list.Add(s);
+				}
 				nextToken = tokenReader.Read();
 				if (!nextToken.HasValue)
 				{
@@ -336,9 +340,11 @@ namespace AScript.Syntaxs
 			}
 		}
 
-		private void ParseIdentifierOrOperator(TokenAnalyzingArgs e, IEnumerable<string> endTokens = null)
+		protected virtual void ParseIdentifierOrOperator(TokenAnalyzingArgs e, IEnumerable<string> endTokens = null)
 		{
-			if (e.Ignore) return;
+			if (e.IsHandled) return;
+
+			e.IsHandled = true;
 
 			// 检查是否是操作符
 			if (e.CurrentToken.Type == ETokenType.Operator)// || OperatorPriorities.TryGetValue(e.CurrentToken.Value, out _))
@@ -388,14 +394,20 @@ namespace AScript.Syntaxs
 				else
 				{
 					// 变量定义
-					e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateDefineVarNode(currentToken.Value, definedTypeName, definedType));
+					if (!e.Ignore)
+					{
+						e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateDefineVarNode(currentToken.Value, definedTypeName, definedType));
+					}
 					e.End = !nextToken.HasValue || nextToken.Value.Value != "=";
 				}
 			}
 			else
 			{
 				// 变量引用
-				e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateVariableNode(e.CurrentToken.Value));
+				if (!e.Ignore)
+				{
+					e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateVariableNode(e.CurrentToken.Value));
+				}
 			}
 
 			if (nextToken.HasValue)
@@ -404,12 +416,15 @@ namespace AScript.Syntaxs
 			}
 		}
 
-		private void ParseOperator(TokenAnalyzingArgs e, IEnumerable<string> endTokens = null)
+		protected void ParseOperator(TokenAnalyzingArgs e, IEnumerable<string> endTokens = null)
 		{
 			var currentPriority = e.ScriptContext.GetOperatorPriority(e.CurrentToken.Value);
 			if (currentPriority.HasValue)
 			{
-				e.TreeBuilder.AddOperator(e.BuildContext, e.ScriptContext, e.Options, e.Control, e.CurrentToken.Value, GetDataCount(e.CurrentToken.Value), currentPriority.Value);
+				if (!e.Ignore)
+				{
+					e.TreeBuilder.AddOperator(e.BuildContext, e.ScriptContext, e.Options, e.Control, e.CurrentToken.Value, GetDataCount(e.CurrentToken.Value), currentPriority.Value);
+				}
 				return;
 			}
 			if (e.CurrentToken.Value.Length == 1)
@@ -451,28 +466,31 @@ namespace AScript.Syntaxs
 		/// <summary>
 		/// 解析函数调用
 		/// </summary>
-		private void ParseFuncCall(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, TreeBuilder treeBuilder, string funcName, bool ignore = false)
+		protected void ParseFuncCall(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, TreeBuilder treeBuilder, string funcName, bool ignore = false)
 		{
 			var createFullTreeNodeOption = new BuildOptions(options) { CreateFullTreeNode = true };
 			var args = BuildFuncParams(buildContext, scriptContext, createFullTreeNodeOption, tokenReader, null, ignore);
 
-			// 如果前面有点操作符，则表示调用实例函数或类静态函数
-			if (treeBuilder.Current is OperatorNode operatorNode && operatorNode.Name == ".")
+			if (!ignore)
 			{
-				var target = operatorNode.Left;
-				treeBuilder.Pop();
-				treeBuilder.Add(buildContext, scriptContext, options, control, new CallFuncNode { Name = funcName, Args = args?.ToArray(), Target = target });
-			}
-			else
-			{
-				treeBuilder.Add(buildContext, scriptContext, options, null, new CallFuncNode { Name = funcName, Args = args?.ToArray() });
+				// 如果前面有点操作符，则表示调用实例函数或类静态函数
+				if (treeBuilder.Current is OperatorNode operatorNode && operatorNode.Name == ".")
+				{
+					var target = operatorNode.Left;
+					treeBuilder.Pop();
+					treeBuilder.Add(buildContext, scriptContext, options, control, new CallFuncNode { Name = funcName, Args = args?.ToArray(), Target = target });
+				}
+				else
+				{
+					treeBuilder.Add(buildContext, scriptContext, options, null, new CallFuncNode { Name = funcName, Args = args?.ToArray() });
+				}
 			}
 		}
 
 		/// <summary>
 		/// 解析函数定义
 		/// </summary>
-		private void ParseFuncDefine(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, TreeBuilder treeBuilder, string funcName, string funcReturnType, Type funcReturnSystemType = null, bool ignore = false)
+		protected void ParseFuncDefine(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, TreeBuilder treeBuilder, string funcName, string funcReturnType, Type funcReturnSystemType = null, bool ignore = false)
 		{
 			// 生成自定义函数
 			var args = ignore ? null : new List<DefineVarNode>();
@@ -582,7 +600,7 @@ namespace AScript.Syntaxs
 			}
 		}
 
-		private void ParseFuncDefine(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, TreeBuilder treeBuilder, CallFuncNode funcHead, bool ignore = false)
+		protected void ParseFuncDefine(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, TreeBuilder treeBuilder, CallFuncNode funcHead, bool ignore = false)
 		{
 			var createFullTreeNodeOptions = new BuildOptions(options) { CreateFullTreeNode = true };
 			var body = BuildOneStatement(buildContext, scriptContext, createFullTreeNodeOptions, tokenReader, null, ignore, noblock: true);

@@ -24,6 +24,43 @@ namespace AScript.Lang.Python3
 			return base.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore, noblock, endTokens);
 		}
 
+		protected override void ParseIdentifierOrOperator(TokenAnalyzingArgs e, IEnumerable<string> endTokens = null)
+		{
+			// 变量定义：a : int = 10
+			if (e.CurrentToken.Type == ETokenType.Word && e.TreeBuilder.Root == null)
+			{
+				var nextToken = e.TokenReader.Read();
+				if (nextToken.HasValue && nextToken.Value.Type != ETokenType.String && nextToken.Value.Value == ":")
+				{
+					var typeToken = e.TokenReader.Read();
+					if (typeToken.HasValue && typeToken.Value.Type == ETokenType.Word)
+					{
+						string definedTypeName = typeToken.Value.Value;
+						var definedType = e.ScriptContext.EvalType(definedTypeName);
+						if (definedType == null)
+						{
+							throw new Exception($"unknown type '{definedTypeName}' at {typeToken.Value.Line},{typeToken.Value.Column}");
+						}
+						if (!e.Ignore)
+						{
+							e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateDefineVarNode(e.CurrentToken.Value, definedTypeName, definedType));
+						}
+						e.End = !nextToken.HasValue || nextToken.Value.Value != "=";
+						return;
+					}
+					if (typeToken.HasValue)
+					{
+						e.TokenReader.Push(typeToken.Value);
+					}
+				}
+				if (nextToken.HasValue)
+				{
+					e.TokenReader.Push(nextToken.Value);
+				}
+			}
+			base.ParseIdentifierOrOperator(e, endTokens);
+		}
+
 		protected override object EvalNumber(string num)
 		{
 			var n = base.EvalNumber(num);

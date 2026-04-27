@@ -17,13 +17,15 @@ namespace AScript.TokenHandlers
 			}
 			e.IsHandled = true;
 			e.TreeBuilder.AddOperator(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateOperatorNode(e.CurrentToken.Value, 2, DefaultSyntaxAnalyzer.OperatorPriorities[e.CurrentToken.Value]));
-			var value1 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, new BuildOptions(e.Options) { CreateFullTreeNode = true }, e.TokenReader, e.Control, e.Ignore);
+
+			var createFullNodeOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
+			var value1 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullNodeOptions, e.TokenReader, e.Control, e.Ignore);
 			if (value1 == null)
 			{
 				throw new Exception($"invalid expression '?' at {e.CurrentToken.Line},{e.CurrentToken.Column}");
 			}
 			analyzer.ValidateNextToken(e.TokenReader, ":");
-			var value2 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, new BuildOptions(e.Options) { CreateFullTreeNode = true }, e.TokenReader, e.Control, e.Ignore);
+			var value2 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullNodeOptions, e.TokenReader, e.Control, e.Ignore);
 			if (value2 == null)
 			{
 				throw new Exception($"invalid expression '?' at {e.CurrentToken.Line},{e.CurrentToken.Column}");
