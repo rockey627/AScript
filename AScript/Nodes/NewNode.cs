@@ -183,9 +183,10 @@ namespace AScript.Nodes
 							var valueExpr = opNode.Right.Build(buildContext, scriptContext, options);
 
 							// 创建索引赋值表达式
+							var itemProperty = Expression.Property(newExpr, "Item", indexExpr);
 							var indexAssign = Expression.Assign(
-								Expression.Property(newExpr, "Item", indexExpr),
-								valueExpr
+								itemProperty,
+								valueExpr.Type == itemProperty.Type ? valueExpr : Expression.Convert(valueExpr, itemProperty.Type)
 							);
 							indexAssignments.Add(indexAssign);
 						}

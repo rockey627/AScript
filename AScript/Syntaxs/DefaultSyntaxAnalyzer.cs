@@ -161,7 +161,8 @@ namespace AScript.Syntaxs
 						ParseFuncDefine(buildContext, scriptContext, options, tokenReader, control, treeBuilder, funcHead, ignore);
 						break;
 					}
-					if (treeBuilder != null)
+					if (treeBuilder != null && treeBuilder.Current != null && 
+						(!(treeBuilder.Current is OperatorNode opNode) || opNode.IsFull()))
 					{
 						tokenReader.Push(t.Value);
 						break;
@@ -172,7 +173,12 @@ namespace AScript.Syntaxs
 						ValidateNextToken(tokenReader, "}");
 						return statement;
 					}
-					return BuildBlock(buildContext, scriptContext, options, tokenReader, control, ignore);
+					var block = BuildBlock(buildContext, scriptContext, options, tokenReader, control, ignore);
+					if (treeBuilder != null && (treeBuilder.Current is OperatorNode opNode2) && !opNode2.IsFull())
+					{
+						treeBuilder.AddData(buildContext, scriptContext, options, control, block);
+					}
+					else return block;
 				}
 				else if (t.Value.Value == "(")
 				{

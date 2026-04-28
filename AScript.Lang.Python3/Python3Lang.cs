@@ -71,6 +71,7 @@ namespace AScript.Lang.Python3
 			AddFunc("[]", IndexOperator.Instance);
 			AddFunc("[:]", IndexStartEndOperator.Instance);
 
+			//AddFunc<ScriptContext, string, object>("exec", Exec);
 			AddFunc("exec", EvalFunction.Instance);
 
 			AddFunc<object, Python3Type>("type", a => new Python3Type(a?.GetType()));
@@ -78,7 +79,6 @@ namespace AScript.Lang.Python3
 			AddFunc<object, long>("int", a => Convert.ToInt64(a));
 			AddFunc<object, double>("float", a => Convert.ToDouble(a));
 			AddFunc<object, bool>("bool", a => Convert.ToBoolean(a));
-			//AddFunc<ScriptContext, string, object>("exec", Exec);
 			AddFunc<long, IReadOnlyList<long>>("range", Range);
 			AddFunc<long, long, IReadOnlyList<long>>("range", Range);
 			AddFunc<IList, IList, bool>("==", List_Equal);
@@ -148,12 +148,12 @@ namespace AScript.Lang.Python3
 			return true;
 		}
 
-		private static object Exec(ScriptContext context, string expression)
-		{
-			var engine = ScriptEngine.GetCurrent(context);
-			if (engine == null) throw new Exception("unkown inner ScriptEngine");
-			return engine.Eval(context, expression);
-		}
+		//private static object Exec(ScriptContext context, string expression)
+		//{
+		//	var engine = ScriptEngine.GetCurrent(context);
+		//	if (engine == null) throw new Exception("unkown inner ScriptEngine");
+		//	return engine.Eval(context, expression);
+		//}
 
 		private static bool List_Equal(IList list1, IList list2)
 		{
