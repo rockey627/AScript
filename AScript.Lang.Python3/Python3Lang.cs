@@ -1,4 +1,5 @@
-﻿using AScript.Lang.Python3.Operators;
+﻿using AScript.Functions;
+using AScript.Lang.Python3.Operators;
 using AScript.Lang.Python3.TokenHandlers;
 using AScript.Nodes;
 using AScript.Operators;
@@ -70,12 +71,14 @@ namespace AScript.Lang.Python3
 			AddFunc("[]", IndexOperator.Instance);
 			AddFunc("[:]", IndexStartEndOperator.Instance);
 
+			AddFunc("exec", EvalFunction.Instance);
+
 			AddFunc<object, Python3Type>("type", a => new Python3Type(a?.GetType()));
 			AddFunc<object, string>("str", a => a?.ToString());
 			AddFunc<object, long>("int", a => Convert.ToInt64(a));
 			AddFunc<object, double>("float", a => Convert.ToDouble(a));
 			AddFunc<object, bool>("bool", a => Convert.ToBoolean(a));
-			AddFunc<ScriptContext, string, object>("exec", Exec);
+			//AddFunc<ScriptContext, string, object>("exec", Exec);
 			AddFunc<long, IReadOnlyList<long>>("range", Range);
 			AddFunc<long, long, IReadOnlyList<long>>("range", Range);
 			AddFunc<IList, IList, bool>("==", List_Equal);

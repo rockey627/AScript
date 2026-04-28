@@ -115,10 +115,21 @@ namespace AScript
 		/// <returns></returns>
 		public ITreeNode BuildNode(string expression)
 		{
-			var buildContext = new BuildContext();
+			return BuildNode(null, null, expression);
+		}
+
+		/// <summary>
+		/// 构建表达式树
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <returns></returns>
+		public ITreeNode BuildNode(BuildContext buildContext, ScriptContext scriptContext, string expression)
+		{
+			if (buildContext == null) buildContext = new BuildContext();
+			if (scriptContext == null) scriptContext = this.Context;
 			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression);
 			var tokenStream = GetTokenStream(expression);
-			var node = GetSyntaxAnalyzer().Build(buildContext, this.Context, new BuildOptions(this.Options) { CreateFullTreeNode = true }, new Readers.TokenReader(tokenStream, false));
+			var node = GetSyntaxAnalyzer().Build(buildContext, scriptContext, new BuildOptions(this.Options) { CreateFullTreeNode = true }, new Readers.TokenReader(tokenStream, false));
 			if (node is TreeBuilder treeBuilder)
 			{
 				return treeBuilder.Root;

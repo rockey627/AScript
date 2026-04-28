@@ -267,6 +267,15 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
+		public void Test07_7()
+		{
+			string s = "var name='tom'; eval(\"name\")";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual("tom", script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test07_6()
 		{
 			string s = "var name='tom'; eval(\"'hello ' + name + $', 5+8={5+8}'\")";

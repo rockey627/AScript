@@ -107,11 +107,11 @@ namespace AScript.Lang.CSharp
 			AddFunc("Invoke", CustomFunctionEvaluator.Instance);
 
 			// 内置eval函数
-			AddFunc<ScriptContext, string, object>("eval", Eval);
-			AddFunc<ScriptContext, string, int, object>("eval", Eval);
-			AddFunc<ScriptContext, string, int, string, object>("eval", Eval);
-			AddFunc<ScriptContext, string, int, string, string, object>("eval", Eval);
-			//AddFunc("eval", EvalFunction.Instance);
+			//AddFunc<ScriptContext, string, object>("eval", Eval);
+			//AddFunc<ScriptContext, string, int, object>("eval", Eval);
+			//AddFunc<ScriptContext, string, int, string, object>("eval", Eval);
+			//AddFunc<ScriptContext, string, int, string, string, object>("eval", Eval);
+			AddFunc("eval", EvalFunction.Instance);
 
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);
