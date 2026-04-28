@@ -73,6 +73,7 @@ namespace AScript.Lang.Python3
 
 			//AddFunc<ScriptContext, string, object>("exec", Exec);
 			AddFunc("exec", EvalFunction.Instance);
+			AddFunc("in", new ContainsFunction(revert: true));
 
 			AddFunc<object, Python3Type>("type", a => new Python3Type(a?.GetType()));
 			AddFunc<object, string>("str", a => a?.ToString());
@@ -113,6 +114,7 @@ namespace AScript.Lang.Python3
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			AddTokenHandler("break", BreakTokenHandler.Instance);
 			AddTokenHandler("continue", ContinueTokenHandler.Instance);
+			AddTokenHandler("in", Python3InTokenHandler.Instance);
 			// 字符串内插值：f'{m},{n}'
 			AddTokenHandler("f", StringInterpolationTokenHandler.Instance);
 		}

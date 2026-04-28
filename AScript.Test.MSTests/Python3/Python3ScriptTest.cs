@@ -7,17 +7,6 @@ namespace AScript.Test.MSTests.Python3
     [TestClass]
     public class Python3ScriptTest
     {
-        private static Script CreateScript(bool compileMode = false)
-        {
-            var script = new Script();
-            if (compileMode)
-            {
-                script.Options.CompileMode = ECompileMode.All;
-            }
-            script.Context.Langs = new[] { "python3" };
-            return script;
-        }
-
         [ClassInitialize]
         public static void Init(TestContext context)
         {
@@ -28,6 +17,17 @@ namespace AScript.Test.MSTests.Python3
         public static void Cleanup()
         {
             Script.Langs.TryRemove("python3");
+        }
+
+        private static Script CreateScript(bool compileMode = false)
+        {
+            var script = new Script();
+            if (compileMode)
+            {
+                script.Options.CompileMode = ECompileMode.All;
+            }
+            script.Context.Langs = new[] { "python3" };
+            return script;
         }
 
         #region 数学运算测试
