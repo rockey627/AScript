@@ -1,5 +1,6 @@
 using AScript.Lang.Python3;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace AScript.Test.MSTests.Python3
@@ -245,7 +246,7 @@ for i in range(4):
 total
 "));
 
-            Assert.AreEqual(10L, script.Eval(@"
+            Assert.AreEqual(15L, script.Eval(@"
 total = 0
 for i in range(1, 6):
     total += i
@@ -317,7 +318,7 @@ for i in range(10):
 total
 "));
 
-            Assert.AreEqual(3L, script.Eval(@"
+            Assert.AreEqual(5L, script.Eval(@"
 total = 0
 for i in range(10):
     if i == 1:
@@ -485,7 +486,7 @@ lst
             var script = CreateScript();
             Assert.AreEqual(0L, script.Eval("len([])"));
             Assert.AreEqual(3L, script.Eval("len([1, 2, 3])"));
-            Assert.AreEqual(5L, script.Eval("len([1, [2, 3], 4, 5])"));
+            Assert.AreEqual(4L, script.Eval("len([1, [2, 3], 4, 5])"));
         }
 
         [TestMethod]
@@ -660,7 +661,7 @@ s
         public void TestDict_Keys()
         {
             var script = CreateScript();
-            var keys = (List<object>)script.Eval("{'a': 1, 'b': 2}.keys()");
+            var keys = (ICollection)script.Eval("{'a': 1, 'b': 2}.keys()");
             Assert.AreEqual(2, keys.Count);
         }
 
@@ -668,7 +669,7 @@ s
         public void TestDict_Values()
         {
             var script = CreateScript();
-            var values = (List<object>)script.Eval("{'a': 1, 'b': 2}.values()");
+            var values = (ICollection)script.Eval("{'a': 1, 'b': 2}.values()");
             Assert.AreEqual(2, values.Count);
         }
 
@@ -676,7 +677,7 @@ s
         public void TestDict_Items()
         {
             var script = CreateScript();
-            var items = (List<object>)script.Eval("{'a': 1, 'b': 2}.items()");
+            var items = (ICollection)script.Eval("{'a': 1, 'b': 2}.items()");
             Assert.AreEqual(2, items.Count);
         }
 

@@ -84,7 +84,10 @@ namespace AScript.Lang.Python3
 			AddFunc<long, long, IReadOnlyList<long>>("range", Range);
 			AddFunc<IList, IList, bool>("==", List_Equal);
 			AddFunc<List<object>, List<object>, List<object>>("+", List_plus);
-			AddFunc<IList, long>("len", list => list == null ? 0L : (long)list.Count);
+			AddFunc<IEnumerable, long>("len", List_len);
+			AddFunc<IDictionary, ICollection>("keys", dict => dict.Keys);
+			AddFunc<IDictionary, ICollection>("values", dict => dict.Values);
+			//AddFunc<IDictionary, ICollection>("items", dict => dict.);
 			AddFunc<List<object>, object>("pop", List_pop);
 			AddFunc<List<object>, long, object>("pop", List_pop);
 			AddAction<object>("print", Println);
@@ -185,6 +188,19 @@ namespace AScript.Lang.Python3
 				return false;
 			}
 			return a.Equals(b);
+		}
+
+		private static long List_len(IEnumerable list)
+		{
+			if (list == null) return 0L;
+			if (list is ICollection coll) return coll.Count;
+			if (list is IDictionary dict) return dict.Count;
+			long c = 0L;
+			foreach (var item in list)
+			{
+				c++;
+			}
+			return c;
 		}
 
 		private static void Println(object obj)

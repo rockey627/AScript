@@ -178,7 +178,21 @@ namespace AScript.Syntaxs
 					{
 						treeBuilder.AddData(buildContext, scriptContext, options, control, block);
 					}
-					else return block;
+					else
+					{
+						t = tokenReader.Read();
+						if (t.HasValue && t.Value.Type != ETokenType.String && t.Value.Value == ".")
+						{
+							if (treeBuilder == null) treeBuilder = new TreeBuilder();
+							treeBuilder.AddData(buildContext, scriptContext, options, control, block);
+							continue;
+						}
+						if (t.HasValue)
+						{
+							tokenReader.Push(t.Value);
+						}
+						return block;
+					}
 				}
 				else if (t.Value.Value == "(")
 				{
