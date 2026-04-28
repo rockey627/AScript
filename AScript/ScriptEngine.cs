@@ -150,13 +150,23 @@ namespace AScript
 		/// <returns></returns>
 		public object Eval(ScriptContext context, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			return Eval(context, expression, out _, cacheTime, cacheKey, cacheVersion);
+			return Eval(null, context, expression, out _, cacheTime, cacheKey, cacheVersion);
+		}
+
+		public object Eval(BuildContext buildContext, ScriptContext scriptContext, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			return Eval(buildContext, scriptContext, expression, out _, cacheTime, cacheKey, cacheVersion);
+		}
+
+		public object Eval(ScriptContext context, string expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			return Eval(null, context, expression, out returnType, cacheTime, cacheKey, cacheVersion);
 		}
 
 		/// <summary>
 		/// 计算表达式，返回结果和类型（结果可能为null，此时returnType可以判断返回类型）
 		/// </summary>
-		/// <param name="context"></param>
+		/// <param name="scriptContext"></param>
 		/// <param name="expression"></param>
 		/// <param name="returnType"></param>
 		/// <param name="cacheTime">
@@ -170,21 +180,22 @@ namespace AScript
 		/// </param>
 		/// <param name="cacheVersion"></param>
 		/// <returns></returns>
-		public object Eval(ScriptContext context, string expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		public object Eval(BuildContext buildContext, ScriptContext scriptContext, string expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			if (string.IsNullOrEmpty(expression))
 			{
 				returnType = null;
 				return null;
 			}
+			if (scriptContext == null) scriptContext = this.Context;
 			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
 			if (cacheTime != 0 || compileMode == ECompileMode.All)
 			{
-				var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
+				var func = CompileGlobal(buildContext, scriptContext, expression, cacheTime, cacheKey, cacheVersion);
 				returnType = func.Method.ReturnType;
-				return func.DynamicInvoke(context);
+				return func.DynamicInvoke(scriptContext);
 			}
-			return this.ScriptProvider.Eval(context, this.Options, expression, out returnType);
+			return this.ScriptProvider.Eval(scriptContext, this.Options, expression, out returnType);
 		}
 
 		/// <summary>
@@ -596,6 +607,11 @@ namespace AScript
 			return (T)node.Eval(this.Context, this.Options, new EvalControl(), out _);
 		}
 
+		public Delegate CompileGlobal(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			return CompileGlobal(null, null, expression, cacheTime, cacheKey, cacheVersion);
+		}
+
 		/// <summary>
 		/// 编译生成委托
 		/// </summary>
@@ -611,7 +627,7 @@ namespace AScript
 		/// </param>
 		/// <param name="cacheVersion"></param>
 		/// <returns></returns>
-		public Delegate CompileGlobal(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		public Delegate CompileGlobal(BuildContext buildContext, ScriptContext scriptContext, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			if (string.IsNullOrEmpty(expression)) return null;
 
@@ -624,7 +640,8 @@ namespace AScript
 				}
 			}
 
-			var buildContext = new BuildContext();
+			if (buildContext == null) buildContext = new BuildContext();
+			if (scriptContext == null) scriptContext = this.Context;
 			BuildOptions buildOptions;
 			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
@@ -634,7 +651,7 @@ namespace AScript
 			{
 				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
 			}
-			var func = this.ScriptProvider.Compile(buildContext, this.Context, buildOptions, expression);
+			var func = this.ScriptProvider.Compile(buildContext, scriptContext, buildOptions, expression);
 
 			if (cacheTime != 0)
 			{

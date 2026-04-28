@@ -112,8 +112,6 @@ namespace AScript.Lang.Python3
 			AddTokenHandler("continue", ContinueTokenHandler.Instance);
 			// 字符串内插值：f'{m},{n}'
 			AddTokenHandler("f", StringInterpolationTokenHandler.Instance);
-			// python中不能使用#lang，用@lang代替
-			AddTokenHandler("@lang", new LangTokenHandler("@end"));
 		}
 
 		public override ITokenStream GetTokenStream(CharReader charReader)

@@ -20,7 +20,8 @@ namespace AScript
 
 		static ScriptContext()
 		{
-			Root.AddTokenHandler("#lang", LangTokenHandler.Instance);
+			Root.AddTokenHandler("#lang", new LangTokenHandler("#end"));
+			Root.AddTokenHandler("@lang", new LangTokenHandler("@end"));
 		}
 
 		/// <summary>

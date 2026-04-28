@@ -11,6 +11,7 @@ namespace AScript
 {
 	public class ExpressionUtils
 	{
+		public static readonly Expression Constant_zero = Expression.Constant(0);
 		public static readonly Expression Constant_false = Expression.Constant(false);
 		public static readonly Expression Constant_true = Expression.Constant(true);
 		public static readonly Expression Constant_null = Expression.Constant(null);

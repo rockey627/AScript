@@ -13,8 +13,6 @@ namespace AScript.TokenHandlers
 	/// </summary>
 	public class LangTokenHandler : ITokenHandler
 	{
-		public static readonly LangTokenHandler Instance = new LangTokenHandler("#end");
-
 		private string _EndToken;
 		private readonly HashSet<string> _EndTokens;
 

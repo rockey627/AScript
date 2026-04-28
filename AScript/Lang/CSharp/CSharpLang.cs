@@ -1,4 +1,5 @@
-﻿using AScript.Operators;
+﻿using AScript.Functions;
+using AScript.Operators;
 using AScript.TokenHandlers;
 using System;
 using System.Collections;
@@ -110,6 +111,7 @@ namespace AScript.Lang.CSharp
 			AddFunc<ScriptContext, string, int, object>("eval", Eval);
 			AddFunc<ScriptContext, string, int, string, object>("eval", Eval);
 			AddFunc<ScriptContext, string, int, string, string, object>("eval", Eval);
+			//AddFunc("eval", EvalFunction.Instance);
 
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);

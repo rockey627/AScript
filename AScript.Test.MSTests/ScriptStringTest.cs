@@ -267,6 +267,40 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
+		public void Test07_6()
+		{
+			string s = "var name='tom'; eval(\"'hello ' + name + $', 5+8={5+8}'\")";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual("hello tom, 5+8=13", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test07_5()
+		{
+			string s = "var name='tom'; eval(\"'hello ' + name + $', 5+8={5+8}'\")";
+			var script = new Script();
+			Assert.AreEqual("hello tom, 5+8=13", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test07_4()
+		{
+			string s = "var name='tom'; eval(\"$'hello {name}, 5+8={5+8}'\")";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual("hello tom, 5+8=13", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test07_3()
+		{
+			string s = "var name='tom'; eval(\"$'hello {name}, 5+8={5+8}'\")";
+			var script = new Script();
+			Assert.AreEqual("hello tom, 5+8=13", script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test07_2()
 		{
 			string s = "var name='tom'; $'hello {name}, 5+8={5+8}'";
