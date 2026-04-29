@@ -121,6 +121,8 @@ namespace AScript
 		/// <summary>
 		/// 构建表达式树
 		/// </summary>
+		/// <param name="buildContext"></param>
+		/// <param name="scriptContext"></param>
 		/// <param name="expression"></param>
 		/// <returns></returns>
 		public ITreeNode BuildNode(BuildContext buildContext, ScriptContext scriptContext, string expression)

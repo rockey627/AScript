@@ -11,12 +11,12 @@ namespace AScript.Functions
 	{
 		public static readonly ContainsFunction Instance = new ContainsFunction();
 
-		private readonly bool _revert;
+		private readonly bool _reverse;
 
 		public ContainsFunction() { }
-		public ContainsFunction(bool revert)
+		public ContainsFunction(bool reverse)
 		{
-			_revert = revert;
+			_reverse = reverse;
 		}
 
 		public void Build(FunctionBuildArgs e)
@@ -34,7 +34,7 @@ namespace AScript.Functions
 				arg0Expr = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
 				arg1Expr = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 			}
-			if (_revert)
+			if (_reverse)
 			{
 				var tmpExpr = arg0Expr;
 				arg0Expr = arg1Expr;
@@ -97,7 +97,7 @@ namespace AScript.Functions
 			var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out var type0);
 			var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type1);
 
-			if (_revert)
+			if (_reverse)
 			{
 				var tmp = arg0;
 				arg0 = arg1;

@@ -253,7 +253,7 @@ for i in range(1, 6):
 total
 "));
 
-            Assert.AreEqual(18L, script.Eval(@"
+            Assert.AreEqual(20L, script.Eval(@"
 total = 0
 for i in range(0, 10, 2):
     total += i
@@ -406,7 +406,16 @@ total
             Assert.AreEqual(0, list2.Count);
         }
 
-        [TestMethod]
+		[TestMethod]
+		public void TestList_Index_2()
+		{
+			var script = CreateScript(true);
+			Assert.AreEqual(2L, script.Eval("[1, 2, 3][1]"));
+			Assert.AreEqual(3L, script.Eval("[1, 2, 3][-1]"));
+			Assert.AreEqual(2L, script.Eval("[1, 2, 3][-2]"));
+		}
+
+		[TestMethod]
         public void TestList_Index()
         {
             var script = CreateScript();
@@ -857,11 +866,19 @@ def counter():
             // 注意：closure 行为可能不同
         }
 
-        #endregion
+		#endregion
 
-        #region 字符串测试
+		#region 字符串测试
 
-        [TestMethod]
+		[TestMethod]
+		public void TestString_Index_2()
+		{
+			var script = CreateScript(true);
+			Assert.AreEqual("a", script.Eval("'abc'[0]"));
+			Assert.AreEqual("c", script.Eval("'abc'[-1]"));
+		}
+
+		[TestMethod]
         public void TestString_Index()
         {
             var script = CreateScript();

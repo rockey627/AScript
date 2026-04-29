@@ -68,12 +68,12 @@ namespace AScript.Lang.Python3
 			AddFunc("and", AndAlsoOperator.Instance);
 			AddFunc("or", OrElseOperator.Instance);
 			AddFunc(".", DotOperator.Instance);
-			AddFunc("[]", IndexOperator.Instance);
+			AddFunc("[]", new IndexOperator(true));
 			AddFunc("[:]", IndexStartEndOperator.Instance);
 
 			//AddFunc<ScriptContext, string, object>("exec", Exec);
 			AddFunc("exec", EvalFunction.Instance);
-			AddFunc("in", new ContainsFunction(revert: true));
+			AddFunc("in", new ContainsFunction(reverse: true));
 
 			AddFunc<object, Python3Type>("type", a => new Python3Type(a?.GetType()));
 			AddFunc<object, string>("str", a => a?.ToString());
@@ -82,12 +82,13 @@ namespace AScript.Lang.Python3
 			AddFunc<object, bool>("bool", a => Convert.ToBoolean(a));
 			AddFunc<long, IReadOnlyList<long>>("range", Range);
 			AddFunc<long, long, IReadOnlyList<long>>("range", Range);
+			AddFunc<long, long, long, IReadOnlyList<long>>("range", Range);
 			AddFunc<IList, IList, bool>("==", List_Equal);
 			AddFunc<List<object>, List<object>, List<object>>("+", List_plus);
 			AddFunc<IEnumerable, long>("len", List_len);
 			AddFunc<IDictionary, ICollection>("keys", dict => dict.Keys);
 			AddFunc<IDictionary, ICollection>("values", dict => dict.Values);
-			//AddFunc<IDictionary, ICollection>("items", dict => dict.);
+			AddFunc<IDictionary, IReadOnlyList<KeyValuePair<object, object>>>("items", Dictionary_items);
 			AddFunc<List<object>, object>("pop", List_pop);
 			AddFunc<List<object>, long, object>("pop", List_pop);
 			AddAction<object>("print", Println);
@@ -288,6 +289,21 @@ namespace AScript.Lang.Python3
 			return new ReadOnlyCollection<long>(arr);
 		}
 
+		private static IReadOnlyList<long> Range(long start, long stop, long step)
+		{
+			int stepN = (int)step;
+			int total = (int)(stop - start);
+			int count = total / stepN;
+			if (total % stepN > 0) count += 1;
+			var arr = new long[count];
+			int k = 0;
+			for (long i = start; i < stop; i += step)
+			{
+				arr[k++] = i;
+			}
+			return arr;
+		}
+
 		/// <summary>
 		/// 2个列表相加
 		/// </summary>
@@ -371,6 +387,17 @@ namespace AScript.Lang.Python3
 			}
 		}
 #endif
+
+		private static IReadOnlyList<KeyValuePair<object, object>> Dictionary_items(IDictionary dict)
+		{
+			var arr = new KeyValuePair<object, object>[dict.Count];
+			int i = 0;
+			foreach (var key in dict.Keys)
+			{
+				arr[i++] = new KeyValuePair<object, object>(key, dict[key]);
+			}
+			return arr;
+		}
 
 		public static TreeBuilder BuildSubBlock(int parentColumn, DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)
 		{

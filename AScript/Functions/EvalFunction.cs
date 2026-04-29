@@ -18,29 +18,7 @@ namespace AScript.Functions
 			var engine = ScriptEngine.GetCurrent(e.ScriptContext);
 			if (engine == null) throw new Exception("unkown inner ScriptEngine");
 			Expression expressionExpr, cacheTimeExpr, cacheKeyExpr, cacheVersionExpr;
-			if (e.Args != null)
-			{
-				expressionExpr = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
-				// 
-				if (e.Args.Count >= 2)
-				{
-					cacheTimeExpr = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-				}
-				else cacheTimeExpr = ExpressionUtils.Constant_zero;
-				// 
-				if (e.Args.Count >= 3)
-				{
-					cacheKeyExpr = e.Args[2].Build(e.BuildContext, e.ScriptContext, e.Options);
-				}
-				else cacheKeyExpr = ExpressionUtils.Constant_string_empty;
-				// 
-				if (e.Args.Count >= 4)
-				{
-					cacheVersionExpr = e.Args[3].Build(e.BuildContext, e.ScriptContext, e.Options);
-				}
-				else cacheVersionExpr = ExpressionUtils.Constant_string_empty;
-			}
-			else
+			if (e.ArgExprs != null)
 			{
 				expressionExpr = e.ArgExprs[0];
 				// 
@@ -59,6 +37,28 @@ namespace AScript.Functions
 				if (e.ArgExprs.Count >= 4)
 				{
 					cacheVersionExpr = e.ArgExprs[3];
+				}
+				else cacheVersionExpr = ExpressionUtils.Constant_string_empty;
+			}
+			else
+			{
+				expressionExpr = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
+				// 
+				if (e.Args.Count >= 2)
+				{
+					cacheTimeExpr = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+				}
+				else cacheTimeExpr = ExpressionUtils.Constant_zero;
+				// 
+				if (e.Args.Count >= 3)
+				{
+					cacheKeyExpr = e.Args[2].Build(e.BuildContext, e.ScriptContext, e.Options);
+				}
+				else cacheKeyExpr = ExpressionUtils.Constant_string_empty;
+				// 
+				if (e.Args.Count >= 4)
+				{
+					cacheVersionExpr = e.Args[3].Build(e.BuildContext, e.ScriptContext, e.Options);
 				}
 				else cacheVersionExpr = ExpressionUtils.Constant_string_empty;
 			}

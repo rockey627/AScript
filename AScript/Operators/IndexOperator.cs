@@ -23,6 +23,18 @@ namespace AScript.Operators
 
 		public static readonly IndexOperator Instance = new IndexOperator();
 
+		private readonly bool _Char2String;
+
+		public IndexOperator() { }
+		/// <summary>
+		/// 字符串索引的字符是否转换为字符串返回
+		/// </summary>
+		/// <param name="char2String"></param>
+		public IndexOperator(bool char2String)
+		{
+			_Char2String = char2String;
+		}
+
 		public void Build(FunctionBuildArgs e)
 		{
 			if (e.Args.Count != 2) return;
@@ -43,7 +55,8 @@ namespace AScript.Operators
 			// 处理 IList、string 和数组的负索引
 			if (target.Type == typeof(string) || target.Type.GetInterfaces().Contains(typeof(IList)))
 			{
-				var indexer = target.Type.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
+				//var indexer = target.Type.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
+				var indexer = target.Type.GetProperty("Item", new Type[] { typeof(int) });
 				if (indexer != null)
 				{
 					if (index.Type != typeof(int))
@@ -154,7 +167,12 @@ namespace AScript.Operators
 			{
 				var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
 				var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
-				e.SetResult(GetItem(arg0, arg1));
+				var result = GetItem(arg0, arg1);
+				if (_Char2String && arg0 is string)
+				{
+					result = result.ToString();
+				}
+				e.SetResult(result);
 			}
 		}
 
