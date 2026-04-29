@@ -343,6 +343,27 @@ total
 		}
 
 		[TestMethod]
+		public void TestWhile_Basic_2()
+		{
+			var script = CreateScript(true);
+			Assert.AreEqual(5L, script.Eval(@"
+n = 0
+while n < 5:
+    n += 1
+n
+"));
+
+			Assert.AreEqual(15L, script.Eval(@"
+n = 0
+total = 0
+while n < 5:
+    n += 1
+    total += n
+total
+"));
+		}
+
+		[TestMethod]
 		public void TestWhile_Basic()
 		{
 			var script = CreateScript();
@@ -353,11 +374,36 @@ while n < 5:
 n
 "));
 
-			Assert.AreEqual(10L, script.Eval(@"
+			Assert.AreEqual(15L, script.Eval(@"
 n = 0
 total = 0
 while n < 5:
     n += 1
+    total += n
+total
+"));
+		}
+
+		[TestMethod]
+		public void TestWhile_BreakContinue_2()
+		{
+			var script = CreateScript(true);
+			Assert.AreEqual(5L, script.Eval(@"
+n = 0
+while True:
+    n += 1
+    if n >= 5:
+        break
+n
+"));
+
+			Assert.AreEqual(52L, script.Eval(@"
+n = 0
+total = 0
+while n < 10:
+    n += 1
+    if n == 3:
+        continue
     total += n
 total
 "));
@@ -376,7 +422,7 @@ while True:
 n
 "));
 
-			Assert.AreEqual(5L, script.Eval(@"
+			Assert.AreEqual(52L, script.Eval(@"
 n = 0
 total = 0
 while n < 10:

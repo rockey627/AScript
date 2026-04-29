@@ -119,6 +119,7 @@ namespace AScript.Lang.Python3
 			AddTokenHandler("or", OrElseTokenHandler.Instance);
 			AddTokenHandler("if", Python3IfTokenHandler.Instance);
 			AddTokenHandler("for", Python3ForTokenHandler.Instance);
+			AddTokenHandler("while", Python3WhileTokenHandler.Instance);
 			AddTokenHandler("def", Python3DefTokenHandler.Instance);
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			AddTokenHandler("break", BreakTokenHandler.Instance);

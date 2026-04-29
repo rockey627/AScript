@@ -864,7 +864,7 @@ namespace AScript
 					if (dataType != paramType)
 					{
 						var data = argValues[hasClosure ? i - 1 : i];
-						if (data is IConvertible)
+						if (data is IConvertible && !paramType.IsInstanceOfType(data))
 						{
 							argValues[hasClosure ? i - 1 : i] = Convert.ChangeType(data, paramType);
 						}
