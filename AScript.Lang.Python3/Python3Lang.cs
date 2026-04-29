@@ -80,6 +80,9 @@ namespace AScript.Lang.Python3
 			AddFunc<object, long>("int", a => Convert.ToInt64(a));
 			AddFunc<object, double>("float", a => Convert.ToDouble(a));
 			AddFunc<object, bool>("bool", a => Convert.ToBoolean(a));
+			AddFunc<string, string>("upper", a => a.ToUpper());
+			AddFunc<string, string>("lower", a => a.ToLower());
+			AddFunc<string, string, string[]>("split", (a, p) => a.Split(new[] { p }, StringSplitOptions.None));
 			AddFunc<long, IReadOnlyList<long>>("range", Range);
 			AddFunc<long, long, IReadOnlyList<long>>("range", Range);
 			AddFunc<long, long, long, IReadOnlyList<long>>("range", Range);

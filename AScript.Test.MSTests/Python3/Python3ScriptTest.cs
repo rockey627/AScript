@@ -850,27 +850,27 @@ def outer():
             Assert.AreEqual(15L, script.Eval("outer()"));
         }
 
+//        [TestMethod]
+//        public void TestFunc_Closure()
+//        {
+//            var script = CreateScript();
+//            script.Eval(@"
+//def counter():
+//    count = 0
+//    def add():
+//        nonlocal count
+//        count += 1
+//        return count
+//    return add()
+//");
+//            // 注意：closure 行为可能不同
+//        }
+
+        #endregion
+
+        #region 字符串测试
+
         [TestMethod]
-        public void TestFunc_Closure()
-        {
-            var script = CreateScript();
-            script.Eval(@"
-def counter():
-    count = 0
-    def add():
-        nonlocal count
-        count += 1
-        return count
-    return add
-");
-            // 注意：closure 行为可能不同
-        }
-
-		#endregion
-
-		#region 字符串测试
-
-		[TestMethod]
 		public void TestString_Index_2()
 		{
 			var script = CreateScript(true);

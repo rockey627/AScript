@@ -52,30 +52,6 @@ namespace AScript.Operators
 				}
 			}
 
-			// 处理 IList、string 和数组的负索引
-			if (target.Type == typeof(string) || target.Type.GetInterfaces().Contains(typeof(IList)))
-			{
-				//var indexer = target.Type.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
-				var indexer = target.Type.GetProperty("Item", new Type[] { typeof(int) });
-				if (indexer != null)
-				{
-					if (index.Type != typeof(int))
-					{
-						index = Expression.Convert(index, typeof(int));
-					}
-					var adjustedIndex = Expression.Condition(
-						Expression.LessThan(index, Expression.Constant(0)),
-						Expression.Add(
-							target.Type == typeof(string)
-								? Expression.Property(target, "Length")
-								: Expression.Property(target, "Count"),
-							index),
-						index);
-					e.Result = Expression.Property(target, indexer, adjustedIndex);
-				}
-				return;
-			}
-
 			// 数组类型
 			if (target.Type.IsArray)
 			{
@@ -88,6 +64,42 @@ namespace AScript.Operators
 					Expression.Add(Expression.ArrayLength(target), index),
 					index);
 				e.Result = Expression.ArrayIndex(target, adjustedIndex);
+				return;
+			}
+
+			// 处理 IList、string 和数组的负索引
+			if (target.Type == typeof(string) || target.Type.GetInterfaces().Contains(typeof(IList)))
+			{
+				if (index.Type != typeof(int))
+				{
+					index = Expression.Convert(index, typeof(int));
+				}
+				var adjustedIndex = Expression.Condition(
+					Expression.LessThan(index, Expression.Constant(0)),
+					Expression.Add(
+						target.Type == typeof(string)
+							? Expression.Property(target, "Length")
+							: Expression.Property(target, "Count"),
+						index),
+					index);
+
+				if (target.Type == typeof(string))
+				{
+					// string 使用 get_Chars 方法
+					var getChars = typeof(string).GetMethod("get_Chars", BindingFlags.Public | BindingFlags.Instance);
+					Expression result = Expression.Call(target, getChars, adjustedIndex);
+					if (_Char2String)
+					{
+						result = Expression.Call(result, ExpressionUtils.Method_Object_ToString);
+					}
+					e.Result = result;
+				}
+				else
+				{
+					// IList 使用 Item 属性
+					var indexer = target.Type.GetProperty("Item", new Type[] { typeof(int) });
+					e.Result = Expression.Property(target, indexer, adjustedIndex);
+				}
 				return;
 			}
 
