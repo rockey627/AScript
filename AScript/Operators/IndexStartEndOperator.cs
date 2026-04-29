@@ -41,8 +41,8 @@ namespace AScript.Operators
 			var startNode = e.Args[1];
 			var endNode = e.Args[2];
 			var target = targetNode.Eval(e.Context, e.Options, e.Control, out _);
-			int start = startNode == null ? 0 : (int)startNode.Eval(e.Context, e.Options, e.Control, out _);
-			int? end = endNode == null ? (int?)null : (int)endNode.Eval(e.Context, e.Options, e.Control, out _);
+			int start = startNode == null ? 0 : Convert.ToInt32(startNode.Eval(e.Context, e.Options, e.Control, out _));
+			int? end = endNode == null ? (int?)null : Convert.ToInt32(endNode.Eval(e.Context, e.Options, e.Control, out _));
 
 			var result = Execute(target, start, end);
 			e.SetResult(result);

@@ -710,6 +710,34 @@ namespace AScript
 			{
 				FunctionEvalArgs.Return(functionEvalArgs);
 			}
+			// 获取Delegate变量
+			GetOwnerContext(name, out var value, out _, false);
+			if (value is Delegate || value is CustomFunctionObject)
+			{
+				if (datas == null && args != null && args.Count > 0)
+				{
+					datas = new object[args.Count];
+					for (int i = 0; i < args.Count; i++)
+					{
+						var arg = args[i];
+						datas[i] = arg.Eval(this, options, control, out var type);
+						if (!(arg is ObjectNode))
+						{
+							args[i] = PoolManage.CreateObjectNode(value, type);
+						}
+					}
+				}
+				if (value is Delegate del)
+				{
+					returnType = del.Method.ReturnType;
+					return del.DynamicInvoke(datas);
+				}
+				if (value is CustomFunctionObject customFunctionObject)
+				{
+					returnType = customFunctionObject.Function.ReturnType;
+					return customFunctionObject.DynamicInvoke(this, datas);
+				}
+			}
 			// 抛出未知函数异常
 			if (types == null)
 			{

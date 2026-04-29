@@ -14,6 +14,10 @@ namespace AScript.TokenHandlers
 		/// </summary>
 		public string PriorityOperator { get; private set; }
 		/// <summary>
+		/// 
+		/// </summary>
+		public int DataCount { get; set; } = 2;
+		/// <summary>
 		/// 操作符，如果为空则使用当前解析的符号
 		/// </summary>
 		public string TargetOperator { get; private set; }
@@ -33,7 +37,7 @@ namespace AScript.TokenHandlers
 			e.IsHandled = true;
 			if (!e.Ignore)
 			{
-				var op = new OperatorNode(string.IsNullOrEmpty(this.TargetOperator) ? e.CurrentToken.Value : this.TargetOperator, DefaultSyntaxAnalyzer.OperatorPriorities[this.PriorityOperator], 2);
+				var op = new OperatorNode(string.IsNullOrEmpty(this.TargetOperator) ? e.CurrentToken.Value : this.TargetOperator, DefaultSyntaxAnalyzer.OperatorPriorities[this.PriorityOperator], this.DataCount);
 				e.TreeBuilder.AddOperator(e.BuildContext, e.ScriptContext, e.Options, e.Control, op);
 			}
 		}

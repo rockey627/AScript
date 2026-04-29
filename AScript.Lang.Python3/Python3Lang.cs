@@ -67,6 +67,7 @@ namespace AScript.Lang.Python3
 			AddFunc("!=", NotEqualOperator.Instance);
 			AddFunc("and", AndAlsoOperator.Instance);
 			AddFunc("or", OrElseOperator.Instance);
+			AddFunc("not", BoolNotOperator.Instance);
 			AddFunc(".", DotOperator.Instance);
 			AddFunc("[]", new IndexOperator(true));
 			AddFunc("[:]", IndexStartEndOperator.Instance);
@@ -114,6 +115,7 @@ namespace AScript.Lang.Python3
 			AddTokenHandler("False", BoolTokenHandler.Instance);
 			AddTokenHandler("None", NullTokenHandler.Instance);
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);
+			AddTokenHandler("not", new OperatorTokenHandler("!") { DataCount = 1 });
 			AddTokenHandler("or", OrElseTokenHandler.Instance);
 			AddTokenHandler("if", Python3IfTokenHandler.Instance);
 			AddTokenHandler("for", Python3ForTokenHandler.Instance);
@@ -122,6 +124,7 @@ namespace AScript.Lang.Python3
 			AddTokenHandler("break", BreakTokenHandler.Instance);
 			AddTokenHandler("continue", ContinueTokenHandler.Instance);
 			AddTokenHandler("in", Python3InTokenHandler.Instance);
+			AddTokenHandler("lambda", Python3LambdaTokenHandler.Instance);
 			// 字符串内插值：f'{m},{n}'
 			AddTokenHandler("f", StringInterpolationTokenHandler.Instance);
 		}

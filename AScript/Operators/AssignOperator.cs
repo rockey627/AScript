@@ -78,6 +78,10 @@ namespace AScript.Operators
 					left = Expression.Variable(declaredType ?? right.Type, v.Name);
 					e.BuildContext.Variables[v.Name] = left;
 				}
+				if (right is LambdaExpression lambdaExpression)
+				{
+					(ownerBuildContext ?? e.BuildContext).AddTempFunc(left.Name, lambdaExpression);
+				}
 				e.Result = Expression.Assign(left, rightExpr);
 			}
 			else if (arg0 is OperatorNode opNode && opNode.Name == "[]")
@@ -234,6 +238,15 @@ namespace AScript.Operators
 						// 转换失败时保留原值
 					}
 				}
+
+				//if (value is Delegate del)
+				//{
+				//	e.Context.AddTempFunc(varName, del);
+				//}
+				//else if (value is CustomFunctionObject customFunctionObject)
+				//{
+				//	e.Context.AddFunc(customFunctionObject.Function);
+				//}
 
 				e.SetResult(value, type);
 				e.Context.SetTempVar(varName, value, type, true);
