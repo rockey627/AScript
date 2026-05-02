@@ -103,6 +103,7 @@ namespace AScript.Lang.Python3
 			AddAction<List<object>, object>("remove", List_remove);
 			AddAction<List<object>, object>("append", (list, value) => list.Add(value));
 			AddAction<List<object>, long, object>("insert", (list, index, value) => list.Insert((int)index, value));
+			AddAction<HashSet<object>, object>("add", HashSet_add);
 #if NETFRAMEWORK
 			AddFunc<IEnumerable, IEnumerable<Tuple<long, object>>>("enumerate", enumerate);
 #else
@@ -353,6 +354,11 @@ namespace AScript.Lang.Python3
 		private static void List_remove(List<object> list, object v)
 		{
 			list.Remove(v);
+		}
+
+		private static void HashSet_add(HashSet<object> set, object v)
+		{
+			set.Add(v);
 		}
 
 #if NETFRAMEWORK

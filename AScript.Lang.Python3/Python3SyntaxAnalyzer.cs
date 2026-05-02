@@ -4,6 +4,7 @@ using AScript.Syntaxs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace AScript.Lang.Python3
 {
@@ -65,6 +66,8 @@ namespace AScript.Lang.Python3
 		protected override ITreeNode BuildBlock(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false)
 		{
 			// 解析字典：{ key1:value1, key2:value2 }
+			// 解析集合：{ value1, value2 }
+			bool? isDict = null;
 			var initProperties = ignore ? null : new List<ITreeNode>();
 
 			// 循环解析 key:value 对
@@ -81,14 +84,64 @@ namespace AScript.Lang.Python3
 				}
 				tokenReader.Push(token.Value);
 				var keyNode = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
-				this.ValidateNextToken(tokenReader, ":");
-				var valueNode = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
-				if (!ignore)
+				//this.ValidateNextToken(tokenReader, ":");
+				var nextToken = tokenReader.Read();
+				if (!nextToken.HasValue)
 				{
-					var indexAssign = PoolManage.CreateOperatorNode("[]", 2, OperatorPriorities["["]);
-					indexAssign.Left = keyNode;
-					indexAssign.Right = valueNode;
-					initProperties.Add(indexAssign);
+					throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect '}}'");
+				}
+				if (nextToken.Value.Type == ETokenType.String)
+				{
+					throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect '}}'");
+				}
+				if (nextToken.Value.Value == "}")
+				{
+					tokenReader.Push(nextToken.Value);
+				}
+				else if (nextToken.Value.Value == ":")
+				{
+					if (!isDict.HasValue) isDict = true;
+					else if (!isDict.Value)
+					{
+						throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ','");
+					}
+				}
+				else if (nextToken.Value.Value == ",")
+				{
+					if (!isDict.HasValue) isDict = false;
+					else if (isDict.Value)
+					{
+						throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ':'");
+					}
+					tokenReader.Push(nextToken.Value);
+				}
+				else
+				{
+					if (!isDict.HasValue)
+					{
+						throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect '}}'");
+					}
+					if (isDict.Value)
+					{
+						throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ':'");
+					}
+					throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ','");
+				}
+				// 
+				if (!isDict.Value)
+				{
+					if (!ignore) initProperties.Add(keyNode);
+				}
+				else
+				{
+					var valueNode = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
+					if (!ignore)
+					{
+						var indexAssign = PoolManage.CreateOperatorNode("[]", 2, OperatorPriorities["["]);
+						indexAssign.Left = keyNode;
+						indexAssign.Right = valueNode;
+						initProperties.Add(indexAssign);
+					}
 				}
 
 				// 读取 , 或 }
@@ -108,7 +161,9 @@ namespace AScript.Lang.Python3
 			}
 
 			if (ignore) return null;
-			return new NewNode { SystemType = typeof(Dictionary<object, object>), InitProperties = initProperties };
+			return (isDict ?? true) ?
+				new NewNode { SystemType = typeof(Dictionary<object, object>), InitProperties = initProperties } :
+				new NewNode { SystemType = typeof(HashSet<object>), InitProperties = initProperties };
 		}
 
 		protected override object EvalNumber(string num)
