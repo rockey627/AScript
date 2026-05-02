@@ -233,9 +233,17 @@ namespace AScript.Nodes
 						};
 
 						// 添加元素
+						var methodParameter0Type = addMethod.GetParameters()[0].ParameterType;
 						foreach (var elem in elementInitializers)
 						{
-							statements.Add(Expression.Call(instanceVar, addMethod, elem));
+							if (elem.Type != methodParameter0Type)
+							{
+								statements.Add(Expression.Call(instanceVar, addMethod, Expression.Convert(elem, methodParameter0Type)));
+							}
+							else
+							{
+								statements.Add(Expression.Call(instanceVar, addMethod, elem));
+							}
 						}
 
 						// 添加索引器赋值
@@ -479,6 +487,11 @@ namespace AScript.Nodes
 							else if (instance is System.Collections.IList list)
 							{
 								list.Add(itemValue);
+							}
+							else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(HashSet<>))
+							{
+								dynamic d = instance;
+								d.Add(itemValue);
 							}
 						}
 					}

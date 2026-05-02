@@ -104,6 +104,9 @@ namespace AScript.Lang.Python3
 			AddAction<List<object>, object>("append", (list, value) => list.Add(value));
 			AddAction<List<object>, long, object>("insert", (list, index, value) => list.Insert((int)index, value));
 			AddAction<HashSet<object>, object>("add", HashSet_add);
+			AddFunc<HashSet<object>, HashSet<object>, HashSet<object>>("|", HashSet_or);
+			AddFunc<HashSet<object>, HashSet<object>, HashSet<object>>("&", HashSet_and);
+			AddFunc<HashSet<object>, HashSet<object>, HashSet<object>>("-", HashSet_minus);
 #if NETFRAMEWORK
 			AddFunc<IEnumerable, IEnumerable<Tuple<long, object>>>("enumerate", enumerate);
 #else
@@ -356,9 +359,72 @@ namespace AScript.Lang.Python3
 			list.Remove(v);
 		}
 
+		/// <summary>
+		/// set.add(v)
+		/// </summary>
+		/// <param name="set"></param>
+		/// <param name="v"></param>
 		private static void HashSet_add(HashSet<object> set, object v)
 		{
 			set.Add(v);
+		}
+
+		/// <summary>
+		/// set = set1 | set2
+		/// </summary>
+		/// <param name="set1"></param>
+		/// <param name="set2"></param>
+		/// <returns></returns>
+		private static HashSet<object> HashSet_or(HashSet<object> set1, HashSet<object> set2)
+		{
+			var set = new HashSet<object>();
+			foreach (var item in set1)
+			{
+				set.Add(item);
+			}
+			foreach(var item in set2)
+			{
+				set.Add(item);
+			}
+			return set;
+		}
+
+		/// <summary>
+		/// set = set1 &amp; set2
+		/// </summary>
+		/// <param name="set1"></param>
+		/// <param name="set2"></param>
+		/// <returns></returns>
+		private static HashSet<object> HashSet_and(HashSet<object> set1, HashSet<object> set2)
+		{
+			var set = new HashSet<object>();
+			foreach (var item in set1)
+			{
+				if (set2.Contains(item))
+				{
+					set.Add(item);
+				}
+			}
+			return set;
+		}
+
+		/// <summary>
+		/// set = set1 - set2
+		/// </summary>
+		/// <param name="set1"></param>
+		/// <param name="set2"></param>
+		/// <returns></returns>
+		private static HashSet<object> HashSet_minus(HashSet<object> set1, HashSet<object> set2)
+		{
+			var set = new HashSet<object>();
+			foreach (var item in set1)
+			{
+				if (!set2.Contains(item))
+				{
+					set.Add(item);
+				}
+			}
+			return set;
 		}
 
 #if NETFRAMEWORK

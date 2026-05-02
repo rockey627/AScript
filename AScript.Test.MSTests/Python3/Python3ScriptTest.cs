@@ -498,6 +498,24 @@ lst
 		}
 
 		[TestMethod]
+		public void TestList_Add_2()
+		{
+			var script = CreateScript(true);
+			var code = @"
+lst = [1, 2]
+lst.append(3)
+lst.append(4)
+lst
+";
+			var list = (List<object>)script.Eval(code);
+			Assert.AreEqual(4, list.Count);
+			Assert.AreEqual(4L, list[3]);
+
+			var list2 = (List<object>)script.Eval("[1, 2] + [3, 4]");
+			Assert.AreEqual(4, list2.Count);
+		}
+
+		[TestMethod]
 		public void TestList_Add()
 		{
 			var script = CreateScript();
@@ -588,6 +606,19 @@ lst
 		}
 
 		[TestMethod]
+		public void TestSet_Add_2()
+		{
+			var script = CreateScript(true);
+			var set = (HashSet<object>)script.Eval(@"
+s = {1, 2}
+s.add(3)
+s.add(2)
+s
+");
+			Assert.AreEqual(3, set.Count);
+		}
+
+		[TestMethod]
 		public void TestSet_Add()
 		{
 			var script = CreateScript();
@@ -598,6 +629,32 @@ s.add(2)
 s
 ");
 			Assert.AreEqual(3, set.Count);
+		}
+
+		[TestMethod]
+		public void TestSet_Operations_2()
+		{
+			var script = CreateScript(true);
+			var set1 = (HashSet<object>)script.Eval("{1, 2, 3}");
+			var set2 = (HashSet<object>)script.Eval("{2, 3, 4}");
+
+			script.Eval("s1 = {1, 2, 3}");
+			script.Eval("s2 = {2, 3, 4}");
+
+			// 并集
+			var union = (HashSet<object>)script.Eval("s1 | s2");
+			Assert.AreEqual(4, union.Count);
+
+			var union2 = (HashSet<object>)script.Eval("{1,2,3} | {2,3,4}");
+			Assert.AreEqual(4, union2.Count);
+
+			// 交集
+			var inter = (HashSet<object>)script.Eval("s1 & s2");
+			Assert.AreEqual(2, inter.Count);
+
+			// 差集
+			var diff = (HashSet<object>)script.Eval("s1 - s2");
+			Assert.AreEqual(1, diff.Count);
 		}
 
 		[TestMethod]
@@ -613,6 +670,9 @@ s
 			// 并集
 			var union = (HashSet<object>)script.Eval("s1 | s2");
 			Assert.AreEqual(4, union.Count);
+
+			var union2 = (HashSet<object>)script.Eval("{1,2,3} | {2,3,4}");
+			Assert.AreEqual(4, union2.Count);
 
 			// 交集
 			var inter = (HashSet<object>)script.Eval("s1 & s2");

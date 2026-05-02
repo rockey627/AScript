@@ -675,8 +675,9 @@ namespace AScript
 
 			if (_FunctionEvaluators != null && _FunctionEvaluators.TryGetValue(e.Name, out var list))
 			{
-				foreach (var item in list)
+				for (int i = list.Count - 1; i >= 0; i--)
 				{
+					var item = list[i];
 					item.Eval(e);
 					if (e.IsHandled) return;
 				}
@@ -691,8 +692,9 @@ namespace AScript
 
 			if (_FunctionEvaluators != null && _FunctionEvaluators.TryGetValue(e.Name, out var list))
 			{
-				foreach (var item in list)
+				for (int i = list.Count - 1; i >= 0; i--)
 				{
+					var item = list[i];
 					if (item is IFunctionBuilder builder)
 					{
 						builder.Build(e);
