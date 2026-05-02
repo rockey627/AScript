@@ -10,6 +10,141 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test32_2()
+		{
+			string s = @"
+var p = new Person('a', 10);
+p.Age--;
+p.Age;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			Assert.AreEqual(9, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test32()
+		{
+			string s = @"
+var p = new Person('a', 10);
+p.Age--;
+p.Age;
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			Assert.AreEqual(9, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test31_2()
+		{
+			string s = @"
+var p = new Person('a', 10);
+++p.Age;
+p.Age;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			Assert.AreEqual(11, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test31()
+		{
+			string s = @"
+var p = new Person('a', 10);
+++p.Age;
+p.Age;
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			Assert.AreEqual(11, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test30_2()
+		{
+			string s = @"
+var p = new Person('a', 10);
+p.Age++;
+p.Age;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			Assert.AreEqual(11, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test30()
+		{
+			string s = @"
+var p = new Person('a', 10);
+p.Age++;
+p.Age;
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			Assert.AreEqual(11, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test29_2()
+		{
+			string s = @"
+var p = new Person('a', 10);
+p.Age -= 3;
+p.Age;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			Assert.AreEqual(7, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test29()
+		{
+			string s = @"
+var p = new Person('a', 10);
+p.Age -= 3;
+p.Age;
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			Assert.AreEqual(7, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test28_2()
+		{
+			string s = @"
+var p = new Person('a', 10);
+p.Age += 3;
+p.Age;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			Assert.AreEqual(13, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test28()
+		{
+			string s = @"
+var p = new Person('a', 10);
+p.Age += 3;
+p.Age;
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			Assert.AreEqual(13, script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test27()
 		{
 			{

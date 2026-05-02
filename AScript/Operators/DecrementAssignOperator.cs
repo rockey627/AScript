@@ -13,25 +13,40 @@ namespace AScript.Operators
 
 		public void Build(FunctionBuildArgs e)
 		{
-			if (e.Args.Count == 1 && e.Args[0] is VariableNode)
+			if (e.Args.Count != 1) return;
+
+			var arg0 = e.Args[0];
+			Expression left;
+			if (arg0 is VariableNode leftVar)
 			{
-				var varExpr = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
-				if (e.IsPrefix)
+				left = leftVar.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out _, out var lastType);
+				if (left == null)
 				{
-					e.Result = Expression.PreDecrementAssign(varExpr);
+					throw new Exception($"invalid expression: {leftVar.Name} is not exists");
 				}
-				else
-				{
-					e.Result = Expression.PostDecrementAssign(varExpr);
-				}
+			}
+			else
+			{
+				left = arg0.Build(e.BuildContext, e.ScriptContext, e.Options);
+			}
+
+			if (e.IsPrefix)
+			{
+				e.Result = Expression.PreDecrementAssign(left);
+			}
+			else
+			{
+				e.Result = Expression.PostDecrementAssign(left);
 			}
 		}
 
 		public void Eval(FunctionEvalArgs e)
 		{
-			if (e.Args.Count == 1 && e.Args[0] is VariableNode)
+			if (e.Args.Count != 1) return;
+			var arg0Node = e.Args[0];
+			if (arg0Node is VariableNode varNode)
 			{
-				dynamic arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out var type0);
+				dynamic arg0 = varNode.Eval(e.Context, e.Options, e.Control, out var type0);
 				if (ScriptUtils.IsNumberType(type0))
 				{
 					if (e.IsPrefix)
@@ -42,8 +57,26 @@ namespace AScript.Operators
 					{
 						e.SetResult(arg0--);
 					}
-					e.Context.SetTempVar(((VariableNode)e.Args[0]).Name, arg0, true);
+					e.Context.SetTempVar(varNode.Name, arg0, true);
 				}
+			}
+			else if (arg0Node is OperatorNode opNode && opNode.Name == "." && opNode.Right is VariableNode opRightNode)
+			{
+				// 属性赋值
+				var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
+				var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (t, v) =>
+				{
+					dynamic d = v;
+					if (e.IsPrefix)
+					{
+						e.SetResult(--d);
+					}
+					else
+					{
+						e.SetResult(d--);
+					}
+					return d;
+				});
 			}
 		}
 	}

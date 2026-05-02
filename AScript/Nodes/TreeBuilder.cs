@@ -175,30 +175,34 @@ namespace AScript.Nodes
 			{
 				if (currentOperatorNode.IsFull())
 				{
-					var current = _Current;
-					while (current.Parent != null && current.Parent.Priority >= operatorNode.Priority)
+					var currentOp = currentOperatorNode;
+					while (currentOp.Parent != null && currentOp.Parent.Priority >= operatorNode.Priority)
 					{
-						current = current.Parent;
+						currentOp = currentOp.Parent;
 					}
 					// 
-					var pp = current.Parent;
+					var pp = currentOp.Parent;
 					if (options.CreateFullTreeNode ?? false)
 					{
-						operatorNode.Left = current;
+						operatorNode.Left = currentOp;
 					}
 					else
 					{
 						if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 						{
-							var expr = current.Build(buildContext, scriptContext, options);
-							PoolManage.Return(current);
+							var expr = currentOp.Build(buildContext, scriptContext, options);
+							PoolManage.Return(currentOp);
 							operatorNode.Left = PoolManage.CreateExpressionNode(expr);
+						}
+						else if (currentOp.Name == "." && operatorNode.Name != ".")
+						{
+							operatorNode.Left = currentOp;
 						}
 						else
 						{
 							// 计算节点
-							var currentResult = current.Eval(scriptContext, options, control, out var currentType);
-							PoolManage.Return(current);
+							var currentResult = currentOp.Eval(scriptContext, options, control, out var currentType);
+							PoolManage.Return(currentOp);
 							operatorNode.Left = PoolManage.CreateObjectNode(currentResult, currentType);
 						}
 					}
@@ -239,6 +243,10 @@ namespace AScript.Nodes
 						var expr = current.Build(buildContext, scriptContext, options);
 						PoolManage.Return(current);
 						operatorNode.Left = PoolManage.CreateExpressionNode(expr);
+					}
+					else if ((current is OperatorNode currentOp) && currentOp.Name == "." && operatorNode.Name != ".")
+					{
+						operatorNode.Left = current;
 					}
 					else
 					{

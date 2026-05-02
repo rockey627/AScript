@@ -13,7 +13,20 @@ namespace AScript.Operators
 
 		public void Build(FunctionBuildArgs e)
 		{
-			var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
+			var arg0 = e.Args[0];
+			Expression left;
+			if (arg0 is VariableNode leftVar)
+			{
+				left = leftVar.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out _, out var lastType);
+				if (left == null)
+				{
+					throw new Exception($"invalid expression: {leftVar.Name} is not exists");
+				}
+			}
+			else
+			{
+				left = arg0.Build(e.BuildContext, e.ScriptContext, e.Options);
+			}
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 			var v1 = Expression.Convert(left, typeof(double));
 			var v2 = Expression.Convert(right, typeof(double));
@@ -23,13 +36,23 @@ namespace AScript.Operators
 
 		public void Eval(FunctionEvalArgs e)
 		{
-			if (e.Args.Count == 2 && e.Args[0] is VariableNode varNode)
+			if (e.Args.Count != 2) return;
+			var arg0Node = e.Args[0];
+			if (arg0Node is VariableNode varNode)
 			{
 				var v1 = e.Args[0].Eval(e.Context, e.Options, e.Control, out var type0);
 				var v2 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
 				var r = Math.Pow(Convert.ToDouble(v1), Convert.ToDouble(v2));
 				e.SetResult(ScriptUtils.Convert(r, type0));
 				e.Context.SetTempVar(varNode.Name, e.Result, true);
+			}
+			else if (arg0Node is OperatorNode opNode && opNode.Name == "." && opNode.Right is VariableNode opRightNode)
+			{
+				// 属性赋值
+				var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type1);
+				var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
+				var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (t, v) => Math.Pow(Convert.ToDouble(v), Convert.ToDouble(arg1)));
+				e.SetResult(value, type0 == typeof(object) ? type1 : type0);
 			}
 		}
 	}

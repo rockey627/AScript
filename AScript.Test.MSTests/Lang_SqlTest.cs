@@ -17,6 +17,7 @@ namespace AScript.Test.MSTests
 		{
 			Script.Langs.TryRemove("sql");
 		}
+
 		[TestMethod]
 		public void Test08()
 		{
