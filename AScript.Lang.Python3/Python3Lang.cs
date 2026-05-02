@@ -25,6 +25,9 @@ namespace AScript.Lang.Python3
 			AddType<double>("float");
 			AddType<string>("str");
 			AddType<bool>("bool");
+			AddType<Dictionary<object, object>>("dict");
+			AddType<List<object>>("list");
+			AddType<HashSet<object>>("set");
 
 			//AddFunc("=", Python3AssignOperator.Instance);
 			//AddFunc(":=", Python3AssignOperator.Instance);
@@ -103,6 +106,7 @@ namespace AScript.Lang.Python3
 			AddAction<List<object>, object>("remove", List_remove);
 			AddAction<List<object>, object>("append", (list, value) => list.Add(value));
 			AddAction<List<object>, long, object>("insert", (list, index, value) => list.Insert((int)index, value));
+			AddFunc<HashSet<object>>("set", () => new HashSet<object>());
 			AddAction<HashSet<object>, object>("add", HashSet_add);
 			AddFunc<HashSet<object>, HashSet<object>, HashSet<object>>("|", HashSet_or);
 			AddFunc<HashSet<object>, HashSet<object>, HashSet<object>>("&", HashSet_and);
@@ -382,7 +386,7 @@ namespace AScript.Lang.Python3
 			{
 				set.Add(item);
 			}
-			foreach(var item in set2)
+			foreach (var item in set2)
 			{
 				set.Add(item);
 			}

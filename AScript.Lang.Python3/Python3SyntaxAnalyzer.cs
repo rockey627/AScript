@@ -47,7 +47,12 @@ namespace AScript.Lang.Python3
 						{
 							e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateDefineVarNode(e.CurrentToken.Value, definedTypeName, definedType));
 						}
+						nextToken = e.TokenReader.Read();
 						e.End = !nextToken.HasValue || nextToken.Value.Value != "=";
+						if (nextToken.HasValue)
+						{
+							e.TokenReader.Push(nextToken.Value);
+						}
 						return;
 					}
 					if (typeToken.HasValue)

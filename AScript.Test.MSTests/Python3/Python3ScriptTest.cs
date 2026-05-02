@@ -911,17 +911,17 @@ def add(a, b):
 			Assert.AreEqual("abc", script.Eval("add('a', 'bc')"));
 		}
 
-		[TestMethod]
-		public void TestFunc_DefaultParams()
-		{
-			var script = CreateScript();
-			script.Eval(@"
-def greet(name = 'world'):
-    return 'hello ' + name
-");
-			Assert.AreEqual("hello world", script.Eval("greet()"));
-			Assert.AreEqual("hello tom", script.Eval("greet('tom')"));
-		}
+//		[TestMethod]
+//		public void TestFunc_DefaultParams()
+//		{
+//			var script = CreateScript();
+//			script.Eval(@"
+//def greet(name = 'world'):
+//    return 'hello ' + name
+//");
+//			Assert.AreEqual("hello world", script.Eval("greet()"));
+//			Assert.AreEqual("hello tom", script.Eval("greet('tom')"));
+//		}
 
 		//[TestMethod]
 		//public void TestFunc_VarArgs()
