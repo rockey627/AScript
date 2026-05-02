@@ -316,58 +316,24 @@ namespace AScript
 
 		public void EvalFunc(FunctionEvalArgs e)
 		{
-			//if (_Functions != null && _Functions.TryGetValue(e.Name, out var list2))
-			//{
-			//var types = new Type[e.Args.Count];
-			//var datas = new object[e.Args.Count];
-			//for (int i = 0; i < e.Args.Count; i++)
-			//{
-			//	var arg = e.Args[i];
-			//	var value = arg.Eval(e.Context, e.Options, e.Control, out var type);
-			//	datas[i] = value;
-			//	types[i] = type;
-			//	if (!(arg is ObjectNode))
-			//	{
-			//		//PoolManage.Return(arg);
-			//		e.Args[i] = PoolManage.CreateObjectData(value, type);
-			//	}
-			//}
-			//var d = GetFunc(list2, types, out var useScriptContext);
-			//if (d != null)
-			//{
-			//	var returnType = d.Method.ReturnType ?? typeof(object);
-			//	if (useScriptContext)
-			//	{
-			//		var datas2 = new object[datas.Length + 1];
-			//		datas2[0] = e.Context;
-			//		Array.Copy(datas, 0, datas2, 1, datas.Length);
-			//		datas = datas2;
-			//	}
-			//	var parameters = d.Method.GetParameters();
-			//	for (int i = 0; i < datas.Length; i++)
-			//	{
-			//		if (useScriptContext && i == 0) continue;
-			//		var paramType = parameters[i].ParameterType;
-			//		var dataType = types[useScriptContext ? i - 1 : i];
-			//		if (dataType != paramType)
-			//		{
-			//			var data = datas[i];
-			//			if (data is IConvertible)
-			//			{
-			//				datas[i] = Convert.ChangeType(data, paramType);
-			//			}
-			//		}
-			//	}
-			//	e.SetResult(d.DynamicInvoke(datas), returnType);
-			//	return;
-			//}
-			//}
 			object[] argValues = null;
 			Type[] argTypes = null;
 			if (e.Context.EvalFunc(e.Options, e.Control, _Functions, e.Name, e.IsPrefix, e.Args, ref argValues, ref argTypes, out var result, out var returnType))
 			{
 				e.SetResult(result, returnType);
+				return;
 			}
+
+			if (_FunctionEvaluators != null && _FunctionEvaluators.TryGetValue(e.Name, out var list))
+			{
+				for (int i = list.Count - 1; i >= 0; i--)
+				{
+					var item = list[i];
+					item.Eval(e);
+					if (e.IsHandled) return;
+				}
+			}
+
 			// 
 			OnFunctionEval(e);
 		}
@@ -385,6 +351,20 @@ namespace AScript
 					return;
 				}
 			}
+
+			if (_FunctionEvaluators != null && _FunctionEvaluators.TryGetValue(e.Name, out var list))
+			{
+				for (int i = list.Count - 1; i >= 0; i--)
+				{
+					var item = list[i];
+					if (item is IFunctionBuilder builder)
+					{
+						builder.Build(e);
+						if (e.Result != null) return;
+					}
+				}
+			}
+
 			OnFunctionBuild(e);
 		}
 
@@ -673,35 +653,12 @@ namespace AScript
 		{
 			if (e.IsHandled) return;
 
-			if (_FunctionEvaluators != null && _FunctionEvaluators.TryGetValue(e.Name, out var list))
-			{
-				for (int i = list.Count - 1; i >= 0; i--)
-				{
-					var item = list[i];
-					item.Eval(e);
-					if (e.IsHandled) return;
-				}
-			}
-
 			this.FunctionEval?.Invoke(this, e);
 		}
 
 		protected virtual void OnFunctionBuild(FunctionBuildArgs e)
 		{
 			if (e.Result != null) return;
-
-			if (_FunctionEvaluators != null && _FunctionEvaluators.TryGetValue(e.Name, out var list))
-			{
-				for (int i = list.Count - 1; i >= 0; i--)
-				{
-					var item = list[i];
-					if (item is IFunctionBuilder builder)
-					{
-						builder.Build(e);
-						if (e.Result != null) return;
-					}
-				}
-			}
 
 			this.FunctionBuild?.Invoke(this, e);
 		}

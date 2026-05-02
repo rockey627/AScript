@@ -55,6 +55,10 @@ namespace AScript.Nodes
 			}
 			else
 			{
+				if (type == typeof(object) && value != null)
+				{
+					type = value.GetType();
+				}
 				varExpr = Expression.Variable(type, this.Name);
 				// 从ScriptContext中取值
 				var call = Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_EvalVar, Expression.Constant(this.Name));
