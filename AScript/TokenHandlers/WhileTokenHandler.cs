@@ -31,7 +31,7 @@ namespace AScript.TokenHandlers
 			analyzer.ValidateNextToken(e.TokenReader, "(");
 			var conditionBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, null, e.Ignore);
 			analyzer.ValidateNextToken(e.TokenReader, ")");
-			var bodyBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, null, e.Ignore, noblock: true);
+			var bodyBuilder = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, null, e.Ignore, noblock: true);
 			var whileNode = new WhileNode { Condition = conditionBuilder, Body = bodyBuilder };
 			e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, whileNode);
 		}

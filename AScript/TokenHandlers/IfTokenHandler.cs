@@ -35,7 +35,7 @@ namespace AScript.TokenHandlers
 
 			if ((e.Options.CreateFullTreeNode ?? false) || (e.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
-				var statementTreeBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+				var statementTreeBuilder = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
 				var elseTreeBuilder = TryBuildElse(analyzer, e);
 				if (!e.Ignore)
 				{
@@ -47,7 +47,7 @@ namespace AScript.TokenHandlers
 
 			if (e.Ignore)
 			{
-				analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+				analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
 				TryBuildElse(analyzer, e);
 				return;
 			}
@@ -58,7 +58,7 @@ namespace AScript.TokenHandlers
 			if (b)
 			{
 				// 执行if语句
-				var statementTreeBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+				var statementTreeBuilder = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
 				// 跳过else语句
 				TryBuildElse(analyzer, e, ignore: true);
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, statementTreeBuilder);
@@ -66,7 +66,7 @@ namespace AScript.TokenHandlers
 			else
 			{
 				// 跳过if语句
-				analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, ignore: true);
+				analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, ignore: true);
 				// 执行else语句
 				var elseBuilder = TryBuildElse(analyzer, e);
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, elseBuilder);
@@ -84,7 +84,7 @@ namespace AScript.TokenHandlers
 			}
 			if (t.Value.Value == this.ElseToken)
 			{
-				return analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, ignore ?? e.Ignore);
+				return analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, ignore ?? e.Ignore);
 			}
 			e.TokenReader.Push(t.Value);
 			return null;

@@ -116,7 +116,7 @@ namespace AScript.Syntaxs
 			return treeBuilder;
 		}
 
-		public virtual ITreeNode BuildOneStatement(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, bool noblock = false, IEnumerable<string> endTokens = null)
+		public virtual ITreeNode BuildOneStatement(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)
 		{
 			var t = tokenReader.Read();
 			TreeBuilder treeBuilder = null;
@@ -167,32 +167,28 @@ namespace AScript.Syntaxs
 						tokenReader.Push(t.Value);
 						break;
 					}
-					if (noblock)
-					{
-						var statement = BuildMultiStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
-						ValidateNextToken(tokenReader, "}");
-						return statement;
-					}
 					var block = BuildBlock(buildContext, scriptContext, options, tokenReader, control, ignore);
-					if (treeBuilder != null && (treeBuilder.Current is OperatorNode opNode2) && !opNode2.IsFull())
-					{
-						treeBuilder.AddData(buildContext, scriptContext, options, control, block);
-					}
-					else
-					{
-						t = tokenReader.Read();
-						if (t.HasValue && t.Value.Type != ETokenType.String && t.Value.Value == ".")
-						{
-							if (treeBuilder == null) treeBuilder = new TreeBuilder();
-							treeBuilder.AddData(buildContext, scriptContext, options, control, block);
-							continue;
-						}
-						if (t.HasValue)
-						{
-							tokenReader.Push(t.Value);
-						}
-						return block;
-					}
+					if (treeBuilder == null) treeBuilder = new TreeBuilder();
+					treeBuilder.AddData(buildContext, scriptContext, options, control, block);
+					//if (treeBuilder != null && (treeBuilder.Current is OperatorNode opNode2) && !opNode2.IsFull())
+					//{
+					//	treeBuilder.AddData(buildContext, scriptContext, options, control, block);
+					//}
+					//else
+					//{
+					//	t = tokenReader.Read();
+					//	if (t.HasValue && t.Value.Type != ETokenType.String && t.Value.Value == ".")
+					//	{
+					//		if (treeBuilder == null) treeBuilder = new TreeBuilder();
+					//		treeBuilder.AddData(buildContext, scriptContext, options, control, block);
+					//		continue;
+					//	}
+					//	if (t.HasValue)
+					//	{
+					//		tokenReader.Push(t.Value);
+					//	}
+					//	return block;
+					//}
 				}
 				else if (t.Value.Value == "(")
 				{
@@ -249,6 +245,24 @@ namespace AScript.Syntaxs
 			var result = treeBuilder.EvalRoot(buildContext, scriptContext, options, control);
 			PoolManage.Return(treeBuilder);
 			return result;
+		}
+
+		public ITreeNode BuildOneStatement2(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null, bool noblock = false)
+		{
+			var token = tokenReader.Read();
+			if (!token.HasValue) return null;
+			if (token.Value.Type != ETokenType.String && token.Value.Value == "{")
+			{
+				if (noblock)
+				{
+					var node = BuildMultiStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens);
+					ValidateNextToken(tokenReader, "}");
+					return node;
+				}
+				return BuildBlock(buildContext, scriptContext, options, tokenReader, control, ignore);
+			}
+			tokenReader.Push(token.Value);
+			return BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens);
 		}
 
 		public virtual Token? ValidateNextToken(TokenReader tokenReader, string nextTokenForValid)
@@ -594,7 +608,7 @@ namespace AScript.Syntaxs
 				tokenReader.Push(token.Value);
 			}
 			var createFullTreeNodeOptions = new BuildOptions(options) { CreateFullTreeNode = true };
-			var body = BuildOneStatement(buildContext, scriptContext, createFullTreeNodeOptions, tokenReader, null, ignore, noblock: true);
+			var body = BuildOneStatement2(buildContext, scriptContext, createFullTreeNodeOptions, tokenReader, null, ignore, noblock: true);
 			if (!ignore)
 			{
 				if (body is TreeBuilder bodyTreeBuilder)
@@ -623,7 +637,7 @@ namespace AScript.Syntaxs
 		protected void ParseFuncDefine(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, TreeBuilder treeBuilder, CallFuncNode funcHead, bool ignore = false)
 		{
 			var createFullTreeNodeOptions = new BuildOptions(options) { CreateFullTreeNode = true };
-			var body = BuildOneStatement(buildContext, scriptContext, createFullTreeNodeOptions, tokenReader, null, ignore, noblock: true);
+			var body = BuildOneStatement2(buildContext, scriptContext, createFullTreeNodeOptions, tokenReader, null, ignore, noblock: true);
 			//// 解析 lambda 函数体
 			//var body = BuildOneStatement(buildContext, scriptContext, createFullTreeNodeOptions, tokenReader, null, ignore);
 

@@ -641,12 +641,12 @@ s
 			script.Eval("s1 = {1, 2, 3}");
 			script.Eval("s2 = {2, 3, 4}");
 
+			var union2 = (HashSet<object>)script.Eval("{1,2,3} | {2,3,4}");
+			Assert.AreEqual(4, union2.Count);
+
 			// 并集
 			var union = (HashSet<object>)script.Eval("s1 | s2");
 			Assert.AreEqual(4, union.Count);
-
-			var union2 = (HashSet<object>)script.Eval("{1,2,3} | {2,3,4}");
-			Assert.AreEqual(4, union2.Count);
 
 			// 交集
 			var inter = (HashSet<object>)script.Eval("s1 & s2");

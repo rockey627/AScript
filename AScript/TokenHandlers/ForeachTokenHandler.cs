@@ -31,7 +31,7 @@ namespace AScript.TokenHandlers
 			var listBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
 			analyzer.ValidateNextToken(e.TokenReader, ")");
 			var createFullTreeNodeOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			var bodyBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullTreeNodeOptions, e.TokenReader, e.Control, e.Ignore, noblock: true);
+			var bodyBuilder = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, createFullTreeNodeOptions, e.TokenReader, e.Control, e.Ignore, noblock: true);
 
 			if (e.Ignore) return;
 

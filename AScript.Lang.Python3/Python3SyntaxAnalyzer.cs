@@ -20,10 +20,10 @@ namespace AScript.Lang.Python3
 			return base.BuildMultiStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens);
 		}
 
-		public override ITreeNode BuildOneStatement(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, bool noblock = false, IEnumerable<string> endTokens = null)
+		public override ITreeNode BuildOneStatement(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)
 		{
 			if (endTokens == null) endTokens = _EndTokens;
-			return base.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore, noblock, endTokens);
+			return base.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens);
 		}
 
 		protected override void ParseIdentifierOrOperator(TokenAnalyzingArgs e, IEnumerable<string> endTokens = null)

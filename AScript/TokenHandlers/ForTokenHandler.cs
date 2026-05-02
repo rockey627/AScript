@@ -47,7 +47,7 @@ namespace AScript.TokenHandlers
 			var postBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, e.Control, e.Ignore);
 			analyzer.ValidateNextToken(e.TokenReader, ")");
 			// 获取循环体语句
-			var bodyBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, e.Control, e.Ignore, noblock: true);
+			var bodyBuilder = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, e.Control, e.Ignore, noblock: true);
 			var forNode = new ForNode { Init = initBuilder, Condition = conditionBuilder, Body = bodyBuilder, Post = postBuilder };
 			e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, forNode);
 		}
