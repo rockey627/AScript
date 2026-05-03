@@ -74,10 +74,14 @@ namespace AScript.Lang.Python3
 			AddFunc(".", DotOperator.Instance);
 			AddFunc("[]", new IndexOperator(true));
 			AddFunc("[:]", IndexStartEndOperator.Instance);
+			AddFunc<HashSet<object>, HashSet<object>, HashSet<object>>("|", HashSet_or);
+			AddFunc<HashSet<object>, HashSet<object>, HashSet<object>>("&", HashSet_and);
+			AddFunc<HashSet<object>, HashSet<object>, HashSet<object>>("-", HashSet_minus);
 
 			//AddFunc<ScriptContext, string, object>("exec", Exec);
 			AddFunc("exec", EvalFunction.Instance);
 			AddFunc("in", new ContainsFunction(reverse: true));
+			AddFunc("format", StringFormatFunction.Instance);
 
 			AddFunc<object, Python3Type>("type", a => new Python3Type(a?.GetType()));
 			AddFunc<object, string>("str", a => a?.ToString());
@@ -108,9 +112,6 @@ namespace AScript.Lang.Python3
 			AddAction<List<object>, long, object>("insert", (list, index, value) => list.Insert((int)index, value));
 			AddFunc<HashSet<object>>("set", () => new HashSet<object>());
 			AddAction<HashSet<object>, object>("add", HashSet_add);
-			AddFunc<HashSet<object>, HashSet<object>, HashSet<object>>("|", HashSet_or);
-			AddFunc<HashSet<object>, HashSet<object>, HashSet<object>>("&", HashSet_and);
-			AddFunc<HashSet<object>, HashSet<object>, HashSet<object>>("-", HashSet_minus);
 #if NETFRAMEWORK
 			AddFunc<IEnumerable, IEnumerable<Tuple<long, object>>>("enumerate", enumerate);
 #else

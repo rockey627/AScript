@@ -72,6 +72,19 @@ namespace AScript
 			this.ArgExprs = args;
 		}
 
+		public int GetArgsCount()
+		{
+			if (this.ArgExprs != null) return this.ArgExprs.Count;
+			if (this.Args != null) return this.Args.Count;
+			return 0;
+		}
+
+		public Expression BuildArgs(int index)
+		{
+			if (this.ArgExprs != null) return this.ArgExprs[index];
+			return this.Args[index].Build(this.BuildContext, this.ScriptContext, this.Options);
+		}
+
 		public static FunctionBuildArgs Create(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args)
 		{
 			if (_pool.TryDequeue(out var e))
