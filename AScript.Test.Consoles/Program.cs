@@ -34,10 +34,14 @@ namespace AScript.Test.Consoles
 
 		static void Test14_Eval()
 		{
-			Console.WriteLine(new Script().Eval("int n=10;eval(\"n+20\")"));
-			Console.WriteLine(new Script().Eval("int n=10;eval(\"n+20\")", ECompileMode.All));
-			Console.WriteLine(new Script().Eval("int n=10;var s=\"n+20\";eval(s)"));
-			Console.WriteLine(new Script().Eval("int n=10;var s=\"n+20\";eval(s)", ECompileMode.All));
+			Console.WriteLine(new Script().Eval("int n=10;eval(\"n+20\")")); // 30
+			Console.WriteLine(new Script().Eval("int n=10;eval(\"n+20\")", ECompileMode.All)); // 30
+			Console.WriteLine(new Script().Eval("int n=10;var s=\"n+20\";eval(s)")); // 30
+			Console.WriteLine(new Script().Eval("int n=10;var s=\"n+20\";eval(s)", ECompileMode.All)); // 20
+			Console.WriteLine(new Script().Eval("int n=10;eval(\"n+=20\");n")); // 30
+			Console.WriteLine(new Script().Eval("int n=10;eval(\"n+=20\");n", ECompileMode.All)); // 30
+			Console.WriteLine(new Script().Eval("int n=10;var s=\"n+=20\";eval(s);n")); // 30
+			Console.WriteLine(new Script().Eval("int n=10;var s=\"n+=20\";eval(s);n", ECompileMode.All)); // 10
 		}
 
 		static void Test13_Convert()

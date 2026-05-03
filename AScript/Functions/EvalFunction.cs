@@ -8,60 +8,27 @@ namespace AScript.Functions
 	{
 		public static readonly EvalFunction Instance = new EvalFunction();
 
-		private static readonly MethodInfo Method_Eval = typeof(ScriptEngine).GetMethod("Eval", new[] { typeof(BuildContext), typeof(ScriptContext), typeof(string), typeof(int), typeof(string), typeof(string) });
+		private static readonly MethodInfo Method_Eval = typeof(ScriptEngine).GetMethod("Eval", new[] { typeof(BuildContext), typeof(ScriptContext), typeof(BuildOptions), typeof(string), typeof(int), typeof(string), typeof(string) });
 
 		public void Build(FunctionBuildArgs e)
 		{
-			if ((e.Args == null || e.Args.Count == 0 || e.Args.Count > 4)
-				&& (e.ArgExprs == null || e.ArgExprs.Count == 0 || e.ArgExprs.Count > 4)) return;
+			int argsCount = e.GetArgsCount();
+			if (argsCount == 0 || argsCount > 4) return;
 
 			var engine = ScriptEngine.GetCurrent(e.ScriptContext);
 			if (engine == null) throw new Exception("unkown inner ScriptEngine");
 			Expression expressionExpr, cacheTimeExpr, cacheKeyExpr, cacheVersionExpr;
-			if (e.ArgExprs != null)
-			{
-				expressionExpr = e.ArgExprs[0];
-				// 
-				if (e.ArgExprs.Count >= 2)
-				{
-					cacheTimeExpr = e.ArgExprs[1];
-				}
-				else cacheTimeExpr = ExpressionUtils.Constant_zero;
-				// 
-				if (e.ArgExprs.Count >= 3)
-				{
-					cacheKeyExpr = e.ArgExprs[2];
-				}
-				else cacheKeyExpr = ExpressionUtils.Constant_string_empty;
-				// 
-				if (e.ArgExprs.Count >= 4)
-				{
-					cacheVersionExpr = e.ArgExprs[3];
-				}
-				else cacheVersionExpr = ExpressionUtils.Constant_string_empty;
-			}
-			else
-			{
-				expressionExpr = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
-				// 
-				if (e.Args.Count >= 2)
-				{
-					cacheTimeExpr = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-				}
-				else cacheTimeExpr = ExpressionUtils.Constant_zero;
-				// 
-				if (e.Args.Count >= 3)
-				{
-					cacheKeyExpr = e.Args[2].Build(e.BuildContext, e.ScriptContext, e.Options);
-				}
-				else cacheKeyExpr = ExpressionUtils.Constant_string_empty;
-				// 
-				if (e.Args.Count >= 4)
-				{
-					cacheVersionExpr = e.Args[3].Build(e.BuildContext, e.ScriptContext, e.Options);
-				}
-				else cacheVersionExpr = ExpressionUtils.Constant_string_empty;
-			}
+			// 
+			expressionExpr = e.BuildArgs(0);
+			// 
+			if (argsCount >= 2) cacheTimeExpr = e.BuildArgs(1);
+			else cacheTimeExpr = ExpressionUtils.Constant_zero;
+			// 
+			if (argsCount >= 3) cacheKeyExpr = e.BuildArgs(2);
+			else cacheKeyExpr = ExpressionUtils.Constant_string_empty;
+			// 
+			if (argsCount >= 4) cacheVersionExpr = e.BuildArgs(3);
+			else cacheVersionExpr = ExpressionUtils.Constant_string_empty;
 			// 
 			if (expressionExpr is ConstantExpression expressionConstantExpression
 				&& cacheTimeExpr is ConstantExpression cacheTimeConstantExpression
@@ -72,7 +39,7 @@ namespace AScript.Functions
 				e.Result = node.Build(e.BuildContext, e.ScriptContext, e.Options);
 				return;
 			}
-			e.Result = Expression.Call(Expression.Constant(engine), Method_Eval, Expression.Constant(e.BuildContext), Expression.Constant(e.ScriptContext), expressionExpr, cacheTimeExpr, cacheKeyExpr, cacheVersionExpr);
+			e.Result = Expression.Call(Expression.Constant(engine), Method_Eval, Expression.Constant(e.BuildContext), Expression.Constant(e.ScriptContext), Expression.Constant(e.Options), expressionExpr, cacheTimeExpr, cacheKeyExpr, cacheVersionExpr);
 		}
 
 		public void Eval(FunctionEvalArgs e)
@@ -90,7 +57,7 @@ namespace AScript.Functions
 			}
 			if (e.Args.Count == 1)
 			{
-				e.SetResult(Eval(e.Context, expression));
+				e.SetResult(Eval(e.Context, e.Options, expression));
 				return;
 			}
 
@@ -99,7 +66,7 @@ namespace AScript.Functions
 			int cacheTime = Convert.ToInt32(cacheTimeObj);
 			if (e.Args.Count == 2)
 			{
-				e.SetResult(Eval(e.Context, expression, cacheTime));
+				e.SetResult(Eval(e.Context, e.Options, expression, cacheTime));
 				return;
 			}
 
@@ -108,42 +75,42 @@ namespace AScript.Functions
 			string cacheKey = (string)cacheKeyObj;
 			if (e.Args.Count == 3)
 			{
-				e.SetResult(Eval(e.Context, expression, cacheTime, cacheKey));
+				e.SetResult(Eval(e.Context, e.Options, expression, cacheTime, cacheKey));
 				return;
 			}
 
 			var cacheVersionObj = e.Args[3].Eval(e.Context, e.Options, e.Control, out var cacheVersionType);
 			if (cacheVersionType != typeof(string)) return;
 			string cacheVersion = (string)cacheVersionObj;
-			e.SetResult(Eval(e.Context, expression, cacheTime, cacheKey, cacheVersion));
+			e.SetResult(Eval(e.Context, e.Options, expression, cacheTime, cacheKey, cacheVersion));
 		}
 
-		private static object Eval(ScriptContext context, string expression)
+		private static object Eval(ScriptContext context, BuildOptions options, string expression)
 		{
 			var engine = ScriptEngine.GetCurrent(context);
 			if (engine == null) throw new Exception("unkown inner ScriptEngine");
-			return engine.Eval(context, expression);
+			return engine.Eval(null, context, options, expression);
 		}
 
-		private static object Eval(ScriptContext context, string expression, int cacheTime)
+		private static object Eval(ScriptContext context, BuildOptions options, string expression, int cacheTime)
 		{
 			var engine = ScriptEngine.GetCurrent(context);
 			if (engine == null) throw new Exception("unkown inner ScriptEngine");
-			return engine.Eval(context, expression, cacheTime);
+			return engine.Eval(null, context, options, expression, cacheTime);
 		}
 
-		private static object Eval(ScriptContext context, string expression, int cacheTime, string cacheKey)
+		private static object Eval(ScriptContext context, BuildOptions options, string expression, int cacheTime, string cacheKey)
 		{
 			var engine = ScriptEngine.GetCurrent(context);
 			if (engine == null) throw new Exception("unkown inner ScriptEngine");
 			return engine.Eval(context, expression, cacheTime, cacheKey);
 		}
 
-		private static object Eval(ScriptContext context, string expression, int cacheTime, string cacheKey, string cacheVersion)
+		private static object Eval(ScriptContext context, BuildOptions options, string expression, int cacheTime, string cacheKey, string cacheVersion)
 		{
 			var engine = ScriptEngine.GetCurrent(context);
 			if (engine == null) throw new Exception("unkown inner ScriptEngine");
-			return engine.Eval(context, expression, cacheTime, cacheKey, cacheVersion);
+			return engine.Eval(null, context, options, expression, cacheTime, cacheKey, cacheVersion);
 		}
 	}
 }

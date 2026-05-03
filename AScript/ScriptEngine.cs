@@ -150,17 +150,17 @@ namespace AScript
 		/// <returns></returns>
 		public object Eval(ScriptContext context, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			return Eval(null, context, expression, out _, cacheTime, cacheKey, cacheVersion);
+			return Eval(null, context, null, expression, out _, cacheTime, cacheKey, cacheVersion);
 		}
 
-		public object Eval(BuildContext buildContext, ScriptContext scriptContext, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		public object Eval(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			return Eval(buildContext, scriptContext, expression, out _, cacheTime, cacheKey, cacheVersion);
+			return Eval(buildContext, scriptContext, options, expression, out _, cacheTime, cacheKey, cacheVersion);
 		}
 
 		public object Eval(ScriptContext context, string expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			return Eval(null, context, expression, out returnType, cacheTime, cacheKey, cacheVersion);
+			return Eval(null, context, null, expression, out returnType, cacheTime, cacheKey, cacheVersion);
 		}
 
 		/// <summary>
@@ -168,6 +168,7 @@ namespace AScript
 		/// </summary>
 		/// <param name="buildContext"></param>
 		/// <param name="scriptContext"></param>
+		/// <param name="options"></param>
 		/// <param name="expression"></param>
 		/// <param name="returnType"></param>
 		/// <param name="cacheTime">
@@ -181,7 +182,7 @@ namespace AScript
 		/// </param>
 		/// <param name="cacheVersion"></param>
 		/// <returns></returns>
-		public object Eval(BuildContext buildContext, ScriptContext scriptContext, string expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		public object Eval(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			if (string.IsNullOrEmpty(expression))
 			{
@@ -189,14 +190,15 @@ namespace AScript
 				return null;
 			}
 			if (scriptContext == null) scriptContext = this.Context;
-			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (options == null) options = this.Options;
+			var compileMode = options.CompileMode ?? ECompileMode.None;
 			if (cacheTime != 0 || compileMode == ECompileMode.All)
 			{
-				var func = CompileGlobal(buildContext, scriptContext, expression, cacheTime, cacheKey, cacheVersion);
+				var func = CompileGlobal(buildContext, scriptContext, options, expression, cacheTime, cacheKey, cacheVersion);
 				returnType = func.Method.ReturnType;
 				return func.DynamicInvoke(scriptContext);
 			}
-			return this.ScriptProvider.Eval(scriptContext, this.Options, expression, out returnType);
+			return this.ScriptProvider.Eval(scriptContext, options, expression, out returnType);
 		}
 
 		/// <summary>
@@ -610,12 +612,15 @@ namespace AScript
 
 		public Delegate CompileGlobal(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			return CompileGlobal(null, null, expression, cacheTime, cacheKey, cacheVersion);
+			return CompileGlobal(null, null, null, expression, cacheTime, cacheKey, cacheVersion);
 		}
 
 		/// <summary>
 		/// 编译生成委托
 		/// </summary>
+		/// <param name="buildContext"></param>
+		/// <param name="scriptContext"></param>
+		/// <param name="options"></param>
 		/// <param name="expression"></param>
 		/// <param name="cacheTime">
 		/// <para>缓存时长</para>
@@ -628,7 +633,7 @@ namespace AScript
 		/// </param>
 		/// <param name="cacheVersion"></param>
 		/// <returns></returns>
-		public Delegate CompileGlobal(BuildContext buildContext, ScriptContext scriptContext, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		public Delegate CompileGlobal(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			if (string.IsNullOrEmpty(expression)) return null;
 
@@ -643,14 +648,10 @@ namespace AScript
 
 			if (buildContext == null) buildContext = new BuildContext();
 			if (scriptContext == null) scriptContext = this.Context;
-			BuildOptions buildOptions;
-			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			BuildOptions buildOptions = options ?? this.Options;
+			if ((buildOptions.CompileMode ?? ECompileMode.None) != ECompileMode.All)
 			{
-				buildOptions = this.Options;
-			}
-			else
-			{
-				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
+				buildOptions = new BuildOptions(buildOptions) { CompileMode = ECompileMode.All };
 			}
 			var func = this.ScriptProvider.Compile(buildContext, scriptContext, buildOptions, expression);
 

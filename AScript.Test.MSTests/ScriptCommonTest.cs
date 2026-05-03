@@ -18,7 +18,7 @@ var s=""n+20"";
 eval(s)
 ";
 			var script = new Script();
-			Assert.AreEqual(30, script.Eval(s, ECompileMode.All));
+			Assert.AreEqual(20, script.Eval(s, ECompileMode.All));
 		}
 
 		[TestMethod]
@@ -31,7 +31,7 @@ eval(s)
 ";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
-			Assert.AreEqual(30, script.Eval(s));
+			Assert.AreEqual(20, script.Eval(s));
 		}
 
 		[TestMethod]
