@@ -166,6 +166,7 @@ namespace AScript
 		/// <summary>
 		/// 计算表达式，返回结果和类型（结果可能为null，此时returnType可以判断返回类型）
 		/// </summary>
+		/// <param name="buildContext"></param>
 		/// <param name="scriptContext"></param>
 		/// <param name="expression"></param>
 		/// <param name="returnType"></param>

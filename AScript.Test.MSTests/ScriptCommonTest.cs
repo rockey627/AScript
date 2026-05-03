@@ -10,6 +10,43 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test33_3()
+		{
+			string s = @"
+int n=10;
+var s=""n+20"";
+eval(s)
+";
+			var script = new Script();
+			Assert.AreEqual(30, script.Eval(s, ECompileMode.All));
+		}
+
+		[TestMethod]
+		public void Test33_2()
+		{
+			string s = @"
+int n=10;
+var s=""n+20"";
+eval(s)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(30, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test33()
+		{
+			string s = @"
+int n=10;
+var s=""n+20"";
+eval(s)
+";
+			var script = new Script();
+			Assert.AreEqual(30, script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test32_2()
 		{
 			string s = @"

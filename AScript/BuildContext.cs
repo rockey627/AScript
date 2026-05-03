@@ -518,6 +518,10 @@ namespace AScript
 					{
 						this.ReturnVariableExpression = Expression.Variable(lastExpression.Type);
 					}
+					if (lastExpression.Type != this.ReturnVariableExpression.Type)
+					{
+						lastExpression = Expression.Convert(lastExpression, this.ReturnVariableExpression.Type);
+					}
 					list[list.Count - 1] = Expression.Assign(this.ReturnVariableExpression, lastExpression);
 				}
 			}

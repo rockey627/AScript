@@ -13,7 +13,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			Test01_Benchmark();
+			//Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -26,9 +26,18 @@ namespace AScript.Test.Consoles
 			//Test11_Convert();
 			//Test12_IronPython();
 			//Test13_Convert();
+			Test14_Eval();
 			//Console.WriteLine(typeof(int[]).FullName);
 			Console.WriteLine("end");
 			Console.ReadLine();
+		}
+
+		static void Test14_Eval()
+		{
+			Console.WriteLine(new Script().Eval("int n=10;eval(\"n+20\")"));
+			Console.WriteLine(new Script().Eval("int n=10;eval(\"n+20\")", ECompileMode.All));
+			Console.WriteLine(new Script().Eval("int n=10;var s=\"n+20\";eval(s)"));
+			Console.WriteLine(new Script().Eval("int n=10;var s=\"n+20\";eval(s)", ECompileMode.All));
 		}
 
 		static void Test13_Convert()
