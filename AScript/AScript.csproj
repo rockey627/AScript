@@ -17,8 +17,8 @@ Assert.AreEqual(15, result);
 			]]>
 		</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>1.1.0.0</Version>
-		<PackageReleaseNotes>ScriptLangCollection脚本语言管理；优化自定义语法解析；优化中括号解析；优化字符串内插值；集合索引、截取功能</PackageReleaseNotes>
+		<Version>1.1.1.0</Version>
+		<PackageReleaseNotes>动态语言特性；EvalFunction</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
