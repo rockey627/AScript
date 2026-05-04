@@ -19,6 +19,39 @@ namespace AScript.Test.MSTests.Python3
 		}
 
 		[TestMethod]
+		public void Test27_2()
+		{
+			var s = @"
+list1 = [1,2,3]
+list2 = [3,4,5]
+list3=list1 + list2
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "python3" };
+			var result = script.Eval<List<object>>(s);
+			Assert.AreEqual("1,2,3,3,4,5", string.Join(',', result));
+			Assert.AreEqual(2L, script.Eval("list3[1]"));
+			Assert.AreEqual(2L, script.Eval("list3[-5]"));
+		}
+
+		[TestMethod]
+		public void Test27()
+		{
+			var s = @"
+list1 = [1,2,3]
+list2 = [3,4,5]
+list3=list1 + list2
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "python3" };
+			var result = script.Eval<List<object>>(s);
+			Assert.AreEqual("1,2,3,3,4,5", string.Join(',', result));
+			Assert.AreEqual(2L, script.Eval("list3[1]"));
+			Assert.AreEqual(2L, script.Eval("list3[-5]"));
+		}
+
+		[TestMethod]
 		public void Test26_2()
 		{
 			var s = @"

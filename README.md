@@ -6,6 +6,8 @@
 * [AScript如何实现中文脚本引擎](https://mp.weixin.qq.com/s/x7Pb2dRlKu83cdDsHd0KLQ)
 * [AScript扩展多种脚本语言](https://mp.weixin.qq.com/s/TJE20AvQGQjRxOKM5U3Tow)
 * [AScript函数体系详解](https://mp.weixin.qq.com/s/rzLzCrTAvOEFTtAGtTX6BQ)
+* [AScript之eval函数详解](https://mp.weixin.qq.com/s/781Sw5FdFXJxe0eWqWjCCw)
+* [基于AScript的python3脚本语言发布啦！](https://mp.weixin.qq.com/s/tcrPXFaLPz8kI2hlw-ZkuA)
 
 #### 介绍
 

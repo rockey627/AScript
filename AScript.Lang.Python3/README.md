@@ -1,7 +1,7 @@
 # AScript.Lang.Python3
 
 #### 介绍
-python3语法
+支持python3基础语法和数据类型，以及列表、集合、字典操作。
 
 #### 安装
 ```
@@ -66,22 +66,39 @@ Assert.AreEqual("hello tom, 5+8=13", script.Eval(s));
 ```
 var script = new Script();
 script.Context.Langs = new [] { "python3" };
-Assert.AreEqual('e', script.Eval("'hello'[1]"));
-Assert.AreEqual('e', script.Eval("'hello'[-4]"));
+Assert.AreEqual("e", script.Eval("'hello'[1]"));
+Assert.AreEqual("e", script.Eval("'hello'[-4]"));
 Assert.AreEqual("ell", script.Eval("'hello'[1:4]"));
 Assert.AreEqual("ell", script.Eval("'hello'[-4:-1]"));
 ```
 
-###### 数组
+###### 列表
+```
+var s = @"
+list1 = [1,2,3]
+list2 = [3,4,5]
+list3=list1 + list2
+";
+var script = new Script();
+script.Context.Langs = new[] { "python3" };
+var result = script.Eval<List<object>>(s);
+Assert.AreEqual("1,2,3,3,4,5", string.Join(',', result));
+Assert.AreEqual(2L, script.Eval("list3[1]"));
+Assert.AreEqual(2L, script.Eval("list3[-5]"));
+```
+
+###### 集合
+集合会自动去重。
 ```
 var script = new Script();
-script.Context.Langs = new [] { "python3" };
-var result1 = (List<object>)script.Eval("var list1 = [0,1,2,3,4]; list1[1:4]");
-var result2 = (List<object>)script.Eval("var list2 = [0,1,2,3,4]; list2[-4:-1]");
-CollectionAssert.AreEqual(new List<object> { 1, 2, 3 }, result1);
-CollectionAssert.AreEqual(new List<object> { 1, 2, 3 }, result2);
-Assert.AreEqual(1, script.Eval("arr1[1]"));
-Assert.AreEqual(1, script.Eval("arr1[-4]"));
+script.Context.Langs = new[] { "python3" };
+var set = (HashSet<object>)script.Eval(@"
+s = {1, 2, 2}
+s.add(3)
+s.add(2)
+s
+");
+Assert.AreEqual("1,2,3", string.Join(',', set));
 ```
 
 ###### 字典
@@ -97,21 +114,6 @@ var dict = script.Eval<Dictionary<object, object>>(s);
 Assert.AreEqual(2, dict.Count);
 Assert.AreEqual("张三", dict["name"]);
 Assert.AreEqual(20L, dict["age"]);
-```
-
-###### 集合
-集合会自动去重。
-```
-var s = @"
-s = {1, 2}
-s.add(3)
-s.add(2)
-s
-";
-var script = new Script();
-script.Context.Langs = new [] { "python3" };
-var set = script.Eval<HashSet<object>>(s);
-Assert.AreEqual(3, set.Count);
 ```
 
 ###### for遍历值
@@ -166,14 +168,14 @@ Assert.AreEqual(30L, script.Eval(s));
 ###### 类型注解
 指定变量类型及函数返回值类型。
 ```
-var script = new Script();
-script.Context.Langs = new [] { "python3" };
 var s = @"
+@lang python3
 def sum(a:int,b:int)->int:
 	return a+b
 m:int=10
 n:int=20
 sum(m,n)
 ";
+var script = new Script();
 Assert.AreEqual(30L, script.Eval(s));
 ```

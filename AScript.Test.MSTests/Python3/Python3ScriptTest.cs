@@ -610,12 +610,13 @@ lst
 		{
 			var script = CreateScript(true);
 			var set = (HashSet<object>)script.Eval(@"
-s = {1, 2}
+s = {1, 2, 2}
 s.add(3)
 s.add(2)
 s
 ");
 			Assert.AreEqual(3, set.Count);
+			Assert.AreEqual("1,2,3", string.Join(',', set));
 		}
 
 		[TestMethod]
@@ -623,12 +624,13 @@ s
 		{
 			var script = CreateScript();
 			var set = (HashSet<object>)script.Eval(@"
-s = {1, 2}
+s = {1, 2, 2}
 s.add(3)
 s.add(2)
 s
 ");
 			Assert.AreEqual(3, set.Count);
+			Assert.AreEqual("1,2,3", string.Join(',', set));
 		}
 
 		[TestMethod]
