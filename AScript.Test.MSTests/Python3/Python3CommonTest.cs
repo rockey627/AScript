@@ -19,6 +19,45 @@ namespace AScript.Test.MSTests.Python3
 		}
 
 		[TestMethod]
+		public void Test26_2()
+		{
+			var s = @"
+// 默认csharp语言
+int mult(int a, int b) => a*b;
+// 嵌入python3语言
+@lang python3
+def sum(a,b):
+	return a+b
+@end
+int m = 10;
+int n = 20;
+mult(m, n) + sum(m, n);
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(230, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test26()
+		{
+			var s = @"
+// 默认csharp语言
+int mult(int a, int b) => a*b;
+// 嵌入python3语言
+@lang python3
+def sum(a,b):
+	return a+b
+@end
+int m = 10;
+int n = 20;
+mult(m, n) + sum(m, n);
+";
+			var script = new Script();
+			Assert.AreEqual(230, script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test25_format_2()
 		{
 			var script = new Script();

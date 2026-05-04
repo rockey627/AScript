@@ -9,28 +9,38 @@
 		<PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
 		<Description>
 			<![CDATA[
-基于AScript扩展的javascript脚本语言；
+基于AScript扩展的python3脚本语言；
 快速开始：
-// 添加Python3脚本语言
+// 注册Python3脚本语言
 Script.Langs.Set("python3", Python3Lang.Instance);
 string s = @"
-#lang python3 // 嵌入js脚本
+@lang python3
 def sum(a, b) :
 	return a+b;
 n=10
 sum(n,5)
 ";
 var script = new Script();
+// 上下文中指定语言，或者脚本中使用@lang指定语言
+//script.Context.Langs = new [] { "python3" };
 var result = script.Eval(s);
-Assert.AreEqual(15, result);
+Assert.AreEqual(15L, result);
 			]]>
 		</Description>
-		<Version>0.0.0.0</Version>
-		<PackageReleaseNotes></PackageReleaseNotes>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<Version>0.0.1.0</Version>
+		<PackageReleaseNotes>基础语法</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\AScript\AScript.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 
 </Project>

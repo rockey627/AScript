@@ -246,7 +246,8 @@ Assert.AreEqual(25, script.Eval(s));
 ```
 
 ###### 多语言环境
-脚本中使用#lang语法集成其他语言
+脚本中使用#lang/#end或者@lang/@end语法嵌入其他语言。
+如果要嵌入python语言，请使用@lang/@end，因为#是python中的注释语句，#lang/#end会失效。
 ```C#
 string s = @"
 int n=10;
