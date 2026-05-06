@@ -26,6 +26,7 @@ namespace AScript.Lang.Sql
 			AddFunc("and", AndAlsoOperator.Instance);
 			AddFunc("or", OrElseOperator.Instance);
 
+			AddTokenHandler("=", new OperatorTokenHandler("=="));
 			AddTokenHandler("<>", new OperatorTokenHandler("!=", "!="));
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);
 			AddTokenHandler("or", OrElseTokenHandler.Instance);
