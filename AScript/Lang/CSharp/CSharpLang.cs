@@ -105,6 +105,7 @@ namespace AScript.Lang.CSharp
 			AddFunc(typeof(Convert));
 
 			AddFunc("Invoke", CustomFunctionEvaluator.Instance);
+			AddFunc("AsQueryable", AsQueryableFunction.Instance);
 
 			// 内置eval函数
 			AddFunc("eval", EvalFunction.Instance);
