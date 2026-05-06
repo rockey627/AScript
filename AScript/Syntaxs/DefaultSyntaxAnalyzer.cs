@@ -161,7 +161,7 @@ namespace AScript.Syntaxs
 						ParseFuncDefine(buildContext, scriptContext, options, tokenReader, control, treeBuilder, funcHead, ignore);
 						break;
 					}
-					if (treeBuilder != null && treeBuilder.Current != null && 
+					if (treeBuilder != null && treeBuilder.Current != null &&
 						(!(treeBuilder.Current is OperatorNode opNode) || opNode.IsFull()))
 					{
 						tokenReader.Push(t.Value);
@@ -207,12 +207,39 @@ namespace AScript.Syntaxs
 				}
 				else if (t.Value.Value == "=>")
 				{
-					if (treeBuilder == null || treeBuilder.Current == null || !(treeBuilder.Current is CallFuncNode funcHead)
-						|| funcHead.Args != null && funcHead.Args.Length > 0 && funcHead.Args.Any(a => !(a is DefineVarNode)))
+					if (treeBuilder == null || treeBuilder.Current == null)
 					{
 						throw new Exception($"invalid expression '=>' at {t.Value.Line},{t.Value.Column}");
 					}
-					ParseFuncDefine(buildContext, scriptContext, options, tokenReader, control, treeBuilder, funcHead, ignore);
+					// a => body 语法：单个变量作为参数
+					if (treeBuilder.Current is DefineVarNode defineVarNode)
+					{
+						var funcHead = new CallFuncNode
+						{
+							Name = "_",
+							Args = new DefineVarNode[] { defineVarNode }
+						};
+						ParseFuncDefine(buildContext, scriptContext, options, tokenReader, control, treeBuilder, funcHead, ignore);
+					}
+					else if (treeBuilder.Current is VariableNode varNode)
+					{
+						var funcHead = new CallFuncNode
+						{
+							Name = "_",
+							Args = new DefineVarNode[] { PoolManage.CreateDefineVarNode(varNode.Name, null, typeof(object)) }
+						};
+						ParseFuncDefine(buildContext, scriptContext, options, tokenReader, control, treeBuilder, funcHead, ignore);
+					}
+					// func(a, b) => body 语法：函数调用作为参数
+					else if (treeBuilder.Current is CallFuncNode funcHead
+						&& (funcHead.Args == null || funcHead.Args.Length == 0 || funcHead.Args.All(a => a is VariableNode)))
+					{
+						ParseFuncDefine(buildContext, scriptContext, options, tokenReader, control, treeBuilder, funcHead, ignore);
+					}
+					else
+					{
+						throw new Exception($"invalid expression '=>' at {t.Value.Line},{t.Value.Column}");
+					}
 					break;
 				}
 				else
@@ -652,7 +679,7 @@ namespace AScript.Syntaxs
 			var defineFuncNode = new DefineFuncNode
 			{
 				Name = funcHead.Name,
-				Args = funcHead.Args?.Select(a => a as DefineVarNode).ToArray(),
+				Args = funcHead.Args?.Select(a => a is DefineVarNode defineVarNode ? defineVarNode : PoolManage.CreateDefineVarNode(((VariableNode)a).Name, null, typeof(object))).ToArray(),
 				Body = body
 			};
 
