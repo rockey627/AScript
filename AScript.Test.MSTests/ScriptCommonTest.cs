@@ -10,6 +10,89 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test36_2()
+		{
+			string s = @"
+static {
+	int n=10;
+	var s=""n+20"";
+}
+eval(s)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(30, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test36()
+		{
+			string s = @"
+static {
+	int n=10;
+	var s=""n+20"";
+}
+eval(s)
+";
+			var script = new Script();
+			Assert.AreEqual(30, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test35_2()
+		{
+			string s = @"
+static {
+	int n=10;
+	var s=""n+20"";
+}
+static eval(s)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(30, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test35()
+		{
+			string s = @"
+static {
+	int n=10;
+	var s=""n+20"";
+}
+static eval(s)
+";
+			var script = new Script();
+			Assert.AreEqual(30, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test34_2()
+		{
+			string s = @"
+static int n=10;
+var s=""n+20"";
+eval(s)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(30, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test34()
+		{
+			string s = @"
+static int n=10;
+var s=""n+20"";
+eval(s)
+";
+			var script = new Script();
+			Assert.AreEqual(30, script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test33_3()
 		{
 			string s = @"

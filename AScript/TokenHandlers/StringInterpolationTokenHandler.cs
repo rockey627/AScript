@@ -69,7 +69,7 @@ namespace AScript.TokenHandlers
 						_reader.Push(c.Value);
 						// 插值计算
 						var node = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
-						if (e.Options.CreateFullTreeNode.HasValue && e.Options.CreateFullTreeNode.Value)
+						if (e.Options.CreateFullTreeNode ?? false)
 						{
 							if (concatArgs == null) concatArgs = new List<ITreeNode>();
 							if (_buffer.Length > 0)
@@ -79,7 +79,7 @@ namespace AScript.TokenHandlers
 							}
 							concatArgs.Add(node);
 						}
-						else if (!e.Options.CompileMode.HasValue || e.Options.CompileMode.Value != ECompileMode.All)
+						else if ((e.Options.CompileMode ?? ECompileMode.None) != ECompileMode.All)
 						{
 							var obj = node.Eval(e.ScriptContext, e.Options, e.Control, out _);
 							if (obj != null) _buffer.Append(obj.ToString());
@@ -155,11 +155,11 @@ namespace AScript.TokenHandlers
 				throw new Exception($"invalid string at ({_reader.CurrentLine},{_reader.CurrentColumn}), expect {startChar}");
 			}
 
-			if (e.Options.CreateFullTreeNode.HasValue && e.Options.CreateFullTreeNode.Value)
+			if (e.Options.CreateFullTreeNode ?? false)
 			{
 				if (concatArgs == null || concatArgs.Count == 0)
 				{
-					if (!e.Options.CompileMode.HasValue || e.Options.CompileMode.Value != ECompileMode.All)
+					if ((e.Options.CompileMode ?? ECompileMode.None) != ECompileMode.All)
 					{
 						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(_buffer.ToString(), typeof(string)));
 					}
@@ -177,7 +177,7 @@ namespace AScript.TokenHandlers
 					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new StringConcatNode { Args = concatArgs });
 				}
 			}
-			else if (!e.Options.CompileMode.HasValue || e.Options.CompileMode.Value != ECompileMode.All)
+			else if ((e.Options.CompileMode ?? ECompileMode.None) != ECompileMode.All)
 			{
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(_buffer.ToString(), typeof(string)));
 			}

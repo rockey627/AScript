@@ -107,10 +107,6 @@ namespace AScript.Lang.CSharp
 			AddFunc("Invoke", CustomFunctionEvaluator.Instance);
 
 			// 内置eval函数
-			//AddFunc<ScriptContext, string, object>("eval", Eval);
-			//AddFunc<ScriptContext, string, int, object>("eval", Eval);
-			//AddFunc<ScriptContext, string, int, string, object>("eval", Eval);
-			//AddFunc<ScriptContext, string, int, string, string, object>("eval", Eval);
 			AddFunc("eval", EvalFunction.Instance);
 
 			AddTokenHandler("??", LazyTokenHandler.Instance);
@@ -130,34 +126,7 @@ namespace AScript.Lang.CSharp
 			AddTokenHandler("break", BreakTokenHandler.Instance);
 			AddTokenHandler("continue", ContinueTokenHandler.Instance);
 			AddTokenHandler("$", StringInterpolationTokenHandler.Instance);
+			AddTokenHandler("static", StaticTokenHandler.Instance);
 		}
-
-		//private static object Eval(ScriptContext context, string expression)
-		//{
-		//	var engine = ScriptEngine.GetCurrent(context);
-		//	if (engine == null) throw new Exception("unkown inner ScriptEngine");
-		//	return engine.Eval(context, expression);
-		//}
-
-		//private static object Eval(ScriptContext context, string expression, int cacheTime)
-		//{
-		//	var engine = ScriptEngine.GetCurrent(context);
-		//	if (engine == null) throw new Exception("unkown inner ScriptEngine");
-		//	return engine.Eval(context, expression, cacheTime);
-		//}
-
-		//private static object Eval(ScriptContext context, string expression, int cacheTime, string cacheKey)
-		//{
-		//	var engine = ScriptEngine.GetCurrent(context);
-		//	if (engine == null) throw new Exception("unkown inner ScriptEngine");
-		//	return engine.Eval(context, expression, cacheTime, cacheKey);
-		//}
-
-		//private static object Eval(ScriptContext context, string expression, int cacheTime, string cacheKey, string cacheVersion)
-		//{
-		//	var engine = ScriptEngine.GetCurrent(context);
-		//	if (engine == null) throw new Exception("unkown inner ScriptEngine");
-		//	return engine.Eval(context, expression, cacheTime, cacheKey, cacheVersion);
-		//}
 	}
 }
