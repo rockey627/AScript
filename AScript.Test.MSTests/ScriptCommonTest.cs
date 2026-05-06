@@ -10,7 +10,77 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
-		public void Test36_2()
+		public void Test38_static_2()
+		{
+			string s = @"
+int n = 10;
+int x = static n * 2;
+x+5;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			try
+			{
+				script.Eval(s);
+			}
+			catch (Exception ex)
+			{
+				Assert.AreEqual("variable n is not exists", ex.Message);
+				return;
+			}
+			Assert.IsTrue(false);
+		}
+
+		[TestMethod]
+		public void Test38_static()
+		{
+			string s = @"
+int n = 10;
+int x = static n * 2;
+x+5;
+";
+			var script = new Script();
+			Assert.AreEqual(25, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test37_static_2()
+		{
+			string s = @"
+static int n = 10; // 直接执行，不参与编译
+static x = n * 2; // 直接执行，不参与编译
+int y = static n * 2; // 编译结果：y = 20
+int z = n * 2; // 编译结果：z = n * 2
+x+y+z;
+";
+			var script = new Script();
+			// 编译
+			var func = script.Compile<int>(s);
+			Assert.AreEqual(10, script.Context.EvalVar("n"));
+			Assert.AreEqual(20, script.Context.EvalVar("x"));
+			Assert.IsNull(script.Context.EvalVar("y"));
+			Assert.IsNull(script.Context.EvalVar("z"));
+			// 执行
+			Assert.AreEqual(60, func());
+		}
+
+		[TestMethod]
+		public void Test37_static()
+		{
+			string s = @"
+static int n = 10; // 直接执行，不参与编译
+static x = n * 2; // 直接执行，不参与编译
+int y = static n * 2; // 编译结果：y = 20
+int z = n * 2; // 编译结果：z = n * 2
+x+y+z;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(60, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test36_static_2()
 		{
 			string s = @"
 static {
@@ -25,7 +95,7 @@ eval(s)
 		}
 
 		[TestMethod]
-		public void Test36()
+		public void Test36_static()
 		{
 			string s = @"
 static {
@@ -39,7 +109,7 @@ eval(s)
 		}
 
 		[TestMethod]
-		public void Test35_2()
+		public void Test35_static_2()
 		{
 			string s = @"
 static {
@@ -54,7 +124,7 @@ static eval(s)
 		}
 
 		[TestMethod]
-		public void Test35()
+		public void Test35_static()
 		{
 			string s = @"
 static {
@@ -68,7 +138,7 @@ static eval(s)
 		}
 
 		[TestMethod]
-		public void Test34_2()
+		public void Test34_static_2()
 		{
 			string s = @"
 static int n=10;
@@ -81,7 +151,7 @@ eval(s)
 		}
 
 		[TestMethod]
-		public void Test34()
+		public void Test34_static()
 		{
 			string s = @"
 static int n=10;

@@ -1,6 +1,6 @@
 # AScript
 
-#### 相关文章
+## 相关文章
 
 * [AScript轻量级动态脚本引擎](https://mp.weixin.qq.com/s/0n17ecNjLd96FgujBUNt9w)
 * [AScript如何实现中文脚本引擎](https://mp.weixin.qq.com/s/x7Pb2dRlKu83cdDsHd0KLQ)
@@ -9,7 +9,7 @@
 * [AScript之eval函数详解](https://mp.weixin.qq.com/s/781Sw5FdFXJxe0eWqWjCCw)
 * [基于AScript的python3脚本语言发布啦！](https://mp.weixin.qq.com/s/tcrPXFaLPz8kI2hlw-ZkuA)
 
-#### 介绍
+## 介绍
 
 动态脚本解析、编译、执行
 
@@ -63,17 +63,17 @@ var sum = script.Context.GetFunc<int, int, int>("sum");
 int result = sum(10, 20);
 ```
 
-#### 安装
+## 安装
 
 install-package AScript
 
-#### 使用说明
+## 使用说明
 
 * 命名空间：using AScript;
 * 已内置C#常用数据类型，如：int/bool/string/long/double/DateTime等
 * 已内置Convert数据转换方法，使用示例：'12'.ToInt32() 等同于 ToInt32('12') 或者 Convert.ToInt32('12')
 
-###### 注入类型及类型中的方法
+#### 注入类型及类型中的方法
 ```C#
 var script = new Script();
 script.Context.AddType<Person>();
@@ -112,7 +112,7 @@ public class Person
 }
 ```
 
-###### 变量
+#### 变量
 
 ```C#
 var script = new Script();
@@ -121,7 +121,7 @@ var result = script.Eval("int n=8;n+m+10*(3+0x0A)");
 Assert.AreEqual(8 + 6 + 10 * (3 + 0x0A), result);
 ```
 
-###### 注入函数
+#### 注入函数
 ```C#
 var script = new Script();
 script.Context.AddFunc<int, int, int>("sum", (a, b) => a + b);
@@ -130,7 +130,7 @@ script.Context.AddFunc<int, int, int>("mult", (a, b) => a * b);
 Assert.AreEqual(1+2+8+1+2+3+5*6, script.Eval("sum(1,2)+8+sum(1,2,3)+mult(5,6)"));
 ```
 
-###### 自定义函数
+#### 自定义函数
 ```C#
 string s = @"
 int exec(int a, int b) {
@@ -156,7 +156,7 @@ Assert.AreEqual(1 + 2 + 8, script.Eval("sum(1,2)+8"));
 Assert.AreEqual(5 * 10 + 2 + 8, script.Eval("exec(5,2)+8"));
 ```
 
-###### 递归
+#### 递归
 ```C#
 string s = @"
 int exec(int a) {
@@ -170,14 +170,14 @@ Assert.AreEqual(15, script.Eval(s));
 Assert.AreEqual(55, script.Eval("exec(10)"));
 ```
 
-###### 字符串内插值
+#### 字符串内插值
 ```C#
 string s = "var name='tom'; $'hello {name}, 5+8={5+8}'";
 var script = new Script();
 Assert.AreEqual("hello tom, 5+8=13", script.Eval(s));
 ```
 
-###### 字符串索引和截取
+#### 字符串索引和截取
 ```C#
 var script = new Script();
 Assert.AreEqual('e', script.Eval("'hello'[1]"));
@@ -186,7 +186,7 @@ Assert.AreEqual("ell", script.Eval("'hello'[1:4]"));
 Assert.AreEqual("ell", script.Eval("'hello'[-4:-1]"));
 ```
 
-###### 数组
+#### 数组
 ```C#
 var script = new Script();
 var result1 = (List<int>)script.Eval("var arr1 = [0,1,2,3,4]; arr1[1:4]");
@@ -197,7 +197,7 @@ Assert.AreEqual(1, script.Eval("arr1[1]"));
 Assert.AreEqual(1, script.Eval("arr1[-4]"));
 ```
 
-###### 点操作符
+#### 点操作符
 ```C#
 var script = new Script();
 Assert.AreEqual(DateTime.Now.Year, script.Eval("DateTime.Now.Year"));
@@ -206,7 +206,19 @@ Assert.AreEqual("hello".Length, script.Eval("'hello'.Length"));
 Assert.AreEqual("hello".Substring(1, 2), script.Eval("'hello'.Substring(1, 2)"));
 ```
 
-###### foreach
+#### for
+```C#
+string s = @"
+int total=0;
+for(var i=1; i<=10; i++) {
+	total += i;
+}
+total";
+var script = new Script();
+Assert.AreEqual(55, script.Eval(s));
+```
+
+#### foreach
 ```C#
 string s = @"
 int n=0;
@@ -225,7 +237,47 @@ Assert.AreEqual(25, script.Eval(s));
 Assert.AreEqual(25, script.Eval(s, -1));
 ```
 
-###### 自定义语法解析
+#### while
+```C#
+string s = @"
+int total=0;
+int n = 1;
+while(n <= 10) {
+	total += n;
+	n++;
+}
+total";
+var script = new Script();
+Assert.AreEqual(55, script.Eval(s));
+```
+
+#### static语句
+static语句是在编译期间进行解析执行，即static语句不参与编译，而是直接执行结果。
+注意：static语句中使用的变量也必须在static语句中定义的，否则报错变量不存在。
+```C#
+var s = @"
+static int n = 10; // 直接执行，不参与编译
+static x = n * 2; // 直接执行，不参与编译
+int y = static n * 2; // 编译结果：y = 20
+/*
+int m=20;
+int a = static m * 2; // 报错：variable m is not exists
+*/
+int z = n * 2; // 编译结果：z = n * 2
+x+y+z;
+";
+var script = new Script();
+// 编译
+var func = script.Compile<int>(s);
+Assert.AreEqual(10, script.Context.EvalVar("n"));
+Assert.AreEqual(20, script.Context.EvalVar("x"));
+Assert.IsNull(script.Context.EvalVar("y"));
+Assert.IsNull(script.Context.EvalVar("z"));
+// 执行
+Assert.AreEqual(60, func());
+```
+
+#### 自定义语法解析
 
 * 注：自定义语法解析需要谨慎处理，否则会破坏后续语法解析，导致脚本执行异常或者执行结果不符合预期。
 
@@ -247,8 +299,8 @@ script.Context.AddTokenHandler("中断", BreakTokenHandler.Instance);
 Assert.AreEqual(25, script.Eval(s));
 ```
 
-###### 多语言环境
-脚本中使用#lang/#end或者@lang/@end语法嵌入其他语言。
+#### 多脚本语言
+脚本中使用#lang/#end或者@lang/@end语法嵌入其他语言，如果没有#end/@end，则表示后面的脚本都指定该语言执行。
 如果要嵌入python语言，请使用@lang/@end，因为#是python中的注释语句，#lang/#end会失效。
 ```C#
 string s = @"
@@ -261,7 +313,7 @@ var script = new Script();
 Assert.AreEqual(30, script.Eval(s));
 ```
 
-###### 编译
+#### 编译
 ```C#
 var script = new Script();
 //var func = script.Compile<int, int, int>("a+b*2", "a", "b");
@@ -270,7 +322,7 @@ Assert.IsNotNull(func);
 Assert.AreEqual(11, func(3, 4));
 ```
 
-###### Lambda
+#### Lambda
 脚本生成Lambda表达式，应用场景：脚本->LINQ
 ```C#
 var script = new Script();
