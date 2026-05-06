@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace AScript.Functions
@@ -12,6 +13,15 @@ namespace AScript.Functions
 
 		public void Build(FunctionBuildArgs e)
 		{
+			int argsCount = e.GetArgsCount();
+			if (argsCount != 1) return;
+
+			Expression argExpr = e.BuildArgs(0);
+
+			var type = argExpr.Type;
+			var elementType = type.IsArray ? type.GetElementType() : type.GetGenericArguments()[0];
+			var asQueryableMethod = MethodInfo_AsQueryable.MakeGenericMethod(elementType);
+			e.Result = Expression.Call(asQueryableMethod, argExpr);
 		}
 
 		public void Eval(FunctionEvalArgs e)

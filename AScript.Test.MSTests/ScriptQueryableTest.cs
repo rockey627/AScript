@@ -23,6 +23,21 @@ var r = q.Where(a=>a%2==0).ToList();
 		}
 
 		[TestMethod]
+		public void Test01_AsQueryable_2()
+		{
+			string s = @"
+var q = [1,2,3,4,5].AsQueryable();
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var r = script.Eval(s);
+			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
+			var q = (IQueryable<int>)r;
+			Assert.AreEqual("1,2,3,4,5", string.Join(',', q));
+			Assert.AreEqual("2,4", string.Join(',', q.Where(a => a % 2 == 0)));
+		}
+
+		[TestMethod]
 		public void Test01_AsQueryable()
 		{
 			string s = @"
