@@ -977,8 +977,10 @@ namespace AScript
 		/// <param name="name"></param>
 		/// <param name="isPrefix"></param>
 		/// <param name="args"></param>
+		/// <param name="argExprs"></param>
+		/// <param name="buildEvalEnabled"></param>
 		/// <returns></returns>
-		public virtual Expression BuildFunc(BuildContext buildContext, BuildOptions options, EvalControl control, string name, bool isPrefix, Expression[] args, bool buildEvalEnabled = true)
+		public virtual Expression BuildFunc(BuildContext buildContext, BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args, Expression[] argExprs, bool buildEvalEnabled = true)
 		{
 			Type[] argTypes = null;
 
@@ -986,13 +988,13 @@ namespace AScript
 			var tmpBuildContext = buildContext;
 			while (tmpBuildContext != null)
 			{
-				var result = BuildFunc(tmpBuildContext, options, tmpBuildContext.TempFunctions, name, null, ref args, ref argTypes);
+				var result = BuildFunc(buildContext, options, tmpBuildContext.TempFunctions, name, args, ref argExprs, ref argTypes);
 				if (result != null) return result;
 				tmpBuildContext = tmpBuildContext.Parent;
 			}
 
 			// 从脚本上下文环境中构建
-			var functionBuildArgs = FunctionBuildArgs.Create(buildContext, this, options, control, name, isPrefix, args);
+			var functionBuildArgs = FunctionBuildArgs.Create(buildContext, this, options, control, name, isPrefix, args, argExprs);
 			try
 			{
 				var context = this;
@@ -1005,10 +1007,10 @@ namespace AScript
 						return functionBuildArgs.Result;
 					}
 					// 临时函数
-					var result = BuildFunc(buildContext, options, context._TempFunctions, name, null, ref args, ref argTypes);
+					var result = BuildFunc(buildContext, options, context._TempFunctions, name, args, ref argExprs, ref argTypes);
 					if (result != null) return result;
 					// 全局函数
-					result = BuildFunc(buildContext, options, context._Functions, name, null, ref args, ref argTypes);
+					result = BuildFunc(buildContext, options, context._Functions, name, args, ref argExprs, ref argTypes);
 					if (result != null) return result;
 					// 
 					context = context.Parent;
@@ -1054,7 +1056,7 @@ namespace AScript
 
 			//throw new Exception("unkown function for build:" + name);
 			// 构建context.EvalFunc方法调用
-			return ExpressionUtils.BuildEval(buildContext, this, options, name, args);
+			return ExpressionUtils.BuildEval(buildContext, this, options, name, argExprs);
 		}
 
 		internal Expression BuildFunc(BuildContext buildContext, BuildOptions options, IDictionary<string, List<Delegate>> functions, string name, IList<ITreeNode> args, ref Expression[] argExprs, ref Type[] argTypes)

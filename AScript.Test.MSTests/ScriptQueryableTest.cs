@@ -10,6 +10,20 @@ namespace AScript.Test.MSTests
 	public class ScriptQueryableTest
 	{
 		[TestMethod]
+		public void Test02_Where_2()
+		{
+			string s = @"
+var q = [1,2,3,4,5].AsQueryable();
+var r = q.Where(a=>a%2==0).ToList();
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var r = script.Eval(s);
+			Assert.IsInstanceOfType(r, typeof(List<int>));
+			Assert.AreEqual("2,4", string.Join(',', (List<int>)r));
+		}
+
+		[TestMethod]
 		public void Test02_Where()
 		{
 			string s = @"

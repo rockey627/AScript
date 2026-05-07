@@ -231,9 +231,17 @@ namespace AScript.Nodes
 					argTypes = new Type[this.Args.Length];
 					for (int i = 0; i < this.Args.Length; i++)
 					{
-						var argExpression = this.Args[i].Build(buildContext, scriptContext, options);
-						argExpressions[i] = argExpression;
-						argTypes[i] = argExpression.Type;
+						var arg = this.Args[i];
+						if (arg is DefineFuncNode)
+						{
+							argTypes[i] = typeof(Delegate);
+						}
+						else
+						{
+							var argExpression = this.Args[i].Build(buildContext, scriptContext, options);
+							argExpressions[i] = argExpression;
+							argTypes[i] = argExpression.Type;
+						}
 					}
 				}
 				var v0 = ((ITreeNode)this.Target).Build(buildContext, scriptContext, options);
@@ -291,7 +299,7 @@ namespace AScript.Nodes
 						}
 						try
 						{
-							var expr2 = scriptContext.BuildFunc(buildContext, options, null, this.Name, false, argValues2, buildEvalEnabled: false);
+							var expr2 = scriptContext.BuildFunc(buildContext, options, null, this.Name, false, null, argValues2, buildEvalEnabled: false);
 							if (expr2 != null)
 							{
 								return expr2;

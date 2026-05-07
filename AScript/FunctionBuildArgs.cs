@@ -61,7 +61,7 @@ namespace AScript
 			this.IsPrefix = isPrefix;
 			this.Args = args;
 		}
-		public FunctionBuildArgs(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, string name, bool isPrefix, IList<Expression> args)
+		public FunctionBuildArgs(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args, IList<Expression> argExprs)
 		{
 			this.BuildContext = buildContext;
 			this.ScriptContext = scriptContext;
@@ -69,7 +69,8 @@ namespace AScript
 			this.Control = control;
 			this.Name = name;
 			this.IsPrefix = isPrefix;
-			this.ArgExprs = args;
+			this.Args = args;
+			this.ArgExprs = argExprs;
 		}
 
 		public int GetArgsCount()
@@ -103,7 +104,7 @@ namespace AScript
 			return new FunctionBuildArgs(buildContext, scriptContext, options, control, name, isPrefix, args);
 		}
 
-		public static FunctionBuildArgs Create(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, string name, bool isPrefix, IList<Expression> args)
+		public static FunctionBuildArgs Create(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args, IList<Expression> argExprs)
 		{
 			if (_pool.TryDequeue(out var e))
 			{
@@ -113,12 +114,12 @@ namespace AScript
 				e.Control = control;
 				e.Name = name;
 				e.IsPrefix = isPrefix;
-				e.Args = null;
-				e.ArgExprs = args;
+				e.Args = args;
+				e.ArgExprs = argExprs;
 				e.Result = null;
 				return e;
 			}
-			return new FunctionBuildArgs(buildContext, scriptContext, options, control, name, isPrefix, args);
+			return new FunctionBuildArgs(buildContext, scriptContext, options, control, name, isPrefix, args, argExprs);
 		}
 
 		internal static void Return(FunctionBuildArgs e)
