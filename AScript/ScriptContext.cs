@@ -894,7 +894,7 @@ namespace AScript
 			var tempBuildContext = buildContext;
 			while (tempBuildContext != null)
 			{
-				var result = BuildFunc(tempBuildContext, options, tempBuildContext.TempFunctions, name, args, ref argExprs, ref argTypes);
+				var result = BuildFunc(buildContext, options, tempBuildContext.TempFunctions, name, args, ref argExprs, ref argTypes);
 				if (result != null) return result;
 				tempBuildContext = tempBuildContext.Parent;
 			}
@@ -1302,7 +1302,15 @@ namespace AScript
 			var args = new ITreeNode[argCount];
 			for (int i = 0; i < argCount; i++)
 			{
-				args[i] = PoolManage.CreateObjectNode(argValues[i], argTypes[i]);
+				var argValue = argValues[i];
+				if (argValue is ITreeNode node)
+				{
+					args[i] = node;
+				}
+				else
+				{
+					args[i] = PoolManage.CreateObjectNode(argValue, argTypes[i]);
+				}
 			}
 			var result = EvalFunc(null, null, name, isPrefix, args, out returnType);
 			PoolManage.Return(args);

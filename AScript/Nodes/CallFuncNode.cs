@@ -65,8 +65,17 @@ namespace AScript.Nodes
 					argTypes = new Type[this.Args.Length];
 					for (int i = 0; i < this.Args.Length; i++)
 					{
-						argValues[i] = this.Args[i].Eval(context, options, null, out var argType);
-						argTypes[i] = argType;
+						var arg = this.Args[i];
+						if (arg is DefineFuncNode)
+						{
+							argValues[i] = arg;
+							argTypes[i] = typeof(Delegate);
+						}
+						else
+						{
+							argValues[i] = this.Args[i].Eval(context, options, null, out var argType);
+							argTypes[i] = argType;
+						}
 					}
 				}
 				var v0 = ((ITreeNode)this.Target).Eval(context, options, null, out var t0);
@@ -151,16 +160,17 @@ namespace AScript.Nodes
 					args = new ITreeNode[this.Args.Length];
 					for (int i = 0; i < this.Args.Length; i++)
 					{
-						var arg = this.Args[i];
-						if (arg == null || arg is ObjectNode)
-						{
-							args[i] = arg;
-						}
-						else
-						{
-							var v = arg.Eval(context, options, control, out var type);
-							args[i] = PoolManage.CreateObjectNode(v, type);
-						}
+						args[i] = this.Args[i];
+						//var arg = this.Args[i];
+						//if (arg == null || arg is ObjectNode)
+						//{
+						//	args[i] = arg;
+						//}
+						//else
+						//{
+						//	var v = arg.Eval(context, options, control, out var type);
+						//	args[i] = PoolManage.CreateObjectNode(v, type);
+						//}
 					}
 				}
 				var tmpContext = ScriptContext.Create(context);
@@ -307,16 +317,17 @@ namespace AScript.Nodes
 					args = new ITreeNode[this.Args.Length];
 					for (int i = 0; i < this.Args.Length; i++)
 					{
-						var arg = this.Args[i];
-						if (arg == null || arg is ExpressionNode)
-						{
-							args[i] = arg;
-						}
-						else
-						{
-							var v = arg.Build(buildContext, scriptContext, options);
-							args[i] = PoolManage.CreateExpressionNode(v);
-						}
+						args[i] = this.Args[i];
+						//var arg = this.Args[i];
+						//if (arg == null || arg is ExpressionNode)
+						//{
+						//	args[i] = arg;
+						//}
+						//else
+						//{
+						//	var v = arg.Build(buildContext, scriptContext, options);
+						//	args[i] = PoolManage.CreateExpressionNode(v);
+						//}
 					}
 				}
 				return scriptContext.BuildFunc(buildContext, options, null, this.Name, false, args);
