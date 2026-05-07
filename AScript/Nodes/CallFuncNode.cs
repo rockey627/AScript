@@ -186,39 +186,39 @@ namespace AScript.Nodes
 			{
 				if (this.Method != null)
 				{
-					Expression[] args = null;
+					Expression[] argExprs = null;
 					if (this.Args != null && this.Args.Length > 0)
 					{
-						args = new Expression[this.Args.Length];
+						argExprs = new Expression[this.Args.Length];
 						for (int i = 0; i < this.Args.Length; i++)
 						{
 							var arg = this.Args[i];
 							if (arg == null)
 							{
-								args[i] = ExpressionUtils.Constant_null;
+								argExprs[i] = ExpressionUtils.Constant_null;
 							}
 							else if (arg is ExpressionNode exprNode)
 							{
-								args[i] = exprNode.Expr;
+								argExprs[i] = exprNode.Expr;
 							}
 							else
 							{
-								args[i] = arg.Build(buildContext, scriptContext, options);
+								argExprs[i] = arg.Build(buildContext, scriptContext, options);
 							}
 						}
 					}
 					return this.Target == null ?
-						Expression.Call(this.Method, args) :
-						Expression.Call(Expression.Constant(this.Target), this.Method, args);
+						Expression.Call(this.Method, argExprs) :
+						Expression.Call(Expression.Constant(this.Target), this.Method, argExprs);
 				}
 			}
 			else if (this.Target != null)
 			{
-				Expression[] argExpressions;
+				Expression[] argExprs;
 				Type[] argTypes;
 				if (this.Args == null)
 				{
-					argExpressions = null;
+					argExprs = null;
 #if NETSTANDARD
 					argTypes = Array.Empty<Type>();
 #else
@@ -227,7 +227,7 @@ namespace AScript.Nodes
 				}
 				else
 				{
-					argExpressions = new Expression[this.Args.Length];
+					argExprs = new Expression[this.Args.Length];
 					argTypes = new Type[this.Args.Length];
 					for (int i = 0; i < this.Args.Length; i++)
 					{
@@ -239,7 +239,7 @@ namespace AScript.Nodes
 						else
 						{
 							var argExpression = this.Args[i].Build(buildContext, scriptContext, options);
-							argExpressions[i] = argExpression;
+							argExprs[i] = argExpression;
 							argTypes[i] = argExpression.Type;
 						}
 					}
@@ -254,7 +254,7 @@ namespace AScript.Nodes
 						throw new Exception($"unknown function: {type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
 					}
 					var parameters = methodInfo.GetParameters();
-					var convertedArgs = Syntaxs.DefaultSyntaxAnalyzer.ConvertArguments(argExpressions, parameters);
+					var convertedArgs = Syntaxs.DefaultSyntaxAnalyzer.ConvertArguments(argExprs, parameters);
 					return Expression.Call(null, methodInfo, convertedArgs);
 				}
 				else
@@ -270,26 +270,26 @@ namespace AScript.Nodes
 						{
 							argTypes = argTypes2;
 							Expression[] argExpressions2;
-							if (argExpressions == null || argExpressions.Length == 0)
+							if (argExprs == null || argExprs.Length == 0)
 							{
 								argExpressions2 = new Expression[1];
 							}
 							else
 							{
-								argExpressions2 = new Expression[argExpressions.Length + 1];
-								Array.Copy(argExpressions, 0, argExpressions2, 1, argExpressions.Length);
+								argExpressions2 = new Expression[argExprs.Length + 1];
+								Array.Copy(argExprs, 0, argExpressions2, 1, argExprs.Length);
 							}
 							argExpressions2[0] = buildContext.GetScriptContextParameter();
-							argExpressions = argExpressions2;
+							argExprs = argExpressions2;
 						}
 					}
 					if (methodInfo == null)
 					{
-						var argValues2 = new Expression[argExpressions == null ? 1 : argExpressions.Length + 1];
+						var argValues2 = new Expression[argExprs == null ? 1 : argExprs.Length + 1];
 						argValues2[0] = v0;
-						if (argExpressions != null && argExpressions.Length > 0)
+						if (argExprs != null && argExprs.Length > 0)
 						{
-							Array.Copy(argExpressions, 0, argValues2, 1, argExpressions.Length);
+							Array.Copy(argExprs, 0, argValues2, 1, argExprs.Length);
 						}
 						var argTypes2 = new Type[argTypes == null ? 1 : argTypes.Length + 1];
 						argTypes2[0] = v0.Type;
@@ -299,7 +299,13 @@ namespace AScript.Nodes
 						}
 						try
 						{
-							var expr2 = scriptContext.BuildFunc(buildContext, options, null, this.Name, false, null, argValues2, buildEvalEnabled: false);
+							ITreeNode[] args = null;
+							if (this.Args != null && this.Args.Length > 0)
+							{
+								args = new ITreeNode[this.Args.Length + 1];
+								Array.Copy(this.Args, 0, args, 1, this.Args.Length);
+							}
+							var expr2 = scriptContext.BuildFunc(buildContext, options, null, this.Name, false, args, argValues2, buildEvalEnabled: false);
 							if (expr2 != null)
 							{
 								return expr2;
@@ -312,7 +318,7 @@ namespace AScript.Nodes
 						throw new Exception($"unknown function: {v0.Type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
 					}
 					var parameters = methodInfo.GetParameters();
-					var convertedArgs = Syntaxs.DefaultSyntaxAnalyzer.ConvertArguments(argExpressions, parameters, expressionStartIndex: methodInfo.IsStatic ? 1 : 0);
+					var convertedArgs = Syntaxs.DefaultSyntaxAnalyzer.ConvertArguments(argExprs, parameters, expressionStartIndex: methodInfo.IsStatic ? 1 : 0);
 					if (methodInfo.IsStatic) convertedArgs[0] = v0;
 					return Expression.Call(methodInfo.IsStatic ? null : v0, methodInfo, convertedArgs);
 				}
