@@ -5,11 +5,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace AScript.Lang.CSharp
 {
-    public class CSharpLang : ScriptLang
+	public class CSharpLang : ScriptLang
 	{
 		public static readonly CSharpLang Instance = new CSharpLang();
 
@@ -105,7 +106,10 @@ namespace AScript.Lang.CSharp
 			AddFunc(typeof(Convert));
 
 			AddFunc("Invoke", CustomFunctionEvaluator.Instance);
-			AddFunc("AsQueryable", AsQueryableFunction.Instance);
+			AddFunc(typeof(Enumerable), method => method.IsGenericMethod ? method.Name : null);
+			AddFunc(typeof(Queryable), method => method.IsGenericMethod ? method.Name : null);
+			//AddFunc("AsQueryable", AsQueryableFunction.Instance);
+			//AddFunc("Where", WhereFunction.Instance);
 
 			// 内置eval函数
 			AddFunc("eval", EvalFunction.Instance);

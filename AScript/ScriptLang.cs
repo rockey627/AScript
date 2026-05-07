@@ -1,4 +1,4 @@
-﻿using AScript.Nodes;
+﻿using AScript.Functions;
 using AScript.Readers;
 using AScript.Syntaxs;
 using System;
@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace AScript
 {
@@ -510,11 +509,23 @@ namespace AScript
 			{
 				// 跳过属性访问器等特殊方法
 				if (method.IsSpecialName) continue;
-				// 
-				var del = ScriptUtils.CreateDelegate(method, target);
-				if (del != null)
+				// 方法名
+				string name;
+				if (methodNameMap == null) name = method.Name;
+				else
 				{
-					AddFunc(methodNameMap?.Invoke(method) ?? method.Name, del);
+					name = methodNameMap(method);
+					if (string.IsNullOrEmpty(name)) continue;
+				}
+				if (method.IsGenericMethod)
+				{
+					// 泛型方法
+					AddFunc(name, new GenericFunction(target, method));
+				}
+				else
+				{
+					var del = ScriptUtils.CreateDelegate(method, target);
+					if (del != null) AddFunc(name, del);
 				}
 			}
 		}

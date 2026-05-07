@@ -1,4 +1,5 @@
-﻿using AScript.Nodes;
+﻿using AScript.Functions;
+using AScript.Nodes;
 using AScript.Readers;
 using AScript.Syntaxs;
 using AScript.TokenHandlers;
@@ -1993,9 +1994,17 @@ namespace AScript
 					name = methodNameMap(method);
 					if (string.IsNullOrEmpty(name)) continue;
 				}
-				// 创建方法委托
-				var del = ScriptUtils.CreateDelegate(method, target);
-				if (del != null) AddFunc(name, del);
+				if (method.IsGenericMethod)
+				{
+					// 泛型方法
+					AddFunc(name, new GenericFunction(target, method));
+				}
+				else
+				{
+					// 创建方法委托
+					var del = ScriptUtils.CreateDelegate(method, target);
+					if (del != null) AddFunc(name, del);
+				}
 			}
 		}
 

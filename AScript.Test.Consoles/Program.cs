@@ -13,7 +13,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			//Test01_Benchmark();
+			Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -26,10 +26,27 @@ namespace AScript.Test.Consoles
 			//Test11_Convert();
 			//Test12_IronPython();
 			//Test13_Convert();
-			Test14_Eval();
+			//Test14_Eval();
+			//Test15();
 			//Console.WriteLine(typeof(int[]).FullName);
 			Console.WriteLine("end");
 			Console.ReadLine();
+		}
+
+		static void Test15()
+		{
+			var method = typeof(Program).GetMethod("Test15_Method");
+			var type0 = method.GetParameters()[0].ParameterType;
+			Console.WriteLine(type0.IsGenericType);
+			Console.WriteLine(type0.GetGenericTypeDefinition() == typeof(Expression<>));
+			var generics = type0.GetGenericArguments();
+			Console.WriteLine(generics[0].GetGenericTypeDefinition() == typeof(Func<,>));
+			Console.WriteLine(type0.IsSubclassOf(typeof(LambdaExpression)));
+		}
+
+		public static void Test15_Method<T>(Expression<Func<T, bool>> expr)
+		{
+
 		}
 
 		static void Test14_Eval()
