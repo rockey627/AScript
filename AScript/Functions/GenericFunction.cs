@@ -209,10 +209,20 @@ namespace AScript.Functions
 			{
 				var paramType = parameters[i].ParameterType;
 				var argType = argTypes[i];
-				if (!paramType.IsGenericType)
+				if (!paramType.IsGenericType && !paramType.IsGenericParameter)
 				{
 					if (paramType.IsAssignableFrom(argType)) continue;
 					return;
+				}
+
+				if (paramType.IsGenericParameter)
+				{
+					if (typeArguments[paramType.GenericParameterPosition] == null)
+					{
+						typeArgumentsFillCount++;
+						typeArguments[paramType.GenericParameterPosition] = argType;
+					}
+					continue;
 				}
 
 				var paramGeneric = paramType.GetGenericTypeDefinition();
@@ -224,7 +234,46 @@ namespace AScript.Functions
 					if (innerType.IsGenericType && innerDefinition == typeof(Func<,>))
 					{
 						// 比如：Expression<Func<TSource, TKey>>，TSource已由前面的参数推导出来，TKey类型由defineFuncNode实际返回值来推导
-						var innerGens = innerDefinition.GetGenericArguments();
+						var innerGens = innerType.GetGenericArguments();
+						var types = new Type[innerGens.Length - 1];
+						for (int j = 0; j < innerGens.Length - 1; j++)
+						{
+							var g = innerGens[j];
+							Type type;
+							if (g.IsGenericParameter)
+							{
+								type = typeArguments[g.GenericParameterPosition];
+								if (type == null) return;
+							}
+							else type = g;
+							types[j] = type;
+						}
+						// 构建临时上下文
+						var tempBuildContext = new BuildContext
+						{
+							RewriteLocalVariables = false,
+							IsMain = true
+						};
+						var paramExprs = new ParameterExpression[types.Length];
+						for (int j = 0; j < types.Length; j++)
+						{
+							// 创建参数表达式
+							var paramExpr = Expression.Parameter(types[j], defineFuncNode.Args[j].Name);
+							tempBuildContext.Parameters[defineFuncNode.Args[j].Name] = paramExpr;
+							paramExprs[j] = paramExpr;
+						}
+						// 构建函数体
+						var funcOptions = new BuildOptions(e.Options) { CompileMode = ECompileMode.All };
+						var body = defineFuncNode.Body.Build(tempBuildContext, e.Context, funcOptions);
+						// 构建 Expression<Func<T, bool>>
+						var lambdaExpr = Expression.Lambda(body, paramExprs);
+						argValues[i] = lambdaExpr;
+						var returnGen = innerGens[innerGens.Length - 1];
+						if (returnGen.IsGenericParameter && typeArguments[returnGen.GenericParameterPosition] == null)
+						{
+							typeArgumentsFillCount++;
+							typeArguments[returnGen.GenericParameterPosition] = lambdaExpr.ReturnType;
+						}
 						continue;
 					}
 					return;
@@ -244,7 +293,7 @@ namespace AScript.Functions
 						typeArguments[p.GenericParameterPosition] = argGenericArgs[j];
 					}
 				}
-				if (typeArgumentsFillCount == typeArguments.Length) break;
+				//if (typeArgumentsFillCount == typeArguments.Length) break;
 			}
 
 			if (typeArgumentsFillCount < typeArguments.Length) return;
@@ -258,80 +307,80 @@ namespace AScript.Functions
 
 			// 第三步：创建具体化的泛型方法
 			var concreteMethod = this.Method.MakeGenericMethod(typeArguments);
-			parameters = concreteMethod.GetParameters();
+			//parameters = concreteMethod.GetParameters();
 
-			// 第四步：处理参数，构建 Expression<Func<,>> 如果需要
-			var convertedArgs = new object[parameters.Length];
-			for (int i = 0; i < parameters.Length; i++)
-			{
-				var paramType = parameters[i].ParameterType;
-				var argValue = argValues[i];
+			//// 第四步：处理参数，构建 Expression<Func<,>> 如果需要
+			//var convertedArgs = new object[parameters.Length];
+			//for (int i = 0; i < parameters.Length; i++)
+			//{
+			//	var paramType = parameters[i].ParameterType;
+			//	var argValue = argValues[i];
 
-				if (!paramType.IsGenericType) continue;
+			//	if (!paramType.IsGenericType) continue;
 
-				// 检查是否是 Expression<Func<,>>
-				if (paramType.GetGenericTypeDefinition() == typeof(Expression<>))
-				{
-					if (!(e.Args[i] is DefineFuncNode defineFuncNode)) return;
-					var innerType = paramType.GetGenericArguments()[0];
-					if (innerType.IsGenericType && innerType.GetGenericTypeDefinition() == typeof(Func<,>))
-					{
-						// 需要构建 Expression<Func<T, bool>>
-						// 从 innerType 获取 Func 的泛型参数
-						var funcGenericArgs = innerType.GetGenericArguments();
-						var elementType = funcGenericArgs[0];
+			//	// 检查是否是 Expression<Func<,>>
+			//	if (paramType.GetGenericTypeDefinition() == typeof(Expression<>))
+			//	{
+			//		if (!(e.Args[i] is DefineFuncNode defineFuncNode)) return;
+			//		var innerType = paramType.GetGenericArguments()[0];
+			//		if (innerType.IsGenericType && innerType.GetGenericTypeDefinition() == typeof(Func<,>))
+			//		{
+			//			// 需要构建 Expression<Func<T, bool>>
+			//			// 从 innerType 获取 Func 的泛型参数
+			//			var funcGenericArgs = innerType.GetGenericArguments();
+			//			var elementType = funcGenericArgs[0];
 
-						// 创建参数表达式
-						var paramExpr = Expression.Parameter(elementType, defineFuncNode.Args[0].Name);
+			//			// 创建参数表达式
+			//			var paramExpr = Expression.Parameter(elementType, defineFuncNode.Args[0].Name);
 
-						// 构建临时上下文
-						var tempBuildContext = new BuildContext
-						{
-							RewriteLocalVariables = false,
-							ReturnType = funcGenericArgs.Length > 1 ? funcGenericArgs[1] : typeof(object),
-							IsMain = true
-						};
-						tempBuildContext.Parameters[defineFuncNode.Args[0].Name] = paramExpr;
+			//			// 构建临时上下文
+			//			var tempBuildContext = new BuildContext
+			//			{
+			//				RewriteLocalVariables = false,
+			//				ReturnType = funcGenericArgs.Length > 1 ? funcGenericArgs[1] : typeof(object),
+			//				IsMain = true
+			//			};
+			//			tempBuildContext.Parameters[defineFuncNode.Args[0].Name] = paramExpr;
 
-						// 构建函数体
-						var funcOptions = new BuildOptions(e.Options) { CompileMode = ECompileMode.All };
-						var body = defineFuncNode.Body.Build(tempBuildContext, e.Context, funcOptions);
+			//			// 构建函数体
+			//			var funcOptions = new BuildOptions(e.Options) { CompileMode = ECompileMode.All };
+			//			var body = defineFuncNode.Body.Build(tempBuildContext, e.Context, funcOptions);
 
-						// 构建 Expression<Func<T, bool>>
-						var lambdaExpr = Expression.Lambda(body, paramExpr);
-						convertedArgs[i] = lambdaExpr;
-						continue;
-					}
-					return;
-				}
+			//			// 构建 Expression<Func<T, bool>>
+			//			var lambdaExpr = Expression.Lambda(body, paramExpr);
+			//			convertedArgs[i] = lambdaExpr;
+			//			continue;
+			//		}
+			//		return;
+			//	}
 
-				// 普通参数处理
-				if (argValue != null && !paramType.IsAssignableFrom(argValue.GetType()))
-				{
-					if (argValue is IQueryable && paramType.IsGenericType && paramType.GetGenericTypeDefinition() == typeof(IQueryable<>))
-					{
-						convertedArgs[i] = argValue;
-					}
-					else
-					{
-						try
-						{
-							convertedArgs[i] = Convert.ChangeType(argValue, paramType);
-						}
-						catch
-						{
-							// 类型转换失败，参数不匹配
-							return;
-						}
-					}
-				}
-				else
-				{
-					convertedArgs[i] = argValue;
-				}
-			}
+			//	// 普通参数处理
+			//	if (argValue != null && !paramType.IsAssignableFrom(argValue.GetType()))
+			//	{
+			//		if (argValue is IQueryable && paramType.IsGenericType && paramType.GetGenericTypeDefinition() == typeof(IQueryable<>))
+			//		{
+			//			convertedArgs[i] = argValue;
+			//		}
+			//		else
+			//		{
+			//			try
+			//			{
+			//				convertedArgs[i] = Convert.ChangeType(argValue, paramType);
+			//			}
+			//			catch
+			//			{
+			//				// 类型转换失败，参数不匹配
+			//				return;
+			//			}
+			//		}
+			//	}
+			//	else
+			//	{
+			//		convertedArgs[i] = argValue;
+			//	}
+			//}
 
-			var result = concreteMethod.Invoke(this.Target, convertedArgs);
+			var result = concreteMethod.Invoke(this.Target, argValues);
 			e.SetResult(result, concreteMethod.ReturnType);
 		}
 	}
