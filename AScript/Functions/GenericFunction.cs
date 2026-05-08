@@ -214,30 +214,47 @@ namespace AScript.Functions
 					if (paramType.IsAssignableFrom(argType)) continue;
 					return;
 				}
+
+				var paramGeneric = paramType.GetGenericTypeDefinition();
+				if (paramGeneric == typeof(Expression<>))
+				{
+					if (!(e.Args[i] is DefineFuncNode defineFuncNode)) return;
+					var innerType = paramType.GetGenericArguments()[0];
+					var innerDefinition = innerType.GetGenericTypeDefinition();
+					if (innerType.IsGenericType && innerDefinition == typeof(Func<,>))
+					{
+						// 比如：Expression<Func<TSource, TKey>>，TSource已由前面的参数推导出来，TKey类型由defineFuncNode实际返回值来推导
+						var innerGens = innerDefinition.GetGenericArguments();
+						continue;
+					}
+					return;
+				}
+
 				var type0 = GetGenericType(paramType, argType);
 				if (type0 == null) return;
 
-				var paramGeneric = paramType.GetGenericTypeDefinition();
-				var argGeneric = type0.GetGenericTypeDefinition();
 				var paramArgs = paramType.GetGenericArguments();
 				var argGenericArgs = type0.GetGenericArguments();
 				for (int j = 0; j < paramArgs.Length && j < argGenericArgs.Length; j++)
 				{
-					if (paramArgs[j].IsGenericParameter && typeArguments[paramArgs[j].GenericParameterPosition] == null)
+					var p = paramArgs[j];
+					if (p.IsGenericParameter && typeArguments[p.GenericParameterPosition] == null)
 					{
 						typeArgumentsFillCount++;
-						typeArguments[paramArgs[j].GenericParameterPosition] = argGenericArgs[j];
+						typeArguments[p.GenericParameterPosition] = argGenericArgs[j];
 					}
 				}
 				if (typeArgumentsFillCount == typeArguments.Length) break;
 			}
 
-			// 对于仍未确定的类型参数，默认 object
-			for (int i = 0; i < typeArguments.Length; i++)
-			{
-				if (typeArguments[i] == null)
-					typeArguments[i] = typeof(object);
-			}
+			if (typeArgumentsFillCount < typeArguments.Length) return;
+
+			//// 对于仍未确定的类型参数，默认 object
+			//for (int i = 0; i < typeArguments.Length; i++)
+			//{
+			//	if (typeArguments[i] == null)
+			//		typeArguments[i] = typeof(object);
+			//}
 
 			// 第三步：创建具体化的泛型方法
 			var concreteMethod = this.Method.MakeGenericMethod(typeArguments);

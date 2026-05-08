@@ -106,8 +106,10 @@ namespace AScript.Lang.CSharp
 			AddFunc(typeof(Convert));
 
 			AddFunc("Invoke", CustomFunctionEvaluator.Instance);
-			AddFunc(typeof(Enumerable), method => method.IsGenericMethod ? method.Name : null);
-			AddFunc(typeof(Queryable), method => method.IsGenericMethod ? method.Name : null);
+			AddFunc(typeof(Enumerable));
+			AddFunc(typeof(Queryable), method => !method.IsGenericMethod && method.Name == "AsQueryable" ? null : method.Name);
+			//AddFunc(typeof(Enumerable), method => method.IsGenericMethod ? method.Name : null);
+			//AddFunc(typeof(Queryable), method => method.IsGenericMethod ? method.Name : null);
 			//AddFunc("AsQueryable", AsQueryableFunction.Instance);
 			//AddFunc("Where", WhereFunction.Instance);
 

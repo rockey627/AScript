@@ -517,16 +517,7 @@ namespace AScript
 					name = methodNameMap(method);
 					if (string.IsNullOrEmpty(name)) continue;
 				}
-				if (method.IsGenericMethod)
-				{
-					// 泛型方法
-					AddFunc(name, new GenericFunction(target, method));
-				}
-				else
-				{
-					var del = ScriptUtils.CreateDelegate(method, target);
-					if (del != null) AddFunc(name, del);
-				}
+				AddFunc(name, method, target);
 			}
 		}
 
@@ -571,20 +562,32 @@ namespace AScript
 
 		public void AddFunc(MethodInfo method, object target = null)
 		{
-			var del = ScriptUtils.CreateDelegate(method, target);
-			if (del != null)
-			{
-				AddFunc(method.Name, del);
-			}
+			//var del = ScriptUtils.CreateDelegate(method, target);
+			//if (del != null)
+			//{
+			//	AddFunc(method.Name, del);
+			//}
+			AddFunc(method.Name, method, target);
 		}
 
 		public void AddFunc(string name, MethodInfo method, object target = null)
 		{
-			var del = ScriptUtils.CreateDelegate(method, target);
-			if (del != null)
+			if (string.IsNullOrEmpty(name)) name = method.Name;
+			if (method.IsGenericMethod)
 			{
-				AddFunc(string.IsNullOrEmpty(name) ? method.Name : name, del);
+				// 泛型方法
+				AddFunc(name, new GenericFunction(target, method));
 			}
+			else
+			{
+				var del = ScriptUtils.CreateDelegate(method, target);
+				if (del != null) AddFunc(name, del);
+			}
+			//var del = ScriptUtils.CreateDelegate(method, target);
+			//if (del != null)
+			//{
+			//	AddFunc(string.IsNullOrEmpty(name) ? method.Name : name, del);
+			//}
 		}
 
 		public void AddFunc(string name, Delegate d)

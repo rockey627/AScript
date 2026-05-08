@@ -1996,17 +1996,18 @@ namespace AScript
 					name = methodNameMap(method);
 					if (string.IsNullOrEmpty(name)) continue;
 				}
-				if (method.IsGenericMethod)
-				{
-					// 泛型方法
-					AddFunc(name, new GenericFunction(target, method));
-				}
-				else
-				{
-					// 创建方法委托
-					var del = ScriptUtils.CreateDelegate(method, target);
-					if (del != null) AddFunc(name, del);
-				}
+				AddFunc(name, method, target);
+				//if (method.IsGenericMethod)
+				//{
+				//	// 泛型方法
+				//	AddFunc(name, new GenericFunction(target, method));
+				//}
+				//else
+				//{
+				//	// 创建方法委托
+				//	var del = ScriptUtils.CreateDelegate(method, target);
+				//	if (del != null) AddFunc(name, del);
+				//}
 			}
 		}
 
@@ -2057,11 +2058,12 @@ namespace AScript
 		/// <param name="target"></param>
 		public void AddFunc(MethodInfo method, object target = null)
 		{
-			var del = ScriptUtils.CreateDelegate(method, target);
-			if (del != null)
-			{
-				AddFunc(method.Name, del);
-			}
+			//var del = ScriptUtils.CreateDelegate(method, target);
+			//if (del != null)
+			//{
+			//	AddFunc(method.Name, del);
+			//}
+			AddFunc(method.Name, method, target);
 		}
 
 		/// <summary>
@@ -2072,11 +2074,22 @@ namespace AScript
 		/// <param name="target"></param>
 		public void AddFunc(string name, MethodInfo method, object target = null)
 		{
-			var del = ScriptUtils.CreateDelegate(method, target);
-			if (del != null)
+			if (string.IsNullOrEmpty(name)) name = method.Name;
+			if (method.IsGenericMethod)
 			{
-				AddFunc(string.IsNullOrEmpty(name) ? method.Name : name, del);
+				// 泛型方法
+				AddFunc(name, new GenericFunction(target, method));
 			}
+			else
+			{
+				var del = ScriptUtils.CreateDelegate(method, target);
+				if (del != null) AddFunc(name, del);
+			}
+			//var del = ScriptUtils.CreateDelegate(method, target);
+			//if (del != null)
+			//{
+			//	AddFunc(string.IsNullOrEmpty(name) ? method.Name : name, del);
+			//}
 		}
 
 		public void AddFunc(string name, Delegate d)
