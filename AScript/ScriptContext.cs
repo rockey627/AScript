@@ -1301,6 +1301,11 @@ namespace AScript
 
 		public object EvalFunc(string name, bool isPrefix, IList<object> argValues, IList<Type> argTypes, out Type returnType)
 		{
+			return EvalFunc(null, name, isPrefix, argValues, argTypes, out returnType);
+		}
+
+		public object EvalFunc(BuildOptions options, string name, bool isPrefix, IList<object> argValues, IList<Type> argTypes, out Type returnType)
+		{
 			var argCount = argValues == null ? 0 : argValues.Count;
 			var args = new ITreeNode[argCount];
 			for (int i = 0; i < argCount; i++)
@@ -1315,7 +1320,7 @@ namespace AScript
 					args[i] = PoolManage.CreateObjectNode(argValue, argTypes[i]);
 				}
 			}
-			var result = EvalFunc(null, null, name, isPrefix, args, out returnType);
+			var result = EvalFunc(options ?? new BuildOptions(Script.DefaultOptions), null, name, isPrefix, args, out returnType);
 			PoolManage.Return(args);
 			return result;
 		}

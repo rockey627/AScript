@@ -49,7 +49,7 @@ namespace AScript.Lang.Sql.Nodes
 			var enumerableType = typeof(IEnumerable<>).MakeGenericType(itemType);
 			returnType = enumerableType;
 			var whereMethod = Method_Enumerable_Where.MakeGenericMethod(itemType);
-			var predicate = ScriptEngine.GetCurrent(context).Compile(this.Where, new[] { itemType }, new[] { this.Tables[0].Item2 }, typeof(bool));
+			var predicate = ScriptEngine.Compile(context, options, this.Where, new[] { itemType }, new[] { this.Tables[0].Item2 }, typeof(bool));
 			return whereMethod.Invoke(null, new[] { table, predicate });
 		}
 

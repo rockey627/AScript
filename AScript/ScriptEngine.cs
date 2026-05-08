@@ -10,8 +10,6 @@ namespace AScript
 	/// </summary>
 	public class ScriptEngine
 	{
-		public const string SCRIPT_ENGINE_VAR_NAME = "__ScriptEngine__";
-
 		/// <summary>
 		/// 默认编译选项
 		/// </summary>
@@ -33,7 +31,7 @@ namespace AScript
 			set
 			{
 				_Context = value;
-				this._Context?.SetTempVar(SCRIPT_ENGINE_VAR_NAME, this, false);
+				//this._Context?.SetTempVar(SCRIPT_ENGINE_VAR_NAME, this, false);
 			}
 		}
 
@@ -41,8 +39,6 @@ namespace AScript
 		/// 编译选项
 		/// </summary>
 		public BuildOptions Options { get; private set; } = new BuildOptions(DefaultOptions);
-
-		public IScriptProvider ScriptProvider { get; protected set; }
 
 		/// <summary>
 		/// 
@@ -55,19 +51,6 @@ namespace AScript
 		protected ScriptEngine(ScriptContext context)
 		{
 			this.Context = context;
-		}
-		public ScriptEngine(IScriptProvider scriptProvider) : this()
-		{
-			this.ScriptProvider = scriptProvider;
-		}
-		public ScriptEngine(IScriptProvider scriptProvider, ScriptContext context) : this(context)
-		{
-			this.ScriptProvider = scriptProvider;
-		}
-
-		public static ScriptEngine GetCurrent(ScriptContext context)
-		{
-			return (ScriptEngine)context?.EvalVar(SCRIPT_ENGINE_VAR_NAME);
 		}
 
 		/// <summary>
@@ -87,7 +70,7 @@ namespace AScript
 		/// <returns></returns>
 		public object Eval(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			return Eval(this.Context, expression, cacheTime, cacheKey, cacheVersion);
+			return Eval(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion);
 		}
 
 		/// <summary>
@@ -108,7 +91,7 @@ namespace AScript
 		/// <returns></returns>
 		public object Eval(string expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			return Eval(this.Context, expression, out returnType, cacheTime, cacheKey, cacheVersion);
+			return Eval(null, this.Context, this.Options, expression, out returnType, cacheTime, cacheKey, cacheVersion);
 		}
 
 		/// <summary>
@@ -132,28 +115,28 @@ namespace AScript
 			return Eval<T>(this.Context, expression, cacheTime, cacheKey, cacheVersion);
 		}
 
-		/// <summary>
-		/// 计算表达式，返回结果
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="expression"></param>
-		/// <param name="cacheTime">
-		/// <para>缓存时长</para>
-		/// <para>为0表示不使用缓存（默认）；</para>
-		/// <para>-1表示永久缓存；</para>
-		/// <para>大于0表示缓存时长（单位：毫秒）</para>
-		/// </param>
-		/// <param name="cacheKey">
-		/// 缓存key（如果为空则取表达式字符串）
-		/// </param>
-		/// <param name="cacheVersion"></param>
-		/// <returns></returns>
-		public object Eval(ScriptContext context, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
-		{
-			return Eval(null, context, null, expression, out _, cacheTime, cacheKey, cacheVersion);
-		}
+		///// <summary>
+		///// 计算表达式，返回结果
+		///// </summary>
+		///// <param name="context"></param>
+		///// <param name="expression"></param>
+		///// <param name="cacheTime">
+		///// <para>缓存时长</para>
+		///// <para>为0表示不使用缓存（默认）；</para>
+		///// <para>-1表示永久缓存；</para>
+		///// <para>大于0表示缓存时长（单位：毫秒）</para>
+		///// </param>
+		///// <param name="cacheKey">
+		///// 缓存key（如果为空则取表达式字符串）
+		///// </param>
+		///// <param name="cacheVersion"></param>
+		///// <returns></returns>
+		//public object Eval(ScriptContext context, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		//{
+		//	return Eval(null, context, null, expression, out _, cacheTime, cacheKey, cacheVersion);
+		//}
 
-		public object Eval(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		public static object Eval(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			return Eval(buildContext, scriptContext, options, expression, out _, cacheTime, cacheKey, cacheVersion);
 		}
@@ -182,15 +165,13 @@ namespace AScript
 		/// </param>
 		/// <param name="cacheVersion"></param>
 		/// <returns></returns>
-		public object Eval(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		public static object Eval(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			if (string.IsNullOrEmpty(expression))
 			{
 				returnType = null;
 				return null;
 			}
-			if (scriptContext == null) scriptContext = this.Context;
-			if (options == null) options = this.Options;
 			var compileMode = options.CompileMode ?? ECompileMode.None;
 			if (cacheTime != 0 || compileMode == ECompileMode.All)
 			{
@@ -198,7 +179,7 @@ namespace AScript
 				returnType = func.Method.ReturnType;
 				return func.DynamicInvoke(scriptContext);
 			}
-			return this.ScriptProvider.Eval(scriptContext, options, expression, out returnType);
+			return Script.Eval(scriptContext, options, expression, out returnType);
 		}
 
 		/// <summary>
@@ -230,7 +211,7 @@ namespace AScript
 				var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
 				return func(context);
 			}
-			return (T)this.ScriptProvider.Eval(context, this.Options, expression, out _);
+			return (T)Script.Eval(context, this.Options, expression, out _);
 		}
 
 		/// <summary>
@@ -284,7 +265,7 @@ namespace AScript
 				returnType = func.Method.ReturnType;
 				return func.DynamicInvoke(this.Context);
 			}
-			return this.ScriptProvider.Eval(this.Context, this.Options, expression, out returnType);
+			return Script.Eval(this.Context, this.Options, expression, out returnType);
 		}
 
 		/// <summary>
@@ -308,7 +289,7 @@ namespace AScript
 				var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
 				return func(this.Context);
 			}
-			return (T)this.ScriptProvider.Eval(this.Context, this.Options, expression, out _);
+			return (T)Script.Eval(this.Context, this.Options, expression, out _);
 		}
 
 		public object Eval(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
@@ -330,7 +311,7 @@ namespace AScript
 				returnType = func.Method.ReturnType;
 				return func.DynamicInvoke(this.Context);
 			}
-			return this.ScriptProvider.Eval(this.Context, this.Options, expression(), out returnType);
+			return Script.Eval(this.Context, this.Options, expression(), out returnType);
 		}
 
 		/// <summary>
@@ -362,7 +343,7 @@ namespace AScript
 				var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
 				return func(this.Context);
 			}
-			return (T)this.ScriptProvider.Eval(this.Context, this.Options, expression(), out _);
+			return (T)Script.Eval(this.Context, this.Options, expression(), out _);
 		}
 
 		/// <summary>
@@ -416,7 +397,7 @@ namespace AScript
 				returnType = func.Method.ReturnType;
 				return func.DynamicInvoke(this.Context);
 			}
-			return this.ScriptProvider.Eval(this.Context, this.Options, expression(), out returnType);
+			return Script.Eval(this.Context, this.Options, expression(), out returnType);
 		}
 
 		/// <summary>
@@ -440,7 +421,7 @@ namespace AScript
 				var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
 				return func(this.Context);
 			}
-			return (T)this.ScriptProvider.Eval(this.Context, this.Options, expression(), out _);
+			return (T)Script.Eval(this.Context, this.Options, expression(), out _);
 		}
 
 		/// <summary>
@@ -475,7 +456,7 @@ namespace AScript
 				return func.DynamicInvoke(this.Context);
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
-			return this.ScriptProvider.Eval(this.Context, options, expression, out returnType);
+			return Script.Eval(this.Context, options, expression, out returnType);
 		}
 
 		/// <summary>
@@ -498,7 +479,7 @@ namespace AScript
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
 			//return (T)Eval(options, (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression), out _);
-			return (T)this.ScriptProvider.Eval(this.Context, options, expression, out _);
+			return (T)Script.Eval(this.Context, options, expression, out _);
 		}
 
 		/// <summary>
@@ -533,7 +514,7 @@ namespace AScript
 				return func.DynamicInvoke(this.Context);
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
-			return this.ScriptProvider.Eval(this.Context, options, expression, out returnType);
+			return Script.Eval(this.Context, options, expression, out returnType);
 		}
 
 		/// <summary>
@@ -555,7 +536,7 @@ namespace AScript
 				return func(this.Context);
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
-			return (T)this.ScriptProvider.Eval(this.Context, options, expression, out _);
+			return (T)Script.Eval(this.Context, options, expression, out _);
 		}
 
 		/// <summary>
@@ -612,7 +593,7 @@ namespace AScript
 
 		public Delegate CompileGlobal(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			return CompileGlobal(null, null, null, expression, cacheTime, cacheKey, cacheVersion);
+			return CompileGlobal(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion);
 		}
 
 		/// <summary>
@@ -633,7 +614,7 @@ namespace AScript
 		/// </param>
 		/// <param name="cacheVersion"></param>
 		/// <returns></returns>
-		public Delegate CompileGlobal(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		public static Delegate CompileGlobal(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			if (string.IsNullOrEmpty(expression)) return null;
 
@@ -647,13 +628,12 @@ namespace AScript
 			}
 
 			if (buildContext == null) buildContext = new BuildContext();
-			if (scriptContext == null) scriptContext = this.Context;
-			BuildOptions buildOptions = options ?? this.Options;
+			BuildOptions buildOptions = options;
 			if ((buildOptions.CompileMode ?? ECompileMode.None) != ECompileMode.All)
 			{
 				buildOptions = new BuildOptions(buildOptions) { CompileMode = ECompileMode.All };
 			}
-			var func = this.ScriptProvider.Compile(buildContext, scriptContext, buildOptions, expression);
+			var func = Script.Compile(buildContext, scriptContext, buildOptions, expression);
 
 			if (cacheTime != 0)
 			{
@@ -699,7 +679,7 @@ namespace AScript
 			{
 				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
 			}
-			var func = this.ScriptProvider.Compile(buildContext, this.Context, buildOptions, expression);
+			var func = Script.Compile(buildContext, this.Context, buildOptions, expression);
 
 			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
 			{
@@ -753,7 +733,7 @@ namespace AScript
 			{
 				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
 			}
-			var func = this.ScriptProvider.Compile(buildContext, this.Context, buildOptions, s ?? expression());
+			var func = Script.Compile(buildContext, this.Context, buildOptions, s ?? expression());
 
 			if (cacheTime != 0)
 			{
@@ -798,7 +778,7 @@ namespace AScript
 			{
 				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
 			}
-			var func = this.ScriptProvider.Compile(buildContext, this.Context, buildOptions, expression());
+			var func = Script.Compile(buildContext, this.Context, buildOptions, expression());
 
 			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
 			{
@@ -861,7 +841,7 @@ namespace AScript
 			{
 				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
 			}
-			return this.ScriptProvider.Compile(buildContext, this.Context, buildOptions, expression);
+			return Script.Compile(buildContext, this.Context, buildOptions, expression);
 		}
 
 		public Delegate CompileGlobal(Stream expression, Type[] argTypes, string[] argNames)
@@ -893,7 +873,7 @@ namespace AScript
 			{
 				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
 			}
-			return this.ScriptProvider.Compile(buildContext, this.Context, buildOptions, expression);
+			return Script.Compile(buildContext, this.Context, buildOptions, expression);
 		}
 
 		/// <summary>
@@ -1138,6 +1118,11 @@ namespace AScript
 
 		public LambdaExpression Lambda(string expression, Type[] argTypes, string[] argNames, Type returnType = null)
 		{
+			return Lambda(this.Context, this.Options, expression, argTypes, argNames, returnType);
+		}
+
+		public static LambdaExpression Lambda(ScriptContext context, BuildOptions options, string expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
 			if (string.IsNullOrEmpty(expression)) return null;
 			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
 			int argNamesCount = argNames == null ? 0 : argNames.Length;
@@ -1161,54 +1146,23 @@ namespace AScript
 				}
 			}
 			BuildOptions buildOptions;
-			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
-				buildOptions = this.Options;
+				buildOptions = options;
 			}
 			else
 			{
-				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
+				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
 			}
-			return this.ScriptProvider.Lambda(buildContext, this.Context, buildOptions, expression);
+			return Script.Lambda(buildContext, context, buildOptions, expression);
 		}
 
 		public LambdaExpression Lambda(Stream expression, Type[] argTypes, string[] argNames, Type returnType = null)
 		{
-			if (expression == null) return null;
-			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
-			int argNamesCount = argNames == null ? 0 : argNames.Length;
-			if (argTypesCount != argNamesCount)
-			{
-				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
-			}
-
-			var buildContext = new BuildContext(null)
-			{
-				ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
-				ReturnType = returnType
-			};
-			if (argTypesCount > 0)
-			{
-				for (int i = 0; i < argTypesCount; i++)
-				{
-					string name = argNames[i];
-					Type type = argTypes[i];
-					buildContext.Parameters.Add(name, Expression.Parameter(type, name));
-				}
-			}
-			BuildOptions buildOptions;
-			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
-			{
-				buildOptions = this.Options;
-			}
-			else
-			{
-				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
-			}
-			return this.ScriptProvider.Lambda(buildContext, this.Context, buildOptions, expression);
+			return Lambda(this.Context, this.Options, expression, argTypes, argNames, returnType);
 		}
 
-		public LambdaExpression Lambda(ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		public static LambdaExpression Lambda(ScriptContext context, BuildOptions options, Stream expression, Type[] argTypes, string[] argNames, Type returnType = null)
 		{
 			if (expression == null) return null;
 			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
@@ -1233,18 +1187,59 @@ namespace AScript
 				}
 			}
 			BuildOptions buildOptions;
-			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
-				buildOptions = this.Options;
+				buildOptions = options;
 			}
 			else
 			{
-				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
+				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
 			}
-			var body = expression.Build(buildContext, this.Context, buildOptions);
+			return Script.Lambda(buildContext, context, buildOptions, expression);
+		}
+
+		public LambdaExpression Lambda(ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			return Lambda(this.Context, this.Options, expression, argTypes, argNames, returnType);
+		}
+
+		public static LambdaExpression Lambda(ScriptContext context, BuildOptions options, ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			if (expression == null) return null;
+			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
+			int argNamesCount = argNames == null ? 0 : argNames.Length;
+			if (argTypesCount != argNamesCount)
+			{
+				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+			}
+
+			var buildContext = new BuildContext(null)
+			{
+				ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
+				ReturnType = returnType
+			};
+			if (argTypesCount > 0)
+			{
+				for (int i = 0; i < argTypesCount; i++)
+				{
+					string name = argNames[i];
+					Type type = argTypes[i];
+					buildContext.Parameters.Add(name, Expression.Parameter(type, name));
+				}
+			}
+			BuildOptions buildOptions;
+			if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				buildOptions = options;
+			}
+			else
+			{
+				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
+			}
+			var body = expression.Build(buildContext, context, buildOptions);
 			PoolManage.Return(expression);
 			var bodys = body == null ? null : new[] { body };
-			return buildContext.Build(this.Context, buildOptions, bodys);
+			return buildContext.Build(context, buildOptions, bodys);
 		}
 
 		public Expression<TDelegate> Lambda<TDelegate>(string expression, string[] argNames) where TDelegate : Delegate
@@ -1370,6 +1365,11 @@ namespace AScript
 		public Delegate Compile(ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
 		{
 			return Lambda(expression, argTypes, argNames, returnType)?.Compile();
+		}
+
+		public static Delegate Compile(ScriptContext context, BuildOptions options, ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			return Lambda(context, options, expression, argTypes, argNames, returnType)?.Compile();
 		}
 
 		public TDelegate Compile<TDelegate>(string expression, string[] argNames) where TDelegate : Delegate

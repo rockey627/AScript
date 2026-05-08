@@ -130,7 +130,7 @@ namespace AScript.Nodes
 						}
 						try
 						{
-							var result2 = context.EvalFunc(this.Name, argValues2, argTypes2, out var returnType2);
+							var result2 = context.EvalFunc(options, this.Name, false, argValues2, argTypes2, out var returnType2);
 							if (returnType2 != null)
 							{
 								returnType = returnType2;
