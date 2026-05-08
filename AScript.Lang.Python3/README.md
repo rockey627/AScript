@@ -1,26 +1,26 @@
 # AScript.Lang.Python3
 
-#### 介绍
+## 介绍
 支持python3基础语法和数据类型，以及列表、集合、字典操作。
 
-#### 安装
+## 安装
 ```
 install-package AScript
 install-package AScript.Lang.Python3
 ```
 
-#### 使用说明
+## 使用说明
 * 命名空间：using AScript.Lang.Python3;
 * 已内置python3常用数据类型：int/float/bool/str/list/set/dict
 
-###### 注册python3语言
+#### 注册python3语言
 ```
 Script.Langs.Set("python3", Python3Lang.Instance);
 // 可全局设置为默认语言
 // Script.Langs.Set("python3", Python3Lang.Instance, setDefault: true);
 ```
 
-###### 上下文中指定python3语言
+#### 上下文中指定python3语言
 如果已全局设置默认语言则无需指定
 ```
 var script = new Script();
@@ -33,7 +33,7 @@ sum(10,20)
 Assert.AreEqual(30L, script.Eval(s));
 ```
 
-###### 使用@lang指定python3语言
+#### 使用@lang指定python3语言
 ```
 var s = @"
 // 默认csharp语言
@@ -51,7 +51,7 @@ var script = new Script();
 Assert.AreEqual(230, script.Eval(s));
 ```
 
-###### 字符串内插值
+#### 字符串内插值
 ```
 string s = @"
 name='tom'; 
@@ -62,7 +62,7 @@ script.Context.Langs = new [] { "python3" };
 Assert.AreEqual("hello tom, 5+8=13", script.Eval(s));
 ```
 
-###### 字符串索引和截取
+#### 字符串索引和截取
 ```
 var script = new Script();
 script.Context.Langs = new [] { "python3" };
@@ -72,7 +72,7 @@ Assert.AreEqual("ell", script.Eval("'hello'[1:4]"));
 Assert.AreEqual("ell", script.Eval("'hello'[-4:-1]"));
 ```
 
-###### 列表
+#### 列表
 ```
 var s = @"
 list1 = [1,2,3]
@@ -87,7 +87,7 @@ Assert.AreEqual(2L, script.Eval("list3[1]"));
 Assert.AreEqual(2L, script.Eval("list3[-5]"));
 ```
 
-###### 集合
+#### 集合
 集合会自动去重。
 ```
 var script = new Script();
@@ -101,7 +101,7 @@ s
 Assert.AreEqual("1,2,3", string.Join(',', set));
 ```
 
-###### 字典
+#### 字典
 ```
 var s = @"
 p = {'name': '张三', 'age': 18}
@@ -116,7 +116,7 @@ Assert.AreEqual("张三", dict["name"]);
 Assert.AreEqual(20L, dict["age"]);
 ```
 
-###### for遍历值
+#### for遍历值
 ```
 var code = @"
 total = 0
@@ -129,7 +129,7 @@ script.Context.Langs = new[] { "python3" };
 Assert.AreEqual(6L, script.Eval(code));
 ```
 
-###### for遍历值和索引
+#### for遍历值和索引
 ```
 var code = @"
 result = ''
@@ -142,7 +142,7 @@ script.Context.Langs = new[] { "python3" };
 Assert.AreEqual("0:1,1:2,2:3,", script.Eval(code));
 ```
 
-###### 列表推导式
+#### 列表推导式
 ```
 var code = @"[x * 2 for x in [1, 2, 3]]";
 var script = new Script();
@@ -154,7 +154,7 @@ Assert.AreEqual(4L, list[1]);
 Assert.AreEqual(6L, list[2]);
 ```
 
-###### lambda
+#### lambda
 ```
 string s = @"
 f = lambda a,b: a+b
@@ -165,7 +165,7 @@ script.Context.Langs = new[] { "python3" };
 Assert.AreEqual(30L, script.Eval(s));
 ```
 
-###### 类型注解
+#### 类型注解
 指定变量类型及函数返回值类型。
 ```
 var s = @"
