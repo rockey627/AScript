@@ -72,12 +72,16 @@ namespace AScript.Functions
 					if (!(e.Args[i] is DefineFuncNode defineFuncNode)) return;
 					var innerType = paramType.GetGenericArguments()[0];
 					var innerDefinition = innerType.GetGenericTypeDefinition();
-					if (innerType.IsGenericType && innerDefinition == typeof(Func<,>))
+					if (innerType.IsGenericType)// && innerDefinition == typeof(Func<,>))
 					{
 						// 比如：Expression<Func<TSource, TKey>>，TSource已由前面的参数推导出来，TKey类型由defineFuncNode实际返回值来推导
 						var innerGens = innerType.GetGenericArguments();
-						var types = new Type[innerGens.Length - 1];
-						for (int j = 0; j < innerGens.Length - 1; j++)
+						int innerArgsCount = innerGens.Length;
+						if (innerType.Name.StartsWith("Func`")) innerArgsCount -= 1;
+						int defineArgsCount = defineFuncNode.Args == null ? 0 : defineFuncNode.Args.Length;
+						if (innerArgsCount != defineArgsCount) return;
+						var types = new Type[innerArgsCount];
+						for (int j = 0; j < innerArgsCount; j++)
 						{
 							var g = innerGens[j];
 							Type type;
@@ -99,8 +103,9 @@ namespace AScript.Functions
 						for (int j = 0; j < types.Length; j++)
 						{
 							// 创建参数表达式
-							var paramExpr = Expression.Parameter(types[j], defineFuncNode.Args[j].Name);
-							tempBuildContext.Parameters[defineFuncNode.Args[j].Name] = paramExpr;
+							var defineArgName = defineFuncNode.Args[j].Name;
+							var paramExpr = Expression.Parameter(types[j], defineArgName);
+							tempBuildContext.Parameters[defineArgName] = paramExpr;
 							paramExprs[j] = paramExpr;
 						}
 						// 构建函数体
@@ -260,12 +265,16 @@ namespace AScript.Functions
 					if (!(e.Args[i] is DefineFuncNode defineFuncNode)) return;
 					var innerType = paramType.GetGenericArguments()[0];
 					var innerDefinition = innerType.GetGenericTypeDefinition();
-					if (innerType.IsGenericType && innerDefinition == typeof(Func<,>))
+					if (innerType.IsGenericType)// && innerDefinition == typeof(Func<,>))
 					{
 						// 比如：Expression<Func<TSource, TKey>>，TSource已由前面的参数推导出来，TKey类型由defineFuncNode实际返回值来推导
 						var innerGens = innerType.GetGenericArguments();
-						var types = new Type[innerGens.Length - 1];
-						for (int j = 0; j < innerGens.Length - 1; j++)
+						int innerArgsCount = innerGens.Length;
+						if (innerType.Name.StartsWith("Func`")) innerArgsCount -= 1;
+						int defineArgsCount = defineFuncNode.Args == null ? 0 : defineFuncNode.Args.Length;
+						if (innerArgsCount != defineArgsCount) return;
+						var types = new Type[innerArgsCount];
+						for (int j = 0; j < innerArgsCount; j++)
 						{
 							var g = innerGens[j];
 							Type type;
@@ -287,8 +296,9 @@ namespace AScript.Functions
 						for (int j = 0; j < types.Length; j++)
 						{
 							// 创建参数表达式
-							var paramExpr = Expression.Parameter(types[j], defineFuncNode.Args[j].Name);
-							tempBuildContext.Parameters[defineFuncNode.Args[j].Name] = paramExpr;
+							var defineArgName = defineFuncNode.Args[j].Name;
+							var paramExpr = Expression.Parameter(types[j], defineArgName);
+							tempBuildContext.Parameters[defineArgName] = paramExpr;
 							paramExprs[j] = paramExpr;
 						}
 						// 构建函数体
