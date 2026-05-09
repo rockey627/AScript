@@ -9,6 +9,7 @@ namespace AScript.Test.Consoles.Benchmarks
 	public class ExpressionTest06_Func
 	{
 		private static readonly string s = "int test(int a,int b){ return a+b;}100 * test(5,5) * (6-2)";
+		//private static readonly string s2 = "int test(int a,int b){ a+b;}100 * test(5,5) * (6-2)";
 		private static readonly int r = 100 * (5 + 5) * (6 - 2);
 
 		[Benchmark]
@@ -22,6 +23,17 @@ namespace AScript.Test.Consoles.Benchmarks
 			}
 		}
 
+		//[Benchmark]
+		//public void AScript1_2()
+		//{
+		//	var script = new AScript.Script();
+		//	var result = script.Eval<int>(s2);
+		//	if (result != r)
+		//	{
+		//		throw new Exception("result error");
+		//	}
+		//}
+
 		[Benchmark]
 		public void AScript2_NoCache()
 		{
@@ -32,6 +44,17 @@ namespace AScript.Test.Consoles.Benchmarks
 				throw new Exception("result error");
 			}
 		}
+
+		//[Benchmark]
+		//public void AScript2_NoCache_2()
+		//{
+		//	var script = new AScript.Script();
+		//	var result = script.Eval<int>(s2, ECompileMode.All);
+		//	if (result != r)
+		//	{
+		//		throw new Exception("result error");
+		//	}
+		//}
 
 		[Benchmark]
 		public void AScript2_NoCache2()
@@ -45,6 +68,18 @@ namespace AScript.Test.Consoles.Benchmarks
 			}
 		}
 
+		//[Benchmark]
+		//public void AScript2_NoCache2_2()
+		//{
+		//	var script = new AScript.Script();
+		//	script.Options.RewriteFunctions = false;
+		//	var result = script.Eval<int>(s2, ECompileMode.All);
+		//	if (result != r)
+		//	{
+		//		throw new Exception("result error");
+		//	}
+		//}
+
 		[Benchmark]
 		public void AScript3_UseCache()
 		{
@@ -55,6 +90,17 @@ namespace AScript.Test.Consoles.Benchmarks
 				throw new Exception("result error");
 			}
 		}
+
+		//[Benchmark]
+		//public void AScript3_UseCache_2()
+		//{
+		//	var script = new AScript.Script();
+		//	var result = script.Eval<int>(s2, -1);
+		//	if (result != r)
+		//	{
+		//		throw new Exception("result error");
+		//	}
+		//}
 
 		[Benchmark]
 		public void AScript3_UseCache2()
@@ -67,5 +113,17 @@ namespace AScript.Test.Consoles.Benchmarks
 				throw new Exception("result error");
 			}
 		}
+
+		//[Benchmark]
+		//public void AScript3_UseCache2_2()
+		//{
+		//	var script = new AScript.Script();
+		//	script.Options.RewriteFunctions = false;
+		//	var result = script.Eval<int>(s2, -1);
+		//	if (result != r)
+		//	{
+		//		throw new Exception("result error");
+		//	}
+		//}
 	}
 }

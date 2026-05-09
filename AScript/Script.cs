@@ -123,7 +123,14 @@ namespace AScript
 		/// <returns></returns>
 		public T Eval<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			return (T)Eval(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion);
+			if (string.IsNullOrEmpty(expression)) return default;
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			{
+				var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
+				return func(this.Context);
+			}
+			return (T)Eval(this.Context, this.Options, expression, out _);
 		}
 
 		/// <summary>

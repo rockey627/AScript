@@ -10,6 +10,17 @@ namespace AScript.Test.MSTests
 	public class ScriptLambdaTest
 	{
 		[TestMethod]
+		public void Test05()
+		{
+			var script = new Script();
+			var expr = script.Lambda<Func<int>>("int test(int a,int b){ a+b }100 * test(5,5) * (6-2)", null);
+			Assert.IsNotNull(expr);
+			Console.WriteLine(expr.ToString());
+			var func = expr.Compile();
+			Assert.AreEqual(4000, func());
+		}
+
+		[TestMethod]
 		public void Test04()
 		{
 			var script = new Script();
@@ -40,6 +51,7 @@ namespace AScript.Test.MSTests
 			var expr = script.Lambda<int, bool>("a>0 && a<10", "a");
 			Assert.IsNotNull(expr);
 			Console.WriteLine(expr.ToString());
+			Assert.AreEqual("a => ((a > 0) AndAlso (a < 10))", expr.ToString());
 			var func = expr.Compile();
 			Assert.IsTrue(func(5));
 			Assert.IsFalse(func(-1));
@@ -53,6 +65,7 @@ namespace AScript.Test.MSTests
 			var expr = script.Lambda<int, bool>("a>0", "a");
 			Assert.IsNotNull(expr);
 			Console.WriteLine(expr.ToString());
+			Assert.AreEqual("a => (a > 0)", expr.ToString());
 			var func = expr.Compile();
 			Assert.IsTrue(func(5));
 			Assert.IsFalse(func(-1));
