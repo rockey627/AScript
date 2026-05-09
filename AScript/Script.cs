@@ -10,7 +10,7 @@ namespace AScript
 	/// <summary>
 	/// 脚本执行（非线程安全）
 	/// </summary>
-	public class Script : ScriptEngine
+	public class Script
 	{
 		/// <summary>
 		/// 脚本语言列表
@@ -26,6 +26,26 @@ namespace AScript
 		/// </summary>
 		public static ISyntaxAnalyzer DefaultSyntaxAnalyzer = Syntaxs.DefaultSyntaxAnalyzer.Instance;
 
+		/// <summary>
+		/// 默认编译选项
+		/// </summary>
+		public static readonly BuildOptions DefaultOptions = new BuildOptions { ThrowIfVariableNotExists = true };
+
+		/// <summary>
+		/// 缓存
+		/// </summary>
+		public static readonly Cache<Delegate> Cache = new Cache<Delegate>();
+
+		/// <summary>
+		/// 上下文
+		/// </summary>
+		public ScriptContext Context { get; set; }
+
+		/// <summary>
+		/// 编译选项
+		/// </summary>
+		public BuildOptions Options { get; private set; } = new BuildOptions(DefaultOptions);
+
 		static Script()
 		{
 			Langs.Set("CSharp", CSharpLang.Instance, true);
@@ -39,8 +59,447 @@ namespace AScript
 		/// 
 		/// </summary>
 		/// <param name="context"></param>
-		public Script(ScriptContext context) : base(context)
+		public Script(ScriptContext context)
 		{
+			this.Context = context;
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public object Eval(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			return Eval(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果和类型（结果可能为null，此时returnType可以判断返回类型）
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="returnType"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public object Eval(string expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			return Eval(null, this.Context, this.Options, expression, out returnType, cacheTime, cacheKey, cacheVersion);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public T Eval<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			return (T)Eval(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public object Eval(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			return Eval(expression, out _, cacheTime, cacheKey, cacheVersion);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果和类型（结果可能为null，此时returnType可以判断返回类型）
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="returnType"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public object Eval(Stream expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			if (expression == null || expression.Length == 0L)
+			{
+				returnType = null;
+				return null;
+			}
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
+				|| compileMode == ECompileMode.All)
+			{
+				var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
+				returnType = func.Method.ReturnType;
+				return func.DynamicInvoke(this.Context);
+			}
+			return Eval(this.Context, this.Options, expression, out returnType);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime"></param>
+		/// <param name="cacheKey"></param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public T Eval<T>(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			if (expression == null || expression.Length == 0L)
+			{
+				return default;
+			}
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			{
+				var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
+				return func(this.Context);
+			}
+			return (T)Eval(this.Context, this.Options, expression, out _);
+		}
+
+		public object Eval(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			return Eval(expression, out _, cacheTime, cacheKey, cacheVersion);
+		}
+
+		public object Eval(Func<string> expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			if (expression == null)
+			{
+				returnType = null;
+				return null;
+			}
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			{
+				var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
+				returnType = func.Method.ReturnType;
+				return func.DynamicInvoke(this.Context);
+			}
+			return Eval(this.Context, this.Options, expression(), out returnType);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="context"></param>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public T Eval<T>(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			if (expression == null)
+			{
+				return default;
+			}
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			{
+				var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
+				return func(this.Context);
+			}
+			return (T)Eval(this.Context, this.Options, expression(), out _);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public object Eval(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			return Eval(expression, out _, cacheTime, cacheKey, cacheVersion);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果和类型（结果可能为null，此时returnType可以判断返回类型）
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="returnType"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public object Eval(Func<Stream> expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			if (expression == null)
+			{
+				returnType = null;
+				return null;
+			}
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
+				|| compileMode == ECompileMode.All)
+			{
+				var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
+				returnType = func.Method.ReturnType;
+				return func.DynamicInvoke(this.Context);
+			}
+			return Eval(this.Context, this.Options, expression(), out returnType);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime"></param>
+		/// <param name="cacheKey"></param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public T Eval<T>(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			if (expression == null)
+			{
+				return default;
+			}
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			{
+				var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
+				return func(this.Context);
+			}
+			return (T)Eval(this.Context, this.Options, expression(), out _);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="compileMode"></param>
+		/// <returns></returns>
+		public object Eval(string expression, ECompileMode compileMode)
+		{
+			return Eval(expression, out _, compileMode);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="returnType"></param>
+		/// <param name="compileMode"></param>
+		/// <returns></returns>
+		public object Eval(string expression, out Type returnType, ECompileMode compileMode)
+		{
+			if (string.IsNullOrEmpty(expression))
+			{
+				returnType = null;
+				return null;
+			}
+			if (compileMode == ECompileMode.All)
+			{
+				var func = CompileGlobal(expression);
+				returnType = func.Method.ReturnType;
+				return func.DynamicInvoke(this.Context);
+			}
+			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
+			return Eval(this.Context, options, expression, out returnType);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="compileMode"></param>
+		/// <returns></returns>
+		public T Eval<T>(string expression, ECompileMode compileMode)
+		{
+			if (string.IsNullOrEmpty(expression))
+			{
+				return default;
+			}
+			if (compileMode == ECompileMode.All)
+			{
+				var func = CompileGlobal<T>(expression);
+				return func(this.Context);
+			}
+			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
+			return (T)Eval(this.Context, options, expression, out _);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="compileMode"></param>
+		/// <returns></returns>
+		public object Eval(Stream expression, ECompileMode compileMode)
+		{
+			return Eval(expression, out _, compileMode);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="returnType"></param>
+		/// <param name="compileMode"></param>
+		/// <returns></returns>
+		public object Eval(Stream expression, out Type returnType, ECompileMode compileMode)
+		{
+			if (expression == null || expression.Length == 0L)
+			{
+				returnType = null;
+				return null;
+			}
+			if (compileMode == ECompileMode.All)
+			{
+				var func = CompileGlobal(expression);
+				returnType = func.Method.ReturnType;
+				return func.DynamicInvoke(this.Context);
+			}
+			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
+			return Eval(this.Context, options, expression, out returnType);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="compileMode"></param>
+		/// <returns></returns>
+		public T Eval<T>(Stream expression, ECompileMode compileMode)
+		{
+			if (expression == null || expression.Length == 0L)
+			{
+				return default;
+			}
+			if (compileMode == ECompileMode.All)
+			{
+				var func = CompileGlobal<T>(expression);
+				return func(this.Context);
+			}
+			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
+			return (T)Eval(this.Context, options, expression, out _);
+		}
+
+		/// <summary>
+		/// 计算表达式树，返回结果
+		/// </summary>
+		/// <param name="node"></param>
+		/// <returns></returns>
+		public object Eval(ITreeNode node)
+		{
+			return Eval(node, out _);
+		}
+
+		/// <summary>
+		/// 计算表达式树，返回结果和类型
+		/// </summary>
+		/// <param name="node"></param>
+		/// <param name="returnType"></param>
+		/// <returns></returns>
+		public object Eval(ITreeNode node, out Type returnType)
+		{
+			if (node == null)
+			{
+				returnType = null;
+				return null;
+			}
+			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				var func = CompileGlobal(node);
+				returnType = func.Method.ReturnType;
+				return func.DynamicInvoke(this.Context);
+			}
+			return node.Eval(this.Context, this.Options, new EvalControl(), out returnType);
+		}
+
+		/// <summary>
+		/// 计算表达式树，返回结果
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="node"></param>
+		/// <returns></returns>
+		public T Eval<T>(ITreeNode node)
+		{
+			if (node == null)
+			{
+				return default;
+			}
+			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				var func = CompileGlobal<T>(node);
+				return func(this.Context);
+			}
+			return (T)node.Eval(this.Context, this.Options, new EvalControl(), out _);
 		}
 
 		/// <summary>
@@ -61,19 +520,325 @@ namespace AScript
 		/// <returns></returns>
 		public object Eval(ITokenStream tokenStream, out Type returnType)
 		{
-			return Eval(this.Options, tokenStream, out returnType);
+			return Eval(this.Context, this.Options, tokenStream, out returnType);
+		}
+
+		public Delegate CompileGlobal(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			return CompileGlobal(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion);
 		}
 
 		/// <summary>
-		/// 计算表达式，返回结果和类型
+		/// 编译生成委托
 		/// </summary>
-		/// <param name="options"></param>
-		/// <param name="tokenStream"></param>
-		/// <param name="returnType"></param>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion"></param>
 		/// <returns></returns>
-		protected object Eval(BuildOptions options, ITokenStream tokenStream, out Type returnType)
+		public Delegate CompileGlobal(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			return GetSyntaxAnalyzer(this.Context).Eval(this.Context, options, tokenStream, out returnType);
+			if (expression == null || expression.Length == 0L) return null;
+
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
+				&& Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+			{
+				return d;
+			}
+
+			var func = Compile(null, this.Context, this.Options, expression);
+
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
+			{
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+			}
+
+			return func;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public Delegate CompileGlobal(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			if (expression == null) return null;
+
+			string s = null;
+			if (cacheTime != 0)
+			{
+				if (string.IsNullOrEmpty(cacheKey))
+				{
+					s = expression();
+					if (string.IsNullOrEmpty(s)) return null;
+					cacheKey = s;
+				}
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				{
+					return d;
+				}
+			}
+
+			var func = Compile(null, this.Context, this.Options, s ?? expression());
+
+			if (cacheTime != 0)
+			{
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+			}
+
+			return func;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public Delegate CompileGlobal(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			if (expression == null) return null;
+
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
+				&& Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+			{
+				return d;
+			}
+
+			var func = Compile(null, this.Context, this.Options, expression());
+
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
+			{
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+			}
+
+			return func;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <param name="node"></param>
+		/// <returns></returns>
+		public Delegate CompileGlobal(ITreeNode node)
+		{
+			if (node == null) return null;
+			var buildContext = new BuildContext();
+			BuildOptions buildOptions;
+			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				buildOptions = this.Options;
+			}
+			else
+			{
+				buildOptions = new BuildOptions(this.Options) { CompileMode = ECompileMode.All };
+			}
+			var body = node.Build(buildContext, this.Context, buildOptions);
+			PoolManage.Return(node);
+			return buildContext.Compile(this.Context, buildOptions, body);
+		}
+
+		public Delegate CompileGlobal(string expression, Type[] argTypes, string[] argNames)
+		{
+			if (string.IsNullOrEmpty(expression)) return null;
+			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
+			int argNamesCount = argNames == null ? 0 : argNames.Length;
+			if (argTypesCount != argNamesCount)
+			{
+				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+			}
+
+			var buildContext = new BuildContext();
+			if (argTypesCount > 0)
+			{
+				for (int i = 0; i < argTypesCount; i++)
+				{
+					string name = argNames[i];
+					Type type = argTypes[i];
+					buildContext.Parameters.Add(name, System.Linq.Expressions.Expression.Parameter(type, name));
+				}
+			}
+			return Compile(buildContext, this.Context, this.Options, expression);
+		}
+
+		public Delegate CompileGlobal(Stream expression, Type[] argTypes, string[] argNames)
+		{
+			if (expression == null) return null;
+			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
+			int argNamesCount = argNames == null ? 0 : argNames.Length;
+			if (argTypesCount != argNamesCount)
+			{
+				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+			}
+
+			var buildContext = new BuildContext();
+			if (argTypesCount > 0)
+			{
+				for (int i = 0; i < argTypesCount; i++)
+				{
+					string name = argNames[i];
+					Type type = argTypes[i];
+					buildContext.Parameters.Add(name, System.Linq.Expressions.Expression.Parameter(type, name));
+				}
+			}
+			return Compile(buildContext, this.Context, this.Options, expression);
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public Func<ScriptContext, T> CompileGlobal<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
+			if (func == null) return null;
+			if (func.Method.ReturnType != typeof(T))
+			{
+				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
+				return targetFunc;
+			}
+			return (Func<ScriptContext, T>)func;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public Func<ScriptContext, T> CompileGlobal<T>(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
+			if (func == null) return null;
+			if (func.Method.ReturnType != typeof(T))
+			{
+				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
+				return targetFunc;
+			}
+			return (Func<ScriptContext, T>)func;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public Func<ScriptContext, T> CompileGlobal<T>(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
+			if (func == null) return null;
+			if (func.Method.ReturnType != typeof(T))
+			{
+				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
+				return targetFunc;
+			}
+			return (Func<ScriptContext, T>)func;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public Func<ScriptContext, T> CompileGlobal<T>(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
+			if (func == null) return null;
+			if (func.Method.ReturnType != typeof(T))
+			{
+				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
+				return targetFunc;
+			}
+			return (Func<ScriptContext, T>)func;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="node"></param>
+		/// <returns></returns>
+		public Func<ScriptContext, T> CompileGlobal<T>(ITreeNode node)
+		{
+			var func = CompileGlobal(node);
+			if (func == null) return null;
+			if (func.Method.ReturnType != typeof(T))
+			{
+				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
+				return targetFunc;
+			}
+			return (Func<ScriptContext, T>)func;
 		}
 
 		public Delegate CompileGlobal(ITokenStream tokenStream)
@@ -98,6 +863,321 @@ namespace AScript
 		}
 
 		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public Func<T> Compile<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
+			if (func == null) return null;
+			T targetFunc() => func(this.Context);
+			return targetFunc;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public Func<T> Compile<T>(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
+			if (func == null) return null;
+			T targetFunc() => func(this.Context);
+			return targetFunc;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public Func<T> Compile<T>(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
+			if (func == null) return null;
+			T targetFunc() => func(this.Context);
+			return targetFunc;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public Func<T> Compile<T>(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
+			if (func == null) return null;
+			T targetFunc() => func(this.Context);
+			return targetFunc;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="node"></param>
+		/// <returns></returns>
+		public Func<T> Compile<T>(ITreeNode node)
+		{
+			var func = CompileGlobal<T>(node);
+			if (func == null) return null;
+			T targetFunc() => func(this.Context);
+			return targetFunc;
+		}
+
+		public Delegate Compile(string expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			return Lambda(expression, argTypes, argNames, returnType)?.Compile();
+		}
+
+		public Delegate Compile(Stream expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			return Lambda(expression, argTypes, argNames, returnType)?.Compile();
+		}
+
+		public Delegate Compile(ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			return Lambda(expression, argTypes, argNames, returnType)?.Compile();
+		}
+
+		public TDelegate Compile<TDelegate>(string expression, string[] argNames) where TDelegate : Delegate
+		{
+			return Lambda<TDelegate>(expression, argNames)?.Compile();
+		}
+
+		public TDelegate Compile<TDelegate>(Stream expression, string[] argNames) where TDelegate : Delegate
+		{
+			return Lambda<TDelegate>(expression, argNames)?.Compile();
+		}
+
+		public TDelegate Compile<TDelegate>(ITreeNode expression, string[] argNames) where TDelegate : Delegate
+		{
+			return Lambda<TDelegate>(expression, argNames)?.Compile();
+		}
+
+		public Func<T1, TReturn> Compile<T1, TReturn>(string expression, string argName)
+		{
+			return (Func<T1, TReturn>)Compile(expression, new[] { typeof(T1) }, new[] { argName }, typeof(TReturn));
+		}
+
+		public Func<T1, TReturn> Compile<T1, TReturn>(Stream expression, string argName)
+		{
+			return (Func<T1, TReturn>)Compile(expression, new[] { typeof(T1) }, new[] { argName }, typeof(TReturn));
+		}
+
+		public Func<T1, T2, TReturn> Compile<T1, T2, TReturn>(string expression, string argName1, string argName2)
+		{
+			return (Func<T1, T2, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2) }, new[] { argName1, argName2 }, typeof(TReturn));
+		}
+
+		public Func<T1, T2, TReturn> Compile<T1, T2, TReturn>(Stream expression, string argName1, string argName2)
+		{
+			return (Func<T1, T2, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2) }, new[] { argName1, argName2 }, typeof(TReturn));
+		}
+
+		public Func<T1, T2, T3, TReturn> Compile<T1, T2, T3, TReturn>(string expression, string argName1, string argName2, string argName3)
+		{
+			return (Func<T1, T2, T3, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3) }, new[] { argName1, argName2, argName3 }, typeof(TReturn));
+		}
+
+		public Func<T1, T2, T3, TReturn> Compile<T1, T2, T3, TReturn>(Stream expression, string argName1, string argName2, string argName3)
+		{
+			return (Func<T1, T2, T3, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3) }, new[] { argName1, argName2, argName3 }, typeof(TReturn));
+		}
+
+		public Func<T1, T2, T3, T4, TReturn> Compile<T1, T2, T3, T4, TReturn>(string expression, string argName1, string argName2, string argName3, string argName4)
+		{
+			return (Func<T1, T2, T3, T4, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, new[] { argName1, argName2, argName3, argName4 }, typeof(TReturn));
+		}
+
+		public Func<T1, T2, T3, T4, TReturn> Compile<T1, T2, T3, T4, TReturn>(Stream expression, string argName1, string argName2, string argName3, string argName4)
+		{
+			return (Func<T1, T2, T3, T4, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, new[] { argName1, argName2, argName3, argName4 }, typeof(TReturn));
+		}
+
+		public Func<T1, T2, T3, T4, T5, TReturn> Compile<T1, T2, T3, T4, T5, TReturn>(string expression, string argName1, string argName2, string argName3, string argName4, string argName5)
+		{
+			return (Func<T1, T2, T3, T4, T5, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, new[] { argName1, argName2, argName3, argName4, argName5 }, typeof(TReturn));
+		}
+
+		public Func<T1, T2, T3, T4, T5, TReturn> Compile<T1, T2, T3, T4, T5, TReturn>(Stream expression, string argName1, string argName2, string argName3, string argName4, string argName5)
+		{
+			return (Func<T1, T2, T3, T4, T5, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, new[] { argName1, argName2, argName3, argName4, argName5 }, typeof(TReturn));
+		}
+		
+		public LambdaExpression Lambda(string expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			return Lambda(this.Context, this.Options, expression, argTypes, argNames, returnType);
+		}
+
+		public LambdaExpression Lambda(Stream expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			return Lambda(this.Context, this.Options, expression, argTypes, argNames, returnType);
+		}
+
+		public LambdaExpression Lambda(ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			return Lambda(this.Context, this.Options, expression, argTypes, argNames, returnType);
+		}
+
+		public Expression<TDelegate> Lambda<TDelegate>(string expression, string[] argNames) where TDelegate : Delegate
+		{
+			if (string.IsNullOrEmpty(expression)) return null;
+			var delegateType = typeof(TDelegate);
+			var argTypes = delegateType.GenericTypeArguments;
+			Type returnType;
+			if (delegateType.Name.StartsWith("Func"))
+			{
+				returnType = argTypes[argTypes.Length - 1];
+				var tmpTypes = new Type[argTypes.Length - 1];
+				Array.Copy(argTypes, 0, tmpTypes, 0, tmpTypes.Length);
+				argTypes = tmpTypes;
+			}
+			else
+			{
+				returnType = typeof(void);
+			}
+			return (Expression<TDelegate>)Lambda(expression, argTypes, argNames, returnType);
+		}
+
+		public Expression<TDelegate> Lambda<TDelegate>(Stream expression, string[] argNames) where TDelegate : Delegate
+		{
+			if (expression == null) return null;
+			var delegateType = typeof(TDelegate);
+			var argTypes = delegateType.GenericTypeArguments;
+			Type returnType;
+			if (delegateType.Name.StartsWith("Func"))
+			{
+				returnType = argTypes[argTypes.Length - 1];
+				var tmpTypes = new Type[argTypes.Length - 1];
+				Array.Copy(argTypes, 0, tmpTypes, 0, tmpTypes.Length);
+				argTypes = tmpTypes;
+			}
+			else
+			{
+				returnType = typeof(void);
+			}
+			return (Expression<TDelegate>)Lambda(expression, argTypes, argNames, returnType);
+		}
+
+		public Expression<TDelegate> Lambda<TDelegate>(ITreeNode expression, string[] argNames) where TDelegate : Delegate
+		{
+			if (expression == null) return null;
+			var delegateType = typeof(TDelegate);
+			var argTypes = delegateType.GenericTypeArguments;
+			Type returnType;
+			if (delegateType.Name.StartsWith("Func"))
+			{
+				returnType = argTypes[argTypes.Length - 1];
+				var tmpTypes = new Type[argTypes.Length - 1];
+				Array.Copy(argTypes, 0, tmpTypes, 0, tmpTypes.Length);
+				argTypes = tmpTypes;
+			}
+			else
+			{
+				returnType = typeof(void);
+			}
+			return (Expression<TDelegate>)Lambda(expression, argTypes, argNames, returnType);
+		}
+
+		public Expression<Func<T1, TReturn>> Lambda<T1, TReturn>(string expression, string argName)
+		{
+			return (Expression<Func<T1, TReturn>>)Lambda(expression, new[] { typeof(T1) }, new[] { argName }, typeof(TReturn));
+		}
+
+		public Expression<Func<T1, TReturn>> Lambda<T1, TReturn>(Stream expression, string argName)
+		{
+			return (Expression<Func<T1, TReturn>>)Lambda(expression, new[] { typeof(T1) }, new[] { argName }, typeof(TReturn));
+		}
+
+		public Expression<Func<T1, T2, TReturn>> Lambda<T1, T2, TReturn>(string expression, string argName1, string argName2)
+		{
+			return (Expression<Func<T1, T2, TReturn>>)Lambda(expression, new[] { typeof(T1), typeof(T2) }, new[] { argName1, argName2 }, typeof(TReturn));
+		}
+
+		public Expression<Func<T1, T2, TReturn>> Lambda<T1, T2, TReturn>(Stream expression, string argName1, string argName2)
+		{
+			return (Expression<Func<T1, T2, TReturn>>)Lambda(expression, new[] { typeof(T1), typeof(T2) }, new[] { argName1, argName2 }, typeof(TReturn));
+		}
+
+		public Expression<Func<T1, T2, T3, TReturn>> Lambda<T1, T2, T3, TReturn>(string expression, string argName1, string argName2, string argName3)
+		{
+			return (Expression<Func<T1, T2, T3, TReturn>>)Lambda(expression, new[] { typeof(T1), typeof(T2), typeof(T3) }, new[] { argName1, argName2, argName3 }, typeof(TReturn));
+		}
+
+		public Expression<Func<T1, T2, T3, TReturn>> Lambda<T1, T2, T3, TReturn>(Stream expression, string argName1, string argName2, string argName3)
+		{
+			return (Expression<Func<T1, T2, T3, TReturn>>)Lambda(expression, new[] { typeof(T1), typeof(T2), typeof(T3) }, new[] { argName1, argName2, argName3 }, typeof(TReturn));
+		}
+
+		public Expression<Func<T1, T2, T3, T4, TReturn>> Lambda<T1, T2, T3, T4, TReturn>(string expression, string argName1, string argName2, string argName3, string argName4)
+		{
+			return (Expression<Func<T1, T2, T3, T4, TReturn>>)Lambda(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, new[] { argName1, argName2, argName3, argName4 }, typeof(TReturn));
+		}
+
+		public Expression<Func<T1, T2, T3, T4, TReturn>> Lambda<T1, T2, T3, T4, TReturn>(Stream expression, string argName1, string argName2, string argName3, string argName4)
+		{
+			return (Expression<Func<T1, T2, T3, T4, TReturn>>)Lambda(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, new[] { argName1, argName2, argName3, argName4 }, typeof(TReturn));
+		}
+
+		public Expression<Func<T1, T2, T3, T4, T5, TReturn>> Lambda<T1, T2, T3, T4, T5, TReturn>(string expression, string argName1, string argName2, string argName3, string argName4, string argName5)
+		{
+			return (Expression<Func<T1, T2, T3, T4, T5, TReturn>>)Lambda(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, new[] { argName1, argName2, argName3, argName4, argName5 }, typeof(TReturn));
+		}
+
+		public Expression<Func<T1, T2, T3, T4, T5, TReturn>> Lambda<T1, T2, T3, T4, T5, TReturn>(Stream expression, string argName1, string argName2, string argName3, string argName4, string argName5)
+		{
+			return (Expression<Func<T1, T2, T3, T4, T5, TReturn>>)Lambda(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, new[] { argName1, argName2, argName3, argName4, argName5 }, typeof(TReturn));
+		}
+
+		/// <summary>
 		/// 构建表达式树
 		/// </summary>
 		/// <param name="expression"></param>
@@ -105,45 +1185,6 @@ namespace AScript
 		public ITreeNode BuildNode(string expression)
 		{
 			return BuildNode(null, this.Context, this.Options, expression);
-		}
-
-		/// <summary>
-		/// 构建表达式树
-		/// </summary>
-		/// <param name="buildContext"></param>
-		/// <param name="scriptContext"></param>
-		/// <param name="options"></param>
-		/// <param name="expression"></param>
-		/// <returns></returns>
-		public static ITreeNode BuildNode(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression)
-		{
-			if (buildContext == null) buildContext = new BuildContext();
-			//if (scriptContext == null) scriptContext = this.Context;
-			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression);
-			var tokenStream = GetTokenStream(scriptContext, expression);
-			var node = GetSyntaxAnalyzer(scriptContext).Build(buildContext, scriptContext, new BuildOptions(options) { CreateFullTreeNode = true }, new Readers.TokenReader(tokenStream, false));
-			if (node is TreeBuilder treeBuilder)
-			{
-				return treeBuilder.Root;
-			}
-			return node;
-		}
-
-		private static ITokenStream GetTokenStream(ScriptContext context, string expression)
-		{
-			var charReader = new CharReader(new StringCharStream(expression), true);
-			return context.GetTokenStream(charReader) ?? DefaultLexicalAnalyzer.Create(charReader);
-		}
-
-		private static ITokenStream GetTokenStream(ScriptContext context, Stream expression)
-		{
-			var charReader = new CharReader(new StreamCharStream(expression, true), true);
-			return context.GetTokenStream(charReader) ?? DefaultLexicalAnalyzer.Create(charReader);
-		}
-
-		private static ISyntaxAnalyzer GetSyntaxAnalyzer(ScriptContext context)
-		{
-			return context.GetSyntaxAnalyzer() ?? DefaultSyntaxAnalyzer;
 		}
 
 		/// <summary>
@@ -164,6 +1205,70 @@ namespace AScript
 			return node;
 		}
 
+		/// <summary>
+		/// 构建表达式树
+		/// </summary>
+		/// <param name="buildContext"></param>
+		/// <param name="scriptContext"></param>
+		/// <param name="options"></param>
+		/// <param name="expression"></param>
+		/// <returns></returns>
+		public static ITreeNode BuildNode(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression)
+		{
+			if (buildContext == null) buildContext = new BuildContext();
+			var tokenStream = GetTokenStream(scriptContext, expression);
+			BuildOptions buildOptions;
+			if (options.CreateFullTreeNode ?? false) buildOptions = options;
+			else buildOptions = new BuildOptions(options) { CreateFullTreeNode = true };
+			var node = GetSyntaxAnalyzer(scriptContext).Build(buildContext, scriptContext, buildOptions, new TokenReader(tokenStream, false));
+			if (node is TreeBuilder treeBuilder)
+			{
+				return treeBuilder.Root;
+			}
+			return node;
+		}
+
+		public static object Eval(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			return Eval(buildContext, scriptContext, options, expression, out _, cacheTime, cacheKey, cacheVersion);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果和类型（结果可能为null，此时returnType可以判断返回类型）
+		/// </summary>
+		/// <param name="buildContext"></param>
+		/// <param name="scriptContext"></param>
+		/// <param name="options"></param>
+		/// <param name="expression"></param>
+		/// <param name="returnType"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public static object Eval(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			if (string.IsNullOrEmpty(expression))
+			{
+				returnType = null;
+				return null;
+			}
+			var compileMode = options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			{
+				var func = CompileGlobal(buildContext, scriptContext, options, expression, cacheTime, cacheKey, cacheVersion);
+				returnType = func.Method.ReturnType;
+				return func.DynamicInvoke(scriptContext);
+			}
+			return Eval(scriptContext, options, expression, out returnType);
+		}
+
 		public static object Eval(ScriptContext context, BuildOptions options, string expression, out Type returnType)
 		{
 			var tokenStream = GetTokenStream(context, expression);
@@ -172,18 +1277,58 @@ namespace AScript
 
 		public static object Eval(ScriptContext context, BuildOptions options, Stream expression, out Type returnType)
 		{
-			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
 			var tokenStream = GetTokenStream(context, expression);
 			return GetSyntaxAnalyzer(context).Eval(context, options, tokenStream, out returnType);
 		}
 
+		public static object Eval(ScriptContext context, BuildOptions options, ITokenStream expression, out Type returnType)
+		{
+			return GetSyntaxAnalyzer(context).Eval(context, options, expression, out returnType);
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <param name="buildContext"></param>
+		/// <param name="scriptContext"></param>
+		/// <param name="options"></param>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public static Delegate CompileGlobal(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			if (string.IsNullOrEmpty(expression)) return null;
+
+			if (cacheTime != 0)
+			{
+				if (string.IsNullOrEmpty(cacheKey)) cacheKey = expression;
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				{
+					return d;
+				}
+			}
+
+			var func = Compile(buildContext, scriptContext, options, expression);
+
+			if (cacheTime != 0)
+			{
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+			}
+
+			return func;
+		}
+
 		public static Delegate Compile(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression)
 		{
-			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression);
-			//var node = (this.SyntaxAnalyzer ?? DefaultSyntaxAnalyzer).Build(buildContext, scriptContext, options, new Readers.TokenReader(tokenStream, false));
-			//var body = node.Build(buildContext, scriptContext, options);
-			//PoolManage.Return(node);
-			//return buildContext.Compile(scriptContext, options, body);
 			return Lambda(buildContext, scriptContext, options, expression).Compile();
 		}
 
@@ -197,26 +1342,177 @@ namespace AScript
 			return Lambda(buildContext, scriptContext, options, expression).Compile();
 		}
 
+		public static Delegate Compile(ScriptContext context, BuildOptions options, ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			return Lambda(context, options, expression, argTypes, argNames, returnType)?.Compile();
+		}
+
 		public static LambdaExpression Lambda(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression)
 		{
-			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression);
+			if (buildContext == null) buildContext = new BuildContext();
+			BuildOptions buildOptions;
+			if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				buildOptions = options;
+			}
+			else
+			{
+				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
+			}
 			var tokenStream = GetTokenStream(scriptContext, expression);
-			var node = GetSyntaxAnalyzer(scriptContext).Build(buildContext, scriptContext, options, new Readers.TokenReader(tokenStream, false));
-			var body = node.Build(buildContext, scriptContext, options);
+			var node = GetSyntaxAnalyzer(scriptContext).Build(buildContext, scriptContext, buildOptions, new TokenReader(tokenStream, false));
+			var body = node.Build(buildContext, scriptContext, buildOptions);
 			PoolManage.Return(node);
 			var bodys = body == null ? null : new[] { body };
-			return buildContext.Build(scriptContext, options, bodys);
+			return buildContext.Build(scriptContext, buildOptions, bodys);
 		}
 
 		public static LambdaExpression Lambda(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression)
 		{
-			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
+			if (buildContext == null) buildContext = new BuildContext();
+			BuildOptions buildOptions;
+			if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				buildOptions = options;
+			}
+			else
+			{
+				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
+			}
 			var tokenStream = GetTokenStream(scriptContext, expression);
-			var node = GetSyntaxAnalyzer(scriptContext).Build(buildContext, scriptContext, options, new Readers.TokenReader(tokenStream, false));
-			var body = node.Build(buildContext, scriptContext, options);
+			var node = GetSyntaxAnalyzer(scriptContext).Build(buildContext, scriptContext, buildOptions, new TokenReader(tokenStream, false));
+			var body = node.Build(buildContext, scriptContext, buildOptions);
 			PoolManage.Return(node);
 			var bodys = body == null ? null : new[] { body };
-			return buildContext.Build(scriptContext, options, bodys);
+			return buildContext.Build(scriptContext, buildOptions, bodys);
+		}
+
+		public static LambdaExpression Lambda(ScriptContext context, BuildOptions options, string expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			if (string.IsNullOrEmpty(expression)) return null;
+			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
+			int argNamesCount = argNames == null ? 0 : argNames.Length;
+			if (argTypesCount != argNamesCount)
+			{
+				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+			}
+
+			var buildContext = new BuildContext(null)
+			{
+				ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
+				ReturnType = returnType
+			};
+			if (argTypesCount > 0)
+			{
+				for (int i = 0; i < argTypesCount; i++)
+				{
+					string name = argNames[i];
+					Type type = argTypes[i];
+					buildContext.Parameters.Add(name, Expression.Parameter(type, name));
+				}
+			}
+			BuildOptions buildOptions;
+			if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				buildOptions = options;
+			}
+			else
+			{
+				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
+			}
+			return Lambda(buildContext, context, buildOptions, expression);
+		}
+
+		public static LambdaExpression Lambda(ScriptContext context, BuildOptions options, Stream expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			if (expression == null) return null;
+			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
+			int argNamesCount = argNames == null ? 0 : argNames.Length;
+			if (argTypesCount != argNamesCount)
+			{
+				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+			}
+
+			var buildContext = new BuildContext(null)
+			{
+				ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
+				ReturnType = returnType
+			};
+			if (argTypesCount > 0)
+			{
+				for (int i = 0; i < argTypesCount; i++)
+				{
+					string name = argNames[i];
+					Type type = argTypes[i];
+					buildContext.Parameters.Add(name, Expression.Parameter(type, name));
+				}
+			}
+			BuildOptions buildOptions;
+			if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				buildOptions = options;
+			}
+			else
+			{
+				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
+			}
+			return Lambda(buildContext, context, buildOptions, expression);
+		}
+
+		public static LambdaExpression Lambda(ScriptContext context, BuildOptions options, ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			if (expression == null) return null;
+			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
+			int argNamesCount = argNames == null ? 0 : argNames.Length;
+			if (argTypesCount != argNamesCount)
+			{
+				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+			}
+
+			var buildContext = new BuildContext(null)
+			{
+				ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
+				ReturnType = returnType
+			};
+			if (argTypesCount > 0)
+			{
+				for (int i = 0; i < argTypesCount; i++)
+				{
+					string name = argNames[i];
+					Type type = argTypes[i];
+					buildContext.Parameters.Add(name, Expression.Parameter(type, name));
+				}
+			}
+			BuildOptions buildOptions;
+			if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				buildOptions = options;
+			}
+			else
+			{
+				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
+			}
+			var body = expression.Build(buildContext, context, buildOptions);
+			PoolManage.Return(expression);
+			var bodys = body == null ? null : new[] { body };
+			return buildContext.Build(context, buildOptions, bodys);
+		}
+
+		private static ITokenStream GetTokenStream(ScriptContext context, string expression)
+		{
+			var charReader = new CharReader(new StringCharStream(expression), true);
+			return context.GetTokenStream(charReader) ?? DefaultLexicalAnalyzer.Create(charReader);
+		}
+
+		private static ITokenStream GetTokenStream(ScriptContext context, Stream expression)
+		{
+			var charReader = new CharReader(new StreamCharStream(expression, true), true);
+			return context.GetTokenStream(charReader) ?? DefaultLexicalAnalyzer.Create(charReader);
+		}
+
+		private static ISyntaxAnalyzer GetSyntaxAnalyzer(ScriptContext context)
+		{
+			return context.GetSyntaxAnalyzer() ?? DefaultSyntaxAnalyzer;
 		}
 	}
 }

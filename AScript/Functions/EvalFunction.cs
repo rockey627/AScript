@@ -8,7 +8,7 @@ namespace AScript.Functions
 	{
 		public static readonly EvalFunction Instance = new EvalFunction();
 
-		private static readonly MethodInfo Method_Eval = typeof(ScriptEngine).GetMethod("Eval", new[] { typeof(BuildContext), typeof(ScriptContext), typeof(BuildOptions), typeof(string), typeof(int), typeof(string), typeof(string) });
+		private static readonly MethodInfo Method_Eval = typeof(Script).GetMethod("Eval", new[] { typeof(BuildContext), typeof(ScriptContext), typeof(BuildOptions), typeof(string), typeof(int), typeof(string), typeof(string) });
 
 		public void Build(FunctionBuildArgs e)
 		{
