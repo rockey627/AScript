@@ -251,6 +251,31 @@ var script = new Script();
 Assert.AreEqual(55, script.Eval(s));
 ```
 
+#### Queryable扩展方法
+Queryable中的扩展方法，包含Where/Select/OrderBy/Skip/Take/FirstOrDefault/SelectMany/Join等等。
+```C#
+string s = @"
+var q = [1,2,3,4,5].AsQueryable();
+var r = q.Where(a=>a%2==0).ToList();
+";
+var script = new Script();
+var r = script.Eval(s);
+Assert.IsInstanceOfType(r, typeof(List<int>));
+Assert.AreEqual("2,4", string.Join(',', (List<int>)r));
+```
+
+#### Enumerable扩展方法
+Enumerable中的扩展方法，包含Where/Select/OrderBy/Skip/Take/FirstOrDefault/SelectMany/Join等等。
+```C#
+string s = @"
+var r = [1,2,3,4,5].Where(a=>a%2==0).ToList();
+";
+var script = new Script();
+var r = script.Eval(s);
+Assert.IsInstanceOfType(r, typeof(List<int>));
+Assert.AreEqual("2,4", string.Join(',', (List<int>)r));
+```
+
 #### static语句
 static语句是在编译期间进行解析执行，即static语句不参与编译，而是直接执行结果。
 注意：static语句中使用的变量也必须在static语句中定义的，否则报错变量不存在。

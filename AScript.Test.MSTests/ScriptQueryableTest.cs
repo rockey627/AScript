@@ -805,6 +805,136 @@ var r = q.Max();
 		}
 		#endregion
 
+		#region SelectMany
+		[TestMethod]
+		public void TestSelectMany_2()
+		{
+			string s = @"
+var q = [[1,2],[3,4],[5]].AsQueryable();
+var r = q.SelectMany(a=>a).ToList();
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var r = script.Eval(s);
+			Assert.IsInstanceOfType(r, typeof(List<int>));
+			Assert.AreEqual("1,2,3,4,5", string.Join(',', (List<int>)r));
+		}
+
+		[TestMethod]
+		public void TestSelectMany()
+		{
+			var q = new[] { new[] { 1, 2 }, new[] { 3, 4 }, new[] { 5 } }.AsQueryable();
+			var r1 = q.SelectMany(a => a).ToList();
+			string s = @"
+var q = [[1,2],[3,4],[5]].AsQueryable();
+var r = q.SelectMany(a=>a).ToList();
+";
+			var script = new Script();
+			var r = script.Eval(s);
+			Assert.IsInstanceOfType(r, typeof(List<int>));
+			Assert.AreEqual("1,2,3,4,5", string.Join(',', (List<int>)r));
+		}
+
+		[TestMethod]
+		public void TestSelectMany_WithSelector_2()
+		{
+			string s = @"
+var q = [[1,2],[3,4]].AsQueryable();
+var r = q.SelectMany(a=>a, (a,b)=>a[0]*10+b).ToList();
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var r = script.Eval(s);
+			Assert.IsInstanceOfType(r, typeof(List<int>));
+			Assert.AreEqual("11,12,33,34", string.Join(',', (List<int>)r));
+		}
+
+		[TestMethod]
+		public void TestSelectMany_WithSelector()
+		{
+			var q = new[] { new[] { 1, 2 }, new[] { 3, 4 } }.AsQueryable();
+			var r1 = q.SelectMany(a => a, (a, b) => a[0] * 10 + b).ToList();
+			Assert.AreEqual("11,12,33,34", string.Join(',', r1));
+
+			string s = @"
+var q = [[1,2],[3,4]].AsQueryable();
+var r = q.SelectMany(a=>a, (a,b)=>a[0]*10+b).ToList();
+";
+			var script = new Script();
+			var r = script.Eval(s);
+			Assert.IsInstanceOfType(r, typeof(List<int>));
+			Assert.AreEqual("11,12,33,34", string.Join(',', (List<int>)r));
+		}
+		#endregion
+
+		#region Join
+		[TestMethod]
+		public void TestJoin_2()
+		{
+			string s = @"
+var outer = [(1,'a'),(2,'b'),(3,'c')].AsQueryable();
+var inner = [(1,'x'),(2,'y'),(4,'z')].AsQueryable();
+var r = outer.Join(inner, o=>o.Item1, i=>i.Item1, (o,i)=>o.Item2+''+i.Item2).ToList();
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var r = script.Eval(s);
+			Assert.IsInstanceOfType(r, typeof(List<string>));
+			Assert.AreEqual("ax,by", string.Join(',', (List<string>)r));
+		}
+
+		[TestMethod]
+		public void TestJoin()
+		{
+			string s = @"
+var outer = [(1,'a'),(2,'b'),(3,'c')].AsQueryable();
+var inner = [(1,'x'),(2,'y'),(4,'z')].AsQueryable();
+var r = outer.Join(inner, o=>o.Item1, i=>i.Item1, (o,i)=>o.Item2+''+i.Item2).ToList();
+";
+			var script = new Script();
+			var r = script.Eval(s);
+			Assert.IsInstanceOfType(r, typeof(List<string>));
+			Assert.AreEqual("ax,by", string.Join(',', (List<string>)r));
+		}
+
+		[TestMethod]
+		public void TestJoin_WithPredicate_2()
+		{
+			string s = @"
+var orders = [[1,'Alice',100],[2,'Bob',200],[1,'Carol',150]].AsQueryable();
+var customers = [[1,'Alice'],[2,'Bob'],[3,'Dave']].AsQueryable();
+var r = orders.Join(customers, o=>o[0], c=>c[0], (o,c)=>o[1]+':'+o[2]).ToList();
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var r = script.Eval(s);
+			Assert.IsInstanceOfType(r, typeof(List<string>));
+			var list = (List<string>)r;
+			Assert.AreEqual(3, list.Count);
+			Assert.IsTrue(list.Contains("Alice:100"));
+			Assert.IsTrue(list.Contains("Carol:150"));
+			Assert.IsTrue(list.Contains("Bob:200"));
+		}
+
+		[TestMethod]
+		public void TestJoin_WithPredicate()
+		{
+			string s = @"
+var orders = [[1,'Alice',100],[2,'Bob',200],[1,'Carol',150]].AsQueryable();
+var customers = [[1,'Alice'],[2,'Bob'],[3,'Dave']].AsQueryable();
+var r = orders.Join(customers, o=>o[0], c=>c[0], (o,c)=>o[1]+':'+o[2]).ToList();
+";
+			var script = new Script();
+			var r = script.Eval(s);
+			Assert.IsInstanceOfType(r, typeof(List<string>));
+			var list = (List<string>)r;
+			Assert.AreEqual(3, list.Count);
+			Assert.IsTrue(list.Contains("Alice:100"));
+			Assert.IsTrue(list.Contains("Carol:150"));
+			Assert.IsTrue(list.Contains("Bob:200"));
+		}
+		#endregion
+
 		#region Chaining (complex queries)
 		[TestMethod]
 		public void TestComplex_WhereSelectOrderBy_2()

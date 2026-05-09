@@ -134,6 +134,7 @@ namespace AScript.Functions
 									typeArguments[p.GenericParameterPosition] = returnArgGenericArgs[j];
 								}
 							}
+							tempBuildContext.ReturnType = returnType0;
 						}
 						else if (!returnGen.IsGenericParameter)
 						{
@@ -223,6 +224,7 @@ namespace AScript.Functions
 								typeArguments[p.GenericParameterPosition] = returnArgGenericArgs[j];
 							}
 						}
+						tempBuildContext.ReturnType = returnType0;
 					}
 					else if (!returnGen.IsGenericParameter)
 					{
@@ -392,6 +394,7 @@ namespace AScript.Functions
 									typeArguments[p.GenericParameterPosition] = returnArgGenericArgs[j];
 								}
 							}
+							tempBuildContext.ReturnType = returnType0;
 						}
 						else if (!returnGen.IsGenericParameter)
 						{
@@ -481,6 +484,7 @@ namespace AScript.Functions
 								typeArguments[p.GenericParameterPosition] = returnArgGenericArgs[j];
 							}
 						}
+						tempBuildContext.ReturnType = returnType0;
 					}
 					else if (!returnGen.IsGenericParameter)
 					{
