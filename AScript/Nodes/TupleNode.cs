@@ -1,29 +1,108 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace AScript.Nodes
 {
 	public class TupleNode : TreeNode
 	{
+		private static readonly MethodInfo Method_Tuple_2;
+		private static readonly MethodInfo Method_Tuple_3;
+		private static readonly MethodInfo Method_Tuple_4;
+		private static readonly MethodInfo Method_Tuple_5;
+		private static readonly MethodInfo Method_Tuple_6;
+		private static readonly MethodInfo Method_Tuple_7;
+		private static readonly MethodInfo Method_Tuple_8;
+
+		static TupleNode()
+		{
+#if NETFRAMEWORK
+			var methods = typeof(Tuple).GetMethods();
+			foreach (var method in methods)
+			{
+				if (method.Name != "Create") continue;
+				int count = method.GetParameters().Length;
+				switch (count)
+				{
+					case 2:
+						Method_Tuple_2 = method;
+						break;
+					case 3:
+						Method_Tuple_3 = method;
+						break;
+					case 4:
+						Method_Tuple_4 = method;
+						break;
+					case 5:
+						Method_Tuple_5 = method;
+						break;
+					case 6:
+						Method_Tuple_6 = method;
+						break;
+					case 7:
+						Method_Tuple_7 = method;
+						break;
+					case 8:
+						Method_Tuple_8 = method;
+						break;
+					default:
+						break;
+				}
+			}
+#else
+			var methods = typeof(ValueTuple).GetMethods();
+			foreach (var method in methods)
+			{
+				if (method.Name != "Create") continue;
+				int count = method.GetParameters().Length;
+				switch (count)
+				{
+					case 2:
+						Method_Tuple_2 = method;
+						break;
+					case 3:
+						Method_Tuple_3 = method;
+						break;
+					case 4:
+						Method_Tuple_4 = method;
+						break;
+					case 5:
+						Method_Tuple_5 = method;
+						break;
+					case 6:
+						Method_Tuple_6 = method;
+						break;
+					case 7:
+						Method_Tuple_7 = method;
+						break;
+					case 8:
+						Method_Tuple_8 = method;
+						break;
+					default:
+						break;
+				}
+			}
+#endif
+		}
+
 		public IList<ITreeNode> Items { get; set; }
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
-			var itemValues = this.Items.Select(item => item.Build(buildContext, scriptContext, options)).ToList();
-			var itemTypes = itemValues.Select(e => e.Type).ToArray();
+			var itemValues = new Expression[this.Items.Count];
+			var itemTypes = new Type[this.Items.Count];
 
-#if NETFRAMEWORK
-			var tupleType = typeof(Tuple<>).MakeGenericType(itemTypes);
-			var ctor = tupleType.GetConstructor(itemTypes);
-			return Expression.New(ctor, itemValues);
-#else
-			var tupleType = typeof(ValueTuple<>).MakeGenericType(itemTypes);
-			var createMethod = typeof(ValueTuple).GetMethods().First(m => m.Name == "Create" && m.GetParameters().Length == itemTypes.Length);
+			for (int i = 0; i < this.Items.Count; i++)
+			{
+				var expr = this.Items[i].Build(buildContext, scriptContext, options);
+				itemValues[i] = expr;
+				itemTypes[i] = expr.Type;
+			}
+
+			var createMethod = GetMethod(itemTypes.Length);
 			var genericCreateMethod = createMethod.MakeGenericMethod(itemTypes);
-			return Expression.Call(genericCreateMethod, itemValues.ToArray());
-#endif
+			return Expression.Call(genericCreateMethod, itemValues);
 		}
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
@@ -36,15 +115,27 @@ namespace AScript.Nodes
 				itemValues[i] = this.Items[i].Eval(context, options, control, out var itemType);
 				itemTypes[i] = itemType;
 			}
+			
+			var createMethod = GetMethod(itemTypes.Length);
+			var v = createMethod.MakeGenericMethod(itemTypes).Invoke(null, itemValues);
+			returnType = v.GetType();
+			return v;
+		}
 
-#if NETFRAMEWORK
-			returnType = typeof(Tuple<>).MakeGenericType(itemTypes);
-			return typeof(Tuple).GetMethod("Create").MakeGenericMethod(itemTypes).Invoke(null, itemValues);
-#else
-			returnType = typeof(ValueTuple<>).MakeGenericType(itemTypes);
-			var createMethod = typeof(ValueTuple).GetMethods().First(m => m.Name == "Create" && m.GetParameters().Length == itemTypes.Length);
-			return createMethod.MakeGenericMethod(itemTypes).Invoke(null, itemValues);
-#endif
+		private static MethodInfo GetMethod(int count)
+		{
+			switch (count)
+			{
+				case 2: return Method_Tuple_2;
+				case 3: return Method_Tuple_3;
+				case 4: return Method_Tuple_4;
+				case 5: return Method_Tuple_5;
+				case 6: return Method_Tuple_6;
+				case 7: return Method_Tuple_7;
+				case 8: return Method_Tuple_8;
+				default:
+					return null;
+			}
 		}
 
 		public override void Clear()

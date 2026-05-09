@@ -26,9 +26,16 @@ namespace AScript.Operators
 		{
 			if (e.Args.Count == 2)
 			{
-				dynamic arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
-				dynamic arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
-				e.SetResult(arg0 == arg1);
+				var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
+				var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
+#if NETSTANDARD2_1_OR_GREATER
+				if (arg0 is System.Runtime.CompilerServices.ITuple)
+				{
+					e.SetResult(arg0.Equals(arg1));
+					return;
+				}
+#endif
+					e.SetResult((dynamic)arg0 == (dynamic)arg1);
 			}
 		}
 	}
