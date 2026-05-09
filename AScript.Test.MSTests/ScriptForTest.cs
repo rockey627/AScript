@@ -684,24 +684,22 @@ m+15";
 		[TestMethod]
 		public void Test03_2()
 		{
-			string s = "int m=0;int a=0;for((int n=0;a=3); n<10;n++) m+=2;m+=3;m+15";
+			string s = "int m=0;for(int n=0; n<10;n++) m+=2;m+=3;m+15";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			Assert.AreEqual(38, script.Eval(s));
 			Assert.AreEqual(23, script.Context.EvalVar("m"));
 			Assert.AreEqual(null, script.Context.EvalVar("n"));
-			Assert.AreEqual(3, script.Context.EvalVar("a"));
 		}
 
 		[TestMethod]
 		public void Test03()
 		{
-			string s = "int m=0;int a=0;for((int n=0;a=3); n<10;n++) m+=2;m+=3;m+15";
+			string s = "int m=0;for(int n=0; n<10;n++) m+=2;m+=3;m+15";
 			var script = new Script();
 			Assert.AreEqual(38, script.Eval(s));
 			Assert.AreEqual(23, script.Context.EvalVar("m"));
 			Assert.AreEqual(null, script.Context.EvalVar("n"));
-			Assert.AreEqual(3, script.Context.EvalVar("a"));
 		}
 
 		[TestMethod]

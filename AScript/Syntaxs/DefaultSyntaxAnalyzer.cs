@@ -197,12 +197,51 @@ namespace AScript.Syntaxs
 						tokenReader.Push(t.Value);
 						break;
 					}
-					var statement0 = BuildMultiStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
-					ValidateNextToken(tokenReader, ")");
-					if (!ignore)
+					var statement0 = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
+					var nextToken = tokenReader.Read();
+					if (!nextToken.HasValue)
 					{
-						if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
-						treeBuilder.AddData(buildContext, scriptContext, options, control, statement0);
+						throw new Exception($"invalid expression at ({tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}), expect ')'");
+					}
+					if (nextToken.Value.Type == ETokenType.String)
+					{
+						throw new Exception($"invalid expression near '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column}), expect ')'");
+					}
+					// 元组解析：括号内有逗号分隔的多个表达式
+					if (nextToken.Value.Value == ",")
+					{
+						var items = ignore ? null : new List<ITreeNode> { statement0 };
+						while (true)
+						{
+							var item = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
+							if (!ignore) items.Add(item);
+							var tok = tokenReader.Read();
+							if (!tok.HasValue) throw new Exception("invalid tuple expression, expect ')'");
+							if (tok.Value.Type == ETokenType.String)
+							{
+								throw new Exception($"invalid tuple expression near '{tok.Value.Value}' at ({tok.Value.Line},{tok.Value.Column}), expect ')'");
+							}
+							if (tok.Value.Value == ")") break;
+							if (tok.Value.Value != ",") throw new Exception($"invalid tuple expression near '{tok.Value.Value}' at ({tok.Value.Line},{tok.Value.Column}), expect ',' or ')'");
+						}
+						if (!ignore)
+						{
+							var tupleNode = new TupleNode { Items = items };
+							if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
+							treeBuilder.AddData(buildContext, scriptContext, options, control, tupleNode);
+						}
+					}
+					else
+					{
+						if (nextToken.Value.Value != ")")
+						{
+							throw new Exception($"invalid expression near '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column}), expect ')'");
+						}
+						if (!ignore)
+						{
+							if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
+							treeBuilder.AddData(buildContext, scriptContext, options, control, statement0);
+						}
 					}
 				}
 				else if (t.Value.Value == "=>")
@@ -235,6 +274,15 @@ namespace AScript.Syntaxs
 						&& (funcHead.Args == null || funcHead.Args.Length == 0 || funcHead.Args.All(a => a is VariableNode)))
 					{
 						ParseFuncDefine(buildContext, scriptContext, options, tokenReader, control, treeBuilder, funcHead, ignore);
+					}
+					else if (treeBuilder.Current is TupleNode tupleNode && tupleNode.Items.All(a => a is VariableNode || a is DefineVarNode))
+					{
+						var funcHead2 = new CallFuncNode
+						{
+							Name = "_",
+							Args = tupleNode.Items.Select(a => a is DefineVarNode defineVar ? defineVar : PoolManage.CreateDefineVarNode(((VariableNode)a).Name, null, typeof(object))).ToArray()
+						};
+						ParseFuncDefine(buildContext, scriptContext, options, tokenReader, control, treeBuilder, funcHead2, ignore);
 					}
 					else
 					{

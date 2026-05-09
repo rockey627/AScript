@@ -102,17 +102,15 @@ namespace AScript.Lang.CSharp
 			AddFunc("[]", IndexOperator.Instance);
 			AddFunc("[:]", IndexStartEndOperator.Instance);
 
-			// 内置Convert方法，调用示例：'12'.ToInt32()
+			// Convert方法，调用示例：'12'.ToInt32()
 			AddFunc(typeof(Convert));
-
-			AddFunc("Invoke", CustomFunctionEvaluator.Instance);
+			// IEnumerable<T>扩展方法
 			AddFunc(typeof(Enumerable));
+			// IQueryable<T>扩展方法
 			AddFunc(typeof(Queryable), method => !method.IsGenericMethod && method.Name == "AsQueryable" ? null : method.Name);
-			//AddFunc(typeof(Enumerable), method => method.IsGenericMethod ? method.Name : null);
-			//AddFunc(typeof(Queryable), method => method.IsGenericMethod ? method.Name : null);
-			//AddFunc("AsQueryable", AsQueryableFunction.Instance);
-			//AddFunc("Where", WhereFunction.Instance);
 
+			// 自定函数的Invoke方法
+			AddFunc("Invoke", CustomFunctionEvaluator.Instance);
 			// 内置eval函数
 			AddFunc("eval", EvalFunction.Instance);
 

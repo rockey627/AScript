@@ -506,7 +506,7 @@ namespace AScript.Functions
 			e.SetResult(result, concreteMethod.ReturnType);
 		}
 
-		private Type GetGenericType(Type paremterType, Type argType)
+		private static Type GetGenericType(Type paremterType, Type argType)
 		{
 			if (argType.IsArray)
 			{
@@ -520,7 +520,7 @@ namespace AScript.Functions
 			return type;
 		}
 
-		private Type GetGenericType0(Type paremterType, Type argType)
+		private static Type GetGenericType0(Type paremterType, Type argType)
 		{
 			var type = argType;
 			while (type != null && type != typeof(object))
@@ -534,7 +534,7 @@ namespace AScript.Functions
 			return null;
 		}
 
-		private Type GetGenericType1(Type paremterType, Type argType)
+		private static Type GetGenericType1(Type paremterType, Type argType)
 		{
 			foreach (var type in argType.GetInterfaces())
 			{

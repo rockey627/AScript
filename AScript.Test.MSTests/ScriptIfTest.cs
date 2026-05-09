@@ -542,7 +542,7 @@ n
 			string s = @"
 n=0;
 n++;
-if(++n==2) return(n=4;m=(5+n)*2;m+3);
+if(++n==2) return{n=4;m=(5+n)*2;m+3};
 n=8;
 n
 ";
