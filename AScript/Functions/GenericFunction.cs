@@ -36,7 +36,7 @@ namespace AScript.Functions
 			{
 				if (e.Args != null && e.Args[i] is DefineFuncNode)
 				{
-					argTypes[i] = typeof(Delegate);
+					//argTypes[i] = typeof(Delegate);
 				}
 				else
 				{
@@ -53,13 +53,17 @@ namespace AScript.Functions
 			{
 				var paramType = parameters[i].ParameterType;
 				var argType = argTypes[i];
+
 				if (!paramType.IsGenericType && !paramType.IsGenericParameter)
 				{
+					if (e.Args != null && e.Args[i] is DefineFuncNode) return;
 					if (paramType.IsAssignableFrom(argType)) continue;
 					return;
 				}
+
 				if (paramType.IsGenericParameter)
 				{
+					if (e.Args != null && e.Args[i] is DefineFuncNode) return;
 					if (typeArguments[paramType.GenericParameterPosition] == null)
 					{
 						typeArgumentsFillCount++;
@@ -114,13 +118,24 @@ namespace AScript.Functions
 						var funcOptions = new BuildOptions(e.Options) { CompileMode = ECompileMode.All };
 						var body = defineFuncNode.Body.Build(tempBuildContext, e.ScriptContext, funcOptions);
 						// 构建 Expression<Func<T, bool>>
-						var lambdaExpr = Expression.Lambda(body, paramExprs);
-						argExpressions[i] = lambdaExpr;
 						var returnGen = innerGens[innerGens.Length - 1];
-						if (returnGen.IsGenericParameter && typeArguments[returnGen.GenericParameterPosition] == null)
+						if (!returnGen.IsGenericParameter)
 						{
-							typeArgumentsFillCount++;
-							typeArguments[returnGen.GenericParameterPosition] = lambdaExpr.ReturnType;
+							if (!returnGen.IsAssignableFrom(body.Type)) return;
+							if (returnGen != body.Type)
+							{
+								tempBuildContext.ReturnType = returnGen;
+							}
+						}
+						var lambdaExpr = tempBuildContext.Build(e.ScriptContext, funcOptions, body);
+						argExpressions[i] = lambdaExpr;
+						if (returnGen.IsGenericParameter)
+						{
+							if (typeArguments[returnGen.GenericParameterPosition] == null)
+							{
+								typeArgumentsFillCount++;
+								typeArguments[returnGen.GenericParameterPosition] = lambdaExpr.ReturnType;
+							}
 						}
 						continue;
 					}
@@ -168,16 +183,29 @@ namespace AScript.Functions
 					var funcOptions = new BuildOptions(e.Options) { CompileMode = ECompileMode.All };
 					var body = defineFuncNode.Body.Build(tempBuildContext, e.ScriptContext, funcOptions);
 					// 构建 Expression<Func<T, bool>>
-					var lambdaExpr = Expression.Lambda(body, paramExprs);
-					argExpressions[i] = lambdaExpr;
 					var returnGen = innerGens[innerGens.Length - 1];
-					if (returnGen.IsGenericParameter && typeArguments[returnGen.GenericParameterPosition] == null)
+					if (!returnGen.IsGenericParameter)
 					{
-						typeArgumentsFillCount++;
-						typeArguments[returnGen.GenericParameterPosition] = lambdaExpr.ReturnType;
+						if (!returnGen.IsAssignableFrom(body.Type)) return;
+						if (returnGen != body.Type)
+						{
+							tempBuildContext.ReturnType = returnGen;
+						}
+					}
+					var lambdaExpr = tempBuildContext.Build(e.ScriptContext, funcOptions, body);
+					argExpressions[i] = lambdaExpr;
+					if (returnGen.IsGenericParameter)
+					{
+						if (typeArguments[returnGen.GenericParameterPosition] == null)
+						{
+							typeArgumentsFillCount++;
+							typeArguments[returnGen.GenericParameterPosition] = lambdaExpr.ReturnType;
+						}
 					}
 					continue;
 				}
+
+				if (e.Args != null && e.Args[i] is DefineFuncNode) return;
 
 				var type0 = GetGenericType(paramType, argType);
 				if (type0 == null) return;
@@ -219,7 +247,7 @@ namespace AScript.Functions
 				var arg = e.Args[i];
 				if (arg is DefineFuncNode)
 				{
-					argTypes[i] = typeof(Delegate);
+					//argTypes[i] = typeof(Delegate);
 				}
 				else
 				{
@@ -236,14 +264,17 @@ namespace AScript.Functions
 			{
 				var paramType = parameters[i].ParameterType;
 				var argType = argTypes[i];
+
 				if (!paramType.IsGenericType && !paramType.IsGenericParameter)
 				{
+					if (e.Args[i] is DefineFuncNode) return;
 					if (paramType.IsAssignableFrom(argType)) continue;
 					return;
 				}
 
 				if (paramType.IsGenericParameter)
 				{
+					if (e.Args[i] is DefineFuncNode) return;
 					if (typeArguments[paramType.GenericParameterPosition] == null)
 					{
 						typeArgumentsFillCount++;
@@ -297,13 +328,24 @@ namespace AScript.Functions
 						var funcOptions = new BuildOptions(e.Options) { CompileMode = ECompileMode.All };
 						var body = defineFuncNode.Body.Build(tempBuildContext, e.Context, funcOptions);
 						// 构建 Expression<Func<T, bool>>
-						var lambdaExpr = Expression.Lambda(body, paramExprs);
-						argValues[i] = lambdaExpr;
 						var returnGen = innerGens[innerGens.Length - 1];
-						if (returnGen.IsGenericParameter && typeArguments[returnGen.GenericParameterPosition] == null)
+						if (!returnGen.IsGenericParameter)
 						{
-							typeArgumentsFillCount++;
-							typeArguments[returnGen.GenericParameterPosition] = lambdaExpr.ReturnType;
+							if (!returnGen.IsAssignableFrom(body.Type)) return;
+							if (returnGen != body.Type)
+							{
+								tempBuildContext.ReturnType = returnGen;
+							}
+						}
+						var lambdaExpr = tempBuildContext.Build(e.Context, funcOptions, body);
+						argValues[i] = lambdaExpr;
+						if (returnGen.IsGenericParameter)
+						{
+							if (typeArguments[returnGen.GenericParameterPosition] == null)
+							{
+								typeArgumentsFillCount++;
+								typeArguments[returnGen.GenericParameterPosition] = lambdaExpr.ReturnType;
+							}
 						}
 						continue;
 					}
@@ -350,17 +392,30 @@ namespace AScript.Functions
 					// 构建函数体
 					var funcOptions = new BuildOptions(e.Options) { CompileMode = ECompileMode.All };
 					var body = defineFuncNode.Body.Build(tempBuildContext, e.Context, funcOptions);
-					// 构建 Expression<Func<T, bool>>
-					var lambdaExpr = Expression.Lambda(body, paramExprs);
-					argValues[i] = lambdaExpr.Compile();
+					// 构建 Func<T, bool>
 					var returnGen = innerGens[innerGens.Length - 1];
-					if (returnGen.IsGenericParameter && typeArguments[returnGen.GenericParameterPosition] == null)
+					if (!returnGen.IsGenericParameter)
 					{
-						typeArgumentsFillCount++;
-						typeArguments[returnGen.GenericParameterPosition] = lambdaExpr.ReturnType;
+						if (!returnGen.IsAssignableFrom(body.Type)) return;
+						if (returnGen != body.Type)
+						{
+							tempBuildContext.ReturnType = returnGen;
+						}
+					}
+					var lambdaExpr = tempBuildContext.Build(e.Context, funcOptions, body);
+					argValues[i] = lambdaExpr.Compile();
+					if (returnGen.IsGenericParameter)
+					{
+						if (typeArguments[returnGen.GenericParameterPosition] == null)
+						{
+							typeArgumentsFillCount++;
+							typeArguments[returnGen.GenericParameterPosition] = lambdaExpr.ReturnType;
+						}
 					}
 					continue;
 				}
+
+				if (e.Args[i] is DefineFuncNode) return;
 
 				var type0 = GetGenericType(paramType, argType);
 				if (type0 == null) return;

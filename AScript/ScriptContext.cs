@@ -707,6 +707,10 @@ namespace AScript
 					}
 				}
 			}
+			catch(Exception ex)
+			{
+				throw;
+			}
 			finally
 			{
 				FunctionEvalArgs.Return(functionEvalArgs);
@@ -822,12 +826,20 @@ namespace AScript
 				for (int i = 0; i < args.Count; i++)
 				{
 					var arg = args[i];
-					var value = arg.Eval(this, options, control, out var type);
-					argValues[i] = value;
-					argTypes[i] = type;
-					if (!(arg is ObjectNode))
+					if (arg is DefineFuncNode)
 					{
-						args[i] = PoolManage.CreateObjectNode(value, type);
+						argValues[i] = arg;
+						argTypes[i] = typeof(Delegate);
+					}
+					else
+					{
+						var value = arg.Eval(this, options, control, out var type);
+						argValues[i] = value;
+						argTypes[i] = type;
+						if (!(arg is ObjectNode))
+						{
+							args[i] = PoolManage.CreateObjectNode(value, type);
+						}
 					}
 				}
 			}
@@ -1115,7 +1127,7 @@ namespace AScript
 				argTypes = new Type[argExprs.Length];
 				for (int i = 0; i < argExprs.Length; i++)
 				{
-					argTypes[i] = argExprs[i].Type;
+					argTypes[i] = argExprs[i]?.Type ?? typeof(Delegate);
 				}
 			}
 

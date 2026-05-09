@@ -422,12 +422,15 @@ namespace AScript
 					{
 						return Expression.Empty();
 					}
-					if (body.Length == 1)
+					if (this.ReturnType == null || this.ReturnType == body[body.Length - 1].Type)
 					{
-						return body[0];
+						if (body.Length == 1)
+						{
+							return body[0];
+						}
+						expandBodies = TryExpandBodies(body);
+						return expandBodies == null ? Expression.Block(body) : Expression.Block(expandBodies);
 					}
-					expandBodies = TryExpandBodies(body);
-					return expandBodies == null ? Expression.Block(body) : Expression.Block(expandBodies);
 				}
 				//else
 				//{
