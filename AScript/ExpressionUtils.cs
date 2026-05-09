@@ -39,6 +39,7 @@ namespace AScript
 		public static readonly MethodInfo Method_String_Concat2 = typeof(string).GetMethod("Concat", new Type[] { typeof(string), typeof(string) });
 		public static readonly MethodInfo Method_String_Concat_list = typeof(string).GetMethod("Concat", new Type[] { typeof(IEnumerable<string>) });
 		public static readonly MethodInfo Method_Object_ToString = typeof(object).GetMethod("ToString", new Type[0]);
+		public static readonly MethodInfo Method_Object_Equals = typeof(object).GetMethod("Equals", new[] { typeof(object) });
 
 		//public static readonly MethodInfo Method_Type_GetProperty_string = typeof(Type).GetMethod("GetProperty", new Type[] { typeof(string) });
 
