@@ -119,7 +119,23 @@ namespace AScript.Functions
 						var body = defineFuncNode.Body.Build(tempBuildContext, e.ScriptContext, funcOptions);
 						// 构建 Expression<Func<T, bool>>
 						var returnGen = innerGens[innerGens.Length - 1];
-						if (!returnGen.IsGenericParameter)
+						if (returnGen.IsGenericType)
+						{
+							var returnType0 = GetGenericType(returnGen, body.Type);
+							if (returnType0 == null) return;
+							var returnParamArgs = returnGen.GetGenericArguments();
+							var returnArgGenericArgs = returnType0.GetGenericArguments();
+							for (int j = 0; j < returnParamArgs.Length && j < returnArgGenericArgs.Length; j++)
+							{
+								var p = returnParamArgs[j];
+								if (p.IsGenericParameter && typeArguments[p.GenericParameterPosition] == null)
+								{
+									typeArgumentsFillCount++;
+									typeArguments[p.GenericParameterPosition] = returnArgGenericArgs[j];
+								}
+							}
+						}
+						else if (!returnGen.IsGenericParameter)
 						{
 							if (!returnGen.IsAssignableFrom(body.Type)) return;
 							if (returnGen != body.Type)
@@ -184,7 +200,23 @@ namespace AScript.Functions
 					var body = defineFuncNode.Body.Build(tempBuildContext, e.ScriptContext, funcOptions);
 					// 构建 Expression<Func<T, bool>>
 					var returnGen = innerGens[innerGens.Length - 1];
-					if (!returnGen.IsGenericParameter)
+					if (returnGen.IsGenericType)
+					{
+						var returnType0 = GetGenericType(returnGen, body.Type);
+						if (returnType0 == null) return;
+						var returnParamArgs = returnGen.GetGenericArguments();
+						var returnArgGenericArgs = returnType0.GetGenericArguments();
+						for (int j = 0; j < returnParamArgs.Length && j < returnArgGenericArgs.Length; j++)
+						{
+							var p = returnParamArgs[j];
+							if (p.IsGenericParameter && typeArguments[p.GenericParameterPosition] == null)
+							{
+								typeArgumentsFillCount++;
+								typeArguments[p.GenericParameterPosition] = returnArgGenericArgs[j];
+							}
+						}
+					}
+					else if (!returnGen.IsGenericParameter)
 					{
 						if (!returnGen.IsAssignableFrom(body.Type)) return;
 						if (returnGen != body.Type)
@@ -329,7 +361,23 @@ namespace AScript.Functions
 						var body = defineFuncNode.Body.Build(tempBuildContext, e.Context, funcOptions);
 						// 构建 Expression<Func<T, bool>>
 						var returnGen = innerGens[innerGens.Length - 1];
-						if (!returnGen.IsGenericParameter)
+						if (returnGen.IsGenericType)
+						{
+							var returnType0 = GetGenericType(returnGen, body.Type);
+							if (returnType0 == null) return;
+							var returnParamArgs = returnGen.GetGenericArguments();
+							var returnArgGenericArgs = returnType0.GetGenericArguments();
+							for (int j = 0; j < returnParamArgs.Length && j < returnArgGenericArgs.Length; j++)
+							{
+								var p = returnParamArgs[j];
+								if (p.IsGenericParameter && typeArguments[p.GenericParameterPosition] == null)
+								{
+									typeArgumentsFillCount++;
+									typeArguments[p.GenericParameterPosition] = returnArgGenericArgs[j];
+								}
+							}
+						}
+						else if (!returnGen.IsGenericParameter)
 						{
 							if (!returnGen.IsAssignableFrom(body.Type)) return;
 							if (returnGen != body.Type)
@@ -394,7 +442,23 @@ namespace AScript.Functions
 					var body = defineFuncNode.Body.Build(tempBuildContext, e.Context, funcOptions);
 					// 构建 Func<T, bool>
 					var returnGen = innerGens[innerGens.Length - 1];
-					if (!returnGen.IsGenericParameter)
+					if (returnGen.IsGenericType)
+					{
+						var returnType0 = GetGenericType(returnGen, body.Type);
+						if (returnType0 == null) return;
+						var returnParamArgs = returnGen.GetGenericArguments();
+						var returnArgGenericArgs = returnType0.GetGenericArguments();
+						for (int j = 0; j < returnParamArgs.Length && j < returnArgGenericArgs.Length; j++)
+						{
+							var p = returnParamArgs[j];
+							if (p.IsGenericParameter && typeArguments[p.GenericParameterPosition] == null)
+							{
+								typeArgumentsFillCount++;
+								typeArguments[p.GenericParameterPosition] = returnArgGenericArgs[j];
+							}
+						}
+					}
+					else if (!returnGen.IsGenericParameter)
 					{
 						if (!returnGen.IsAssignableFrom(body.Type)) return;
 						if (returnGen != body.Type)
