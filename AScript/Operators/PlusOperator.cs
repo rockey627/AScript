@@ -18,8 +18,7 @@ namespace AScript.Operators
 			{
 				var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
 				var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-				if (left.Type == typeof(object) || right.Type == typeof(object)
-					|| !ExpressionUtils.ConvertMaxType(ref left, ref right))
+				if (!ExpressionUtils.ConvertMaxType(ref left, ref right))
 				{
 					e.Result = Expression.Dynamic(ExpressionUtils.Binder_Add, typeof(object), left, right);
 				}

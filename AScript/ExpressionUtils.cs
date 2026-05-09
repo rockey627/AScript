@@ -351,6 +351,16 @@ namespace AScript
 			//	expr1 = Expression.Convert(expr1, typeof(string));
 			//	return true;
 			//}
+			if (expr1.Type == typeof(object) && expr2.Type == typeof(string))
+			{
+				expr1 = Expression.Call(expr1, Method_Object_ToString);
+				return true;
+			}
+			if (expr1.Type == typeof(string) && expr2.Type == typeof(object))
+			{
+				expr2 = Expression.Call(expr2, Method_Object_ToString);
+				return true;
+			}
 			var type = ScriptUtils.GetMaxType(expr1.Type, expr2.Type);
 			if (type == null) return false;
 			if (expr1.Type != type)

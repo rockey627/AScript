@@ -511,7 +511,7 @@ namespace AScript
 				// 如果最后一条表达式是void类型（如return语句），不处理返回值赋值
 				if (lastExpression.Type != typeof(void))
 				{
-					if (this.ReturnType != null && this.ReturnType != typeof(object) && this.ReturnType != lastExpression.Type)
+					if (this.ReturnType != null && this.ReturnType != lastExpression.Type)
 					{
 						lastExpression = Expression.Convert(lastExpression, this.ReturnType);
 						list[list.Count - 1] = lastExpression;

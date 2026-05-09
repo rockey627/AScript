@@ -143,6 +143,14 @@ namespace AScript.Functions
 								tempBuildContext.ReturnType = returnGen;
 							}
 						}
+						else if (returnGen.IsGenericParameter)
+						{
+							var returnGenType = typeArguments[returnGen.GenericParameterPosition];
+							if (returnGenType != null && returnGenType != body.Type)
+							{
+								tempBuildContext.ReturnType = returnGenType;
+							}
+						}
 						var lambdaExpr = tempBuildContext.Build(e.ScriptContext, funcOptions, body);
 						argExpressions[i] = lambdaExpr;
 						if (returnGen.IsGenericParameter)
@@ -222,6 +230,14 @@ namespace AScript.Functions
 						if (returnGen != body.Type)
 						{
 							tempBuildContext.ReturnType = returnGen;
+						}
+					}
+					else if (returnGen.IsGenericParameter)
+					{
+						var returnGenType = typeArguments[returnGen.GenericParameterPosition];
+						if (returnGenType != null && returnGenType != body.Type)
+						{
+							tempBuildContext.ReturnType = returnGenType;
 						}
 					}
 					var lambdaExpr = tempBuildContext.Build(e.ScriptContext, funcOptions, body);
@@ -385,6 +401,14 @@ namespace AScript.Functions
 								tempBuildContext.ReturnType = returnGen;
 							}
 						}
+						else if (returnGen.IsGenericParameter)
+						{
+							var returnGenType = typeArguments[returnGen.GenericParameterPosition];
+							if (returnGenType != null && returnGenType != body.Type)
+							{
+								tempBuildContext.ReturnType = returnGenType;
+							}
+						}
 						var lambdaExpr = tempBuildContext.Build(e.Context, funcOptions, body);
 						argValues[i] = lambdaExpr;
 						if (returnGen.IsGenericParameter)
@@ -464,6 +488,14 @@ namespace AScript.Functions
 						if (returnGen != body.Type)
 						{
 							tempBuildContext.ReturnType = returnGen;
+						}
+					}
+					else if (returnGen.IsGenericParameter)
+					{
+						var returnGenType = typeArguments[returnGen.GenericParameterPosition];
+						if (returnGenType != null && returnGenType != body.Type)
+						{
+							tempBuildContext.ReturnType = returnGenType;
 						}
 					}
 					var lambdaExpr = tempBuildContext.Build(e.Context, funcOptions, body);

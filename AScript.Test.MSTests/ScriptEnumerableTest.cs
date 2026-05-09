@@ -1398,15 +1398,20 @@ var r = q.GroupBy(a=>a%2).ToDictionary(g=>g.Key, g=>g.ToList());
 		[TestMethod]
 		public void TestJoin()
 		{
+			var outer = new[] { new[] { 1, 'a' }, new[]{ 2, 'b' }, new[] { 3, 'c' } };
+			var inner = new[] { new[] { 1, 100 }, new[] { 2, 200 }, new[] { 4, 400 } };
+			var r = outer.Join(inner, o => o[0], i => i[0], (o, i) => o[1] + " - " + i[1]);
+			Assert.IsTrue(r is IEnumerable<string>);
+
 			string s = @"
 var outer = [[1,'a'],[2,'b'],[3,'c']];
 var inner = [[1,100],[2,200],[4,400]];
 var r = outer.Join(inner, o=>o[0], i=>i[0], (o,i)=>o[1]+""-""+i[1]);
 ";
 			var script = new Script();
-			var r = script.Eval(s);
-			Assert.IsInstanceOfType(r, typeof(IEnumerable<string>));
-			var list = ((IEnumerable<string>)r).ToList();
+			var result = script.Eval(s);
+			Assert.IsTrue(result is IEnumerable<string>);
+			var list = ((IEnumerable<string>)result).ToList();
 			Assert.AreEqual(2, list.Count);
 			Assert.IsTrue(list.Contains("a-100"));
 			Assert.IsTrue(list.Contains("b-200"));
