@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using AScript.Nodes;
 
 namespace AScript.Operators
@@ -38,7 +39,11 @@ namespace AScript.Operators
 				funcDefine.ReturnSystemType = typeof(void);
 				funcDefine.DelegateType = left.Type;
 				var del = funcDefine.Build(e.BuildContext, e.ScriptContext, e.Options);
-				e.Result = Expression.AddAssign(left, del);
+				var memExpr = (MemberExpression)left;
+				//var ei = (EventInfo)memExpr.Member;
+				var ei = memExpr.Expression.Type.GetEvent(memExpr.Member.Name);
+				e.Result = Expression.Call(memExpr.Expression, ei.AddMethod, del);
+				//e.Result = Expression.AddAssign(left, del);
 				return;
 			}
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
