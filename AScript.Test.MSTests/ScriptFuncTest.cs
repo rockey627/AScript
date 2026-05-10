@@ -596,6 +596,20 @@ sum(1,2)+8+sum(1,2,3)+mult(5,6)
 			var sum = script.Context.GetFunc<int, int, int>("sum");
 			Assert.IsNotNull(sum);
 			Assert.AreEqual(17, sum(8, 9));
+			Assert.AreEqual(30, script.Eval("sum(10,2)+18"));
+		}
+
+		[TestMethod]
+		public void Test04_1()
+		{
+			var script = new Script();
+			var result = script.Eval("int sum(int a, int b) { a+b }");
+			Assert.IsNotNull(result);
+			Assert.AreEqual(11, script.Eval("sum(1,2)+8"));
+			var sum = script.Context.GetFunc<int, int, int>("sum");
+			Assert.IsNotNull(sum);
+			Assert.AreEqual(17, sum(8, 9));
+			Assert.AreEqual(30, script.Eval("sum(10,2)+18"));
 		}
 
 		[TestMethod]

@@ -1,6 +1,7 @@
 ﻿using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using IronPython.Hosting;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.Scripting.Hosting;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -40,8 +41,15 @@ namespace AScript.Test.Consoles
 			//Test15();
 			//Test16();
 			//Test17();
+			//Test18_CSharpScript();
 			Console.WriteLine("end");
 			Console.ReadLine();
+		}
+
+		static void Test18_CSharpScript()
+		{
+			var r = CSharpScript.EvaluateAsync("1+2+3+4+5").Result;
+			Console.WriteLine(r);
 		}
 
 		static void Test17()
@@ -304,11 +312,11 @@ exec2(26)
 			var config = ManualConfig.Create(DefaultConfig.Instance).WithOptions(ConfigOptions.DisableOptimizationsValidator);
 			//BenchmarkRunner.Run<Benchmarks.DynamicTest>(config);
 			//BenchmarkRunner.Run<Benchmarks.DynamicTest2>(config);
-			//BenchmarkRunner.Run<Benchmarks.ExpressionTest02>(config);
+			BenchmarkRunner.Run<Benchmarks.ExpressionTest02>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest03_Func>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest04_Var>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest05_Var>(config);
-			BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func>(config);
+			//BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func2>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest07_Type>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest08_For>(config);

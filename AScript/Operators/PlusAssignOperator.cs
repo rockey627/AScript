@@ -95,7 +95,7 @@ namespace AScript.Operators
 						else if (arg1 is CustomFunctionObject customFunctionObject)
 						{
 							var argTypes = t.GetMethod("Invoke").GetParameters().Select(a => a.ParameterType).ToArray();
-							d = customFunctionObject.CreateDelegate(t, e.Options, argTypes, typeof(void));
+							d = customFunctionObject.Compile(t, e.Options, argTypes, typeof(void));
 						}
 						else throw new Exception($"invalid expression near {opRightNode.Name}+=, expect Delegate");
 						//return  Delegate.CreateDelegate(t, d.Target, d.Method);

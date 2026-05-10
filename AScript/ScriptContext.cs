@@ -1437,6 +1437,20 @@ namespace AScript
 			return null;
 		}
 
+		private static CustomFunction GetAndRemoveFunc(IList<CustomFunction> list, IList<Type> argTypes)
+		{
+			for (int i = list.Count - 1; i >= 0; i--)
+			{
+				var d = list[i];
+				if (ScriptUtils.IsMatchArgTypes(argTypes, d.ArgTypes))
+				{
+					list.RemoveAt(i);
+					return d;
+				}
+			}
+			return null;
+		}
+
 		private static Delegate GetFunc(IList<Delegate> list, IList<Type> argTypes, out bool useScriptContext, out bool hasClosure)
 		{
 			int argTypesCount = argTypes == null ? 0 : argTypes.Count;
@@ -1600,10 +1614,25 @@ namespace AScript
 					var func = GetFunc(list1, argTypes, out useScriptContext, out hasClosure);
 					if (func != null) return func;
 				}
-				var functions = context._Functions;
-				if (functions != null && functions.TryGetValue(name, out var list2))
+				var customFunctions = context._CustomFunctions;
+				if (customFunctions != null && customFunctions.TryGetValue(name, out var list2))
 				{
-					var func = GetFunc(list2, argTypes, out useScriptContext, out hasClosure);
+					// 移除未编译的临时函数，编译后缓存
+					var func = GetAndRemoveFunc(list2, argTypes);
+					if (func != null)
+					{
+						useScriptContext = false;
+						hasClosure = false;
+						var del = func.Compile(this, null);
+						// 缓存编译结果
+						context.AddTempFunc(name, del);
+						return del;
+					}
+				}
+				var functions = context._Functions;
+				if (functions != null && functions.TryGetValue(name, out var list3))
+				{
+					var func = GetFunc(list3, argTypes, out useScriptContext, out hasClosure);
 					if (func != null) return func;
 				}
 				context = context.Parent;

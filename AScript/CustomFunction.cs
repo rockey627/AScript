@@ -8,8 +8,8 @@ namespace AScript
 	{
 		public string Name { get; private set; }
 		public string[] ArgNames { get; private set; }
-		public Type[] ArgTypes { get; private set; }
-		public Type ReturnType { get; private set; }
+		public Type[] ArgTypes { get; set; }
+		public Type ReturnType { get; set; }
 		public ITreeNode Body { get; private set; }
 
 		public CustomFunction(string name, Type returnType, string[] argNames, Type[] argTypes, ITreeNode body)
@@ -39,6 +39,21 @@ namespace AScript
 				return null;
 			}
 			return this.Body.Eval(tempContext, options, new EvalControl(), out returnType);
+		}
+
+		public Delegate Compile(Type delegateType, ScriptContext context, BuildOptions options)
+		{
+			return Script.Lambda(delegateType, context, options, this.Body, this.ArgTypes, this.ArgNames, this.ReturnType).Compile();
+		}
+
+		public Delegate Compile(ScriptContext context, BuildOptions options)
+		{
+			return Compile(null, context, options);
+		}
+
+		public Delegate Compile(ScriptContext context)
+		{
+			return Compile(null, context, null);
 		}
 	}
 }

@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 using System.Reflection.Emit;
 using BenchmarkDotNet.Attributes;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 
 namespace AScript.Test.Consoles.Benchmarks
 {
@@ -41,6 +42,16 @@ namespace AScript.Test.Consoles.Benchmarks
 		{
 			var script = new AScript.Script();
 			var result = script.Eval<int>(s, -1);
+			if (result != r)
+			{
+				throw new Exception("result error");
+			}
+		}
+
+		[Benchmark]
+		public void CSharpScript1()
+		{
+			var result = (int)CSharpScript.EvaluateAsync(s).Result;
 			if (result != r)
 			{
 				throw new Exception("result error");

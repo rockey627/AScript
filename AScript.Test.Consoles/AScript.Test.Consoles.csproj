@@ -9,6 +9,7 @@
 	<ItemGroup>
 		<PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
 		<PackageReference Include="IronPython" Version="3.4.2" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.3.0" />
 	</ItemGroup>
 
 	<ItemGroup>

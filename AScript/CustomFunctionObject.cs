@@ -47,14 +47,16 @@ namespace AScript
 			}
 		}
 
-		public Delegate CreateDelegate(Type delegateType, BuildOptions options, Type[] argTypes, Type returnType)
+		public Delegate Compile(Type delegateType, BuildOptions options, Type[] argTypes, Type returnType)
 		{
-			return Script.Lambda(delegateType, _scriptContext, options, Function.Body, argTypes ?? Function.ArgTypes, Function.ArgNames, returnType ?? Function.ReturnType).Compile();
+			if (argTypes != null) this.Function.ArgTypes = argTypes;
+			if (returnType != null) this.Function.ReturnType = returnType;
+			return this.Function.Compile(delegateType, _scriptContext, options);
 		}
 
-		public Delegate CreateDelegate(Type delegateType, BuildOptions options)
+		public Delegate Compile(Type delegateType, BuildOptions options)
 		{
-			return CreateDelegate(delegateType, options, Function.ArgTypes, Function.ReturnType);
+			return this.Function.Compile(delegateType, _scriptContext, options);
 		}
 	}
 }
