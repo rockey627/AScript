@@ -21,6 +21,7 @@ namespace AScript.TokenHandlers
 				return;
 			}
 			var options = e.Options;
+			// 如果当前为编译模式，则改为使用执行模式
 			if ((options.CompileMode?? ECompileMode.None) == ECompileMode.All)
 			{
 				options = new BuildOptions(e.Options) { CompileMode = ECompileMode.None };
@@ -28,6 +29,7 @@ namespace AScript.TokenHandlers
 			var node = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, options, e.TokenReader, e.Control, e.Ignore, noblock: true);
 			if (node != null && !e.Ignore)
 			{
+				// 执行并返回结果
 				var v = node.Eval(e.ScriptContext, options, e.Control, out var type);
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(v, type));
 			}

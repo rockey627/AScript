@@ -1788,8 +1788,8 @@ namespace AScript
 		public void SetTempVar(string name, object value, Type valueType, bool searchContext)
 		{
 			var context = searchContext ? (GetOwnerContext(name, out _, out _) ?? this) : this;
-			Init_TempVariables();
-			Init_TempVariableTypes();
+			context.Init_TempVariables();
+			context.Init_TempVariableTypes();
 			context._TempVariables[name] = value;
 			context._TempVariableTypes[name] = valueType ?? value?.GetType() ?? typeof(object);
 		}

@@ -10,6 +10,28 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test40()
+		{
+			string s = @"
+static {
+    min+=10;
+    max+=5;
+}
+n >= min && n <= max
+";
+			var script = new Script();
+			script.Context.SetVar("min", 20);
+			script.Context.SetVar("max", 50);
+			var func = script.Compile<int, bool>(s, "n");
+			int total = 0;
+			for (int i = 0; i < 10000; i++)
+			{
+				if (func(i)) total++;
+			}
+			Assert.AreEqual(26, total);
+		}
+
+		[TestMethod]
 		public void Test39_event_2()
 		{
 			var s = @"
@@ -193,6 +215,18 @@ eval(s)
 ";
 			var script = new Script();
 			Assert.AreEqual(30, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test33_4()
+		{
+			string s = @"
+int n=10;
+static var s=""n+20"";
+eval(static s)
+";
+			var script = new Script();
+			Assert.AreEqual(30, script.Eval(s, ECompileMode.All));
 		}
 
 		[TestMethod]
