@@ -195,7 +195,7 @@ script.Context.AddType<Person>();
 Assert.AreEqual("Hello, my name is jim, I'm 30 years old", script.Eval(s));
 ```
 
-#### 字符串内插值
+#### 字符串插值
 ```C#
 string s = "var name='tom'; $'hello {name}, 5+8={5+8}'";
 var script = new Script();

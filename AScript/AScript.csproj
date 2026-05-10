@@ -9,7 +9,7 @@
 		<PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
 		<Description>
 			<![CDATA[
-动态脚本解析、编译、执行，C#语法，支持表达式运算、多语句、变量、函数、while/for/if/foreach语句等，可自定义语法解析；
+动态脚本解析、编译、执行，C#语法，支持表达式运算、多语句、变量、函数、while/for/if/foreach语句等，可自定义语法解析、自定义脚本语言；
 快速开始：
 var script = new Script();
 var result = script.Eval("int sum(int a, int b)=>a+b; int n=10; sum(n,5)");
@@ -17,8 +17,8 @@ Assert.AreEqual(15, result);
 			]]>
 		</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>1.1.1.0</Version>
-		<PackageReleaseNotes>动态语言特性；EvalFunction</PackageReleaseNotes>
+		<Version>1.2.0.0</Version>
+		<PackageReleaseNotes>static语法/泛型方法/元组/lambda/事件/as转换；移除IScriptProvider/ScriptEngine</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
