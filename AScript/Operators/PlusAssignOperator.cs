@@ -26,10 +26,25 @@ namespace AScript.Operators
 			{
 				left = arg0.Build(e.BuildContext, e.ScriptContext, e.Options);
 			}
+			if (typeof(Delegate).IsAssignableFrom(left.Type))
+			{
+				// 事件
+				var funcDefine = (DefineFuncNode)e.Args[1];
+				var ps = left.Type.GetMethod("Invoke").GetParameters();
+				for (int i = 0; i < ps.Length; i++)
+				{
+					funcDefine.Args[i].SystemType = ps[i].ParameterType;
+				}
+				funcDefine.ReturnSystemType = typeof(void);
+				funcDefine.DelegateType = left.Type;
+				var del = funcDefine.Build(e.BuildContext, e.ScriptContext, e.Options);
+				e.Result = Expression.AddAssign(left, del);
+				return;
+			}
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 			Expression leftExpr = left;
 			Expression rightExpr = right;
-			if (left.Type == typeof(object) || right.Type == typeof(object)
+			if (left.Type == typeof(object)
 				|| !ExpressionUtils.ConvertMaxType(ref leftExpr, ref rightExpr))
 			{
 				// dynamic方式作用+=无效

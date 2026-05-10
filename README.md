@@ -20,6 +20,7 @@
 * 支持注入类型
 * 支持C#语法
 * 支持元组类型
+* 支持事件处理
 * 支持16进制整数表示：0x0A
 * 支持多语句：用分号分隔多条语句
 * 支持行注释：// 行注释
@@ -94,15 +95,23 @@ public class Person
 	public string Name { get; set; }
 	public int Age { get; set; }
 
+	public event EventHandler<EventArgs> Saying;
+
 	public Person() { }
 	public Person(string name, int age)
 	{
 		this.Name = name;
 		this.Age = age;
 	}
+	
+	protected virtual void OnSaying(EventArgs e)
+	{
+		this.Saying?.Invoke(this, e);
+	}
 
 	public string SayHello()
 	{
+		OnSaying(EventArgs.Empty);
 		return $"Hello, my name is {this.Name}, I'm {this.Age} years old";
 	}
 
@@ -169,6 +178,21 @@ exec(5)
 var script = new Script();
 Assert.AreEqual(15, script.Eval(s));
 Assert.AreEqual(55, script.Eval("exec(10)"));
+```
+
+#### 事件
+```C#
+var s = @"
+var p = new Person('tom', 20);
+p.Saying += (ss,ee)=>{
+	(ss as Person).Name='jim';
+	(ss as Person).Age=30;
+}
+p.SayHello();
+";
+var script = new Script();
+script.Context.AddType<Person>();
+Assert.AreEqual("Hello, my name is jim, I'm 30 years old", script.Eval(s));
 ```
 
 #### 字符串内插值

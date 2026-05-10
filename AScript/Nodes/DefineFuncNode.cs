@@ -10,6 +10,7 @@ namespace AScript.Nodes
 		public Type ReturnSystemType { get; set; }
 		public DefineVarNode[] Args { get; set; }
 		public ITreeNode Body { get; set; }
+		public Type DelegateType { get; set; }
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
@@ -125,6 +126,7 @@ namespace AScript.Nodes
 				//ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
 				RewriteLocalVariables = false,
 				ReturnType = funcReturnType,
+				DelegateType = this.DelegateType,
 				IsMain = true
 			};
 			if (this.Args != null)

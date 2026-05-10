@@ -44,6 +44,10 @@ namespace AScript
 		/// </summary>
 		public Type ReturnType { get; set; }
 		/// <summary>
+		/// 生成的委托类型，为null表示自动
+		/// </summary>
+		public Type DelegateType { get; set; }
+		/// <summary>
 		/// 前置表达式列表
 		/// </summary>
 		public List<Expression> PrevExpressions
@@ -582,19 +586,6 @@ namespace AScript
 		/// <returns></returns>
 		public LambdaExpression Build(ScriptContext scriptContext, BuildOptions options, params Expression[] body)
 		{
-			return Build(null, scriptContext, options, body);
-		}
-
-		/// <summary>
-		/// 构建Lambda表达式
-		/// </summary>
-		/// <param name="delegateType"></param>
-		/// <param name="scriptContext"></param>
-		/// <param name="options"></param>
-		/// <param name="body"></param>
-		/// <returns></returns>
-		public LambdaExpression Build(Type delegateType, ScriptContext scriptContext, BuildOptions options, params Expression[] body)
-		{
 			// 函数参数列表
 			ParameterExpression[] parameters;
 			int parameterIndex;
@@ -620,7 +611,7 @@ namespace AScript
 			}
 			// 
 			var block = BuildBlock(scriptContext, options, body);
-			return delegateType == null ? Expression.Lambda(block, parameters) : Expression.Lambda(delegateType, block, parameters);
+			return this.DelegateType == null ? Expression.Lambda(block, parameters) : Expression.Lambda(this.DelegateType, block, parameters);
 		}
 
 		/// <summary>

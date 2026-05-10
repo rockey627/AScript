@@ -266,6 +266,19 @@ namespace AScript.Syntaxs
 					{
 						throw new Exception($"invalid expression '=>' at {t.Value.Line},{t.Value.Column}");
 					}
+					//BuildOptions buildOptions;
+					//if (options.CreateFullTreeNode ?? false)
+					//{
+					//	buildOptions = options;
+					//}
+					//else
+					//{
+					//	buildOptions = new BuildOptions(options) { CreateFullTreeNode = true };
+					//}
+					if (!(options.CreateFullTreeNode ?? false))
+					{
+						options = new BuildOptions(options) { CreateFullTreeNode = true };
+					}
 					// a => body 语法：单个变量作为参数
 					if (treeBuilder.Current is DefineVarNode defineVarNode)
 					{

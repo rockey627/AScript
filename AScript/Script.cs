@@ -1500,6 +1500,7 @@ namespace AScript
 			var buildContext = new BuildContext(null)
 			{
 				ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
+				DelegateType = delegateType,
 				ReturnType = returnType
 			};
 			if (argTypesCount > 0)
@@ -1527,8 +1528,46 @@ namespace AScript
 			var body = expression.Build(buildContext, context, buildOptions);
 			PoolManage.Return(expression);
 			var bodys = body == null ? null : new[] { body };
-			return buildContext.Build(delegateType, context, buildOptions, bodys);
+			return buildContext.Build(context, buildOptions, bodys);
 		}
+
+		//public static LambdaExpression Lambda(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		//{
+		//	if (expression == null) return null;
+		//	int argTypesCount = argTypes == null ? 0 : argTypes.Length;
+		//	int argNamesCount = argNames == null ? 0 : argNames.Length;
+		//	if (argTypesCount != argNamesCount)
+		//	{
+		//		throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+		//	}
+
+		//	if (argTypesCount > 0)
+		//	{
+		//		for (int i = 0; i < argTypesCount; i++)
+		//		{
+		//			string name = argNames[i];
+		//			Type type = argTypes[i];
+		//			buildContext.Parameters.Add(name, Expression.Parameter(type, name));
+		//		}
+		//	}
+		//	BuildOptions buildOptions;
+		//	if (options == null)
+		//	{
+		//		buildOptions = new BuildOptions(DefaultOptions) { CompileMode = ECompileMode.All };
+		//	}
+		//	else if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+		//	{
+		//		buildOptions = options;
+		//	}
+		//	else
+		//	{
+		//		buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
+		//	}
+		//	var body = expression.Build(buildContext, scriptContext, buildOptions);
+		//	PoolManage.Return(expression);
+		//	var bodys = body == null ? null : new[] { body };
+		//	return buildContext.Build(scriptContext, buildOptions, bodys);
+		//}
 
 		private static ITokenStream GetTokenStream(ScriptContext context, string expression)
 		{
