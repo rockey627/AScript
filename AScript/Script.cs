@@ -1358,7 +1358,11 @@ namespace AScript
 		{
 			if (buildContext == null) buildContext = new BuildContext();
 			BuildOptions buildOptions;
-			if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			if (options == null)
+			{
+				buildOptions = new BuildOptions(DefaultOptions) { CompileMode = ECompileMode.All };
+			}
+			else if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				buildOptions = options;
 			}
@@ -1378,7 +1382,11 @@ namespace AScript
 		{
 			if (buildContext == null) buildContext = new BuildContext();
 			BuildOptions buildOptions;
-			if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			if (options == null)
+			{
+				buildOptions = new BuildOptions(DefaultOptions) { CompileMode = ECompileMode.All };
+			}
+			else if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				buildOptions = options;
 			}
@@ -1419,7 +1427,11 @@ namespace AScript
 				}
 			}
 			BuildOptions buildOptions;
-			if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			if (options == null)
+			{
+				buildOptions = new BuildOptions(DefaultOptions) { CompileMode = ECompileMode.All };
+			}
+			else if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				buildOptions = options;
 			}
@@ -1455,7 +1467,11 @@ namespace AScript
 				}
 			}
 			BuildOptions buildOptions;
-			if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			if (options == null)
+			{
+				buildOptions = new BuildOptions(DefaultOptions) { CompileMode = ECompileMode.All };
+			}
+			else if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				buildOptions = options;
 			}
@@ -1467,6 +1483,11 @@ namespace AScript
 		}
 
 		public static LambdaExpression Lambda(ScriptContext context, BuildOptions options, ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		{
+			return Lambda(null, context, options, expression, argTypes, argNames, returnType);
+		}
+
+		public static LambdaExpression Lambda(Type delegateType, ScriptContext context, BuildOptions options, ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
 		{
 			if (expression == null) return null;
 			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
@@ -1491,7 +1512,11 @@ namespace AScript
 				}
 			}
 			BuildOptions buildOptions;
-			if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			if (options == null)
+			{
+				buildOptions = new BuildOptions(DefaultOptions) { CompileMode = ECompileMode.All };
+			}
+			else if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				buildOptions = options;
 			}
@@ -1502,7 +1527,7 @@ namespace AScript
 			var body = expression.Build(buildContext, context, buildOptions);
 			PoolManage.Return(expression);
 			var bodys = body == null ? null : new[] { body };
-			return buildContext.Build(context, buildOptions, bodys);
+			return buildContext.Build(delegateType, context, buildOptions, bodys);
 		}
 
 		private static ITokenStream GetTokenStream(ScriptContext context, string expression)

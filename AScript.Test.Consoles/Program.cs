@@ -10,6 +10,16 @@ namespace AScript.Test.Consoles
 {
 	internal class Program
 	{
+		public event EventHandler<EventArgs> Handled;
+		public event MyHandle Handle2;
+
+		public delegate void MyHandle(object sender, EventArgs e);
+
+		protected virtual void OnHandled(EventArgs e)
+		{
+			this.Handled?.Invoke(this, e);
+		}
+
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
@@ -28,9 +38,61 @@ namespace AScript.Test.Consoles
 			//Test13_Convert();
 			//Test14_Eval();
 			//Test15();
-			//Console.WriteLine(typeof(int[]).FullName);
+			//Test16();
+			//Test17();
 			Console.WriteLine("end");
 			Console.ReadLine();
+		}
+
+		static void Test17()
+		{
+			var t = typeof(Program);
+			var e = t.GetEvent("Handled");
+			var e2 = t.GetEvent("Handle2");
+			var p = new Program();
+			var ht = e.EventHandlerType; // EventHandler<EventArgs>
+			string text = "hi";
+			Action<object, EventArgs> d = (ss, ee) => Console.WriteLine("handled:" + text);
+
+			// 将Action<object, EventArgs>转换为EventHandler<EventArgs>并注册到事件
+			var handler = (EventHandler<EventArgs>)Delegate.CreateDelegate(ht, d.Target, d.Method);
+			e.AddEventHandler(p, handler);
+
+			p.OnHandled(EventArgs.Empty); // 触发事件，输出 "handled"
+		}
+
+		static void Test16()
+		{
+			var t = typeof(Program);
+			var e = t.GetEvent("Handled");
+			var p = new Program();
+			var ht = e.EventHandlerType; // EventHandler<EventArgs>
+
+			// 获取事件类型的 Invoke 方法
+			var handlerType = ht; // EventHandler<EventArgs>
+
+			// 创建动态方法
+			var dynamicMethod = new System.Reflection.Emit.DynamicMethod(
+				"DynamicHandler",
+				typeof(void),
+				new[] { typeof(object), typeof(EventArgs) },
+				typeof(Program).Module);
+
+			var il = dynamicMethod.GetILGenerator();
+			// 获取 Console.WriteLine 方法
+			var writeLineMethod = typeof(Console).GetMethod("WriteLine", new[] { typeof(string) });
+			// 加载字符串常量 "handled"
+			il.Emit(System.Reflection.Emit.OpCodes.Ldstr, "handled");
+			// 调用 Console.WriteLine
+			il.Emit(System.Reflection.Emit.OpCodes.Call, writeLineMethod);
+			// 返回
+			il.Emit(System.Reflection.Emit.OpCodes.Ret);
+
+			// 创建委托实例并注册到事件
+			var handler = dynamicMethod.CreateDelegate(handlerType);
+			e.AddEventHandler(p, handler);
+
+			p.OnHandled(EventArgs.Empty); // 触发事件，输出 "handled"
 		}
 
 		static void Test15()

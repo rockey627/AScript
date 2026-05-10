@@ -46,5 +46,15 @@ namespace AScript
 				}
 			}
 		}
+
+		public Delegate CreateDelegate(Type delegateType, BuildOptions options, Type[] argTypes, Type returnType)
+		{
+			return Script.Lambda(delegateType, _scriptContext, options, Function.Body, argTypes ?? Function.ArgTypes, Function.ArgNames, returnType ?? Function.ReturnType).Compile();
+		}
+
+		public Delegate CreateDelegate(Type delegateType, BuildOptions options)
+		{
+			return CreateDelegate(delegateType, options, Function.ArgTypes, Function.ReturnType);
+		}
 	}
 }

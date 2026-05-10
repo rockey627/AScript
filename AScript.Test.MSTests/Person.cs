@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AScript.Test.MSTests
 {
-	internal class Person
+	public class Person
 	{
 		public string Name { get; set; }
 		public int Age { get; set; }
@@ -15,6 +15,8 @@ namespace AScript.Test.MSTests
 			set => this.Name = value;
 		}
 
+		public event EventHandler<EventArgs> Saying;
+
 		public Person() { }
 		public Person(string name, int age)
 		{
@@ -22,8 +24,14 @@ namespace AScript.Test.MSTests
 			this.Age = age;
 		}
 
+		protected virtual void OnSaying(EventArgs e)
+		{
+			this.Saying?.Invoke(this, e);
+		}
+
 		public string SayHello()
 		{
+			OnSaying(EventArgs.Empty);
 			return $"Hello, my name is {this.Name}, I'm {this.Age} years old";
 		}
 

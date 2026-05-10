@@ -511,7 +511,7 @@ namespace AScript
 				// 如果最后一条表达式是void类型（如return语句），不处理返回值赋值
 				if (lastExpression.Type != typeof(void))
 				{
-					if (this.ReturnType != null && this.ReturnType != lastExpression.Type)
+					if (this.ReturnType != null && this.ReturnType != typeof(void) && this.ReturnType != lastExpression.Type)
 					{
 						lastExpression = Expression.Convert(lastExpression, this.ReturnType);
 						list[list.Count - 1] = lastExpression;
@@ -566,6 +566,10 @@ namespace AScript
 				}
 			}
 			// 
+			if (this.ReturnType == typeof(void))
+			{
+				return Expression.Block(this.ReturnType, variables, list);
+			}
 			return Expression.Block(variables, list);
 		}
 
@@ -577,6 +581,19 @@ namespace AScript
 		/// <param name="body"></param>
 		/// <returns></returns>
 		public LambdaExpression Build(ScriptContext scriptContext, BuildOptions options, params Expression[] body)
+		{
+			return Build(null, scriptContext, options, body);
+		}
+
+		/// <summary>
+		/// 构建Lambda表达式
+		/// </summary>
+		/// <param name="delegateType"></param>
+		/// <param name="scriptContext"></param>
+		/// <param name="options"></param>
+		/// <param name="body"></param>
+		/// <returns></returns>
+		public LambdaExpression Build(Type delegateType, ScriptContext scriptContext, BuildOptions options, params Expression[] body)
 		{
 			// 函数参数列表
 			ParameterExpression[] parameters;
@@ -603,7 +620,7 @@ namespace AScript
 			}
 			// 
 			var block = BuildBlock(scriptContext, options, body);
-			return Expression.Lambda(block, parameters);
+			return delegateType == null ? Expression.Lambda(block, parameters) : Expression.Lambda(delegateType, block, parameters);
 		}
 
 		/// <summary>

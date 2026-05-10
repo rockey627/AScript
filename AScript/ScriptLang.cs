@@ -237,6 +237,12 @@ namespace AScript
 			return false;
 		}
 
+		public virtual bool IsKeywords(string word)
+		{
+			var dict = _TokenHandlerDict;
+			return dict != null && dict.ContainsKey(word);
+		}
+
 		public object EvalVar(string name)
 		{
 			return EvalVar(name, out _);

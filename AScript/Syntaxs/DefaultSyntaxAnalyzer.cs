@@ -197,7 +197,23 @@ namespace AScript.Syntaxs
 						tokenReader.Push(t.Value);
 						break;
 					}
-					var statement0 = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
+					var buildOptions = options;
+					if (!(buildOptions.CreateFullTreeNode ?? false))
+					{
+						var token1 = tokenReader.Read();
+						Token? token2 = null;
+						if (token1.HasValue && token1.Value.Type == ETokenType.Word)
+						{
+							token2 = tokenReader.Read();
+							if (token2.HasValue && (token2.Value.Type == ETokenType.Word || token2.Value.IsSymbol(",")))
+							{
+								buildOptions = new BuildOptions(options) { CreateFullTreeNode = true };
+							}
+						}
+						if (token2.HasValue) tokenReader.Push(token2.Value);
+						if (token1.HasValue) tokenReader.Push(token1.Value);
+					}
+					var statement0 = BuildOneStatement(buildContext, scriptContext, buildOptions, tokenReader, control, ignore);
 					var nextToken = tokenReader.Read();
 					if (!nextToken.HasValue)
 					{
@@ -213,7 +229,7 @@ namespace AScript.Syntaxs
 						var items = ignore ? null : new List<ITreeNode> { statement0 };
 						while (true)
 						{
-							var item = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
+							var item = BuildOneStatement(buildContext, scriptContext, buildOptions, tokenReader, control, ignore);
 							if (!ignore) items.Add(item);
 							var tok = tokenReader.Read();
 							if (!tok.HasValue) throw new Exception("invalid tuple expression, expect ')'");
@@ -480,7 +496,8 @@ namespace AScript.Syntaxs
 			}
 			else if (!(e.TreeBuilder.Current is OperatorNode opNode && opNode.Name == ".")
 				&& nextToken.HasValue && nextToken.Value.Type == ETokenType.Word
-				&& !(ScriptUtils.Contains(endTokens, nextToken.Value.Value) || ScriptUtils.Contains(endTokens, "\n") && nextToken.Value.Line > e.CurrentToken.Line))
+				&& !(ScriptUtils.Contains(endTokens, nextToken.Value.Value) || ScriptUtils.Contains(endTokens, "\n") && nextToken.Value.Line > e.CurrentToken.Line)
+				&& !e.ScriptContext.IsKeywords(nextToken.Value.Value))
 			{
 				// 类型定义 (int x 或 int Add(...))
 				var currentToken = e.CurrentToken;

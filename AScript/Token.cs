@@ -19,5 +19,10 @@ namespace AScript
 			this.Line = line;
 			this.Column = column;
 		}
+
+		public bool IsSymbol(string w)
+		{
+			return this.Type != ETokenType.String && this.Type != ETokenType.Number && this.Value == w;
+		}
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Linq.Expressions;
 using AScript.Nodes;
 
@@ -64,7 +65,24 @@ namespace AScript.Operators
 				// 属性赋值
 				var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type1);
 				var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
-				var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (t, v) => (dynamic)v + (dynamic)arg1);
+				var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (t, v) =>
+				{
+					if (typeof(Delegate).IsAssignableFrom(t))
+					{
+						// 事件
+						Delegate d;
+						if (arg1 is Delegate arg1Del) d = arg1Del;
+						else if (arg1 is CustomFunctionObject customFunctionObject)
+						{
+							var argTypes = t.GetMethod("Invoke").GetParameters().Select(a => a.ParameterType).ToArray();
+							d = customFunctionObject.CreateDelegate(t, e.Options, argTypes, typeof(void));
+						}
+						else throw new Exception($"invalid expression near {opRightNode.Name}+=, expect Delegate");
+						//return  Delegate.CreateDelegate(t, d.Target, d.Method);
+						return d;
+					}
+					return (dynamic)v + (dynamic)arg1;
+				});
 				e.SetResult(value, type0 == typeof(object) ? type1 : type0);
 			}
 		}

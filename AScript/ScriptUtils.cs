@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace AScript
 {
@@ -279,6 +280,15 @@ namespace AScript
 				value = valueFac(type, value);
 				p.SetValue(target, value);
 				return value;
+			}
+
+			var e = targetType.GetEvent(propertyOrFieldName);
+			if (e != null)
+			{
+				type = typeof(void);
+				var del = (Delegate)valueFac(e.EventHandlerType, null);
+				e.AddEventHandler(target, del);
+				return null;
 			}
 
 			throw new Exception($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");

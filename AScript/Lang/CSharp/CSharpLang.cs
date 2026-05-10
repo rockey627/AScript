@@ -113,6 +113,8 @@ namespace AScript.Lang.CSharp
 			AddFunc("Invoke", CustomFunctionEvaluator.Instance);
 			// 内置eval函数
 			AddFunc("eval", EvalFunction.Instance);
+			// 类型转换
+			AddFunc("as", ConvertFunction.Instance);
 
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);
@@ -132,6 +134,7 @@ namespace AScript.Lang.CSharp
 			AddTokenHandler("continue", ContinueTokenHandler.Instance);
 			AddTokenHandler("$", StringInterpolationTokenHandler.Instance);
 			AddTokenHandler("static", StaticTokenHandler.Instance);
+			AddTokenHandler("as", new OperatorTokenHandler("??"));
 		}
 	}
 }

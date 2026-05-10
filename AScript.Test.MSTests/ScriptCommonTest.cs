@@ -10,6 +10,19 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test39_event()
+		{
+			var s = @"
+var p = new Person('tom', 20);
+p.Saying += (ss,ee)=>{(ss as Person).Name='jim';(ss as Person).Age=30;}
+p.SayHello();
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			Assert.AreEqual("Hello, my name is jim, I'm 30 years old", script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test38_static_2()
 		{
 			string s = @"

@@ -491,6 +491,42 @@ namespace AScript
 			return null;
 		}
 
+		public bool IsKeywords(string word)
+		{
+			if (string.IsNullOrEmpty(word)) return false;
+			var context = this;
+			while (context != null)
+			{
+				var dict = context._TokenHandlerDict;
+				if (dict != null && dict.ContainsKey(word)) return true;
+				context = context.Parent;
+			}
+
+			var langs = this.Langs;
+			if (langs == null || langs.Length == 0)
+			{
+				foreach (var item in Script.Langs.GetDefaults())
+				{
+					if (Script.Langs.TryGetValue(item, out var lang))
+					{
+						return lang.IsKeywords(word);
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < langs.Length; i++)
+				{
+					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					{
+						return lang.IsKeywords(word);
+					}
+				}
+			}
+
+			return false;
+		}
+
 		/// <summary>
 		/// 清空所有数据
 		/// </summary>
