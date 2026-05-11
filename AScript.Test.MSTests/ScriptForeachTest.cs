@@ -10,6 +10,45 @@ namespace AScript.Test.MSTests
 	public class ScriptForeachTest
 	{
 		[TestMethod]
+		public void Test05_2()
+		{
+			// foreach 遍历
+			var code1 = @"
+total = 0
+foreach(var (x,y) in [(1,2), (2,3), (3,4)]){
+    total += x + y;
+}
+total
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(15, script.Eval(code1));
+		}
+
+		[TestMethod]
+		public void Test05()
+		{
+			int total = 0;
+			var list = new[] { (1, 2), (2, 3), (3, 4) };
+			foreach (var (x, y) in list)
+			{
+				total += x + y;
+			}
+			Assert.AreEqual(15, total);
+
+			// foreach 遍历
+			var code1 = @"
+total = 0
+foreach(var (x,y) in [(1,2), (2,3), (3,4)]){
+    total += x + y;
+}
+total
+";
+			var script = new Script();
+			Assert.AreEqual(15, script.Eval(code1));
+		}
+
+		[TestMethod]
 		public void Test04_2()
 		{
 			// foreach 遍历

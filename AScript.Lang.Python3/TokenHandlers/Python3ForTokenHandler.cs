@@ -36,14 +36,14 @@ namespace AScript.Lang.Python3.TokenHandlers
 			// 检查是否是变量名列表 (for x, y, z in ...)
 			nextToken = e.TokenReader.Read();
 
-			if (nextToken.HasValue && nextToken.Value.Type != ETokenType.String && nextToken.Value.Value == ",")
+			if (nextToken.HasValue && nextToken.Value.IsSymbol(","))
 			{
 				if (!e.Ignore)
 				{
 					varDefines = new List<DefineVarNode>();
 					varDefines.Add(PoolManage.CreateDefineVarNode(varName, null, typeof(object)));
 				}
-				while (nextToken.HasValue && nextToken.Value.Type != ETokenType.String && nextToken.Value.Value == ",")
+				while (nextToken.HasValue && nextToken.Value.IsSymbol(","))
 				{
 					var varToken = e.TokenReader.Read();
 					if (!varToken.HasValue || varToken.Value.Type != ETokenType.Word || varToken.Value.Value == "in")
@@ -63,7 +63,7 @@ namespace AScript.Lang.Python3.TokenHandlers
 			{
 				throw new Exception($"invalid {e.CurrentToken.Value} expression at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
 			}
-			if (nextToken.Value.Type == ETokenType.String || nextToken.Value.Value != "in")
+			if (!nextToken.Value.IsSymbol("in"))
 			{
 				throw new Exception($"invalid {nextToken.Value.Value} of {e.CurrentToken.Value} expression at ({nextToken.Value.Line},{nextToken.Value.Column})");
 			}

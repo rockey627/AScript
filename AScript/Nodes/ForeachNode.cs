@@ -141,9 +141,8 @@ namespace AScript.Nodes
 
 				if (itemType.IsGenericType)
 				{
-					var genericTypeDefinition = itemType.GetGenericTypeDefinition();
-					isTuple = genericTypeDefinition.Name.StartsWith("Tuple`");
-					isValueTuple = genericTypeDefinition.Name.StartsWith("ValueTuple`");
+					isTuple = itemType.Name.StartsWith("Tuple`");
+					isValueTuple = itemType.Name.StartsWith("ValueTuple`");
 					if (isTuple || isValueTuple)
 					{
 						elementTypes.AddRange(itemType.GetGenericArguments());
