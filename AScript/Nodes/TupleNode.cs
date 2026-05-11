@@ -100,9 +100,7 @@ namespace AScript.Nodes
 				itemTypes[i] = expr.Type;
 			}
 
-			var createMethod = GetMethod(itemTypes.Length);
-			var genericCreateMethod = createMethod.MakeGenericMethod(itemTypes);
-			return Expression.Call(genericCreateMethod, itemValues);
+			return BuildTuple(itemValues, itemTypes);
 		}
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
@@ -125,6 +123,13 @@ namespace AScript.Nodes
 		{
 			var createMethod = GetMethod(types.Length);
 			return createMethod.MakeGenericMethod(types).Invoke(null, values);
+		}
+
+		public static Expression BuildTuple(Expression[] itemValues, Type[] itemTypes)
+		{
+			var createMethod = GetMethod(itemTypes.Length);
+			var genericCreateMethod = createMethod.MakeGenericMethod(itemTypes);
+			return Expression.Call(genericCreateMethod, itemValues);
 		}
 
 		private static MethodInfo GetMethod(int count)

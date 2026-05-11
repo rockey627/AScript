@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CSharp.RuntimeBinder;
 using AScript.Nodes;
 using System.Collections;
+using System.Linq;
 
 namespace AScript.Operators
 {
@@ -20,69 +21,7 @@ namespace AScript.Operators
 			if (arg0 is VariableNode v)
 			{
 				var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-				//
-				ParameterExpression left;
-				// 获取变量声明的类型（如果有）
-				Type declaredType = null;
-				BuildContext ownerBuildContext = null;
-				if (arg0 is DefineVarNode defineVar)
-				{
-					declaredType = defineVar.SystemType ?? e.ScriptContext.EvalType(defineVar.Type);
-					if (declaredType != null && (declaredType == typeof(object) || declaredType == typeof(void)))
-					{
-						declaredType = null;
-					}
-					left = null;
-					e.BuildContext.LocalVariables.Add(v.Name);
-				}
-				else
-				{
-					//e.BuildContext.TryGetVariableOrParameter(v.Name, out left, out ownerBuildContext, out _);
-					//// 是否在执行上下文中存在变量
-					//var ownerContext = e.ScriptContext.GetOwnerContext(v.Name, out _, out _);
-					//if (ownerContext == null)
-					//{
-					//	e.BuildContext.LocalVariables.Add(v.Name);
-					//}
-					left = v.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out ownerBuildContext, out _);
-				}
-
-				if (declaredType == null)
-				{
-					if (left != null)
-					{
-						declaredType = left.Type;
-					}
-					else if (e.Options.Dynamic ?? e.ScriptContext.IsDynamicLang() ?? false)
-					{
-						declaredType = typeof(object);
-					}
-				}
-
-				// 记录最新类型
-				if (declaredType == typeof(object) && right.Type != typeof(object))
-				{
-					(ownerBuildContext ?? e.BuildContext).LastTypes[v.Name] = right.Type;
-				}
-
-				// 如果声明了类型，进行类型转换
-				Expression rightExpr = right;
-				if (declaredType != null && right.Type != declaredType)
-				{
-					rightExpr = Expression.Convert(right, declaredType);
-				}
-
-				if (left == null)
-				{
-					// 定义变量
-					left = Expression.Variable(declaredType ?? right.Type, v.Name);
-					e.BuildContext.Variables[v.Name] = left;
-				}
-				if (right is LambdaExpression lambdaExpression)
-				{
-					(ownerBuildContext ?? e.BuildContext).AddTempFunc(left.Name, lambdaExpression);
-				}
-				e.Result = Expression.Assign(left, rightExpr);
+				e.Result = HandleVariableAssign(e, v, right);
 			}
 			else if (arg0 is OperatorNode opNode && opNode.Name == "[]")
 			{
@@ -174,6 +113,16 @@ namespace AScript.Operators
 				var valuesExpr = Expression.Convert(values, typeof(IList));
 				e.Result = Expression.Call(ExpressionUtils.Method_ScriptUtils_SliceAssign, listExpr, startExpr, endExpr, valuesExpr);
 			}
+			else if (arg0 is CallFuncNode callFuncNode2 && callFuncNode2.Name == "var")
+			{
+				// 元组解构
+				HandleTupleBuild(e, callFuncNode2.Args, false);
+			}
+			else if (arg0 is TupleNode tupleNode)
+			{
+				// 元组解构
+				HandleTupleBuild(e, tupleNode.Items);
+			}
 			else
 			{
 				var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
@@ -194,16 +143,22 @@ namespace AScript.Operators
 			if (e.Args.Count != 2) return;
 			var arg0 = e.Args[0];
 
-			if (arg0 is VariableNode)
+			if (arg0 is VariableNode varNode)
 			{
+				string varName = varNode.Name;
+				var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
+
+				if (varName == "_")
+				{
+					e.SetResult(value, type);
+					return;
+				}
+
 				// 获取变量名和声明类型
-				string varName;
 				Type declaredType = null;
-				VariableNode varNode = null;
 
 				if (arg0 is DefineVarNode def)
 				{
-					varName = def.Name;
 					declaredType = def.SystemType ?? e.Context.EvalType(def.Type);
 					// 先设置变量类型
 					if (declaredType != null && declaredType != typeof(object) && declaredType != typeof(void))
@@ -213,12 +168,8 @@ namespace AScript.Operators
 				}
 				else
 				{
-					varNode = (VariableNode)arg0;
-					varName = varNode.Name;
 					declaredType = e.Context.GetVarType(varName);
 				}
-
-				var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
 
 				if (e.Options.Dynamic ?? e.Context.IsDynamicLang() ?? false)
 				{
@@ -348,7 +299,10 @@ namespace AScript.Operators
 						itemValues[i] = value;
 						itemTypes[i] = itemType;
 						var varName = ((VariableNode)arg0Items[i]).Name;
-						e.Context.SetTempVar(varName, value, itemType, searchContext ?? !(arg0Items[i] is DefineVarNode));
+						if (varName != "_")
+						{
+							e.Context.SetTempVar(varName, value, itemType, searchContext ?? !(arg0Items[i] is DefineVarNode));
+						}
 					}
 				}
 				// 返回元组
@@ -370,6 +324,8 @@ namespace AScript.Operators
 				var itemTypes = arg0Items.Count == arg1FieldCount ? null : new Type[arg0Items.Count];
 				for (int i = 0; i < arg0Items.Count; i++)
 				{
+					var varName = ((VariableNode)arg0Items[i]).Name;
+					if (varName == "_" && itemValues == null) continue;
 					object value;
 					Type itemType;
 					if (isValueTuple)
@@ -389,8 +345,10 @@ namespace AScript.Operators
 						itemValues[i] = value;
 						itemTypes[i] = itemType;
 					}
-					var varName = ((VariableNode)arg0Items[i]).Name;
-					e.Context.SetTempVar(varName, value, itemType, searchContext ?? !(arg0Items[i] is DefineVarNode));
+					if (varName != "_")
+					{
+						e.Context.SetTempVar(varName, value, itemType, searchContext ?? !(arg0Items[i] is DefineVarNode));
+					}
 				}
 				// 返回元组
 				e.SetResult(itemValues == null ? arg1 : TupleNode.CreateTuple(itemValues, itemTypes));
@@ -398,6 +356,117 @@ namespace AScript.Operators
 			}
 
 			throw new Exception("invalid expression near =");
+		}
+
+		private Expression HandleVariableAssign(FunctionBuildArgs e, VariableNode arg0Node, Expression right, bool? searchContext = null)
+		{
+			if (arg0Node.Name == "_") return right;
+
+			ParameterExpression left = null;
+			// 获取变量声明的类型（如果有）
+			Type declaredType = null;
+			BuildContext ownerBuildContext = null;
+			if (arg0Node is DefineVarNode defineVar)
+			{
+				declaredType = defineVar.SystemType ?? e.ScriptContext.EvalType(defineVar.Type);
+				if (declaredType != null && (declaredType == typeof(object) || declaredType == typeof(void)))
+				{
+					declaredType = null;
+				}
+				left = null;
+				e.BuildContext.LocalVariables.Add(arg0Node.Name);
+			}
+			else
+			{
+				if (!(searchContext ?? true))
+				{
+					e.BuildContext.LocalVariables.Add(arg0Node.Name);
+				}
+				//e.BuildContext.TryGetVariableOrParameter(v.Name, out left, out ownerBuildContext, out _);
+				//// 是否在执行上下文中存在变量
+				//var ownerContext = e.ScriptContext.GetOwnerContext(v.Name, out _, out _);
+				//if (ownerContext == null)
+				//{
+				//	e.BuildContext.LocalVariables.Add(v.Name);
+				//}
+				left = arg0Node.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out ownerBuildContext, out _);
+			}
+
+			if (declaredType == null)
+			{
+				if (left != null)
+				{
+					declaredType = left.Type;
+				}
+				else if (e.Options.Dynamic ?? e.ScriptContext.IsDynamicLang() ?? false)
+				{
+					declaredType = typeof(object);
+				}
+			}
+
+			// 记录最新类型
+			if (declaredType == typeof(object) && right.Type != typeof(object))
+			{
+				(ownerBuildContext ?? e.BuildContext).LastTypes[arg0Node.Name] = right.Type;
+			}
+
+			// 如果声明了类型，进行类型转换
+			Expression rightExpr = right;
+			if (declaredType != null && right.Type != declaredType)
+			{
+				rightExpr = Expression.Convert(right, declaredType);
+			}
+
+			if (left == null)
+			{
+				// 定义变量
+				left = Expression.Variable(declaredType ?? right.Type, arg0Node.Name);
+				e.BuildContext.Variables[arg0Node.Name] = left;
+			}
+			if (right is LambdaExpression lambdaExpression)
+			{
+				(ownerBuildContext ?? e.BuildContext).AddTempFunc(left.Name, lambdaExpression);
+			}
+			return Expression.Assign(left, rightExpr);
+		}
+
+		private void HandleTupleBuild(FunctionBuildArgs e, IList<ITreeNode> arg0Items, bool? searchContext = null)
+		{
+			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+			var rightType = right.Type;
+			var rightTypeName = rightType.Name;
+			bool isValueTuple = rightTypeName.StartsWith("ValueTuple`");
+			bool isTuple = rightTypeName.StartsWith("Tuple`");
+			if (!isValueTuple && !isTuple)
+			{
+				throw new Exception("invalid expression near =, right side is not a tuple");
+			}
+
+			int rightFieldCount = isValueTuple ? rightType.GetFields().Length : rightType.GetProperties().Length;
+			if (arg0Items.Count > rightFieldCount)
+			{
+				throw new Exception("invalid expression near =, tuple length not matched");
+			}
+
+			var expressions = new List<Expression>(arg0Items.Count + 1);
+			for (int i = 0; i < arg0Items.Count; i++)
+			{
+				var arg0Item = arg0Items[i] as VariableNode;
+				if (arg0Item.Name == "_" && arg0Items.Count == rightFieldCount) continue;
+				var value = isValueTuple ? Expression.Field(right, $"Item{i + 1}") : Expression.Property(right, $"Item{i + 1}");
+				expressions.Add(HandleVariableAssign(e, arg0Item, value, searchContext));
+			}
+
+			if (arg0Items.Count == rightFieldCount)
+			{
+				expressions.Add(right);
+			}
+			else
+			{
+				expressions.Add(TupleNode.BuildTuple(expressions.ToArray(), expressions.Select(a => a.Type).ToArray()));
+			}
+
+			e.Result = Expression.Block(expressions);
 		}
 
 		/// <summary>
