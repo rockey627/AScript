@@ -316,30 +316,84 @@ namespace AScript.Operators
 			}
 			else if (arg0 is CallFuncNode callFuncNode2 && callFuncNode2.Name == "var")
 			{
-				// 元组批量赋值
-				if (!(e.Args[1] is TupleNode tupleNode1))
-				{
-					throw new Exception("invalid expression near =");
-				}
-				if (callFuncNode2.Args.Length > tupleNode1.Items.Count)
+				// 元组解构
+				HandleTuple(e, callFuncNode2.Args, false);
+				return;
+			}
+			else if (arg0 is TupleNode tupleNode0)
+			{
+				// 元组解构
+				HandleTuple(e, tupleNode0.Items);
+				return;
+			}
+
+			throw new Exception("invalid expression near =");
+		}
+
+		private void HandleTuple(FunctionEvalArgs e, IList<ITreeNode> arg0Items, bool? searchContext = null)
+		{
+			if (e.Args[1] is TupleNode tupleNode)
+			{
+				if (arg0Items.Count > tupleNode.Items.Count)
 				{
 					throw new Exception("invalid expression near =, tuple length not matched");
 				}
-				var itemValues = new object[callFuncNode2.Args.Length];
-				var itemTypes = new Type[callFuncNode2.Args.Length];
-				for (int i = 0; i < tupleNode1.Items.Count; i++)
+				var itemValues = new object[arg0Items.Count];
+				var itemTypes = new Type[arg0Items.Count];
+				for (int i = 0; i < tupleNode.Items.Count; i++)
 				{
-					var value = tupleNode1.Items[i].Eval(e.Context, e.Options, e.Control, out var itemType);
-					if (i < callFuncNode2.Args.Length)
+					var value = tupleNode.Items[i].Eval(e.Context, e.Options, e.Control, out var itemType);
+					if (i < arg0Items.Count)
 					{
 						itemValues[i] = value;
 						itemTypes[i] = itemType;
-						var varName = ((VariableNode)callFuncNode2.Args[i]).Name;
-						e.Context.SetTempVar(varName, value, itemType, false);
+						var varName = ((VariableNode)arg0Items[i]).Name;
+						e.Context.SetTempVar(varName, value, itemType, searchContext ?? !(arg0Items[i] is DefineVarNode));
 					}
 				}
 				// 返回元组
 				e.SetResult(TupleNode.CreateTuple(itemValues, itemTypes));
+				return;
+			}
+			var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
+			var arg1Type = arg1?.GetType();
+			var arg1TypeName = arg1Type?.Name;
+			if (arg1TypeName != null && (arg1TypeName.StartsWith("ValueTuple`") || arg1TypeName.StartsWith("Tuple`")))
+			{
+				bool isValueTuple = arg1TypeName.StartsWith("ValueTuple`");
+				int arg1FieldCount = isValueTuple ? arg1Type.GetFields().Length : arg1Type.GetProperties().Length;
+				if (arg0Items.Count > arg1FieldCount)
+				{
+					throw new Exception("invalid expression near =, tuple length not matched");
+				}
+				var itemValues = arg0Items.Count == arg1FieldCount ? null : new object[arg0Items.Count];
+				var itemTypes = arg0Items.Count == arg1FieldCount ? null : new Type[arg0Items.Count];
+				for (int i = 0; i < arg0Items.Count; i++)
+				{
+					object value;
+					Type itemType;
+					if (isValueTuple)
+					{
+						var info = arg1Type.GetField($"Item{i + 1}");
+						value = info.GetValue(arg1);
+						itemType = info.FieldType;
+					}
+					else
+					{
+						var info = arg1Type.GetProperty($"Item{i + 1}");
+						value = info.GetValue(arg1);
+						itemType = info.PropertyType;
+					}
+					if (itemValues != null)
+					{
+						itemValues[i] = value;
+						itemTypes[i] = itemType;
+					}
+					var varName = ((VariableNode)arg0Items[i]).Name;
+					e.Context.SetTempVar(varName, value, itemType, searchContext ?? !(arg0Items[i] is DefineVarNode));
+				}
+				// 返回元组
+				e.SetResult(itemValues == null ? arg1 : TupleNode.CreateTuple(itemValues, itemTypes));
 				return;
 			}
 
