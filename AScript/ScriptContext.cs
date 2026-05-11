@@ -81,6 +81,9 @@ namespace AScript
 		// 临时函数
 		private IDictionary<string, List<CustomFunction>> _CustomFunctions;
 
+		// 事件
+		private IDictionary<string, Delegate> _Events;
+
 		private string[] _Langs;
 
 		/// <summary>
@@ -628,6 +631,107 @@ namespace AScript
 			return null;
 		}
 
+		public Delegate GetEvent(string name, Type delegateType)
+		{
+			string eventKey = $"{name}_{delegateType.GetHashCode()}";
+			var context = this;
+			while (context != null)
+			{
+				var events = context._Events;
+				if (events != null && events.TryGetValue(eventKey, out var e))
+				{
+					return e;
+				}
+				context = context.Parent;
+			}
+			return null;
+		}
+
+		public Delegate GetOrCreateEvent(string name, Type delegateType)
+		{
+			string eventKey = $"{name}_{delegateType.GetHashCode()}";
+			var context = this;
+			while (context != null)
+			{
+				var events = context._Events;
+				if (events != null && events.TryGetValue(eventKey, out var e))
+				{
+					return e;
+				}
+				context = context.Parent;
+			}
+
+			var argTypes = delegateType.GetMethod("Invoke").GetParameters().Select(a => a.ParameterType).ToArray();
+			context = this;
+			while (context != null)
+			{
+				var customFunctions = context._CustomFunctions;
+				if (customFunctions != null && customFunctions.TryGetValue(name, out var list2))
+				{
+					// 移除未编译的临时函数，编译后缓存
+					var func = GetAndRemoveFunc(list2, argTypes);
+					if (func != null)
+					{
+						var del = func.Compile(delegateType, this, null);
+						// 缓存编译结果
+						context.AddTempFunc(name, del);
+						if (context._Events == null)
+						{
+							context._Events = new Dictionary<string, Delegate>();
+						}
+						context._Events[eventKey] = del;
+						return del;
+					}
+				}
+				var tempFunctions = context._TempFunctions;
+				if (tempFunctions != null && tempFunctions.TryGetValue(name, out var list1))
+				{
+					var func = GetFunc(list1, argTypes, out _, out _);
+					if (func != null)
+					{
+						if (context._Events == null)
+						{
+							context._Events = new Dictionary<string, Delegate>();
+						}
+						if (func.GetType() == delegateType)
+						{
+							context._Events[eventKey] = func;
+						}
+						else
+						{
+							func = Delegate.CreateDelegate(delegateType, func.Method);
+							context._Events[eventKey] = func;
+						}
+						return func;
+					}
+				}
+				var functions = context._Functions;
+				if (functions != null && functions.TryGetValue(name, out var list3))
+				{
+					var func = GetFunc(list3, argTypes, out _, out _);
+					if (func != null)
+					{
+						if (context._Events == null)
+						{
+							context._Events = new Dictionary<string, Delegate>();
+						}
+						if (func.GetType() == delegateType)
+						{
+							context._Events[eventKey] = func;
+						}
+						else
+						{
+							func = Delegate.CreateDelegate(delegateType, func.Method);
+							context._Events[eventKey] = func;
+						}
+						return func;
+					}
+				}
+				context = context.Parent;
+			}
+			return null;
+		}
+
 		public object EvalVar(string name)
 		{
 			return EvalVar(name, out _);
@@ -743,7 +847,7 @@ namespace AScript
 					}
 				}
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				throw;
 			}
@@ -1608,12 +1712,6 @@ namespace AScript
 			var context = this;
 			while (context != null)
 			{
-				var tempFunctions = context._TempFunctions;
-				if (tempFunctions != null && tempFunctions.TryGetValue(name, out var list1))
-				{
-					var func = GetFunc(list1, argTypes, out useScriptContext, out hasClosure);
-					if (func != null) return func;
-				}
 				var customFunctions = context._CustomFunctions;
 				if (customFunctions != null && customFunctions.TryGetValue(name, out var list2))
 				{
@@ -1628,6 +1726,12 @@ namespace AScript
 						context.AddTempFunc(name, del);
 						return del;
 					}
+				}
+				var tempFunctions = context._TempFunctions;
+				if (tempFunctions != null && tempFunctions.TryGetValue(name, out var list1))
+				{
+					var func = GetFunc(list1, argTypes, out useScriptContext, out hasClosure);
+					if (func != null) return func;
 				}
 				var functions = context._Functions;
 				if (functions != null && functions.TryGetValue(name, out var list3))

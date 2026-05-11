@@ -245,7 +245,7 @@ namespace AScript
 			throw new Exception($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
 		}
 
-		public static object GetAndSetValue(object instance, string propertyOrFieldName, out Type type, Func<Type, object, object> valueFac)
+		public static object GetAndSetValue(object instance, string propertyOrFieldName, out Type type, Func<MemberInfo, Type, object, object> valueFac)
 		{
 			object target;
 			Type targetType;
@@ -267,7 +267,7 @@ namespace AScript
 			{
 				type = p.PropertyType;
 				var value = p.GetValue(target);
-				value = valueFac(type, value);
+				value = valueFac(p, type, value);
 				p.SetValue(target, value);
 				return value;
 			}
@@ -277,7 +277,7 @@ namespace AScript
 			{
 				type = f.FieldType;
 				var value = p.GetValue(target);
-				value = valueFac(type, value);
+				value = valueFac(f, type, value);
 				p.SetValue(target, value);
 				return value;
 			}
@@ -286,8 +286,7 @@ namespace AScript
 			if (e != null)
 			{
 				type = typeof(void);
-				var del = (Delegate)valueFac(e.EventHandlerType, null);
-				e.AddEventHandler(target, del);
+				valueFac(e, e.EventHandlerType, null);
 				return null;
 			}
 

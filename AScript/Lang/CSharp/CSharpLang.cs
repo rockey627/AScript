@@ -59,6 +59,7 @@ namespace AScript.Lang.CSharp
 			AddType(typeof(Path));
 			AddType(typeof(Convert));
 			AddType(typeof(Guid));
+			AddType(typeof(EventArgs));
 
 			AddFunc("=", AssignOperator.Instance);
 			AddFunc("+=", PlusAssignOperator.Instance);

@@ -63,7 +63,7 @@ namespace AScript.Operators
 			{
 				// 属性赋值
 				var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
-				var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (t, v) =>
+				var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) =>
 				{
 					dynamic d = v;
 					if (e.IsPrefix)

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Cryptography;
 using AScript.Nodes;
 
 namespace AScript.Operators
@@ -83,25 +84,38 @@ namespace AScript.Operators
 			else if (arg0Node is OperatorNode opNode && opNode.Name == "." && opNode.Right is VariableNode opRightNode)
 			{
 				// 属性赋值
-				var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type1);
+				Type type1 = null;
 				var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
-				var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (t, v) =>
+				var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) =>
 				{
-					if (typeof(Delegate).IsAssignableFrom(t))
+					if (m is EventInfo eventInfo)
 					{
 						// 事件
+						var arg1Node = e.Args[1];
 						Delegate d;
-						if (arg1 is Delegate arg1Del) d = arg1Del;
-						else if (arg1 is CustomFunctionObject customFunctionObject)
+						if (arg1Node is VariableNode var1)
 						{
-							var argTypes = t.GetMethod("Invoke").GetParameters().Select(a => a.ParameterType).ToArray();
-							d = customFunctionObject.Compile(t, e.Options, argTypes, typeof(void));
+							d = e.Context.GetOrCreateEvent(var1.Name, t);
 						}
-						else throw new Exception($"invalid expression near {opRightNode.Name}+=, expect Delegate");
-						//return  Delegate.CreateDelegate(t, d.Target, d.Method);
+						else
+						{
+							var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out type1);
+							if (arg1 is Delegate arg1Del) d = arg1Del;
+							else if (arg1 is CustomFunctionObject customFunctionObject)
+							{
+								var argTypes = t.GetMethod("Invoke").GetParameters().Select(a => a.ParameterType).ToArray();
+								d = customFunctionObject.Compile(t, e.Options, argTypes, typeof(void));
+							}
+							else throw new Exception($"invalid expression near {opRightNode.Name}+=, expect Delegate");
+						}
+						eventInfo.AddEventHandler(opLeftValue is TypeWrapper ? null : opLeftValue, d);
 						return d;
 					}
-					return (dynamic)v + (dynamic)arg1;
+					else
+					{
+						var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out type1);
+						return (dynamic)v + (dynamic)arg1;
+					}
 				});
 				e.SetResult(value, type0 == typeof(object) ? type1 : type0);
 			}
