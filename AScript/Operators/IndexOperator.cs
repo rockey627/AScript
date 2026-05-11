@@ -55,14 +55,34 @@ namespace AScript.Operators
 			// 数组类型
 			if (target.Type.IsArray)
 			{
-				if (index.Type != typeof(int))
+				Expression adjustedIndex;
+				if (index is ConstantExpression constantExpr)
 				{
-					index = Expression.Convert(index, typeof(int));
+					int i = Convert.ToInt32(constantExpr.Value);
+					if (index.Type != typeof(int))
+					{
+						index = Expression.Constant(i);
+					}
+					if (i < 0)
+					{
+						adjustedIndex = Expression.Add(Expression.ArrayLength(target), index);
+					}
+					else
+					{
+						adjustedIndex = index;
+					}
 				}
-				var adjustedIndex = Expression.Condition(
-					Expression.LessThan(index, Expression.Constant(0)),
-					Expression.Add(Expression.ArrayLength(target), index),
-					index);
+				else
+				{
+					if (index.Type != typeof(int))
+					{
+						index = Expression.Convert(index, typeof(int));
+					}
+					adjustedIndex = Expression.Condition(
+						Expression.LessThan(index, Expression.Constant(0)),
+						Expression.Add(Expression.ArrayLength(target), index),
+						index);
+				}
 				e.Result = Expression.ArrayIndex(target, adjustedIndex);
 				return;
 			}
@@ -70,19 +90,42 @@ namespace AScript.Operators
 			// 处理 IList、string 和数组的负索引
 			if (target.Type == typeof(string) || target.Type.GetInterfaces().Contains(typeof(IList)))
 			{
-				if (index.Type != typeof(int))
+				Expression adjustedIndex;
+				if (index is ConstantExpression constantExpr)
 				{
-					index = Expression.Convert(index, typeof(int));
+					int i = Convert.ToInt32(constantExpr.Value);
+					if (index.Type != typeof(int))
+					{
+						index = Expression.Constant(i);
+					}
+					if (i < 0)
+					{
+						adjustedIndex = Expression.Add(
+							target.Type == typeof(string)
+								? Expression.Property(target, "Length")
+								: Expression.Property(target, "Count"), 
+							index);
+					}
+					else
+					{
+						adjustedIndex = index;
+					}
 				}
-				var adjustedIndex = Expression.Condition(
-					Expression.LessThan(index, Expression.Constant(0)),
-					Expression.Add(
-						target.Type == typeof(string)
-							? Expression.Property(target, "Length")
-							: Expression.Property(target, "Count"),
-						index),
-					index);
-
+				else
+				{
+					if (index.Type != typeof(int))
+					{
+						index = Expression.Convert(index, typeof(int));
+					}
+					adjustedIndex = Expression.Condition(
+						Expression.LessThan(index, Expression.Constant(0)),
+						Expression.Add(
+							target.Type == typeof(string)
+								? Expression.Property(target, "Length")
+								: Expression.Property(target, "Count"),
+							index),
+						index);
+				}
 				if (target.Type == typeof(string))
 				{
 					// string 使用 get_Chars 方法

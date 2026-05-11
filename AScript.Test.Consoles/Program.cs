@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.Scripting.Hosting;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
 namespace AScript.Test.Consoles
@@ -24,7 +25,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			Test01_Benchmark();
+			//Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -42,8 +43,33 @@ namespace AScript.Test.Consoles
 			//Test16();
 			//Test17();
 			//Test18_CSharpScript();
+			Test19();
 			Console.WriteLine("end");
 			Console.ReadLine();
+		}
+
+		static void Test19()
+		{
+			// 创建一个委托实例
+			Func<int, int> add = x => x + 5;
+
+			// 序列化
+			BinaryFormatter formatter = new BinaryFormatter();
+			using (FileStream stream = new FileStream("delegate.dat", FileMode.Create))
+			{
+#pragma warning disable SYSLIB0011 // 类型或成员已过时
+				formatter.Serialize(stream, add);
+#pragma warning restore SYSLIB0011 // 类型或成员已过时
+			}
+
+			// 反序列化
+			using (FileStream stream = new FileStream("delegate.dat", FileMode.Open))
+			{
+#pragma warning disable SYSLIB0011 // 类型或成员已过时
+				Func<int, int> loadedDelegate = (Func<int, int>)formatter.Deserialize(stream);
+#pragma warning restore SYSLIB0011 // 类型或成员已过时
+				Console.WriteLine(loadedDelegate(10));  // 输出 15
+			}
 		}
 
 		static void Test18_CSharpScript()

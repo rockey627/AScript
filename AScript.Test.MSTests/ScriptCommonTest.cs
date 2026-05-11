@@ -10,6 +10,17 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test41()
+		{
+			string s = @"
+var f = (_,_)=>5;
+f(1,2);
+";
+			var script = new Script();
+			Assert.AreEqual(5, script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test40()
 		{
 			string s = @"
