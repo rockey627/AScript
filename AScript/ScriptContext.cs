@@ -631,6 +631,12 @@ namespace AScript
 			return null;
 		}
 
+		public TDelegate GetEvent<TDelegate>(string name) where TDelegate: Delegate
+		{
+			var d = GetEvent(name, typeof(TDelegate));
+			return (TDelegate)d;
+		}
+
 		public Delegate GetEvent(string name, Type delegateType)
 		{
 			string eventKey = $"{name}_{delegateType.GetHashCode()}";
@@ -645,6 +651,22 @@ namespace AScript
 				context = context.Parent;
 			}
 			return null;
+		}
+
+		public void SetEvent(string name, Delegate eventHandler)
+		{
+			string eventKey = $"{name}_{eventHandler.GetType().GetHashCode()}";
+			if (_Events == null)
+			{
+				_Events = new Dictionary<string, Delegate>();
+			}
+			_Events[eventKey] = eventHandler;
+		}
+
+		public TDelegate GetOrCreateEvent<TDelegate>(string name) where TDelegate : Delegate
+		{
+			var d = GetOrCreateEvent(name, typeof(TDelegate));
+			return (TDelegate)d;
 		}
 
 		public Delegate GetOrCreateEvent(string name, Type delegateType)

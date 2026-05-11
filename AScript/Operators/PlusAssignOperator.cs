@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Security.Cryptography;
 using AScript.Nodes;
 
 namespace AScript.Operators
@@ -10,6 +9,8 @@ namespace AScript.Operators
 	public class PlusAssignOperator : IFunctionEvaluator, IFunctionBuilder
 	{
 		public static readonly PlusAssignOperator Instance = new PlusAssignOperator();
+
+		private static readonly MethodInfo Method_ScriptContext_SetEvent = typeof(ScriptContext).GetMethod("SetEvent", new[] { typeof(string), typeof(Delegate) });
 
 		public void Build(FunctionBuildArgs e)
 		{
@@ -34,13 +35,22 @@ namespace AScript.Operators
 				var arg1Node = e.Args[1];
 				if (arg1Node is VariableNode varNode1)
 				{
-					var del = e.BuildContext.GetOrCreateEvent(e.ScriptContext, varNode1.Name, left.Type);
+					var del = e.BuildContext.GetOrCreateEvent(e.ScriptContext, varNode1.Name, left.Type, out bool isLocal);
 					if (del != null)
 					{
 						var memExpr = (MemberExpression)left;
 						//var ei = (EventInfo)memExpr.Member;
 						var ei = memExpr.Expression.Type.GetEvent(memExpr.Member.Name);
-						e.Result = Expression.Call(memExpr.Expression, ei.AddMethod, del);
+						var add = Expression.Call(memExpr.Expression, ei.AddMethod, del);
+						if (isLocal && e.BuildContext.RewriteLocalVariables && (e.Options.RewriteFunctions ?? true))
+						{
+							var addToScriptContext = Expression.Call(e.BuildContext.GetScriptContextParameter(), Method_ScriptContext_SetEvent, Expression.Constant(varNode1.Name), del);
+							e.Result = Expression.Block(add, addToScriptContext);
+						}
+						else
+						{
+							e.Result = add;
+						}
 						return;
 					}
 				}

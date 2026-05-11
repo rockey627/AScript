@@ -335,7 +335,7 @@ namespace AScript
 			return null;
 		}
 
-		public Expression GetOrCreateEvent(ScriptContext scriptContext, string name, Type delegateType)
+		public Expression GetOrCreateEvent(ScriptContext scriptContext, string name, Type delegateType, out bool isLocal)
 		{
 			string eventKey = $"{name}_{delegateType.GetHashCode()}";
 			var context = this;
@@ -344,6 +344,7 @@ namespace AScript
 				var events = context._Events;
 				if (events != null && events.TryGetValue(eventKey, out var e))
 				{
+					isLocal = true;
 					return e;
 				}
 				context = context.Parent;
@@ -374,12 +375,14 @@ namespace AScript
 						}
 						var expr = Expression.Constant(d);
 						context._Events[eventKey] = expr;
+						isLocal = true;
 						return expr;
 					}
 				}
 				context = context.Parent;
 			}
 
+			isLocal = false;
 			var del = scriptContext.GetOrCreateEvent(name, delegateType);
 			if (del != null) return Expression.Constant(del);
 			return null;
