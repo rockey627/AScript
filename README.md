@@ -182,18 +182,35 @@ Assert.AreEqual(55, script.Eval("exec(10)"));
 ```
 
 #### 事件
+示例1：
 ```C#
 var s = @"
 var p = new Person('tom', 20);
 p.Saying += (ss,ee)=>{
-	(ss as Person).Name='jim';
-	(ss as Person).Age=30;
+	(ss as Person).Age+=1;
 }
+p.SayHello();
 p.SayHello();
 ";
 var script = new Script();
 script.Context.AddType<Person>();
-Assert.AreEqual("Hello, my name is jim, I'm 30 years old", script.Eval(s));
+Assert.AreEqual("Hello, my name is tom, I'm 22 years old", script.Eval(s));
+```
+示例2：
+```C#
+var s = @"
+void saying(object sender, EventArgs e) {
+	(sender as Person).Age+=1;
+}
+var p = new Person('tom', 20);
+p.Saying += saying;
+p.SayHello();
+p.Saying -= saying;
+p.SayHello();
+";
+var script = new Script();
+script.Context.AddType<Person>();
+Assert.AreEqual("Hello, my name is tom, I'm 21 years old", script.Eval(s));
 ```
 
 #### 字符串插值
