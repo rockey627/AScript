@@ -1626,7 +1626,7 @@ namespace AScript
 			return null;
 		}
 
-		private static LambdaExpression GetFunc(List<LambdaExpression> list, IList<Type> argTypes, out bool useScriptContext, out bool hasClosure)
+		public static LambdaExpression GetFunc(List<LambdaExpression> list, IList<Type> argTypes, out bool useScriptContext, out bool hasClosure)
 		{
 			int argTypesCount = argTypes == null ? 0 : argTypes.Count;
 			for (int i = list.Count - 1; i >= 0; i--)

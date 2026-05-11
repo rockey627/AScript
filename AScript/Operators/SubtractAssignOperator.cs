@@ -25,6 +25,23 @@ namespace AScript.Operators
 			{
 				left = arg0.Build(e.BuildContext, e.ScriptContext, e.Options);
 			}
+			if (typeof(Delegate).IsAssignableFrom(left.Type))
+			{
+				// 事件
+				var arg1Node = e.Args[1];
+				if (arg1Node is VariableNode varNode1)
+				{
+					var del = e.BuildContext.GetEvent(e.ScriptContext, varNode1.Name, left.Type);
+					if (del != null)
+					{
+						var memExpr = (MemberExpression)left;
+						var ei = memExpr.Expression.Type.GetEvent(memExpr.Member.Name);
+						e.Result = Expression.Call(memExpr.Expression, ei.RemoveMethod, del);
+					}
+					return;
+				}
+				throw new Exception($"invalid expression near event -=, expect Delegate");
+			}
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 			if (left.Type == typeof(object) || right.Type == typeof(object))
 			{

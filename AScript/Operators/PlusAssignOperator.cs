@@ -31,21 +31,37 @@ namespace AScript.Operators
 			if (typeof(Delegate).IsAssignableFrom(left.Type))
 			{
 				// 事件
-				var funcDefine = (DefineFuncNode)e.Args[1];
-				var ps = left.Type.GetMethod("Invoke").GetParameters();
-				for (int i = 0; i < ps.Length; i++)
+				var arg1Node = e.Args[1];
+				if (arg1Node is VariableNode varNode1)
 				{
-					funcDefine.Args[i].SystemType = ps[i].ParameterType;
+					var del = e.BuildContext.GetOrCreateEvent(e.ScriptContext, varNode1.Name, left.Type);
+					if (del != null)
+					{
+						var memExpr = (MemberExpression)left;
+						//var ei = (EventInfo)memExpr.Member;
+						var ei = memExpr.Expression.Type.GetEvent(memExpr.Member.Name);
+						e.Result = Expression.Call(memExpr.Expression, ei.AddMethod, del);
+						return;
+					}
 				}
-				funcDefine.ReturnSystemType = typeof(void);
-				funcDefine.DelegateType = left.Type;
-				var del = funcDefine.Build(e.BuildContext, e.ScriptContext, e.Options);
-				var memExpr = (MemberExpression)left;
-				//var ei = (EventInfo)memExpr.Member;
-				var ei = memExpr.Expression.Type.GetEvent(memExpr.Member.Name);
-				e.Result = Expression.Call(memExpr.Expression, ei.AddMethod, del);
-				//e.Result = Expression.AddAssign(left, del);
-				return;
+				else if (arg1Node is DefineFuncNode funcDefine)
+				{
+					var ps = left.Type.GetMethod("Invoke").GetParameters();
+					for (int i = 0; i < ps.Length; i++)
+					{
+						funcDefine.Args[i].SystemType = ps[i].ParameterType;
+					}
+					funcDefine.ReturnSystemType = typeof(void);
+					funcDefine.DelegateType = left.Type;
+					var del = funcDefine.Build(e.BuildContext, e.ScriptContext, e.Options);
+					var memExpr = (MemberExpression)left;
+					//var ei = (EventInfo)memExpr.Member;
+					var ei = memExpr.Expression.Type.GetEvent(memExpr.Member.Name);
+					e.Result = Expression.Call(memExpr.Expression, ei.AddMethod, del);
+					//e.Result = Expression.AddAssign(left, del);
+					return;
+				}
+				throw new Exception($"invalid expression near event +=, expect Delegate");
 			}
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 			Expression leftExpr = left;

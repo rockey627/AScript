@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace AScript
@@ -14,6 +16,7 @@ namespace AScript
 		private Dictionary<string, ParameterExpression> _Parameters;
 		private Dictionary<string, Type> _LastTypes;
 		private HashSet<string> _LocalVariables;
+		private Dictionary<string, Expression> _Events;
 
 		private LabelTarget _ContinueLabel;
 		private LabelTarget _BreakLabel;
@@ -311,6 +314,75 @@ namespace AScript
 				this.TempFunctions[name] = list = new List<LambdaExpression>();
 			}
 			list.Add(d);
+		}
+
+		public Expression GetEvent(ScriptContext scriptContext, string name, Type delegateType)
+		{
+			string eventKey = $"{name}_{delegateType.GetHashCode()}";
+			var context = this;
+			while (context != null)
+			{
+				var events = context._Events;
+				if (events != null && events.TryGetValue(eventKey, out var e))
+				{
+					return e;
+				}
+				context = context.Parent;
+			}
+
+			var d = scriptContext.GetEvent(name, delegateType);
+			if (d != null) return Expression.Constant(d);
+			return null;
+		}
+
+		public Expression GetOrCreateEvent(ScriptContext scriptContext, string name, Type delegateType)
+		{
+			string eventKey = $"{name}_{delegateType.GetHashCode()}";
+			var context = this;
+			while (context != null)
+			{
+				var events = context._Events;
+				if (events != null && events.TryGetValue(eventKey, out var e))
+				{
+					return e;
+				}
+				context = context.Parent;
+			}
+
+			var argTypes = delegateType.GetMethod("Invoke").GetParameters().Select(a => a.ParameterType).ToArray();
+			context = this;
+			while (context != null)
+			{
+				var tempFunctions = context.TempFunctions;
+				if (tempFunctions != null && tempFunctions.TryGetValue(name, out var list3))
+				{
+					var lambda = ScriptContext.GetFunc(list3, argTypes, out _, out _);
+					if (lambda != null)
+					{
+						if (context._Events == null)
+						{
+							context._Events = new Dictionary<string, Expression>();
+						}
+						Delegate d;
+						if (lambda.Type == delegateType)
+						{
+							d = lambda.Compile();
+						}
+						else
+						{
+							d = Expression.Lambda(delegateType, lambda.Body, lambda.Parameters).Compile();
+						}
+						var expr = Expression.Constant(d);
+						context._Events[eventKey] = expr;
+						return expr;
+					}
+				}
+				context = context.Parent;
+			}
+
+			var del = scriptContext.GetOrCreateEvent(name, delegateType);
+			if (del != null) return Expression.Constant(del);
+			return null;
 		}
 
 		public ParameterExpression GetScriptContextParameter(bool forUse = true)
