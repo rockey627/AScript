@@ -25,7 +25,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			//Test01_Benchmark();
+			Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -43,11 +43,19 @@ namespace AScript.Test.Consoles
 			//Test16();
 			//Test17();
 			//Test18_CSharpScript();
-			Test19();
+			//Test19();
+			//Test20();
 			Console.WriteLine("end");
 			Console.ReadLine();
 		}
 
+		static void Test20()
+		{
+			var (a, b, c) = ("1", "2", "3");
+			Console.WriteLine(a + c);
+		}
+
+		// 无法序列化委托
 		static void Test19()
 		{
 			// 创建一个委托实例

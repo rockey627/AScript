@@ -116,10 +116,15 @@ namespace AScript.Nodes
 				itemTypes[i] = itemType;
 			}
 			
-			var createMethod = GetMethod(itemTypes.Length);
-			var v = createMethod.MakeGenericMethod(itemTypes).Invoke(null, itemValues);
+			var v = CreateTuple(itemValues, itemTypes);
 			returnType = v.GetType();
 			return v;
+		}
+
+		public static object CreateTuple(object[] values, Type[] types)
+		{
+			var createMethod = GetMethod(types.Length);
+			return createMethod.MakeGenericMethod(types).Invoke(null, values);
 		}
 
 		private static MethodInfo GetMethod(int count)

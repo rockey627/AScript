@@ -8,6 +8,56 @@ namespace AScript.Test.MSTests
 	public class ScriptTupleTest
 	{
 		[TestMethod]
+		public void Test03()
+		{
+			string s = @"
+(a, b, c) = ('1', 2, '3');
+";
+			var script = new Script();
+			var r = script.Eval(s);
+			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
+			var t = (ValueTuple<string, int, string>)r;
+			Assert.AreEqual("1", t.Item1);
+			Assert.AreEqual(2, t.Item2);
+			Assert.AreEqual("3", t.Item3);
+			Assert.AreEqual("1", script.Context.EvalVar("a"));
+			Assert.AreEqual(2, script.Context.EvalVar("b"));
+			Assert.AreEqual("3", script.Context.EvalVar("c"));
+		}
+
+		[TestMethod]
+		public void Test02()
+		{
+			string s = @"
+var (a, b, c) = ('1', 2, '3');
+";
+			var script = new Script();
+			var r = script.Eval(s);
+			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
+			var t = (ValueTuple<string, int, string>)r;
+			Assert.AreEqual("1", t.Item1);
+			Assert.AreEqual(2, t.Item2);
+			Assert.AreEqual("3", t.Item3);
+			Assert.AreEqual("1", script.Context.EvalVar("a"));
+			Assert.AreEqual(2, script.Context.EvalVar("b"));
+			Assert.AreEqual("3", script.Context.EvalVar("c"));
+		}
+
+		[TestMethod]
+		public void Test01()
+		{
+			string s = @"
+var (a, b, c) = ('1', 2, '3');
+a+c
+";
+			var script = new Script();
+			Assert.AreEqual("13", script.Eval(s));
+			Assert.AreEqual("1", script.Context.EvalVar("a"));
+			Assert.AreEqual(2, script.Context.EvalVar("b"));
+			Assert.AreEqual("3", script.Context.EvalVar("c"));
+		}
+
+		[TestMethod]
 		public void TestBasicTuple()
 		{
 			var script = new Script();

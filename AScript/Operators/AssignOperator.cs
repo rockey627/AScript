@@ -250,6 +250,7 @@ namespace AScript.Operators
 
 				e.SetResult(value, type);
 				e.Context.SetTempVar(varName, value, type, true);
+				return;
 			}
 			else if (arg0 is OperatorNode opNode)
 			{
@@ -260,8 +261,9 @@ namespace AScript.Operators
 					var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
 					ScriptUtils.SetValue(opLeftValue, opRightNode.Name, value);
 					e.SetResult(value, type);
+					return;
 				}
-				else if (opNode.Name == "[]")
+				if (opNode.Name == "[]")
 				{
 					// 设置索引值
 					var obj = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
@@ -292,6 +294,7 @@ namespace AScript.Operators
 					}
 
 					e.SetResult(value, type);
+					return;
 				}
 			}
 			else if (arg0 is CallFuncNode callFuncNode && callFuncNode.Name == "[:]")
@@ -309,7 +312,38 @@ namespace AScript.Operators
 				ScriptUtils.SliceAssign(list as IList, Convert.ToInt32(start), Convert.ToInt32(end), values as IList);
 
 				e.SetResult(list, list == null ? type : list.GetType());
+				return;
 			}
+			else if (arg0 is CallFuncNode callFuncNode2 && callFuncNode2.Name == "var")
+			{
+				// 元组批量赋值
+				if (!(e.Args[1] is TupleNode tupleNode1))
+				{
+					throw new Exception("invalid expression near =");
+				}
+				if (callFuncNode2.Args.Length > tupleNode1.Items.Count)
+				{
+					throw new Exception("invalid expression near =, tuple length not matched");
+				}
+				var itemValues = new object[callFuncNode2.Args.Length];
+				var itemTypes = new Type[callFuncNode2.Args.Length];
+				for (int i = 0; i < tupleNode1.Items.Count; i++)
+				{
+					var value = tupleNode1.Items[i].Eval(e.Context, e.Options, e.Control, out var itemType);
+					if (i < callFuncNode2.Args.Length)
+					{
+						itemValues[i] = value;
+						itemTypes[i] = itemType;
+						var varName = ((VariableNode)callFuncNode2.Args[i]).Name;
+						e.Context.SetTempVar(varName, value, itemType, false);
+					}
+				}
+				// 返回元组
+				e.SetResult(TupleNode.CreateTuple(itemValues, itemTypes));
+				return;
+			}
+
+			throw new Exception("invalid expression near =");
 		}
 
 		/// <summary>
