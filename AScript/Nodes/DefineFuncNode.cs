@@ -139,7 +139,9 @@ namespace AScript.Nodes
 					{
 						throw new Exception($"unknown parameter type {arg.Type} in function {this.Name}");
 					}
-					tempBuildContext.Parameters[arg.Name] = Expression.Parameter(type, arg.Name);
+					string argName = arg.Name;
+					if (argName == "_") argName += i;
+					tempBuildContext.Parameters[argName] = Expression.Parameter(type, argName);
 				}
 			}
 			//var buildOptions = new BuildOptions(options) { DynamicVariableType = true };

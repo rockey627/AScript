@@ -10,6 +10,18 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test41_2()
+		{
+			string s = @"
+var f = (_,_)=>5;
+f(1,2);
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(5, script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test41()
 		{
 			string s = @"
@@ -18,6 +30,29 @@ f(1,2);
 ";
 			var script = new Script();
 			Assert.AreEqual(5, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test40_2()
+		{
+			string s = @"
+static {
+    min+=10;
+    max+=5;
+}
+n >= min && n <= max
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("min", 20);
+			script.Context.SetVar("max", 50);
+			var func = script.Compile<int, bool>(s, "n");
+			int total = 0;
+			for (int i = 0; i < 10000; i++)
+			{
+				if (func(i)) total++;
+			}
+			Assert.AreEqual(26, total);
 		}
 
 		[TestMethod]
