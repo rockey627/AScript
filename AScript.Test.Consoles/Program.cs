@@ -48,9 +48,23 @@ namespace AScript.Test.Consoles
 			//Test19();
 			//Test20();
 			//Test21_ExpandoObject();
-			Test22();
+			//Test22();
+			Test23();
 			Console.WriteLine("end");
 			Console.ReadLine();
+		}
+
+		static void Test23()
+		{
+			var a = new { Name = "tom", Age = 18 };
+			var at = a.GetType();
+			var atf = at.GetGenericTypeDefinition();
+			Console.WriteLine(at);
+			var anonType = AScript.DynamicAnonymousType.CreateType(
+				new[] { "Name", "Age" },
+				new[] { typeof(string), typeof(int) });
+			var anonfType = anonType.GetGenericTypeDefinition();
+			Console.WriteLine(anonType);
 		}
 
 		static void Test22()
@@ -112,8 +126,6 @@ namespace AScript.Test.Consoles
 					ctorIl.Emit(OpCodes.Stfld, fieldBuilders[i]);
 				}
 				ctorIl.Emit(OpCodes.Ret);
-
-				return typeBuilder.CreateType();
 
 				return typeBuilder.CreateType();
 			}
