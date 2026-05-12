@@ -29,8 +29,6 @@ namespace AScript.Lang.Python3
 			AddType<List<object>>("list");
 			AddType<HashSet<object>>("set");
 
-			//AddFunc("=", Python3AssignOperator.Instance);
-			//AddFunc(":=", Python3AssignOperator.Instance);
 			AddFunc("=", AssignOperator.Instance);
 			// 海象运算符：同时进行赋值和返回赋值的值
 			AddFunc(":=", AssignOperator.Instance);
