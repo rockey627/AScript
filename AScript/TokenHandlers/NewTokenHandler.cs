@@ -2,6 +2,7 @@
 using AScript.Syntaxs;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace AScript.TokenHandlers
 {
@@ -11,23 +12,30 @@ namespace AScript.TokenHandlers
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
-			var funcNameToken = e.TokenReader.Read();
-			if (!funcNameToken.HasValue)
+			var typeNameToken = e.TokenReader.Read();
+			if (!typeNameToken.HasValue)
 			{
 				throw new Exception($"invalid expression at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
 			}
-			if (funcNameToken.Value.Type != ETokenType.Word)
+			if (typeNameToken.Value.IsSymbol("{"))
 			{
-				throw new Exception($"invalid expression '{funcNameToken.Value.Value}' at ({funcNameToken.Value.Line},{funcNameToken.Value.Column})");
+				// 匿名类型
+				var initProperties0 = ParseInitProperties(analyzer, e);
+				e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, new NewNode { InitProperties = initProperties0 });
+				e.IsHandled = true;
+				return;
 			}
-			//
+			if (typeNameToken.Value.Type != ETokenType.Word)
+			{
+				throw new Exception($"invalid expression '{typeNameToken.Value.Value}' at ({typeNameToken.Value.Line},{typeNameToken.Value.Column})");
+			}
 			var nextToken = e.TokenReader.Read();
 			if (!nextToken.HasValue)
 			{
-				throw new Exception($"invalid expression near '{funcNameToken.Value.Value}' at ({funcNameToken.Value.Line},{funcNameToken.Value.Column})");
+				throw new Exception($"invalid expression near '{typeNameToken.Value.Value}' at ({typeNameToken.Value.Line},{typeNameToken.Value.Column})");
 			}
 			List<string> genericTypes = null;
-			if (nextToken.Value.Value == "<")
+			if (nextToken.Value.IsSymbol("<"))
 			{
 				// 泛型
 				genericTypes = new List<string>();
@@ -38,7 +46,7 @@ namespace AScript.TokenHandlers
 					nextToken = e.TokenReader.Read();
 					if (!nextToken.HasValue)
 					{
-						throw new Exception($"invalid expression near '{funcNameToken.Value.Value}', expect '>'");
+						throw new Exception($"invalid expression near '{typeNameToken.Value.Value}', expect '>'");
 					}
 					if (nextToken.Value.Value == ",") continue;
 					if (nextToken.Value.Value == ">") break;
@@ -49,7 +57,7 @@ namespace AScript.TokenHandlers
 			bool contains = false;
 			int dimension = 0;
 			// 处理数组类型: Type[] 或 Type[length]
-			if (nextToken.HasValue && nextToken.Value.Value == "[")
+			if (nextToken.HasValue && nextToken.Value.IsSymbol("["))
 			{
 				contains = true;
 				dimension = 1;
@@ -66,7 +74,7 @@ namespace AScript.TokenHandlers
 				//	nextToken = null;
 				//}
 			}
-			else if (nextToken != null && nextToken.Value.Value == "(")
+			else if (nextToken != null && nextToken.Value.IsSymbol("("))
 			{
 				contains = true;
 				args = analyzer.BuildFuncParams(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
@@ -80,42 +88,17 @@ namespace AScript.TokenHandlers
 			if (contains)
 			{
 				nextToken = e.TokenReader.Read();
-				if (nextToken.HasValue && nextToken.Value.Value != "{")
+				if (nextToken.HasValue && !nextToken.Value.IsSymbol("{"))
 				{
 					e.TokenReader.Push(nextToken.Value);
 					nextToken = null;
 				}
 			}
 			IList<ITreeNode> initProperties = null;
-			if (nextToken.HasValue && nextToken.Value.Value == "{")
+			if (nextToken.HasValue && nextToken.Value.IsSymbol("{"))
 			{
 				contains = true;
-				initProperties = new List<ITreeNode>();
-				var createTreeNodeOnlyOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
-				while (true)
-				{
-					var statement = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, e.Control);
-					if (statement != null)
-					{
-						if (statement is TreeBuilder tb)
-						{
-							statement = tb.Root;
-						}
-						if (statement is OperatorNode op && op.Name == ";")
-						{
-							statement = op.Left;
-						}
-						initProperties.Add(statement);
-					}
-					var nextToken2 = e.TokenReader.Read();
-					if (!nextToken2.HasValue)
-					{
-						throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect '}}'");
-					}
-					if (nextToken2.Value.Value == ",") continue;
-					if (nextToken2.Value.Value == "}") break;
-					throw new Exception($"invalid expression at {nextToken2.Value.Line},{nextToken2.Value.Column}, expect '}}'");
-				}
+				initProperties = ParseInitProperties(analyzer, e);
 			}
 
 			if (!contains)
@@ -123,8 +106,39 @@ namespace AScript.TokenHandlers
 				throw new Exception($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
 			}
 
-			e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, new NewNode { Name = funcNameToken.Value.Value, GenericTypes = genericTypes, Args = args, ArrayDimension = dimension, InitProperties = initProperties });
+			e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, new NewNode { Name = typeNameToken.Value.Value, GenericTypes = genericTypes, Args = args, ArrayDimension = dimension, InitProperties = initProperties });
 			e.IsHandled = true;
+		}
+
+		private IList<ITreeNode> ParseInitProperties(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
+		{
+			var initProperties = new List<ITreeNode>();
+			var createTreeNodeOnlyOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
+			while (true)
+			{
+				var statement = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, e.Control);
+				if (statement != null)
+				{
+					if (statement is TreeBuilder tb)
+					{
+						statement = tb.Root;
+					}
+					if (statement is OperatorNode op && op.Name == ";")
+					{
+						statement = op.Left;
+					}
+					initProperties.Add(statement);
+				}
+				var nextToken2 = e.TokenReader.Read();
+				if (!nextToken2.HasValue)
+				{
+					throw new Exception($"invalid expression at {e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}, expect '}}'");
+				}
+				if (nextToken2.Value.IsSymbol(",")) continue;
+				if (nextToken2.Value.IsSymbol("}")) break;
+				throw new Exception($"invalid expression at {nextToken2.Value.Line},{nextToken2.Value.Column}, expect '}}'");
+			}
+			return initProperties;
 		}
 	}
 }

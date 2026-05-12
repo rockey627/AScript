@@ -3,6 +3,7 @@ using BenchmarkDotNet.Running;
 using IronPython.Hosting;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.Scripting.Hosting;
+using System.Dynamic;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -25,7 +26,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			Test01_Benchmark();
+			//Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -45,8 +46,18 @@ namespace AScript.Test.Consoles
 			//Test18_CSharpScript();
 			//Test19();
 			//Test20();
+			Test21_ExpandoObject();
 			Console.WriteLine("end");
 			Console.ReadLine();
+		}
+
+		static void Test21_ExpandoObject()
+		{
+			dynamic a = new ExpandoObject();
+			a.Name = "tom";
+			((IDictionary<string, object>)a)["Age"] = 20;
+			Console.WriteLine(a.GetType());
+			Console.WriteLine(a.Name + ":" + a.Age);
 		}
 
 		static void Test20()

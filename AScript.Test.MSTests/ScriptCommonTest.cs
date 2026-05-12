@@ -10,6 +10,16 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test42()
+		{
+			string s = "new { Name='tony', Age=20 }";
+			var script = new Script();
+			dynamic a = script.Eval(s);
+			Assert.AreEqual("tony", a.Name);
+			Assert.AreEqual(20, a.Age);
+		}
+
+		[TestMethod]
 		public void Test41_2()
 		{
 			string s = @"
