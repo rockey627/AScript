@@ -59,23 +59,41 @@ namespace AScript.Operators
 					e.Context.SetTempVar(varNode.Name, arg0, true);
 				}
 			}
-			else if (arg0Node is OperatorNode opNode && opNode.Name == "." && opNode.Right is VariableNode opRightNode)
+			else if (arg0Node is OperatorNode opNode)
 			{
-				// 属性赋值
-				var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
-				var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) =>
+				if (opNode.Name == "." && opNode.Right is VariableNode opRightNode)
 				{
-					dynamic d = v;
-					if (e.IsPrefix)
+					// 属性赋值
+					var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
+					var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) =>
 					{
-						e.SetResult(++d);
-					}
-					else
-					{
-						e.SetResult(d++);
-					}
-					return d;
-				});
+						dynamic d = v;
+						if (e.IsPrefix)
+						{
+							e.SetResult(++d);
+						}
+						else
+						{
+							e.SetResult(d++);
+						}
+						return d;
+					});
+					return;
+				}
+
+				if (opNode.Name == "[]")
+				{
+					// 设置索引值
+					var obj = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
+					var idx = opNode.Right.Eval(e.Context, e.Options, e.Control, out _);
+
+					//// 根据obj类型处理索引器赋值
+					object v2 = null;
+					var v = ScriptUtils.GetAndSetValue(obj, idx, v1 => { v2 = v1; return (dynamic)v1 + 1; });
+
+					e.SetResult(e.IsPrefix ? v : v2);
+					return;
+				}
 			}
 		}
 	}

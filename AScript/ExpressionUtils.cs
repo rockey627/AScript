@@ -6,6 +6,8 @@ using System.Runtime.CompilerServices;
 using Microsoft.CSharp.RuntimeBinder;
 using AScript.Nodes;
 using System.Linq;
+using System.Collections;
+using System.Dynamic;
 
 namespace AScript
 {
@@ -404,6 +406,13 @@ namespace AScript
 
 				var field = targetType.GetField(propertyOrFieldName, BindingFlags.Static | BindingFlags.Public);
 				return Expression.Field(null, field);
+			}
+
+			if (typeof(ExpandoObject).IsAssignableFrom(instance.Type))
+			{
+				var pi = typeof(IDictionary<string, object>).GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
+				var d = Expression.Convert(instance, typeof(IDictionary<string, object>));
+				return Expression.Property(d, pi, Expression.Constant(propertyOrFieldName));
 			}
 
 			// 变量的属性或字段

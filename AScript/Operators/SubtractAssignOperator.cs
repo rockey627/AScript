@@ -67,37 +67,57 @@ namespace AScript.Operators
 				arg0 -= arg1;
 				e.SetResult(arg0, type0);
 				e.Context.SetTempVar(varNode.Name, e.Result, true);
+				return;
 			}
-			else if (arg0Node is OperatorNode opNode && opNode.Name == "." && opNode.Right is VariableNode opRightNode)
+
+			if (arg0Node is OperatorNode opNode)
 			{
-				Type type1 = null;
-				var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
-				var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) =>
+				if (opNode.Name == "." && opNode.Right is VariableNode opRightNode)
 				{
-					if (m is EventInfo eventInfo)
+					Type type1 = null;
+					var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
+					var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) =>
 					{
-						// 事件
-						var arg1Node = e.Args[1];
-						Delegate d;
-						if (arg1Node is VariableNode var1)
+						if (m is EventInfo eventInfo)
 						{
-							d = e.Context.GetEvent(var1.Name, t);
-							if (d != null)
+							// 事件
+							var arg1Node = e.Args[1];
+							Delegate d;
+							if (arg1Node is VariableNode var1)
 							{
-								eventInfo.RemoveEventHandler(opLeftValue is TypeWrapper ? null : opLeftValue, d);
+								d = e.Context.GetEvent(var1.Name, t);
+								if (d != null)
+								{
+									eventInfo.RemoveEventHandler(opLeftValue is TypeWrapper ? null : opLeftValue, d);
+								}
+								return d;
 							}
-							return d;
+							throw new Exception("invalid expression near -= event");
 						}
-						throw new Exception("invalid expression near -= event");
-					}
-					else
-					{
-						// 属性赋值
-						var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out type1);
-						return (dynamic)v - (dynamic)arg1;
-					}
-				});
-				e.SetResult(value, type0 == typeof(object) ? type1 : type0);
+						else
+						{
+							// 属性赋值
+							var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out type1);
+							return (dynamic)v - (dynamic)arg1;
+						}
+					});
+					e.SetResult(value, type0 == typeof(object) ? type1 : type0);
+					return;
+				}
+
+				if (opNode.Name == "[]")
+				{
+					// 设置索引值
+					var obj = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
+					var idx = opNode.Right.Eval(e.Context, e.Options, e.Control, out _);
+					var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
+
+					//// 根据obj类型处理索引器赋值
+					var v = ScriptUtils.GetAndSetValue(obj, idx, v1 => (dynamic)v1 - (dynamic)value);
+
+					e.SetResult(v, type);
+					return;
+				}
 			}
 		}
 	}

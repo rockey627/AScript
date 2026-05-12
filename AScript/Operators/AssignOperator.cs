@@ -60,13 +60,14 @@ namespace AScript.Operators
 				else
 				{
 					// 尝试使用索引器（Item属性）赋值
-					if (idx.Type != typeof(int))
-					{
-						idx = Expression.Convert(idx, typeof(int));
-					}
 					var indexer = obj.Type.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
 					if (indexer != null)
 					{
+						var p0 = indexer.SetMethod.GetParameters()[0];
+						if (idx.Type != p0.ParameterType)
+						{
+							idx = Expression.Convert(idx, p0.ParameterType);
+						}
 						var property = Expression.Property(obj, indexer, idx);
 						if (valueExpr.Type != property.Type)
 						{
@@ -80,6 +81,11 @@ namespace AScript.Operators
 						var setItemMethod = obj.Type.GetMethod("set_Item");
 						if (setItemMethod != null)
 						{
+							var p0 = setItemMethod.GetParameters()[0];
+							if (idx.Type != p0.ParameterType)
+							{
+								idx = Expression.Convert(idx, p0.ParameterType);
+							}
 							e.Result = Expression.Call(obj, setItemMethod, idx, valueExpr);
 						}
 						else
@@ -127,6 +133,10 @@ namespace AScript.Operators
 			{
 				var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
 				var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+				if (right.Type != left.Type)
+				{
+					right = Expression.Convert(right, left.Type);
+				}
 				e.Result = Expression.Assign(left, right);
 			}
 			//else if (arg0 is OperatorNode opNode && opNode.Name == "." && opNode.Right is VariableNode opRightNode)
@@ -277,8 +287,6 @@ namespace AScript.Operators
 				HandleTuple(e, tupleNode0.Items);
 				return;
 			}
-
-			throw new Exception("invalid expression near =");
 		}
 
 		private void HandleTuple(FunctionEvalArgs e, IList<ITreeNode> arg0Items, bool? searchContext = null)
@@ -532,5 +540,10 @@ namespace AScript.Operators
 			}
 			return null;
 		}
+
+		//private static bool IsDictionaryType(Type type)
+		//{
+
+		//}
 	}
 }

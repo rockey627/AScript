@@ -232,7 +232,8 @@ namespace AScript.Nodes
 				}
 				// 
 				var pp = current.Parent;
-				if ((options.CreateFullTreeNode ?? false) || !(current is OperatorNode) || operatorNode.Priority == DefaultSyntaxAnalyzer.ASSIGN)
+				if ((options.CreateFullTreeNode ?? false) || !(current is OperatorNode) || operatorNode.Priority == DefaultSyntaxAnalyzer.ASSIGN 
+					|| operatorNode.Name == "++" || operatorNode.Name == "--")
 				{
 					operatorNode.Left = current;
 				}

@@ -318,6 +318,47 @@ namespace AScript
 			throw new Exception($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
 		}
 
+		/// <summary>
+		/// 索引器赋值
+		/// </summary>
+		/// <param name="instance"></param>
+		/// <param name="idx"></param>
+		/// <param name="valueFac"></param>
+		/// <returns></returns>
+		public static object GetAndSetValue(object instance, object idx, Func<object, object> valueFac)
+		{
+			if (instance is Array array)
+			{
+				// 数组赋值
+				int index = System.Convert.ToInt32(idx);
+				var value = valueFac(array.GetValue(index));
+				array.SetValue(value, index);
+				return value;
+			}
+			if (instance is IDictionary dict)
+			{
+				// Dictionary赋值
+				var value = valueFac(dict[idx]);
+				dict[idx] = value;
+				return value;
+			}
+			if (instance is IList list)
+			{
+				int i = System.Convert.ToInt32(idx);
+				var value = valueFac(list[i]);
+				list[i] = value;
+				return value;
+			}
+			
+			{
+				// 其他类型使用动态调用
+				dynamic dObj = instance;
+				var value = valueFac(dObj[idx]);
+				dObj[idx] = value;
+				return value;
+			}
+		}
+
 		public static object EvalNumber(string number)
 		{
 			var lastChar = number[number.Length - 1];

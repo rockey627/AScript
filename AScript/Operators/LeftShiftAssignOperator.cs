@@ -49,13 +49,31 @@ namespace AScript.Operators
 				e.SetResult(arg0, type0);
 				e.Context.SetTempVar(varNode.Name, e.Result, true);
 			}
-			else if (arg0Node is OperatorNode opNode && opNode.Name == "." && opNode.Right is VariableNode opRightNode)
+			else if (arg0Node is OperatorNode opNode)
 			{
-				// 属性赋值
-				var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type1);
-				var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
-				var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) => (dynamic)v << (dynamic)arg1);
-				e.SetResult(value, type0 == typeof(object) ? type1 : type0);
+				if (opNode.Name == "." && opNode.Right is VariableNode opRightNode)
+				{
+					// 属性赋值
+					var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type1);
+					var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
+					var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) => (dynamic)v << (dynamic)arg1);
+					e.SetResult(value, type0 == typeof(object) ? type1 : type0);
+					return;
+				}
+
+				if (opNode.Name == "[]")
+				{
+					// 设置索引值
+					var obj = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
+					var idx = opNode.Right.Eval(e.Context, e.Options, e.Control, out _);
+					var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
+
+					//// 根据obj类型处理索引器赋值
+					var v = ScriptUtils.GetAndSetValue(obj, idx, v1 => (dynamic)v1 << (dynamic)value);
+
+					e.SetResult(v, type);
+					return;
+				}
 			}
 		}
 	}

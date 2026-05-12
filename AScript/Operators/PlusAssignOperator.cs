@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -99,6 +100,7 @@ namespace AScript.Operators
 		{
 			if (e.Args.Count != 2) return;
 			var arg0Node = e.Args[0];
+
 			if (arg0Node is VariableNode varNode)
 			{
 				dynamic arg0 = arg0Node.Eval(e.Context, e.Options, e.Control, out var type0);
@@ -106,44 +108,64 @@ namespace AScript.Operators
 				arg0 += arg1;
 				e.SetResult(arg0, type0);
 				e.Context.SetTempVar(varNode.Name, e.Result, true);
+				return;
 			}
-			else if (arg0Node is OperatorNode opNode && opNode.Name == "." && opNode.Right is VariableNode opRightNode)
+
+			if (arg0Node is OperatorNode opNode)
 			{
-				// 属性赋值
-				Type type1 = null;
-				var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
-				var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) =>
+				if (opNode.Name == "." && opNode.Right is VariableNode opRightNode)
 				{
-					if (m is EventInfo eventInfo)
+					// 属性赋值
+					Type type1 = null;
+					var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
+					var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) =>
 					{
-						// 事件
-						var arg1Node = e.Args[1];
-						Delegate d;
-						if (arg1Node is VariableNode var1)
+						if (m is EventInfo eventInfo)
 						{
-							d = e.Context.GetOrCreateEvent(var1.Name, t);
+							// 事件
+							var arg1Node = e.Args[1];
+							Delegate d;
+							if (arg1Node is VariableNode var1)
+							{
+								d = e.Context.GetOrCreateEvent(var1.Name, t);
+							}
+							else
+							{
+								var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out type1);
+								if (arg1 is Delegate arg1Del) d = arg1Del;
+								else if (arg1 is CustomFunctionObject customFunctionObject)
+								{
+									var argTypes = t.GetMethod("Invoke").GetParameters().Select(a => a.ParameterType).ToArray();
+									d = customFunctionObject.Compile(t, e.Options, argTypes, typeof(void));
+								}
+								else throw new Exception($"invalid expression near {opRightNode.Name}+=, expect Delegate");
+							}
+							eventInfo.AddEventHandler(opLeftValue is TypeWrapper ? null : opLeftValue, d);
+							return d;
 						}
 						else
 						{
 							var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out type1);
-							if (arg1 is Delegate arg1Del) d = arg1Del;
-							else if (arg1 is CustomFunctionObject customFunctionObject)
-							{
-								var argTypes = t.GetMethod("Invoke").GetParameters().Select(a => a.ParameterType).ToArray();
-								d = customFunctionObject.Compile(t, e.Options, argTypes, typeof(void));
-							}
-							else throw new Exception($"invalid expression near {opRightNode.Name}+=, expect Delegate");
+							return (dynamic)v + (dynamic)arg1;
 						}
-						eventInfo.AddEventHandler(opLeftValue is TypeWrapper ? null : opLeftValue, d);
-						return d;
-					}
-					else
-					{
-						var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out type1);
-						return (dynamic)v + (dynamic)arg1;
-					}
-				});
-				e.SetResult(value, type0 == typeof(object) ? type1 : type0);
+					});
+					e.SetResult(value, type0 == typeof(object) ? type1 : type0);
+					return;
+				}
+
+				if (opNode.Name == "[]")
+				{
+					// 设置索引值
+					var obj = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
+					var idx = opNode.Right.Eval(e.Context, e.Options, e.Control, out _);
+					var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
+
+					//// 根据obj类型处理索引器赋值
+					var v = ScriptUtils.GetAndSetValue(obj, idx, v1 => (dynamic)v1 + (dynamic)value);
+
+					e.SetResult(v, type);
+					return;
+				}
 			}
 		}
 	}
