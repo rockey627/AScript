@@ -55,9 +55,16 @@ namespace AScript.Test.Consoles
 
 		static void Test22()
 		{
+			var a = new { Name = "hh", Age = 18 };
+			Console.WriteLine(a.GetType());
+			var a2 = new { Name = 30, Age = "20" };
+			Console.WriteLine(a2.GetType());
+			var a3 = new { Age = 20, Name = "jim" };
+			Console.WriteLine(a3.GetType());
 			var dynamicType = DynamicClassBuilder.BuildDynamicType("DynamicPerson", ("Name", typeof(string)), ("Age", typeof(int)));
 			dynamic instance = Activator.CreateInstance(dynamicType, new object[] { "Alice", 30 });
 			Console.WriteLine(instance.GetType());
+			//instance.Age = 20;
 			Console.WriteLine(instance.Name + ":" + instance.Age);
 		}
 
@@ -70,9 +77,11 @@ namespace AScript.Test.Consoles
 				var moduleBuilder = assemblyBuilder.DefineDynamicModule(typeName);
 				var typeBuilder = moduleBuilder.DefineType(typeName, TypeAttributes.Public);
 
+				var fieldBuilders = new List<FieldBuilder>();
 				foreach (var (name, type) in properties)
 				{
-					var fieldBuilder = typeBuilder.DefineField(name, type, FieldAttributes.Public);
+					var fieldBuilder = typeBuilder.DefineField("_" + name, type, FieldAttributes.Private);
+					fieldBuilders.Add(fieldBuilder);
 					var propertyBuilder = typeBuilder.DefineProperty(name, PropertyAttributes.HasDefault, type, null);
 					var getMethodBuilder = typeBuilder.DefineMethod("get_" + name, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig, type, Type.EmptyTypes);
 					var getIl = getMethodBuilder.GetILGenerator();
@@ -80,7 +89,32 @@ namespace AScript.Test.Consoles
 					getIl.Emit(OpCodes.Ldfld, fieldBuilder);
 					getIl.Emit(OpCodes.Ret);
 					propertyBuilder.SetGetMethod(getMethodBuilder);
+
+					//var setMethodBuilder = typeBuilder.DefineMethod("set_" + name, MethodAttributes.Private | MethodAttributes.SpecialName | MethodAttributes.HideBySig, typeof(void), new[] { type });
+					//var setIl = setMethodBuilder.GetILGenerator();
+					//setIl.Emit(OpCodes.Ldarg_0);
+					//setIl.Emit(OpCodes.Ldarg_1);
+					//setIl.Emit(OpCodes.Stfld, fieldBuilder);
+					//setIl.Emit(OpCodes.Ret);
+					//propertyBuilder.SetSetMethod(setMethodBuilder);
 				}
+
+				// 添加带有所有属性参数的构造函数
+				var paramTypes = properties.Select(p => p.Type).ToArray();
+				var constructorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, paramTypes);
+				var ctorIl = constructorBuilder.GetILGenerator();
+				ctorIl.Emit(OpCodes.Ldarg_0);
+				ctorIl.Emit(OpCodes.Call, typeof(object).GetConstructor(Type.EmptyTypes));
+				for (int i = 0; i < fieldBuilders.Count; i++)
+				{
+					ctorIl.Emit(OpCodes.Ldarg_0);
+					ctorIl.Emit(OpCodes.Ldarg_S, (byte)(i + 1));
+					ctorIl.Emit(OpCodes.Stfld, fieldBuilders[i]);
+				}
+				ctorIl.Emit(OpCodes.Ret);
+
+				return typeBuilder.CreateType();
+
 				return typeBuilder.CreateType();
 			}
 		}

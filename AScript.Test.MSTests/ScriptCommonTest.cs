@@ -11,27 +11,89 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
-		public void Test43_ExpandoObject()
+		public void Test44_ExpandoObject_2()
 		{
 			string s = @"
-var a = new { Name='tony', Age=20 };
+var a = new ExpandoObject();
+a.Name = 'jim';
+a.Age = 20;
+a.Age += 3;
+a.Height=150 + a.Age;
+a
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			dynamic a = script.Eval(s);
+			Assert.IsInstanceOfType(a, typeof(ExpandoObject));
+			Assert.AreEqual("jim", a.Name);
+			Assert.AreEqual(23, a.Age);
+			Assert.AreEqual(173, a.Height);
+		}
 
+		[TestMethod]
+		public void Test44_ExpandoObject()
+		{
+			string s = @"
+var a = new ExpandoObject();
+a.Name = 'jim';
+a.Age = 20;
+a.Age += 3;
+a.Height=150 + a.Age;
+a
 ";
 			var script = new Script();
 			dynamic a = script.Eval(s);
-			Assert.IsNotInstanceOfType(a, typeof(ExpandoObject));
-			Assert.AreEqual("tony", a.Name);
-			Assert.AreEqual(20, a.Age);
+			Assert.IsInstanceOfType(a, typeof(ExpandoObject));
+			Assert.AreEqual("jim", a.Name);
+			Assert.AreEqual(23, a.Age);
+			Assert.AreEqual(173, a.Height);
+		}
+
+		[TestMethod]
+		public void Test43_ExpandoObject_2()
+		{
+			string s = @"
+var a = new ExpandoObject{ Name='tony', Age=20 };
+a.Name = 'jim';
+a.Age += 3;
+a.Height=150 + a.Age;
+a
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			dynamic a = script.Eval(s);
+			Assert.IsInstanceOfType(a, typeof(ExpandoObject));
+			Assert.AreEqual("jim", a.Name);
+			Assert.AreEqual(23, a.Age);
+			Assert.AreEqual(173, a.Height);
+		}
+
+		[TestMethod]
+		public void Test43_ExpandoObject()
+		{
+			string s = @"
+var a = new ExpandoObject{ Name='tony', Age=20 };
+a.Name = 'jim';
+a.Age += 3;
+a.Height=150 + a.Age;
+a
+";
+			var script = new Script();
+			dynamic a = script.Eval(s);
+			Assert.IsInstanceOfType(a, typeof(ExpandoObject));
+			Assert.AreEqual("jim", a.Name);
+			Assert.AreEqual(23, a.Age);
+			Assert.AreEqual(173, a.Height);
 		}
 
 		[TestMethod]
 		public void Test42_ExpandoObject_2()
 		{
-			string s = "new { Name='tony', Age=20 }";
+			string s = "new ExpandoObject{ Name='tony', Age=20 }";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			dynamic a = script.Eval(s);
-			Assert.IsNotInstanceOfType(a, typeof(ExpandoObject));
+			Assert.IsInstanceOfType(a, typeof(ExpandoObject));
 			Assert.AreEqual("tony", a.Name);
 			Assert.AreEqual(20, a.Age);
 		}
@@ -39,7 +101,7 @@ var a = new { Name='tony', Age=20 };
 		[TestMethod]
 		public void Test42_ExpandoObject()
 		{
-			string s = "new { Name='tony', Age=20 }";
+			string s = "new ExpandoObject{ Name='tony', Age=20 }";
 			var script = new Script();
 			dynamic a = script.Eval(s);
 			Assert.IsInstanceOfType(a, typeof(ExpandoObject));

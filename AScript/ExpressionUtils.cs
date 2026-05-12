@@ -53,6 +53,8 @@ namespace AScript
 		public static readonly MethodInfo Method_Enumerable_ToArray = typeof(Enumerable).GetMethod("ToArray");
 		public static readonly MethodInfo Method_Enumerable_ToList = typeof(Enumerable).GetMethod("ToList");
 
+		public static readonly MethodInfo Method_IDictionary_string_object_Add = typeof(IDictionary<string, object>).GetMethod("Add", new[] { typeof(string), typeof(object) });
+
 		public static readonly PropertyInfo Property_TypeWrapper_Type = typeof(TypeWrapper).GetProperty("Type");
 
 		// 相等==

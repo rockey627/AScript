@@ -39,35 +39,8 @@ namespace AScript.Nodes
 			}
 			else if (string.IsNullOrEmpty(this.Name))
 			{
-				// 创建匿名类型对象 ExpandoObject
-				var instanceVar = Expression.Variable(typeof(ExpandoObject), "anon");
-				var statements = new List<Expression>();
-				statements.Add(Expression.Assign(instanceVar, Expression.New(typeof(ExpandoObject))));
-
-				if (this.InitProperties != null)
-				{
-					foreach (var propInit in this.InitProperties)
-					{
-						if (propInit is OperatorNode opNode && opNode.Name == "=")
-						{
-							var propValue = opNode.Right.Build(buildContext, scriptContext, options);
-							if (opNode.Left is VariableNode propNameNode)
-							{
-								// 使用 IDictionary interface 添加属性
-								var addMethod = typeof(IDictionary<string, object>).GetMethod("Add");
-								statements.Add(Expression.Call(
-									Expression.Convert(instanceVar, typeof(IDictionary<string, object>)),
-									addMethod,
-									Expression.Constant(propNameNode.Name),
-									propValue.Type == typeof(object) ? propValue : Expression.Convert(propValue, typeof(object))
-								));
-							}
-						}
-					}
-				}
-
-				statements.Add(instanceVar);
-				return Expression.Block(new[] { instanceVar }, statements);
+				// 匿名类型
+				throw new NotImplementedException("暂不支持匿名类型");
 			}
 			else
 			{
@@ -104,6 +77,39 @@ namespace AScript.Nodes
 					type = type.MakeGenericType(genericTypes);
 				}
 			}
+
+			if (type == typeof(ExpandoObject))
+			{
+				// 创建匿名类型对象 ExpandoObject
+				var instanceVar = Expression.Variable(typeof(ExpandoObject), "anon");
+				var statements = new List<Expression>();
+				statements.Add(Expression.Assign(instanceVar, Expression.New(typeof(ExpandoObject))));
+
+				if (this.InitProperties != null)
+				{
+					foreach (var propInit in this.InitProperties)
+					{
+						if (propInit is OperatorNode opNode && opNode.Name == "=")
+						{
+							var propValue = opNode.Right.Build(buildContext, scriptContext, options);
+							if (opNode.Left is VariableNode propNameNode)
+							{
+								// 使用 IDictionary interface 添加属性
+								statements.Add(Expression.Call(
+									Expression.Convert(instanceVar, typeof(IDictionary<string, object>)),
+									ExpressionUtils.Method_IDictionary_string_object_Add,
+									Expression.Constant(propNameNode.Name),
+									propValue.Type == typeof(object) ? propValue : Expression.Convert(propValue, typeof(object))
+								));
+							}
+						}
+					}
+				}
+
+				statements.Add(instanceVar);
+				return Expression.Block(new[] { instanceVar }, statements);
+			}
+
 			Expression[] argValues;
 			Type[] argTypes;
 			if (this.Args == null)
@@ -360,27 +366,8 @@ namespace AScript.Nodes
 			}
 			else if (string.IsNullOrEmpty(this.Name))
 			{
-				// 创建匿名类型对象 ExpandoObject
-				dynamic expando = new ExpandoObject();
-				var dict = expando as IDictionary<string, object>;
-
-				if (this.InitProperties != null)
-				{
-					foreach (var propInit in this.InitProperties)
-					{
-						if (propInit is OperatorNode opNode && opNode.Name == "=")
-						{
-							var propValue = opNode.Right.Eval(context, options, control, out _);
-							if (opNode.Left is VariableNode propNameNode)
-							{
-								dict[propNameNode.Name] = propValue;
-							}
-						}
-					}
-				}
-
-				returnType = typeof(ExpandoObject);
-				return expando;
+				// 匿名类型
+				throw new NotImplementedException("暂不支持匿名类型");
 			}
 			else
 			{
@@ -416,6 +403,30 @@ namespace AScript.Nodes
 					}
 					type = type.MakeGenericType(genericTypes);
 				}
+			}
+			if (type == typeof(ExpandoObject))
+			{
+				// 创建匿名类型对象 ExpandoObject
+				dynamic expando = new ExpandoObject();
+				var dict = expando as IDictionary<string, object>;
+
+				if (this.InitProperties != null)
+				{
+					foreach (var propInit in this.InitProperties)
+					{
+						if (propInit is OperatorNode opNode && opNode.Name == "=")
+						{
+							var propValue = opNode.Right.Eval(context, options, control, out _);
+							if (opNode.Left is VariableNode propNameNode)
+							{
+								dict[propNameNode.Name] = propValue;
+							}
+						}
+					}
+				}
+
+				returnType = typeof(ExpandoObject);
+				return expando;
 			}
 			object[] argValues;
 			Type[] argTypes;

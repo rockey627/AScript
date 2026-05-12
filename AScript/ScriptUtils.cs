@@ -2,9 +2,9 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 
 namespace AScript
 {
@@ -194,6 +194,15 @@ namespace AScript
 				targetType = instance.GetType();
 			}
 
+			if (instance is ExpandoObject)
+			{
+				var dict = (IDictionary<string, object>)instance;
+				//var value = dict[propertyOrFieldName];
+				dict.TryGetValue(propertyOrFieldName, out var value);
+				type = value?.GetType();
+				return value;
+			}
+
 			var p = targetType.GetProperty(propertyOrFieldName);
 			if (p != null)
 			{
@@ -228,6 +237,12 @@ namespace AScript
 				targetType = instance.GetType();
 			}
 
+			if (instance is ExpandoObject)
+			{
+				((IDictionary<string, object>)instance)[propertyOrFieldName] = value;
+				return;
+			}
+
 			var p = targetType.GetProperty(propertyOrFieldName);
 			if (p != null)
 			{
@@ -260,6 +275,16 @@ namespace AScript
 				// 实例属性赋值
 				target = instance;
 				targetType = instance.GetType();
+			}
+
+			if (instance is ExpandoObject)
+			{
+				var dict = (IDictionary<string, object>)instance;
+				var value = dict[propertyOrFieldName];
+				type = value?.GetType();
+				value = valueFac(null, type, value);
+				dict[propertyOrFieldName] = value;
+				return value;
 			}
 
 			var p = targetType.GetProperty(propertyOrFieldName);

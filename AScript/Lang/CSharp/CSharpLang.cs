@@ -4,6 +4,7 @@ using AScript.TokenHandlers;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -60,6 +61,7 @@ namespace AScript.Lang.CSharp
 			AddType(typeof(Convert));
 			AddType(typeof(Guid));
 			AddType(typeof(EventArgs));
+			AddType(typeof(ExpandoObject));
 
 			AddFunc("=", AssignOperator.Instance);
 			AddFunc("+=", PlusAssignOperator.Instance);
