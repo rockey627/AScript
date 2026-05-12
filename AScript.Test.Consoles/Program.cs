@@ -6,6 +6,7 @@ using Microsoft.Scripting.Hosting;
 using System.Dynamic;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
@@ -46,9 +47,42 @@ namespace AScript.Test.Consoles
 			//Test18_CSharpScript();
 			//Test19();
 			//Test20();
-			Test21_ExpandoObject();
+			//Test21_ExpandoObject();
+			Test22();
 			Console.WriteLine("end");
 			Console.ReadLine();
+		}
+
+		static void Test22()
+		{
+			var dynamicType = DynamicClassBuilder.BuildDynamicType("DynamicPerson", ("Name", typeof(string)), ("Age", typeof(int)));
+			dynamic instance = Activator.CreateInstance(dynamicType, new object[] { "Alice", 30 });
+			Console.WriteLine(instance.GetType());
+			Console.WriteLine(instance.Name + ":" + instance.Age);
+		}
+
+		public class DynamicClassBuilder
+		{
+			public static Type BuildDynamicType(string typeName, params (string Name, Type Type)[] properties)
+			{
+				var assemblyName = new AssemblyName(typeName);
+				var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+				var moduleBuilder = assemblyBuilder.DefineDynamicModule(typeName);
+				var typeBuilder = moduleBuilder.DefineType(typeName, TypeAttributes.Public);
+
+				foreach (var (name, type) in properties)
+				{
+					var fieldBuilder = typeBuilder.DefineField(name, type, FieldAttributes.Public);
+					var propertyBuilder = typeBuilder.DefineProperty(name, PropertyAttributes.HasDefault, type, null);
+					var getMethodBuilder = typeBuilder.DefineMethod("get_" + name, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig, type, Type.EmptyTypes);
+					var getIl = getMethodBuilder.GetILGenerator();
+					getIl.Emit(OpCodes.Ldarg_0);
+					getIl.Emit(OpCodes.Ldfld, fieldBuilder);
+					getIl.Emit(OpCodes.Ret);
+					propertyBuilder.SetGetMethod(getMethodBuilder);
+				}
+				return typeBuilder.CreateType();
+			}
 		}
 
 		static void Test21_ExpandoObject()
