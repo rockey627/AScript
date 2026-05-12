@@ -10,6 +10,28 @@ namespace AScript.Test.MSTests
 	public class DynamicAnonymousTypeTest
 	{
 		[TestMethod]
+		public void Test06()
+		{
+			var type = DynamicAnonymousType.CreateType(new[] { "Name", "Age" }, new[] { typeof(string), typeof(int?) });
+			var v1 = Activator.CreateInstance(type, new object[] { null, 20 });
+			var v2 = Activator.CreateInstance(type, new object[] { null, 20 });
+			Assert.IsNotNull(v1);
+			Assert.AreEqual(v1, v2);
+			Assert.AreEqual(v1.GetHashCode(), v2.GetHashCode());
+		}
+
+		[TestMethod]
+		public void Test05()
+		{
+			var type = DynamicAnonymousType.CreateType(new[] { "Name", "Age" }, new[] { typeof(string), typeof(int) });
+			var v1 = Activator.CreateInstance(type, new object[] { null, 20 });
+			var v2 = Activator.CreateInstance(type, new object[] { null, 20 });
+			Assert.IsNotNull(v1);
+			Assert.AreEqual(v1, v2);
+			Assert.AreEqual(v1.GetHashCode(), v2.GetHashCode());
+		}
+
+		[TestMethod]
 		public void Test04()
 		{
 			var type = DynamicAnonymousType.CreateType(new[] { "Name", "Age" }, new[] { typeof(string), typeof(int) });
@@ -49,14 +71,17 @@ namespace AScript.Test.MSTests
 			var type3 = DynamicAnonymousType.CreateType(new[] { "Name", "Age" }, new[] { typeof(string), typeof(long) });
 			var type4 = DynamicAnonymousType.CreateType(new[] { "Name", "Height" }, new[] { typeof(string), typeof(int) });
 			var type5 = DynamicAnonymousType.CreateType(new[] { "Name", "Age", "Height" }, new[] { typeof(string), typeof(int), typeof(int) });
-			Assert.IsTrue(type1.IsGenericType);
+			//Assert.IsTrue(type1.IsGenericType);
 			Assert.AreEqual(type1, type2);
 			Assert.AreNotEqual(type1, type3);
-			Assert.AreEqual(type1.GetGenericTypeDefinition(), type3.GetGenericTypeDefinition());
 			Assert.AreNotEqual(type1, type4);
-			Assert.AreNotEqual(type1.GetGenericTypeDefinition(), type4.GetGenericTypeDefinition());
 			Assert.AreNotEqual(type1, type5);
-			Assert.AreNotEqual(type1.GetGenericTypeDefinition(), type5.GetGenericTypeDefinition());
+			if (type1.IsGenericType)
+			{
+				Assert.AreEqual(type1.GetGenericTypeDefinition(), type3.GetGenericTypeDefinition());
+				Assert.AreNotEqual(type1.GetGenericTypeDefinition(), type4.GetGenericTypeDefinition());
+				Assert.AreNotEqual(type1.GetGenericTypeDefinition(), type5.GetGenericTypeDefinition());
+			}
 		}
 	}
 }

@@ -14,6 +14,8 @@ namespace AScript
 	/// </summary>
 	public static class DynamicAnonymousType
 	{
+		public static bool DefaultUseNonGenericAnonymousType = true;
+
 		private static readonly ModuleBuilder _ModuleBuilder;
 
 		private static readonly ConcurrentDictionary<string, Type> _TypeCache = new ConcurrentDictionary<string, Type>();
@@ -32,11 +34,11 @@ namespace AScript
 		/// <param name="fieldNames"></param>
 		/// <param name="fieldValues"></param>
 		/// <param name="useNonGenericAnonymousType">是否定义非泛型类型</param>
-		public static NewExpression CreateObject(string[] fieldNames, Expression[] fieldValues, bool useNonGenericAnonymousType = false)
+		public static NewExpression CreateObject(string[] fieldNames, Expression[] fieldValues, bool? useNonGenericAnonymousType = null)
 		{
 			// 提取字段类型列表
 			Type[] fieldTypes = fieldValues.Select(f => f.Type).ToArray();
-			Type dynamicType = CreateType(fieldNames, fieldTypes, useNonGenericAnonymousType);
+			Type dynamicType = CreateType(fieldNames, fieldTypes, useNonGenericAnonymousType ?? DefaultUseNonGenericAnonymousType);
 
 			ConstructorInfo constructor = dynamicType.GetConstructors()[0];
 			return Expression.New(constructor, fieldValues);
@@ -51,16 +53,16 @@ namespace AScript
 		/// <param name="fieldNames"></param>
 		/// <param name="fieldTypes"></param>
 		/// <param name="useNonGenericAnonymousType">是否定义非泛型类型</param>
-		public static Type CreateType(string[] fieldNames, Type[] fieldTypes, bool useNonGenericAnonymousType = false)
+		public static Type CreateType(string[] fieldNames, Type[] fieldTypes, bool? useNonGenericAnonymousType = null)
 		{
-			string key = GetCacheKey(fieldNames, fieldTypes, useNonGenericAnonymousType);
+			string key = GetCacheKey(fieldNames, fieldTypes, useNonGenericAnonymousType ?? DefaultUseNonGenericAnonymousType);
 			if (!_TypeCache.TryGetValue(key, out var resultType))
 			{
 				lock (_TypeCache)
 				{
 					if (!_TypeCache.TryGetValue(key, out resultType))
 					{
-						resultType = CreateTypeCore(fieldNames, fieldTypes, useNonGenericAnonymousType);
+						resultType = CreateTypeCore(fieldNames, fieldTypes, useNonGenericAnonymousType ?? DefaultUseNonGenericAnonymousType);
 						_TypeCache[key] = resultType;
 					}
 				}
@@ -220,17 +222,31 @@ namespace AScript
 				//MethodInfo[] methods = equalityComparerType.GetMethods();
 				//MethodInfo equalsMethod = methods.First(m => m.Name == "Equals");
 
-				//if (useNonGenericAnonymousType)
-				//{
-				//	il.Emit(OpCodes.Ldarg_0);
-				//	il.Emit(OpCodes.Ldfld, field);
-				//	il.Emit(OpCodes.Ldarg_1);
-				//	il.Emit(OpCodes.Ldfld, field);
-				//	il.Emit(OpCodes.Call, objectEquals);
-				//	il.Emit(OpCodes.Brfalse, returnFalse);
-				//}
-				//else
-				//{
+				if (useNonGenericAnonymousType)
+				{
+					Type fieldType = field.FieldType;
+					//Type equalityComparerType = typeof(EqualityComparer<>).MakeGenericType(fieldType);
+					//MethodInfo defaultMethod = equalityComparerType.GetMethod("get_Default");
+					//MethodInfo equalsMethod = equalityComparerType.GetMethod("Equals", new Type[] { fieldType, fieldType });
+
+					il.Emit(OpCodes.Ldarg_0);
+					il.Emit(OpCodes.Ldfld, field);
+					il.Emit(OpCodes.Ldarg_1);
+					il.Emit(OpCodes.Ldfld, field);
+					if (fieldType.IsValueType)
+					{
+						il.Emit(OpCodes.Ceq);
+					}
+					else
+					{
+						il.Emit(OpCodes.Call, objectEquals);
+						//il.Emit(OpCodes.Call, defaultMethod);
+						//il.Emit(OpCodes.Callvirt, equalsMethod);
+					}
+					il.Emit(OpCodes.Brfalse, returnFalse);
+				}
+				else
+				{
 					il.Emit(OpCodes.Ldarg_0);
 					il.Emit(OpCodes.Ldfld, field);
 					il.Emit(OpCodes.Ldarg_1);
@@ -247,8 +263,8 @@ namespace AScript
 					//il.Emit(OpCodes.Call, defaultMethod);
 					//il.Emit(OpCodes.Callvirt, equalsMethod);
 					il.Emit(OpCodes.Brfalse, returnFalse);
-				//}
 			}
+		}
 
 			il.Emit(OpCodes.Ldc_I4_1);
 			il.Emit(OpCodes.Ret);
@@ -263,44 +279,49 @@ namespace AScript
 		/// </summary>
 		private static void GenerateHashCode(TypeBuilder tb, IList<FieldBuilder> fields, bool useNonGenericAnonymousType)
 		{
-			ILGenerator il = tb.DefineMethod(
+			var methodBuilder = tb.DefineMethod(
 				"GetHashCode",
 				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig,
 				typeof(int),
-				Type.EmptyTypes).GetILGenerator();
+				Type.EmptyTypes);
+			ILGenerator il = methodBuilder.GetILGenerator();
+
+			if (fields == null || fields.Count == 0)
+			{
+				il.Emit(OpCodes.Ldc_I4_0);
+				il.Emit(OpCodes.Ret);
+				return;
+			}
 
 			il.Emit(OpCodes.Ldc_I4_0);
 
-			if (fields != null)
+			MethodInfo getHashCodeMethod = typeof(object).GetMethod("GetHashCode");
+			for (int i = 0; i < fields.Count; i++)
 			{
-				foreach (FieldInfo field in fields)
+				FieldInfo field = fields[i];
+
+				if (useNonGenericAnonymousType)
 				{
-					if (useNonGenericAnonymousType)
-					{
-						Type fieldType = field.FieldType;
-						Type equalityComparerType = typeof(EqualityComparer<>).MakeGenericType(fieldType);
-						MethodInfo defaultMethod = equalityComparerType.GetMethod("get_Default");
-						MethodInfo getHashCodeMethod = equalityComparerType.GetMethod("GetHashCode", new Type[] { fieldType });
+					// 使用 EqualityComparer<T>.Default.GetHashCode()
+					Type equalityComparerType = typeof(EqualityComparer<>).MakeGenericType(field.FieldType);
+					MethodInfo defaultMethod = equalityComparerType.GetMethod("get_Default");
+					MethodInfo getHashCodeMethod1 = equalityComparerType.GetMethod("GetHashCode", new Type[] { field.FieldType });
 
-						il.EmitCall(OpCodes.Call, defaultMethod, null);
-						il.Emit(OpCodes.Ldarg_0);
-						il.Emit(OpCodes.Ldfld, field);
-						il.EmitCall(OpCodes.Callvirt, getHashCodeMethod, null);
-						il.Emit(OpCodes.Xor);
-					}
-					else
-					{
-						MethodInfo defaultMethod = typeof(EqualityComparer<>).GetMethod("get_Default");
-						MethodInfo[] methods = typeof(EqualityComparer<>).GetMethods();
-						MethodInfo getHashCodeMethod = methods.First(m => m.Name == "GetHashCode");
-
-						il.EmitCall(OpCodes.Call, defaultMethod, null);
-						il.Emit(OpCodes.Ldarg_0);
-						il.Emit(OpCodes.Ldfld, field);
-						il.EmitCall(OpCodes.Callvirt, getHashCodeMethod, null);
-						il.Emit(OpCodes.Xor);
-					}
+					il.EmitCall(OpCodes.Call, defaultMethod, null);
+					il.Emit(OpCodes.Ldarg_0);
+					il.Emit(OpCodes.Ldfld, field);
+					il.EmitCall(OpCodes.Callvirt, getHashCodeMethod1, null);
 				}
+				else
+				{
+					// 对于泛型类型定义，字段类型是泛型参数，直接 box 后调用 GetHashCode
+					il.Emit(OpCodes.Ldarg_0);
+					il.Emit(OpCodes.Ldfld, field);
+					//il.Emit(OpCodes.Box, fieldType);
+					il.EmitCall(OpCodes.Callvirt, getHashCodeMethod, null);
+				}
+
+				il.Emit(OpCodes.Xor);
 			}
 
 			il.Emit(OpCodes.Ret);
