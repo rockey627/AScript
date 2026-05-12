@@ -17,6 +17,7 @@ namespace AScript.Test.MSTests
 			var v2 = Activator.CreateInstance(type, new object[] { "tom", 20 });
 			Assert.IsNotNull(v1);
 			Assert.AreEqual(v1, v2);
+			Assert.AreEqual(v1.GetHashCode(), v2.GetHashCode());
 		}
 
 		[TestMethod]
@@ -27,6 +28,7 @@ namespace AScript.Test.MSTests
 			var v2 = Activator.CreateInstance(type);
 			Assert.IsNotNull(v1);
 			Assert.AreEqual(v1, v2);
+			Assert.AreEqual(v1.GetHashCode(), v2.GetHashCode());
 		}
 
 		[TestMethod]
