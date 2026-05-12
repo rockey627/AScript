@@ -40,7 +40,37 @@ namespace AScript.Nodes
 			else if (string.IsNullOrEmpty(this.Name))
 			{
 				// 匿名类型
-				throw new NotImplementedException("暂不支持匿名类型");
+				string[] fieldNames = null;
+				Expression[] fieldValues = null;
+				if (this.InitProperties != null && this.InitProperties.Count > 0)
+				{
+					fieldNames = new string[this.InitProperties.Count];
+					fieldValues = new Expression[this.InitProperties.Count];
+
+					for (int i = 0; i < this.InitProperties.Count; i++)
+					{
+						var propInit = this.InitProperties[i];
+						if (propInit is OperatorNode opNode && opNode.Name == "=")
+						{
+							if (opNode.Left is VariableNode propNameNode)
+							{
+								fieldNames[i] = propNameNode.Name;
+								var propValue = opNode.Right.Build(buildContext, scriptContext, options);
+								fieldValues[i] = propValue;
+							}
+							else
+							{
+								throw new Exception("invalid expression near new");
+							}
+						}
+						else
+						{
+							throw new Exception("invalid expression near new");
+						}
+					}
+
+				}
+				return DynamicAnonymousType.CreateObject(fieldNames, fieldValues);
 			}
 			else
 			{
@@ -367,7 +397,39 @@ namespace AScript.Nodes
 			else if (string.IsNullOrEmpty(this.Name))
 			{
 				// 匿名类型
-				throw new NotImplementedException("暂不支持匿名类型");
+				string[] fieldNames = null;
+				Type[] fieldTypes = null;
+				object[] fieldValues = null;
+				if (this.InitProperties != null && this.InitProperties.Count > 0)
+				{
+					fieldNames = new string[this.InitProperties.Count];
+					fieldTypes = new Type[this.InitProperties.Count];
+					fieldValues = new object[this.InitProperties.Count];
+
+					for (int i = 0; i < this.InitProperties.Count; i++)
+					{
+						var propInit = this.InitProperties[i];
+						if (propInit is OperatorNode opNode && opNode.Name == "=")
+						{
+							if (opNode.Left is VariableNode propNameNode)
+							{
+								fieldNames[i] = propNameNode.Name;
+								fieldValues[i] = opNode.Right.Eval(context, options, control, out var propType);
+								fieldTypes[i] = propType;
+							}
+							else
+							{
+								throw new Exception("invalid expression near new");
+							}
+						}
+						else
+						{
+							throw new Exception("invalid expression near new");
+						}
+					}
+				}
+				returnType = DynamicAnonymousType.CreateType(fieldNames, fieldTypes);
+				return Activator.CreateInstance(returnType, fieldValues);
 			}
 			else
 			{

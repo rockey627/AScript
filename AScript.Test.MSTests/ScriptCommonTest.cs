@@ -11,6 +11,19 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test45_Anonymous_2()
+		{
+			string s = @"
+var a = new { Name='tony', Age=20 }
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			dynamic a = script.Eval(s);
+			Assert.AreEqual("tony", a.Name);
+			Assert.AreEqual(20, a.Age);
+		}
+
+		[TestMethod]
 		public void Test45_Anonymous()
 		{
 			string s = @"

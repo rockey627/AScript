@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -120,6 +121,41 @@ var r = q.Select(a=>a*2);
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
 			Assert.AreEqual("2,4,6", string.Join(',', (IQueryable<int>)r));
+		}
+
+		[TestMethod]
+		public void TestSelect02_ToList_2()
+		{
+			string s = @"
+var q = [1,2,3].AsQueryable();
+var r = q.Select(a=>new {C = a*2}).ToList();
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var r = script.Eval(s);
+			var itemType = DynamicAnonymousType.CreateType(new[] { "C" }, new[] { typeof(int) });
+			Assert.IsInstanceOfType(r, typeof(List<>).MakeGenericType(itemType));
+			var list = (IList)r;
+			Assert.AreEqual(2, ((dynamic)list[0]).C);
+			Assert.AreEqual(4, ((dynamic)list[1]).C);
+			Assert.AreEqual(6, ((dynamic)list[2]).C);
+		}
+
+		[TestMethod]
+		public void TestSelect02_ToList()
+		{
+			string s = @"
+var q = [1,2,3].AsQueryable();
+var r = q.Select(a=>new {C = a*2}).ToList();
+";
+			var script = new Script();
+			var r = script.Eval(s);
+			var itemType = DynamicAnonymousType.CreateType(new[] { "C" }, new[] { typeof(int) });
+			Assert.IsInstanceOfType(r, typeof(List<>).MakeGenericType(itemType));
+			var list = (IList)r;
+			Assert.AreEqual(2, ((dynamic)list[0]).C);
+			Assert.AreEqual(4, ((dynamic)list[1]).C);
+			Assert.AreEqual(6, ((dynamic)list[2]).C);
 		}
 
 		[TestMethod]
