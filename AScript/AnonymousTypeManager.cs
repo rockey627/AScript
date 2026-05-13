@@ -195,6 +195,8 @@ namespace AScript
 			GenerateEquals(typeBuilder, fields);
 			// 生成GetHashCode方法
 			GenerateHashCode(typeBuilder, fields);
+			// 生成ToString方法
+			GenerateToString(typeBuilder, fields);
 
 			return typeBuilder.CreateTypeInfo().AsType();
 		}
@@ -388,6 +390,89 @@ namespace AScript
 			}
 
 			il.Emit(OpCodes.Ret);
+		}
+
+		/// <summary>
+		/// 生成ToString方法
+		/// </summary>
+		private static void GenerateToString(TypeBuilder typeBuilder, IList<FieldBuilder> fields)
+		{
+			var methodBuilder = typeBuilder.DefineMethod(
+				"ToString",
+				MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig,
+				typeof(string),
+				Type.EmptyTypes);
+			ILGenerator il = methodBuilder.GetILGenerator();
+
+			if (fields == null || fields.Count == 0)
+			{
+				il.Emit(OpCodes.Ldstr, "{ }");
+				il.Emit(OpCodes.Ret);
+				return;
+			}
+
+			// 使用 StringBuilder 构建字符串
+			var stringBuilderType = typeof(System.Text.StringBuilder);
+			var stringBuilderCtor = stringBuilderType.GetConstructor(Type.EmptyTypes);
+			var appendMethod = stringBuilderType.GetMethod("Append", new[] { typeof(string) });
+			var toStringMethod = typeof(object).GetMethod("ToString", Type.EmptyTypes);
+
+			// 创建 StringBuilder 实例
+			il.Emit(OpCodes.Newobj, stringBuilderCtor);
+
+			// 添加起始大括号
+			il.Emit(OpCodes.Ldstr, "{ ");
+			il.Emit(OpCodes.Callvirt, appendMethod);
+
+			// 添加每个字段: FieldName = value
+			for (int i = 0; i < fields.Count; i++)
+			{
+				var field = fields[i];
+
+				if (i > 0)
+				{
+					// 添加逗号和空格
+					//il.Emit(OpCodes.Dup);
+					il.Emit(OpCodes.Ldstr, ", ");
+					il.Emit(OpCodes.Callvirt, appendMethod);
+				}
+
+				// 添加字段名
+				//il.Emit(OpCodes.Dup);
+				il.Emit(OpCodes.Ldstr, GetPropertyName(field.Name));
+				il.Emit(OpCodes.Callvirt, appendMethod);
+
+				// 添加 " = "
+				//il.Emit(OpCodes.Dup);
+				il.Emit(OpCodes.Ldstr, " = ");
+				il.Emit(OpCodes.Callvirt, appendMethod);
+
+				// 添加字段值
+				il.Emit(OpCodes.Ldarg_0);
+				il.Emit(OpCodes.Ldfld, field);
+				il.Emit(OpCodes.Box, field.FieldType);
+				il.Emit(OpCodes.Callvirt, toStringMethod);
+				il.Emit(OpCodes.Callvirt, appendMethod);
+			}
+
+			// 添加结束大括号
+			//il.Emit(OpCodes.Dup);
+			il.Emit(OpCodes.Ldstr, " }");
+			il.Emit(OpCodes.Callvirt, appendMethod);
+
+			// 调用 StringBuilder.ToString()
+			il.Emit(OpCodes.Callvirt, stringBuilderType.GetMethod("ToString", Type.EmptyTypes));
+			il.Emit(OpCodes.Ret);
+		}
+
+		/// <summary>
+		/// 从字段名获取属性名（去掉前缀下划线）
+		/// </summary>
+		private static string GetPropertyName(string fieldName)
+		{
+			if (string.IsNullOrEmpty(fieldName) || fieldName.Length <= 1)
+				return fieldName;
+			return fieldName[0] == '_' ? fieldName.Substring(1) : fieldName;
 		}
 	}
 }

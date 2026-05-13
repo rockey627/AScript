@@ -146,6 +146,7 @@ Assert.IsInstanceOfType(a, type);
 dynamic d = a;
 Assert.AreEqual("tony", d.Name);
 Assert.AreEqual(20, d.Age);
+Assert.AreEqual("{ Name = tony, Age = 20 }", a.ToString());
 ```
 
 #### 动态类型

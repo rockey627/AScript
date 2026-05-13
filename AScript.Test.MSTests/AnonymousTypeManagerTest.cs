@@ -24,6 +24,7 @@ namespace AScript.Test.MSTests
 			var v2 = Activator.CreateInstance(type2, new object[] { "tom", 10 });
 			Assert.IsNotNull(v1);
 			Assert.IsNotNull(v2);
+			Assert.AreEqual("{ Name = tom, Age = 10 }", v1.ToString());
 			Assert.AreNotEqual(v1, v2);
 			Assert.AreNotEqual(v2, v1);
 			Assert.AreEqual(v1.GetHashCode(), v2.GetHashCode());
@@ -88,6 +89,8 @@ namespace AScript.Test.MSTests
 			var v1 = Activator.CreateInstance(type, new object[] { null, 10 });
 			var v2 = Activator.CreateInstance(type, new object[] { "tom", null });
 			Assert.IsNotNull(v1);
+			Assert.AreEqual("{ Name = , Age = 10 }", v1.ToString());
+			Assert.AreEqual("{ Name = tom, Age = }", v2.ToString());
 			Assert.AreNotEqual(v1, v2);
 			Assert.AreNotEqual(v2, v1);
 			Assert.AreNotEqual(v1.GetHashCode(), v2.GetHashCode());
@@ -116,6 +119,7 @@ namespace AScript.Test.MSTests
 			var v1 = Activator.CreateInstance(type, new object[] { null, null });
 			var v2 = Activator.CreateInstance(type, new object[] { null, null });
 			Assert.IsNotNull(v1);
+			Assert.AreEqual("{ Name = , Age =  }", v1.ToString());
 			Assert.AreEqual(v1, v2);
 			Assert.AreEqual(v2, v1);
 			Assert.AreEqual(v1.GetHashCode(), v2.GetHashCode());
@@ -228,6 +232,7 @@ namespace AScript.Test.MSTests
 			var v1 = Activator.CreateInstance(type);
 			var v2 = Activator.CreateInstance(type);
 			Assert.IsNotNull(v1);
+			Assert.AreEqual("{ }", v1.ToString());
 			Assert.AreEqual(v1, v2);
 			Assert.AreEqual(v2, v1);
 			Assert.AreEqual(v1.GetHashCode(), v2.GetHashCode());
