@@ -1,6 +1,7 @@
 ﻿using AScript.Nodes;
 using AScript.Syntaxs;
 using System;
+using System.Collections.Generic;
 
 namespace AScript.Test.MSTests.中文
 {

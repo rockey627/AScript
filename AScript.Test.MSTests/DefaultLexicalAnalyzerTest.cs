@@ -1,5 +1,8 @@
 ﻿using AScript.Readers;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.IO;
+using System.Linq;
 
 namespace AScript.Test.MSTests
 {
@@ -30,7 +33,7 @@ namespace AScript.Test.MSTests
 			string s = @"string s;
 s??'hello'";
 			var tokens = new DefaultTokenStream(s).ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(6, tokens.Count);
 
 			Assert.AreEqual("string", tokens[0].Value);
@@ -68,7 +71,7 @@ s??'hello'";
 		public void Test16()
 		{
 			var tokens = new DefaultTokenStream("string s;s??'hello'").ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(6, tokens.Count);
 
 			Assert.AreEqual("string", tokens[0].Value);
@@ -106,7 +109,7 @@ s??'hello'";
 		public void Test15()
 		{
 			var tokens = new DefaultTokenStream("n=1>0; n==true").ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(9, tokens.Count);
 			Assert.AreEqual("n", tokens[0].Value);
 			Assert.AreEqual(ETokenType.Word, tokens[0].Type);
@@ -132,7 +135,7 @@ s??'hello'";
 		public void Test14()
 		{
 			var tokens = new DefaultTokenStream("5&12").ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(3, tokens.Count);
 			Assert.AreEqual("5", tokens[0].Value);
 			Assert.AreEqual("&", tokens[1].Value);
@@ -143,7 +146,7 @@ s??'hello'";
 		public void Test13()
 		{
 			var tokens = new DefaultTokenStream("5/12").ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(3, tokens.Count);
 			Assert.AreEqual("5", tokens[0].Value);
 			Assert.AreEqual("/", tokens[1].Value);
@@ -154,7 +157,7 @@ s??'hello'";
 		public void Test12()
 		{
 			var tokens = new DefaultTokenStream(File.OpenRead("DefaultLexicalAnalyzerTest_Test12.txt"), true).ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(3, tokens.Count);
 			Assert.AreEqual("5", tokens[0].Value);
 			Assert.AreEqual("+", tokens[1].Value);
@@ -166,7 +169,7 @@ s??'hello'";
 		{
 			string s = "+.9";
 			var tokens = new DefaultTokenStream(s).ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(2, tokens.Count);
 			Assert.AreEqual("+", tokens[0].Value);
 			Assert.AreEqual(".9", tokens[1].Value);
@@ -177,7 +180,7 @@ s??'hello'";
 		{
 			string s = "'hello'.Length";
 			var tokens = new DefaultTokenStream(s).ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(3, tokens.Count);
 			Assert.AreEqual("hello", tokens[0].Value);
 			Assert.AreEqual(".", tokens[1].Value);
@@ -189,7 +192,7 @@ s??'hello'";
 		{
 			string s = ".9";
 			var tokens = new DefaultTokenStream(s).ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(1, tokens.Count);
 			Assert.AreEqual(".9", tokens[0].Value);
 		}
@@ -199,7 +202,7 @@ s??'hello'";
 		{
 			string s = "6.0";
 			var tokens = new DefaultTokenStream(s).ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(1, tokens.Count);
 			Assert.AreEqual("6.0", tokens[0].Value);
 		}
@@ -209,7 +212,7 @@ s??'hello'";
 		{
 			string s = "DateTime.Now.Year";
 			var tokens = new DefaultTokenStream(s).ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(5, tokens.Count);
 			Assert.AreEqual("DateTime", tokens[0].Value);
 			Assert.AreEqual(".", tokens[1].Value);
@@ -223,7 +226,7 @@ s??'hello'";
 		{
 			string s = "height =  0x0A0F";
 			var tokens = new DefaultTokenStream(s).ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(3, tokens.Count);
 			Assert.AreEqual("height", tokens[0].Value);
 			Assert.AreEqual("=", tokens[1].Value);
@@ -235,7 +238,7 @@ s??'hello'";
 		{
 			string s = "m =6.03f.round(  0.6 )";
 			var tokens = new DefaultTokenStream(s).ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(8, tokens.Count);
 			Assert.AreEqual("m", tokens[0].Value);
 			Assert.AreEqual("=", tokens[1].Value);
@@ -252,7 +255,7 @@ s??'hello'";
 		{
 			string s = "m =6.03.round(  0.6 )";
 			var tokens = new DefaultTokenStream(s).ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(8, tokens.Count);
 			Assert.AreEqual("m", tokens[0].Value);
 			Assert.AreEqual("=", tokens[1].Value);
@@ -269,7 +272,7 @@ s??'hello'";
 		{
 			string s = "m =6.03f;  n2=27; m+ n2 * (10-m)";
 			var tokens = new DefaultTokenStream(s).ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(17, tokens.Count);
 			Assert.AreEqual("m", tokens[0].Value);
 			Assert.AreEqual("=", tokens[1].Value);
@@ -295,7 +298,7 @@ s??'hello'";
 		{
 			string s = "m =6;  n2=27; m+ n2 * (10-m)";
 			var tokens = new DefaultTokenStream(s).ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(17, tokens.Count);
 			Assert.AreEqual("m", tokens[0].Value);
 			Assert.AreEqual("=", tokens[1].Value);
@@ -321,7 +324,7 @@ s??'hello'";
 		{
 			string s = "m =6";
 			var tokens = new DefaultTokenStream(s).ParseAll();
-			Console.WriteLine(string.Join(' ', tokens.Select(a => a.Value)));
+			Console.WriteLine(string.Join(" ", tokens.Select(a => a.Value)));
 			Assert.AreEqual(3, tokens.Count);
 			Assert.AreEqual("m", tokens[0].Value);
 			Assert.AreEqual("=", tokens[1].Value);

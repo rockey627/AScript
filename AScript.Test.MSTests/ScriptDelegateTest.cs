@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -132,7 +133,11 @@ func1.Invoke(6) + func2.Invoke(7)
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
+#if NET45
+			script.Context.SetVar("func", (Func<int, int>)((int a) => a + 5));
+#else
 			script.Context.SetVar("func", (int a) => a + 5);
+#endif
 			Assert.AreEqual(11, script.Eval("func.Invoke(6)"));
 		}
 
@@ -140,7 +145,11 @@ func1.Invoke(6) + func2.Invoke(7)
 		public void Test01()
 		{
 			var script = new Script();
+#if NET45
+			script.Context.SetVar("func", (Func<int, int>)((int a) => a + 5));
+#else
 			script.Context.SetVar("func", (int a) => a + 5);
+#endif
 			Assert.AreEqual(11, script.Eval("func.Invoke(6)"));
 		}
 	}

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 
 namespace AScript.Test.MSTests
@@ -50,7 +51,7 @@ list[0]+list[2]
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
-			script.Context.AddFunc<IEnumerable<int>, string>("ToString2", list => string.Join(',', list));
+			script.Context.AddFunc<IEnumerable<int>, string>("ToString2", list => string.Join(",", list));
 			script.Context.SetVar("list", new[] { 10, 20, 30, 40, 50, 60, 70 });
 			Assert.AreEqual("20,30", script.Eval("list[1:3].ToString2()"));
 		}
@@ -59,7 +60,7 @@ list[0]+list[2]
 		public void Test11()
 		{
 			var script = new Script();
-			script.Context.AddFunc<IEnumerable<int>, string>("ToString2", list => string.Join(',', list));
+			script.Context.AddFunc<IEnumerable<int>, string>("ToString2", list => string.Join(",", list));
 			script.Context.SetVar("list", new[] { 10, 20, 30, 40, 50, 60, 70 });
 			Assert.AreEqual("20,30", script.Eval("list[1:3].ToString2()"));
 		}

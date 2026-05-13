@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,6 +29,7 @@ total
 		[TestMethod]
 		public void Test05()
 		{
+#if NET7_0_OR_GREATER
 			int total = 0;
 			var list = new[] { (1, 2), (2, 3), (3, 4) };
 			foreach (var (x, y) in list)
@@ -35,6 +37,7 @@ total
 				total += x + y;
 			}
 			Assert.AreEqual(15, total);
+#endif
 
 			// foreach 遍历
 			var code1 = @"

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,7 @@ namespace AScript.Test.MSTests
 		public void Test02()
 		{
 			int n = 10;
-			var sum = (int a, int b) =>
+			Func<int, int, int> sum = (int a, int b) =>
 			{
 				n++;
 				return a + b + n;
@@ -25,6 +26,7 @@ namespace AScript.Test.MSTests
 			Console.WriteLine(m + " " + n);
 		}
 
+#if NET7_0_OR_GREATER
 		[TestMethod]
 		public void Test01()
 		{
@@ -32,5 +34,6 @@ namespace AScript.Test.MSTests
 			var span = s.AsSpan(1, 2);
 			Assert.IsTrue(span.SequenceEqual("el"));
 		}
+#endif
 	}
 }

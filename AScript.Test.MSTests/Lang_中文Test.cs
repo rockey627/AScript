@@ -1,4 +1,5 @@
 ﻿using AScript.Test.MSTests.中文;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
 namespace AScript.Test.MSTests

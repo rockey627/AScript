@@ -1,5 +1,8 @@
 using AScript.Lang.Python3;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AScript.Test.MSTests.Python3
 {
@@ -30,7 +33,7 @@ list3=list1 + list2
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "python3" };
 			var result = script.Eval<List<object>>(s);
-			Assert.AreEqual("1,2,3,3,4,5", string.Join(',', result));
+			Assert.AreEqual("1,2,3,3,4,5", string.Join(",", result));
 			Assert.AreEqual(2L, script.Eval("list3[1]"));
 			Assert.AreEqual(2L, script.Eval("list3[-5]"));
 		}
@@ -46,7 +49,7 @@ list3=list1 + list2
 			var script = new Script();
 			script.Context.Langs = new[] { "python3" };
 			var result = script.Eval<List<object>>(s);
-			Assert.AreEqual("1,2,3,3,4,5", string.Join(',', result));
+			Assert.AreEqual("1,2,3,3,4,5", string.Join(",", result));
 			Assert.AreEqual(2L, script.Eval("list3[1]"));
 			Assert.AreEqual(2L, script.Eval("list3[-5]"));
 		}

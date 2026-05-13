@@ -1,5 +1,8 @@
 ﻿using AScript.Lang.Sql;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace AScript.Test.MSTests
 {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,16 +37,16 @@ int exec() {
 exec();
 ";
 			int n = 10;
-			var exec = () =>
+			Func<int> exec = () =>
 			{
-				int t = 0;
-				int i = 0;
-				var func = () => t += i + n;
-				for (i = 0; i < n; i++)
+				int t2 = 0;
+				int i2 = 0;
+				Func<int> func2 = () => t2 += i2 + n;
+				for (i2 = 0; i2 < n; i2++)
 				{
-					func();
+					func2();
 				}
-				return t;
+				return t2;
 			};
 			var r = exec();
 			var script = new Script();
@@ -85,16 +86,16 @@ int exec() {
 exec();
 ";
 			int n = 10;
-			var exec = () =>
+			Func<int> exec = () =>
 			{
-				int t = 0;
-				int i = 0;
-				var func = () => t += i + n;
-				for (i = 0; i < n; i++)
+				int t2 = 0;
+				int i2 = 0;
+				Func<int> func2 = () => t2 += i2 + n;
+				for (i2 = 0; i2 < n; i2++)
 				{
-					func();
+					func2();
 				}
-				return t;
+				return t2;
 			};
 			var r = exec();
 			var script = new Script();

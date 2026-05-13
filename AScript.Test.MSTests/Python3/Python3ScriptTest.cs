@@ -1,4 +1,5 @@
 using AScript.Lang.Python3;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -616,7 +617,7 @@ s.add(2)
 s
 ");
 			Assert.AreEqual(3, set.Count);
-			Assert.AreEqual("1,2,3", string.Join(',', set));
+			Assert.AreEqual("1,2,3", string.Join(",", set));
 		}
 
 		[TestMethod]
@@ -630,7 +631,7 @@ s.add(2)
 s
 ");
 			Assert.AreEqual(3, set.Count);
-			Assert.AreEqual("1,2,3", string.Join(',', set));
+			Assert.AreEqual("1,2,3", string.Join(",", set));
 		}
 
 		[TestMethod]

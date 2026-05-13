@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,8 +22,8 @@ var q = [1,2,3,4,5].AsQueryable();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
 			var q = (IQueryable<int>)r;
-			Assert.AreEqual("1,2,3,4,5", string.Join(',', q));
-			Assert.AreEqual("2,4", string.Join(',', q.Where(a => a % 2 == 0)));
+			Assert.AreEqual("1,2,3,4,5", string.Join(",", q));
+			Assert.AreEqual("2,4", string.Join(",", q.Where(a => a % 2 == 0)));
 		}
 
 		[TestMethod]
@@ -36,8 +37,8 @@ var q = [1,2,3,4,5].AsQueryable();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
 			var q = (IQueryable<int>)r;
-			Assert.AreEqual("1,2,3,4,5", string.Join(',', q));
-			Assert.AreEqual("2,4", string.Join(',', q.Where(a => a % 2 == 0)));
+			Assert.AreEqual("1,2,3,4,5", string.Join(",", q));
+			Assert.AreEqual("2,4", string.Join(",", q.Where(a => a % 2 == 0)));
 		}
 
 		[TestMethod]
@@ -50,7 +51,7 @@ var r = q.Where(a=>a%2==0).ToList();
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(List<int>));
-			Assert.AreEqual("2,4", string.Join(',', (List<int>)r));
+			Assert.AreEqual("2,4", string.Join(",", (List<int>)r));
 		}
 
 		[TestMethod]
@@ -64,7 +65,7 @@ var r = q.Where(a=>a%2==0).ToList();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(List<int>));
-			Assert.AreEqual("2,4", string.Join(',', (List<int>)r));
+			Assert.AreEqual("2,4", string.Join(",", (List<int>)r));
 		}
 
 		[TestMethod]
@@ -77,7 +78,7 @@ var r = q.Where(a=>a%2==0);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("2,4", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("2,4", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -91,7 +92,7 @@ var r = q.Where(a=>a%2==0);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("2,4", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("2,4", string.Join(",", (IQueryable<int>)r));
 		}
 		#endregion
 
@@ -107,7 +108,7 @@ var r = q.Select(a=>a*2);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("2,4,6", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("2,4,6", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -120,7 +121,7 @@ var r = q.Select(a=>a*2);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("2,4,6", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("2,4,6", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -133,7 +134,7 @@ var r = q.Select(a=>new {C = a*2}).ToList();
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
-			var itemType = DynamicAnonymousType.CreateType(new[] { "C" }, new[] { typeof(int) });
+			var itemType = Script.AnonymousTypes.CreateType(new[] { "C" }, new[] { typeof(int) });
 			Assert.IsInstanceOfType(r, typeof(List<>).MakeGenericType(itemType));
 			var list = (IList)r;
 			Assert.AreEqual(2, ((dynamic)list[0]).C);
@@ -150,7 +151,7 @@ var r = q.Select(a=>new {C = a*2}).ToList();
 ";
 			var script = new Script();
 			var r = script.Eval(s);
-			var itemType = DynamicAnonymousType.CreateType(new[] { "C" }, new[] { typeof(int) });
+			var itemType = Script.AnonymousTypes.CreateType(new[] { "C" }, new[] { typeof(int) });
 			Assert.IsInstanceOfType(r, typeof(List<>).MakeGenericType(itemType));
 			var list = (IList)r;
 			Assert.AreEqual(2, ((dynamic)list[0]).C);
@@ -169,7 +170,7 @@ var r = q.Select(a=>a*2).ToList();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(List<int>));
-			Assert.AreEqual("2,4,6", string.Join(',', (List<int>)r));
+			Assert.AreEqual("2,4,6", string.Join(",", (List<int>)r));
 		}
 
 		[TestMethod]
@@ -182,7 +183,7 @@ var r = q.Select(a=>a*2).ToList();
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(List<int>));
-			Assert.AreEqual("2,4,6", string.Join(',', (List<int>)r));
+			Assert.AreEqual("2,4,6", string.Join(",", (List<int>)r));
 		}
 
 		[TestMethod]
@@ -196,7 +197,7 @@ var r = q.Select(a=>""item""+a);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<string>));
-			Assert.AreEqual("item1,item2,item3", string.Join(',', (IQueryable<string>)r));
+			Assert.AreEqual("item1,item2,item3", string.Join(",", (IQueryable<string>)r));
 		}
 
 		[TestMethod]
@@ -209,7 +210,7 @@ var r = q.Select(a=>""item""+a);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<string>));
-			Assert.AreEqual("item1,item2,item3", string.Join(',', (IQueryable<string>)r));
+			Assert.AreEqual("item1,item2,item3", string.Join(",", (IQueryable<string>)r));
 		}
 		#endregion
 
@@ -225,7 +226,7 @@ var r = q.OrderBy(a=>a);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("1,1,2,3,4,5,6,9", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("1,1,2,3,4,5,6,9", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -238,7 +239,7 @@ var r = q.OrderBy(a=>a);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("1,1,2,3,4,5,6,9", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("1,1,2,3,4,5,6,9", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -252,7 +253,7 @@ var r = q.OrderByDescending(a=>a);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("9,6,5,4,3,2,1,1", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("9,6,5,4,3,2,1,1", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -265,7 +266,7 @@ var r = q.OrderByDescending(a=>a);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("9,6,5,4,3,2,1,1", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("9,6,5,4,3,2,1,1", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -310,7 +311,7 @@ var r = q.Take(3);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("1,2,3", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("1,2,3", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -323,7 +324,7 @@ var r = q.Take(3);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("1,2,3", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("1,2,3", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -337,7 +338,7 @@ var r = q.Skip(2);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("3,4,5", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("3,4,5", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -350,7 +351,7 @@ var r = q.Skip(2);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("3,4,5", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("3,4,5", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -364,7 +365,7 @@ var r = q.Skip(1).Take(3);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("2,3,4", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("2,3,4", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -377,7 +378,7 @@ var r = q.Skip(1).Take(3);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("2,3,4", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("2,3,4", string.Join(",", (IQueryable<int>)r));
 		}
 		#endregion
 
@@ -393,7 +394,7 @@ var r = q.Distinct();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("1,2,3", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("1,2,3", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -406,7 +407,7 @@ var r = q.Distinct();
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("1,2,3", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("1,2,3", string.Join(",", (IQueryable<int>)r));
 		}
 		#endregion
 
@@ -853,7 +854,7 @@ var r = q.SelectMany(a=>a).ToList();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(List<int>));
-			Assert.AreEqual("1,2,3,4,5", string.Join(',', (List<int>)r));
+			Assert.AreEqual("1,2,3,4,5", string.Join(",", (List<int>)r));
 		}
 
 		[TestMethod]
@@ -868,7 +869,7 @@ var r = q.SelectMany(a=>a).ToList();
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(List<int>));
-			Assert.AreEqual("1,2,3,4,5", string.Join(',', (List<int>)r));
+			Assert.AreEqual("1,2,3,4,5", string.Join(",", (List<int>)r));
 		}
 
 		[TestMethod]
@@ -882,7 +883,7 @@ var r = q.SelectMany(a=>a, (a,b)=>a[0]*10+b).ToList();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(List<int>));
-			Assert.AreEqual("11,12,33,34", string.Join(',', (List<int>)r));
+			Assert.AreEqual("11,12,33,34", string.Join(",", (List<int>)r));
 		}
 
 		[TestMethod]
@@ -890,7 +891,7 @@ var r = q.SelectMany(a=>a, (a,b)=>a[0]*10+b).ToList();
 		{
 			var q = new[] { new[] { 1, 2 }, new[] { 3, 4 } }.AsQueryable();
 			var r1 = q.SelectMany(a => a, (a, b) => a[0] * 10 + b).ToList();
-			Assert.AreEqual("11,12,33,34", string.Join(',', r1));
+			Assert.AreEqual("11,12,33,34", string.Join(",", r1));
 
 			string s = @"
 var q = [[1,2],[3,4]].AsQueryable();
@@ -899,7 +900,7 @@ var r = q.SelectMany(a=>a, (a,b)=>a[0]*10+b).ToList();
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(List<int>));
-			Assert.AreEqual("11,12,33,34", string.Join(',', (List<int>)r));
+			Assert.AreEqual("11,12,33,34", string.Join(",", (List<int>)r));
 		}
 		#endregion
 
@@ -916,7 +917,7 @@ var r = outer.Join(inner, o=>o.Item1, i=>i.Item1, (o,i)=>o.Item2+''+i.Item2).ToL
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(List<string>));
-			Assert.AreEqual("ax,by", string.Join(',', (List<string>)r));
+			Assert.AreEqual("ax,by", string.Join(",", (List<string>)r));
 		}
 
 		[TestMethod]
@@ -930,7 +931,7 @@ var r = outer.Join(inner, o=>o.Item1, i=>i.Item1, (o,i)=>o.Item2+''+i.Item2).ToL
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(List<string>));
-			Assert.AreEqual("ax,by", string.Join(',', (List<string>)r));
+			Assert.AreEqual("ax,by", string.Join(",", (List<string>)r));
 		}
 
 		[TestMethod]
@@ -983,7 +984,7 @@ var r = q.Where(a=>a>3).Select(a=>a*2).OrderBy(a=>a);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("8,10,12,14,16,18,20", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("8,10,12,14,16,18,20", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -996,7 +997,7 @@ var r = q.Where(a=>a>3).Select(a=>a*2).OrderBy(a=>a);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("8,10,12,14,16,18,20", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("8,10,12,14,16,18,20", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -1010,7 +1011,7 @@ var r = q.OrderByDescending(a=>a).Skip(2).Take(3);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("7,6,5", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("7,6,5", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -1023,7 +1024,7 @@ var r = q.OrderByDescending(a=>a).Skip(2).Take(3);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("7,6,5", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("7,6,5", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -1087,7 +1088,7 @@ var r = q.Where(a=>a>1).Distinct();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("2,3", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("2,3", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]
@@ -1100,7 +1101,7 @@ var r = q.Where(a=>a>1).Distinct();
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IQueryable<int>));
-			Assert.AreEqual("2,3", string.Join(',', (IQueryable<int>)r));
+			Assert.AreEqual("2,3", string.Join(",", (IQueryable<int>)r));
 		}
 
 		[TestMethod]

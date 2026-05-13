@@ -19,7 +19,7 @@ var r = q.Where(a=>a%2==0);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("2,4", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("2,4", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -33,7 +33,7 @@ var r = q.Where(a=>a%2==0);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("2,4", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("2,4", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -46,7 +46,7 @@ var r = q.Where(a=>a%2==0).ToList();
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(List<int>));
-			Assert.AreEqual("2,4", string.Join(',', (List<int>)r));
+			Assert.AreEqual("2,4", string.Join(",", (List<int>)r));
 		}
 
 		[TestMethod]
@@ -60,7 +60,7 @@ var r = q.Where(a=>a%2==0).ToList();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(List<int>));
-			Assert.AreEqual("2,4", string.Join(',', (List<int>)r));
+			Assert.AreEqual("2,4", string.Join(",", (List<int>)r));
 		}
 		#endregion
 
@@ -75,7 +75,7 @@ var r = q.Select(a=>a*2);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("2,4,6", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("2,4,6", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -89,7 +89,7 @@ var r = q.Select(a=>a*2);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("2,4,6", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("2,4,6", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -102,7 +102,7 @@ var r = q.Select(a=>a*2).ToList();
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(List<int>));
-			Assert.AreEqual("2,4,6", string.Join(',', (List<int>)r));
+			Assert.AreEqual("2,4,6", string.Join(",", (List<int>)r));
 		}
 
 		[TestMethod]
@@ -116,7 +116,7 @@ var r = q.Select(a=>a*2).ToList();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(List<int>));
-			Assert.AreEqual("2,4,6", string.Join(',', (List<int>)r));
+			Assert.AreEqual("2,4,6", string.Join(",", (List<int>)r));
 		}
 
 		[TestMethod]
@@ -129,7 +129,7 @@ var r = q.Select(a=>""item""+a);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<string>));
-			Assert.AreEqual("item1,item2,item3", string.Join(',', (IEnumerable<string>)r));
+			Assert.AreEqual("item1,item2,item3", string.Join(",", (IEnumerable<string>)r));
 		}
 
 		[TestMethod]
@@ -143,7 +143,7 @@ var r = q.Select(a=>""item""+a);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<string>));
-			Assert.AreEqual("item1,item2,item3", string.Join(',', (IEnumerable<string>)r));
+			Assert.AreEqual("item1,item2,item3", string.Join(",", (IEnumerable<string>)r));
 		}
 
 		[TestMethod]
@@ -156,7 +156,7 @@ var r = q.SelectMany(a=>a);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("1,2,3,4,5", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("1,2,3,4,5", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -170,7 +170,7 @@ var r = q.SelectMany(a=>a);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("1,2,3,4,5", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("1,2,3,4,5", string.Join(",", (IEnumerable<int>)r));
 		}
 		#endregion
 
@@ -185,7 +185,7 @@ var r = q.OrderBy(a=>a);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("1,1,2,3,4,5,6,9", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("1,1,2,3,4,5,6,9", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -199,7 +199,7 @@ var r = q.OrderBy(a=>a);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("1,1,2,3,4,5,6,9", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("1,1,2,3,4,5,6,9", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -212,7 +212,7 @@ var r = q.OrderByDescending(a=>a);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("9,6,5,4,3,2,1,1", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("9,6,5,4,3,2,1,1", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -226,7 +226,7 @@ var r = q.OrderByDescending(a=>a);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("9,6,5,4,3,2,1,1", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("9,6,5,4,3,2,1,1", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -299,7 +299,7 @@ var r = q.Take(3);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("1,2,3", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("1,2,3", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -313,7 +313,7 @@ var r = q.Take(3);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("1,2,3", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("1,2,3", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -326,7 +326,7 @@ var r = q.Skip(2);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("3,4,5", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("3,4,5", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -340,7 +340,7 @@ var r = q.Skip(2);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("3,4,5", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("3,4,5", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -353,7 +353,7 @@ var r = q.Skip(1).Take(3);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("2,3,4", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("2,3,4", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -367,7 +367,7 @@ var r = q.Skip(1).Take(3);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("2,3,4", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("2,3,4", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -380,7 +380,7 @@ var r = q.TakeWhile(a=>a<4);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("1,2,3", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("1,2,3", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -394,7 +394,7 @@ var r = q.TakeWhile(a=>a<4);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("1,2,3", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("1,2,3", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -407,7 +407,7 @@ var r = q.SkipWhile(a=>a<3);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("3,4,5", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("3,4,5", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -421,7 +421,7 @@ var r = q.SkipWhile(a=>a<3);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("3,4,5", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("3,4,5", string.Join(",", (IEnumerable<int>)r));
 		}
 		#endregion
 
@@ -436,7 +436,7 @@ var r = q.Distinct();
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("1,2,3", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("1,2,3", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -450,7 +450,7 @@ var r = q.Distinct();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("1,2,3", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("1,2,3", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -464,7 +464,7 @@ var r = q1.Union(q2);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("1,2,3,4,5", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("1,2,3,4,5", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -479,7 +479,7 @@ var r = q1.Union(q2);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("1,2,3,4,5", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("1,2,3,4,5", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -493,7 +493,7 @@ var r = q1.Intersect(q2);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("3,4", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("3,4", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -508,7 +508,7 @@ var r = q1.Intersect(q2);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("3,4", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("3,4", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -522,7 +522,7 @@ var r = q1.Except(q2);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("1,2", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("1,2", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -537,7 +537,7 @@ var r = q1.Except(q2);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("1,2", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("1,2", string.Join(",", (IEnumerable<int>)r));
 		}
 		#endregion
 
@@ -1447,7 +1447,7 @@ var r = q.Where(a=>a>3).Select(a=>a*2).OrderBy(a=>a);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("8,10,12,14,16,18,20", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("8,10,12,14,16,18,20", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -1461,7 +1461,7 @@ var r = q.Where(a=>a>3).Select(a=>a*2).OrderBy(a=>a);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("8,10,12,14,16,18,20", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("8,10,12,14,16,18,20", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -1474,7 +1474,7 @@ var r = q.OrderByDescending(a=>a).Skip(2).Take(3);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("7,6,5", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("7,6,5", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -1488,7 +1488,7 @@ var r = q.OrderByDescending(a=>a).Skip(2).Take(3);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("7,6,5", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("7,6,5", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -1526,7 +1526,7 @@ var r = q.Where(a=>a>1).Distinct();
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("2,3", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("2,3", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -1540,7 +1540,7 @@ var r = q.Where(a=>a>1).Distinct();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("2,3", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("2,3", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -1578,7 +1578,7 @@ var r = q.SelectMany(a=>a).Where(a=>a>3);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("4,5,6,7,8", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("4,5,6,7,8", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -1592,7 +1592,7 @@ var r = q.SelectMany(a=>a).Where(a=>a>3);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("4,5,6,7,8", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("4,5,6,7,8", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -1605,7 +1605,7 @@ var r = q.Distinct().OrderBy(a=>a);
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("1,2,3,4,5,6,9", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("1,2,3,4,5,6,9", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -1619,7 +1619,7 @@ var r = q.Distinct().OrderBy(a=>a);
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(IEnumerable<int>));
-			Assert.AreEqual("1,2,3,4,5,6,9", string.Join(',', (IEnumerable<int>)r));
+			Assert.AreEqual("1,2,3,4,5,6,9", string.Join(",", (IEnumerable<int>)r));
 		}
 
 		[TestMethod]
@@ -1632,7 +1632,7 @@ var r = q.Take(5).Skip(2).ToList();
 			var script = new Script();
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(List<int>));
-			Assert.AreEqual("3,4,5", string.Join(',', (List<int>)r));
+			Assert.AreEqual("3,4,5", string.Join(",", (List<int>)r));
 		}
 
 		[TestMethod]
@@ -1646,7 +1646,7 @@ var r = q.Take(5).Skip(2).ToList();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
 			Assert.IsInstanceOfType(r, typeof(List<int>));
-			Assert.AreEqual("3,4,5", string.Join(',', (List<int>)r));
+			Assert.AreEqual("3,4,5", string.Join(",", (List<int>)r));
 		}
 		#endregion
 	}

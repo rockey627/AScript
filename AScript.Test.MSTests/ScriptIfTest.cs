@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AScript.Nodes;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AScript.Test.MSTests
 {
