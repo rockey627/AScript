@@ -20,7 +20,7 @@
 * 支持定义函数
 * 支持注入类型
 * 支持C#语法
-* 支持元组类型
+* 支持元组类型、匿名类型、动态类型
 * 支持事件处理
 * 支持16进制整数表示：0x0A
 * 支持多语句：用分号分隔多条语句
@@ -130,6 +130,37 @@ var script = new Script();
 script.Context.SetVar("m", 6);
 var result = script.Eval("int n=8;n+m+10*(3+0x0A)");
 Assert.AreEqual(8 + 6 + 10 * (3 + 0x0A), result);
+```
+
+#### 匿名类型
+```C#
+string s = @"
+var a = new { Name='tony', Age=20 }
+a.Name + ':' + a.Age
+";
+var script = new Script();
+Assert.AreEqual("tony:20", script.Eval(s));
+var a = script.Eval("a");
+var type = Script.AnonymousTypes.CreateType(new[] { "Name", "Age" }, new[] { typeof(string), typeof(int) });
+Assert.IsInstanceOfType(a, type);
+dynamic d = a;
+Assert.AreEqual("tony", d.Name);
+Assert.AreEqual(20, d.Age);
+```
+
+#### 动态类型
+```C#
+string s = @"
+var a = new ExpandoObject();
+a.Name = 'jim';
+a.Age = 23;
+a
+";
+var script = new Script();
+dynamic a = script.Eval(s);
+Assert.IsInstanceOfType(a, typeof(ExpandoObject));
+Assert.AreEqual("jim", a.Name);
+Assert.AreEqual(23, a.Age);
 ```
 
 #### 注入函数

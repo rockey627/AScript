@@ -13,6 +13,45 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test46_Anonymous_2()
+		{
+			string s = @"
+var a = new { Name='tony', Age=20 }
+a.Name + ':' + a.Age
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual("tony:20", script.Eval(s));
+			var a = script.Eval("a");
+			var type = Script.AnonymousTypes.CreateType(new[] { "Name", "Age" }, new[] { typeof(string), typeof(int) });
+			Assert.IsInstanceOfType(a, type);
+			dynamic d = a;
+			Assert.AreEqual("tony", d.Name);
+			Assert.AreEqual(20, d.Age);
+		}
+
+		[TestMethod]
+		public void Test46_Anonymous()
+		{
+			string s = @"
+var a = new { Name='tony', Age=20 }
+a.Name + ':' + a.Age
+";
+			var script = new Script();
+			Assert.AreEqual("tony:20", script.Eval(s));
+			var a = script.Eval("a");
+#if NET45
+			var type = Script.AnonymousTypes.CreateType(new[] { "Name", "Age" }, new[] { typeof(string), typeof(int) });
+#else
+			var type = Script.AnonymousTypes.CreateType(("Name", typeof(string)), ("Age", typeof(int)));
+#endif
+			Assert.IsInstanceOfType(a, type);
+			dynamic d = a;
+			Assert.AreEqual("tony", d.Name);
+			Assert.AreEqual(20, d.Age);
+		}
+
+		[TestMethod]
 		public void Test45_Anonymous_2()
 		{
 			string s = @"
@@ -23,11 +62,15 @@ var a = new { Name='tony', Age=20 }
 			dynamic a = script.Eval(s);
 			Assert.AreEqual("tony", a.Name);
 			Assert.AreEqual(20, a.Age);
+			Assert.AreEqual("{ Name = tony, Age = 20 }", a.ToString());
 		}
 
 		[TestMethod]
 		public void Test45_Anonymous()
 		{
+			var dd = new { Name = "tony", Age = 20 };
+			Console.WriteLine(dd.ToString());
+
 			string s = @"
 var a = new { Name='tony', Age=20 }
 ";
@@ -35,6 +78,7 @@ var a = new { Name='tony', Age=20 }
 			dynamic a = script.Eval(s);
 			Assert.AreEqual("tony", a.Name);
 			Assert.AreEqual(20, a.Age);
+			Assert.AreEqual("{ Name = tony, Age = 20 }", a.ToString());
 		}
 
 		[TestMethod]

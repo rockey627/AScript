@@ -52,6 +52,87 @@ namespace AScript
 			return Expression.New(constructor, fieldValues);
 		}
 
+#if NETSTANDARD2_0_OR_GREATER
+		/// <summary>
+		/// 创建匿名类型
+		/// </summary>
+		/// <param name="field"></param>
+		/// <returns></returns>
+		public Type CreateType((string name, Type type) field)
+		{
+			return CreateType(new[] { field.name }, new[] { field.type });
+		}
+
+		/// <summary>
+		/// 创建匿名类型
+		/// </summary>
+		/// <param name="field1"></param>
+		/// <param name="field2"></param>
+		/// <returns></returns>
+		public Type CreateType((string name, Type type) field1, (string name, Type type) field2)
+		{
+			return CreateType(new[] { field1.name, field2.name }, new[] { field1.type, field2.type });
+		}
+
+		/// <summary>
+		/// 创建匿名类型
+		/// </summary>
+		/// <param name="field1"></param>
+		/// <param name="field2"></param>
+		/// <param name="field3"></param>
+		/// <returns></returns>
+		public Type CreateType((string name, Type type) field1, (string name, Type type) field2, (string name, Type type) field3)
+		{
+			return CreateType(new[] { field1.name, field2.name, field3.name }, new[] { field1.type, field2.type, field3.type });
+		}
+
+		/// <summary>
+		/// 创建匿名类型
+		/// </summary>
+		/// <param name="fields"></param>
+		/// <returns></returns>
+		public Type CreateType(params (string name, Type type)[] fields)
+		{
+			return CreateType((IList<(string, Type)>)fields);
+		}
+
+		/// <summary>
+		/// 创建匿名类型
+		/// </summary>
+		/// <param name="fields"></param>
+		/// <returns></returns>
+		public Type CreateType(IList<(string name, Type type)> fields)
+		{
+			string[] fieldNames;
+			Type[] fieldTypes;
+			if (fields == null || fields.Count == 0)
+			{
+				fieldNames = null;
+				fieldTypes = null;
+			}
+			else
+			{
+				fieldNames = new string[fields.Count];
+				fieldTypes = new Type[fields.Count];
+				for (int i = 0; i < fields.Count; i++)
+				{
+					fieldNames[i] = fields[i].name;
+					fieldTypes[i] = fields[i].type;
+				}
+			}
+			return CreateType(fieldNames, fieldTypes);
+		}
+#endif
+
+		/// <summary>
+		/// 创建空匿名类型：没有任何字段
+		/// </summary>
+		/// <returns></returns>
+		public Type CreateType()
+		{
+			return CreateType(null, null);
+		}
+
 		/// <summary>
 		/// 创建匿名类型
 		/// </summary>
