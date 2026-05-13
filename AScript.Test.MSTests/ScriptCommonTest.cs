@@ -70,6 +70,8 @@ var a = new { Name='tony', Age=20 }
 		{
 			var dd = new { Name = "tony", Age = 20 };
 			Console.WriteLine(dd.ToString());
+			int? age = null;
+			Console.WriteLine(new { Name = "tony", Age = age }.ToString());
 
 			string s = @"
 var a = new { Name='tony', Age=20 }

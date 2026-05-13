@@ -196,7 +196,7 @@ namespace AScript
 			// 生成GetHashCode方法
 			GenerateHashCode(typeBuilder, fields);
 			// 生成ToString方法
-			GenerateToString(typeBuilder, fields);
+			GenerateToString(typeBuilder, fields, fieldNames);
 
 			return typeBuilder.CreateTypeInfo().AsType();
 		}
@@ -395,7 +395,7 @@ namespace AScript
 		/// <summary>
 		/// 生成ToString方法
 		/// </summary>
-		private static void GenerateToString(TypeBuilder typeBuilder, IList<FieldBuilder> fields)
+		private static void GenerateToString(TypeBuilder typeBuilder, IList<FieldBuilder> fields, IList<string> propertyNames)
 		{
 			var methodBuilder = typeBuilder.DefineMethod(
 				"ToString",
@@ -415,7 +415,7 @@ namespace AScript
 			var stringBuilderType = typeof(System.Text.StringBuilder);
 			var stringBuilderCtor = stringBuilderType.GetConstructor(Type.EmptyTypes);
 			var appendMethod = stringBuilderType.GetMethod("Append", new[] { typeof(string) });
-			var toStringMethod = typeof(object).GetMethod("ToString", Type.EmptyTypes);
+			var toStringMethod = ExpressionUtils.Method_Object_ToString;
 
 			// 创建 StringBuilder 实例
 			il.Emit(OpCodes.Newobj, stringBuilderCtor);
@@ -439,7 +439,7 @@ namespace AScript
 
 				// 添加字段名
 				//il.Emit(OpCodes.Dup);
-				il.Emit(OpCodes.Ldstr, GetPropertyName(field.Name));
+				il.Emit(OpCodes.Ldstr, propertyNames[i]);
 				il.Emit(OpCodes.Callvirt, appendMethod);
 
 				// 添加 " = "
@@ -451,8 +451,24 @@ namespace AScript
 				il.Emit(OpCodes.Ldarg_0);
 				il.Emit(OpCodes.Ldfld, field);
 				il.Emit(OpCodes.Box, field.FieldType);
+
+				// 检查是否为null
+				var isNullLabel = il.DefineLabel();
+				il.Emit(OpCodes.Dup);
+				il.Emit(OpCodes.Brfalse_S, isNullLabel);
+
+				// 不为null，调用ToString并追加
 				il.Emit(OpCodes.Callvirt, toStringMethod);
 				il.Emit(OpCodes.Callvirt, appendMethod);
+
+				var endLabel = il.DefineLabel();
+				il.Emit(OpCodes.Br_S, endLabel);
+
+				// 为null，追加空字符串
+				il.MarkLabel(isNullLabel);
+				il.Emit(OpCodes.Pop); // 弹出null值
+
+				il.MarkLabel(endLabel);
 			}
 
 			// 添加结束大括号
@@ -463,16 +479,6 @@ namespace AScript
 			// 调用 StringBuilder.ToString()
 			il.Emit(OpCodes.Callvirt, stringBuilderType.GetMethod("ToString", Type.EmptyTypes));
 			il.Emit(OpCodes.Ret);
-		}
-
-		/// <summary>
-		/// 从字段名获取属性名（去掉前缀下划线）
-		/// </summary>
-		private static string GetPropertyName(string fieldName)
-		{
-			if (string.IsNullOrEmpty(fieldName) || fieldName.Length <= 1)
-				return fieldName;
-			return fieldName[0] == '_' ? fieldName.Substring(1) : fieldName;
 		}
 	}
 }

@@ -90,7 +90,7 @@ namespace AScript.Test.MSTests
 			var v2 = Activator.CreateInstance(type, new object[] { "tom", null });
 			Assert.IsNotNull(v1);
 			Assert.AreEqual("{ Name = , Age = 10 }", v1.ToString());
-			Assert.AreEqual("{ Name = tom, Age = }", v2.ToString());
+			Assert.AreEqual("{ Name = tom, Age =  }", v2.ToString());
 			Assert.AreNotEqual(v1, v2);
 			Assert.AreNotEqual(v2, v1);
 			Assert.AreNotEqual(v1.GetHashCode(), v2.GetHashCode());
