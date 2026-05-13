@@ -70,7 +70,7 @@ namespace AScript.Nodes
 					}
 
 				}
-				return DynamicAnonymousType.CreateObject(fieldNames, fieldValues);
+				return Script.AnonymousTypes.CreateObject(fieldNames, fieldValues);
 			}
 			else
 			{
@@ -428,7 +428,7 @@ namespace AScript.Nodes
 						}
 					}
 				}
-				returnType = DynamicAnonymousType.CreateType(fieldNames, fieldTypes);
+				returnType = Script.AnonymousTypes.CreateType(fieldNames, fieldTypes);
 				return Activator.CreateInstance(returnType, fieldValues);
 			}
 			else

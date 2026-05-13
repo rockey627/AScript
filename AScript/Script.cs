@@ -37,6 +37,11 @@ namespace AScript
 		public static readonly Cache<Delegate> Cache = new Cache<Delegate>();
 
 		/// <summary>
+		/// 匿名类型管理
+		/// </summary>
+		public static readonly AnonymousTypeManager AnonymousTypes = new AnonymousTypeManager();
+
+		/// <summary>
 		/// 上下文
 		/// </summary>
 		public ScriptContext Context { get; set; }

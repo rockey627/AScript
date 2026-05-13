@@ -60,7 +60,8 @@ namespace AScript.Test.Consoles
 			var at = a.GetType();
 			var atf = at.GetGenericTypeDefinition();
 			Console.WriteLine(at);
-			var anonType = AScript.DynamicAnonymousType.CreateType(
+			var anonymousTypes = new AnonymousTypeManager();
+			var anonType = anonymousTypes.CreateType(
 				new[] { "Name", "Age" },
 				new[] { typeof(string), typeof(int) });
 			var anonfType = anonType.GetGenericTypeDefinition();
