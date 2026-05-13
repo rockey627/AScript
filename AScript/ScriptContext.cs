@@ -1450,13 +1450,16 @@ namespace AScript
 					}
 				}
 			}
+#if NET45
+			// NET45框架下如果有闭包参数，不直接调用LambdaExpression，需要Expression.Quote包装
+			return hasClosure ?
+				Expression.Invoke(Expression.Quote(d), argExprs) :
+				Expression.Invoke(d, argExprs);
+#else
 			return Expression.Invoke(d, argExprs);
+			//return Expression.Invoke(Expression.Quote(d), argExprs);
+#endif
 		}
-
-		//public virtual Expression BuildEval(string name, Type[] argTypes)
-		//{
-		//	throw new NotImplementedException();
-		//}
 
 		public object EvalFunc(string name, IList<object> argValues, IList<Type> argTypes)
 		{

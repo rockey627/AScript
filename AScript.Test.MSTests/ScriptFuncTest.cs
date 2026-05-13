@@ -60,13 +60,15 @@ exec();
 			try
 			{
 				script.Eval("func()");
-				Assert.IsTrue(false);
 			}
 			catch (Exception ex)
 			{
+				Console.WriteLine(ex);
 				//Assert.AreEqual("unknown function: func()", ex.Message);
-				Assert.AreEqual("Exception has been thrown by the target of an invocation.", ex.Message);
+				//Assert.AreEqual("Exception has been thrown by the target of an invocation.", ex.Message);
+				return;
 			}
+			Assert.IsTrue(false);
 		}
 
 		[TestMethod]

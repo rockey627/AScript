@@ -150,6 +150,34 @@ namespace AScript.Nodes
 			//var d = tempBuildContext.Compile(scriptContext, body);
 			//var dExpr = Expression.Constant(d);
 			var d = tempBuildContext.Build(scriptContext, options, body);
+#if NET45
+			// NET45框架下，如果Lambda有闭包参数直接Invoke会报错：System.Security.VerificationException:操作可能会破坏运行时稳定性
+			// 需要Expression.Quote来包装
+			var dExpr = Expression.Quote(d);
+			var ps = new ParameterExpression[d.Parameters.Count];
+			for (int i = 0; i < ps.Length; i++)
+			{
+				ps[i] = Expression.Parameter(d.Parameters[i].Type);
+			}
+			var inner = tempBuildContext.DelegateType == null ?
+				Expression.Lambda(Expression.Invoke(dExpr, ps), ps) :
+				Expression.Lambda(tempBuildContext.DelegateType, Expression.Invoke(dExpr, ps), ps);
+			if (!string.IsNullOrEmpty(this.Name) && this.Name != "_")
+			{
+				buildContext.AddTempFunc(this.Name, d);
+				// 将方法添加到上下文
+				if (buildContext.RewriteLocalVariables && (options?.RewriteFunctions ?? true))
+				{
+					var addTempFuncExpression = Expression.Call(
+						buildContext.GetScriptContextParameter(),
+						ExpressionUtils.Method_ScriptContext_AddTempFunc,
+						Expression.Constant(this.Name),
+						inner);
+					return Expression.Block(addTempFuncExpression, inner);
+				}
+			}
+			return inner;
+#else
 			var dExpr = d;
 			if (!string.IsNullOrEmpty(this.Name) && this.Name != "_")
 			{
@@ -157,11 +185,16 @@ namespace AScript.Nodes
 				// 将方法添加到上下文
 				if (buildContext.RewriteLocalVariables && (options?.RewriteFunctions ?? true))
 				{
-					var addTempFuncExpression = Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_AddTempFunc, Expression.Constant(this.Name), dExpr);
+					var addTempFuncExpression = Expression.Call(
+						buildContext.GetScriptContextParameter(), 
+						ExpressionUtils.Method_ScriptContext_AddTempFunc, 
+						Expression.Constant(this.Name), 
+						dExpr);
 					return Expression.Block(addTempFuncExpression, dExpr);
 				}
 			}
 			return dExpr;
+#endif
 
 			//return Expression.Constant(d);
 			//var lambda = tempBuildContext.Build(scriptContext, body);

@@ -27,7 +27,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			//Test01_Benchmark();
+			Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -49,7 +49,7 @@ namespace AScript.Test.Consoles
 			//Test20();
 			//Test21_ExpandoObject();
 			//Test22();
-			Test23();
+			//Test23();
 			Console.WriteLine("end");
 			Console.ReadLine();
 		}
@@ -438,11 +438,11 @@ exec2(26)
 			var config = ManualConfig.Create(DefaultConfig.Instance).WithOptions(ConfigOptions.DisableOptimizationsValidator);
 			//BenchmarkRunner.Run<Benchmarks.DynamicTest>(config);
 			//BenchmarkRunner.Run<Benchmarks.DynamicTest2>(config);
-			BenchmarkRunner.Run<Benchmarks.ExpressionTest02>(config);
+			//BenchmarkRunner.Run<Benchmarks.ExpressionTest02>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest03_Func>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest04_Var>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest05_Var>(config);
-			//BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func>(config);
+			BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func2>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest07_Type>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest08_For>(config);

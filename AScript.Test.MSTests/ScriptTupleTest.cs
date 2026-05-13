@@ -499,7 +499,11 @@ a+c
 			var script = new Script();
 			var result = script.Eval("(1, 2, 3, 4, 5, 6, 7)");
 			Assert.IsNotNull(result);
-			Assert.IsTrue(result.GetType().Name.Contains("ValueTuple"));
+#if NET45
+			Assert.IsTrue(result.GetType().Name.StartsWith("Tuple`"));
+#else
+			Assert.IsTrue(result.GetType().Name.StartsWith("ValueTuple`"));
+#endif
 		}
 
 		[TestMethod]
@@ -508,7 +512,11 @@ a+c
 			var script = new Script();
 			var result = script.Eval("(1, 2, 3, 4, 5, 6, 7)", ECompileMode.All);
 			Assert.IsNotNull(result);
-			Assert.IsTrue(result.GetType().Name.Contains("ValueTuple"));
+#if NET45
+			Assert.IsTrue(result.GetType().Name.StartsWith("Tuple`"));
+#else
+			Assert.IsTrue(result.GetType().Name.StartsWith("ValueTuple`"));
+#endif
 		}
 
 		[TestMethod]

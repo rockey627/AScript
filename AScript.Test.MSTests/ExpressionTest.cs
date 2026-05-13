@@ -303,6 +303,15 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
+		public void Test07_1()
+		{
+			string s = "int test(int a,int b){int m=6;a+m+b};int sum(int x, int y)=>x+y;100 * test(5,12) * (6-2)";
+			var script = new Script();
+			var func1 = script.CompileGlobal<int>(s, -1);
+			Assert.AreEqual(100 * (5 + 6 + 12) * (6 - 2), func1(script.Context));
+		}
+
+		[TestMethod]
 		public void Test07()
 		{
 			string s = "int test(int a,int b){int m=6;sum(a,m)+b};int sum(int x, int y)=>x+y;100 * test(5,12) * (6-2)";
