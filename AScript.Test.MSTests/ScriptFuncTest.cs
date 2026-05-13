@@ -11,6 +11,115 @@ namespace AScript.Test.MSTests
 	public class ScriptFuncTest
 	{
 		[TestMethod]
+		public void Test23_2()
+		{
+			string s = @"
+int func(int a) {
+	n+=1;
+	a+n;
+}
+func(5)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("n", 10);
+			Assert.AreEqual(16, script.Eval(s));
+			Assert.AreEqual(11, script.Context.EvalVar("n"));
+			Assert.AreEqual(18, script.Eval("func(6)"));
+			Assert.AreEqual(12, script.Context.EvalVar("n"));
+		}
+
+		[TestMethod]
+		public void Test23()
+		{
+			string s = @"
+int func(int a) {
+	n+=1;
+	a+n;
+}
+func(5)
+";
+			var script = new Script();
+			script.Context.SetVar("n", 10);
+			Assert.AreEqual(16, script.Eval(s));
+			Assert.AreEqual(11, script.Context.EvalVar("n"));
+			Assert.AreEqual(18, script.Eval("func(6)"));
+			Assert.AreEqual(12, script.Context.EvalVar("n"));
+		}
+
+		[TestMethod]
+		public void Test22_3()
+		{
+			string s = @"
+static int n = 10;
+int func(int a) {
+	n+=1;
+	a+n;
+}
+func(5)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(16, script.Eval(s));
+			Assert.AreEqual(11, script.Context.EvalVar("n"));
+			Assert.AreEqual(18, script.Eval("func(6)"));
+			Assert.AreEqual(12, script.Context.EvalVar("n"));
+			Assert.AreEqual(19, script.Eval("func(6)"));
+			Assert.AreEqual(13, script.Context.EvalVar("n"));
+		}
+
+		[TestMethod]
+		public void Test22_2()
+		{
+			string s = @"
+int n = 10;
+int func(int a) {
+	n+=1;
+	a+n;
+}
+func(5)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(16, script.Eval(s));
+			Assert.AreEqual(11, script.Context.EvalVar("n"));
+			Assert.AreEqual(18, script.Eval("func(6)"));
+			// 编译执行模式中的临时变量后面无法更新到ScriptContext上下文
+			Assert.AreEqual(11, script.Context.EvalVar("n"));
+			Assert.AreEqual(19, script.Eval("func(6)"));
+			Assert.AreEqual(11, script.Context.EvalVar("n"));
+		}
+
+		[TestMethod]
+		public void Test22()
+		{
+			string s = @"
+int n = 10;
+int func(int a) {
+	n+=1;
+	a+n;
+}
+func(5)
+";
+			var script = new Script();
+			Assert.AreEqual(16, script.Eval(s));
+			Assert.AreEqual(11, script.Context.EvalVar("n"));
+			Assert.AreEqual(18, script.Eval("func(6)"));
+			Assert.AreEqual(12, script.Context.EvalVar("n"));
+		}
+
+		[TestMethod]
+		public void Test21_2()
+		{
+			var random = new System.Random();
+			random.Next(1, 10);
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddFunc(random);
+			Console.WriteLine(script.Eval("Next(1, 10)")); // random.Next(1, 10)
+		}
+
+		[TestMethod]
 		public void Test21()
 		{
 			var random = new System.Random();
