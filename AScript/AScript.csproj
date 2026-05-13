@@ -17,8 +17,8 @@ Assert.AreEqual(15, result);
 			]]>
 		</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>1.2.1.0</Version>
-		<PackageReleaseNotes>元组解构；事件订阅/取消；优化索引器</PackageReleaseNotes>
+		<Version>1.2.2.0</Version>
+		<PackageReleaseNotes>匿名类型；动态类型；修复NET45框架下的Lambda闭包问题</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
