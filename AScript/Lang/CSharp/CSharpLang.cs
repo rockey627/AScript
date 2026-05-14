@@ -138,6 +138,9 @@ namespace AScript.Lang.CSharp
 			AddTokenHandler("$", StringInterpolationTokenHandler.Instance);
 			AddTokenHandler("static", StaticTokenHandler.Instance);
 			AddTokenHandler("as", new OperatorTokenHandler("??"));
+			AddTokenHandler("from", FromTokenHandler.Instance);
+			AddTokenHandler("where", WhereTokenHandler.Instance);
+			AddTokenHandler("select", SelectTokenHandler.Instance);
 		}
 	}
 }

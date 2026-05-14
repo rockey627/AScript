@@ -11,6 +11,8 @@ namespace AScript.Nodes
 	/// </summary>
 	public class QueryNode : TreeNode
 	{
+		public static readonly HashSet<string> Keywords = new HashSet<string> { "from", "where", "join", "into", "select", "orderby", "group" };
+
 		// 变量所属上级
 		private readonly Dictionary<string, string> _VarParentDict = new Dictionary<string, string>();
 
