@@ -82,24 +82,24 @@ namespace AScript.Nodes
 					argNames = null;
 					argTypes = null;
 				}
-				string name = this.Name;
-				if (this.Name == "_")
-				{
-					int hashCode = this.Body.GetHashCode();
-					if (hashCode < 0)
-					{
-						name += "_" + (-hashCode);
-					}
-					else
-					{
-						name += hashCode;
-					}
-					name += DateTime.Now.ToString("HHmmssfff");
-				}
-				var customFunc = new CustomFunction(name, funcReturnType, argNames, argTypes, this.Body);
+				//string name = this.Name;
+				//if (this.Name == "_")
+				//{
+				//	int hashCode = this.Body.GetHashCode();
+				//	if (hashCode < 0)
+				//	{
+				//		name += "_" + (-hashCode);
+				//	}
+				//	else
+				//	{
+				//		name += hashCode;
+				//	}
+				//	name += DateTime.Now.ToString("HHmmssfff");
+				//}
+				var customFunc = new CustomFunction(funcReturnType, argNames, argTypes, this.Body);
 				if (!string.IsNullOrEmpty(this.Name) && this.Name != "_")
 				{
-					context.AddFunc(customFunc);
+					context.AddFunc(this.Name, customFunc);
 				}
 				returnType = typeof(CustomFunctionObject);
 				return new CustomFunctionObject(customFunc, context);

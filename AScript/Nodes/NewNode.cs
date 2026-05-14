@@ -78,6 +78,11 @@ namespace AScript.Nodes
 								throw new ScriptAnalyzingException("invalid expression near new");
 							}
 						}
+						else if (propInit is VariableNode varNode)
+						{
+							fieldNames[i] = varNode.Name;
+							fieldValues[i] = propInit.Build(buildContext, scriptContext, options);
+						}
 						else
 						{
 							throw new ScriptAnalyzingException("invalid expression near new");
@@ -450,6 +455,12 @@ namespace AScript.Nodes
 							{
 								throw new ScriptAnalyzingException("invalid expression near new");
 							}
+						}
+						else if (propInit is VariableNode varNode)
+						{
+							fieldNames[i] = varNode.Name;
+							fieldValues[i] = propInit.Eval(context, options, control, out var propType);
+							fieldTypes[i] = propType;
 						}
 						else
 						{

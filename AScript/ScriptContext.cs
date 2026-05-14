@@ -2103,18 +2103,19 @@ namespace AScript
 			}
 		}
 
-		public void AddFunc(CustomFunction customFunction)
+		public void AddFunc(string name, CustomFunction customFunction)
 		{
+			if (string.IsNullOrEmpty(name) || name == "_") return;
 			Init_CustomFunctions();
-			if (!_CustomFunctions.TryGetValue(customFunction.Name, out var list))
+			if (!_CustomFunctions.TryGetValue(name, out var list))
 			{
 				if (_CustomFunctions is ConcurrentDictionary<string, List<CustomFunction>> con)
 				{
-					list = con.GetOrAdd(customFunction.Name, key => new List<CustomFunction>());
+					list = con.GetOrAdd(name, key => new List<CustomFunction>());
 				}
 				else
 				{
-					_CustomFunctions[customFunction.Name] = list = new List<CustomFunction>();
+					_CustomFunctions[name] = list = new List<CustomFunction>();
 				}
 			}
 			if (_ThreadSafely)

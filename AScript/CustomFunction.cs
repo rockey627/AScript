@@ -6,15 +6,13 @@ namespace AScript
 {
 	public class CustomFunction
 	{
-		public string Name { get; private set; }
 		public string[] ArgNames { get; private set; }
 		public Type[] ArgTypes { get; set; }
 		public Type ReturnType { get; set; }
 		public ITreeNode Body { get; private set; }
 
-		public CustomFunction(string name, Type returnType, string[] argNames, Type[] argTypes, ITreeNode body)
+		public CustomFunction(Type returnType, string[] argNames, Type[] argTypes, ITreeNode body)
 		{
-			this.Name = name;
 			this.ReturnType = returnType;
 			this.ArgNames = argNames;
 			this.ArgTypes = argTypes;
