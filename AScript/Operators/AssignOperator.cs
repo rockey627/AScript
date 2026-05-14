@@ -7,6 +7,7 @@ using Microsoft.CSharp.RuntimeBinder;
 using AScript.Nodes;
 using System.Collections;
 using System.Linq;
+using AScript.Exceptions;
 
 namespace AScript.Operators
 {
@@ -295,7 +296,7 @@ namespace AScript.Operators
 			{
 				if (arg0Items.Count > tupleNode.Items.Count)
 				{
-					throw new Exception("invalid expression near =, tuple length not matched");
+					throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
 				}
 				var itemValues = new object[arg0Items.Count];
 				var itemTypes = new Type[arg0Items.Count];
@@ -326,7 +327,7 @@ namespace AScript.Operators
 				int arg1FieldCount = isValueTuple ? arg1Type.GetFields().Length : arg1Type.GetProperties().Length;
 				if (arg0Items.Count > arg1FieldCount)
 				{
-					throw new Exception("invalid expression near =, tuple length not matched");
+					throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
 				}
 				var itemValues = arg0Items.Count == arg1FieldCount ? null : new object[arg0Items.Count];
 				var itemTypes = arg0Items.Count == arg1FieldCount ? null : new Type[arg0Items.Count];
@@ -363,7 +364,7 @@ namespace AScript.Operators
 				return;
 			}
 
-			throw new Exception("invalid expression near =");
+			throw new ScriptAnalyzingException("invalid expression near =");
 		}
 
 		private Expression HandleVariableAssign(FunctionBuildArgs e, VariableNode arg0Node, Expression right, bool? searchContext = null)
@@ -447,13 +448,13 @@ namespace AScript.Operators
 			bool isTuple = rightTypeName.StartsWith("Tuple`");
 			if (!isValueTuple && !isTuple)
 			{
-				throw new Exception("invalid expression near =, right side is not a tuple");
+				throw new ScriptAnalyzingException("invalid expression near =, right side is not a tuple");
 			}
 
 			int rightFieldCount = isValueTuple ? rightType.GetFields().Length : rightType.GetProperties().Length;
 			if (arg0Items.Count > rightFieldCount)
 			{
-				throw new Exception("invalid expression near =, tuple length not matched");
+				throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
 			}
 
 			var expressions = new List<Expression>(arg0Items.Count + 1);

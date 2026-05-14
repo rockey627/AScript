@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Exceptions;
+using System;
 using System.Linq.Expressions;
 
 namespace AScript.Nodes
@@ -32,7 +33,7 @@ namespace AScript.Nodes
 					{
 						if (!(conditionResult is bool b))
 						{
-							throw new Exception($"invalid for condition [{conditionType}], must be bool");
+							throw new ScriptAnalyzingException($"invalid for condition [{conditionType}], must be bool");
 						}
 						if (!b) break;
 					}

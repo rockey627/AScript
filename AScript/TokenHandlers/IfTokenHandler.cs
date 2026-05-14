@@ -21,7 +21,7 @@ namespace AScript.TokenHandlers
 			}
 			if (e.CurrentToken.Value == this.ElseToken)
 			{
-				throw new Exception($"invalid expression '{this.ElseToken}' at {e.CurrentToken.Line},{e.CurrentToken.Column}");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{this.ElseToken}' at {e.CurrentToken.Line},{e.CurrentToken.Column}");
 			}
 			BuildIf(analyzer, e);
 		}
@@ -54,7 +54,7 @@ namespace AScript.TokenHandlers
 
 			var conditionResult = conditionBuilder.Eval(e.ScriptContext, e.Options, e.Control, out _);
 			PoolManage.Return(conditionBuilder);
-			if (!(conditionResult is bool b)) throw new Exception("condition must be bool type");
+			if (!(conditionResult is bool b)) throw new Exceptions.ScriptRuntimeException("condition must be bool type");
 			if (b)
 			{
 				// 执行if语句

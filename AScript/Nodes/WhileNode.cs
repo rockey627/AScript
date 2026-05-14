@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Exceptions;
+using System;
 using System.CodeDom;
 using System.Linq.Expressions;
 
@@ -38,7 +39,7 @@ namespace AScript.Nodes
 			var conditionResult = this.Condition.Eval(context, options, null, out var conditionType);
 			if (!(conditionResult is bool b))
 			{
-				throw new Exception($"invalid if condition type {conditionType}");
+				throw new ScriptAnalyzingException($"invalid if condition type {conditionType}");
 			}
 			return b;
 		}

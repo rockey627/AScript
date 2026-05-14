@@ -931,7 +931,7 @@ namespace AScript
 			//	$"{name}({string.Join(",", types.Select(a => (a ?? typeof(object)).FullName))})" :
 			//	$"({string.Join(",", types.Select(a => (a ?? typeof(object)).FullName))}){name}";
 			string funcName = $"{name}({string.Join(",", types.Select(a => (a ?? typeof(object)).FullName))})";
-			throw new Exception($"unknown function: {funcName}");
+			throw new Exceptions.ScriptRuntimeException($"unknown function: {funcName}");
 		}
 
 		protected bool EvalFunc(BuildOptions options, EvalControl control, IDictionary<string, List<CustomFunction>> functions, string name, bool isPrefix, IList<ITreeNode> args, ref object[] datas, ref Type[] types, out object result, out Type returnType)
@@ -1133,13 +1133,13 @@ namespace AScript
 				FunctionBuildArgs.Return(functionBuildArgs);
 			}
 
-			//throw new Exception("unkown function for build:" + name);
+			//throw new Exceptions.ScriptRuntimeException("unkown function for build:" + name);
 			// 构建context.EvalFunc方法调用
 			return ExpressionUtils.BuildEval(buildContext, this, options, name, args);
 			//string funcName = argTypes == null || argTypes.Length == 0 ? 
 			//	$"{name}()" : 
 			//	$"{name}({string.Join(",", argTypes.Select(a => (a ?? typeof(object)).FullName))})";
-			//throw new Exception($"unknown function: {funcName}");
+			//throw new Exceptions.ScriptRuntimeException($"unknown function: {funcName}");
 		}
 
 		/// <summary>
@@ -1228,7 +1228,7 @@ namespace AScript
 
 			if (!buildEvalEnabled) return null;
 
-			//throw new Exception("unkown function for build:" + name);
+			//throw new Exceptions.ScriptRuntimeException("unkown function for build:" + name);
 			// 构建context.EvalFunc方法调用
 			return ExpressionUtils.BuildEval(buildContext, this, options, name, argExprs);
 		}

@@ -24,18 +24,18 @@ namespace AScript.TokenHandlers
 			{
 				// 创建数组：[1,2,3,4]
 				if (BuildCollection(analyzer, e)) return;
-				throw new Exception($"invalid expression '[' at {e.CurrentToken.Line},{e.CurrentToken.Column}");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression '[' at {e.CurrentToken.Line},{e.CurrentToken.Column}");
 			}
 			// 索引器、集合切片
 			var statement0 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: _EndTokens);
 			var nextToken = e.TokenReader.Read();
 			if (!nextToken.HasValue)
 			{
-				throw new Exception($"invalid expression at {e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}, expect ']'");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}, expect ']'");
 			}
 			if (nextToken.Value.Type == ETokenType.String)
 			{
-				throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ']'");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ']'");
 			}
 			if (nextToken.Value.Value == "]")
 			{
@@ -50,7 +50,7 @@ namespace AScript.TokenHandlers
 			{
 				return;
 			}
-			throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ']'");
+			throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ']'");
 		}
 
 		protected virtual bool BuildCollection(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
@@ -63,11 +63,11 @@ namespace AScript.TokenHandlers
 			var nextToken = tokenReader.Read();
 			if (!nextToken.HasValue)
 			{
-				throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect ']'");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect ']'");
 			}
 			if (nextToken.Value.Type != ETokenType.String && nextToken.Value.Value == ",")
 			{
-				throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect value or ']'");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect value or ']'");
 			}
 			if (nextToken.Value.Type == ETokenType.String || nextToken.Value.Value != "]")
 			{
@@ -77,7 +77,7 @@ namespace AScript.TokenHandlers
 				nextToken = tokenReader.Read();
 				if (!nextToken.HasValue)
 				{
-					throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect ']'");
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect ']'");
 				}
 				if (nextToken.Value.Type == ETokenType.Word && _EndTokens2.Contains(nextToken.Value.Value))
 				{
@@ -85,11 +85,11 @@ namespace AScript.TokenHandlers
 					nextToken = e.TokenReader.Read();
 					if (!nextToken.HasValue)
 					{
-						throw new Exception($"invalid {e.CurrentToken.Value} expression at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
+						throw new Exceptions.ScriptAnalyzingException($"invalid {e.CurrentToken.Value} expression at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
 					}
 					if (nextToken.Value.Type != ETokenType.Word)
 					{
-						throw new Exception($"invalid '{nextToken.Value.Value}' of {e.CurrentToken.Value} expression at ({nextToken.Value.Line},{nextToken.Value.Column})");
+						throw new Exceptions.ScriptAnalyzingException($"invalid '{nextToken.Value.Value}' of {e.CurrentToken.Value} expression at ({nextToken.Value.Line},{nextToken.Value.Column})");
 					}
 					var varName = nextToken.Value.Value;
 					List<DefineVarNode> varDefines = null;
@@ -109,7 +109,7 @@ namespace AScript.TokenHandlers
 							var varToken = e.TokenReader.Read();
 							if (!varToken.HasValue || varToken.Value.Type != ETokenType.Word || varToken.Value.Value == "in")
 							{
-								throw new Exception($"invalid variable name at ({varToken.Value.Line},{varToken.Value.Column})");
+								throw new Exceptions.ScriptAnalyzingException($"invalid variable name at ({varToken.Value.Line},{varToken.Value.Column})");
 							}
 							if (!e.Ignore)
 							{
@@ -122,11 +122,11 @@ namespace AScript.TokenHandlers
 
 					if (!nextToken.HasValue)
 					{
-						throw new Exception($"invalid {e.CurrentToken.Value} expression at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+						throw new Exceptions.ScriptAnalyzingException($"invalid {e.CurrentToken.Value} expression at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
 					}
 					if (nextToken.Value.Type == ETokenType.String || nextToken.Value.Value != "in")
 					{
-						throw new Exception($"invalid {nextToken.Value.Value} of {e.CurrentToken.Value} expression at ({nextToken.Value.Line},{nextToken.Value.Column})");
+						throw new Exceptions.ScriptAnalyzingException($"invalid {nextToken.Value.Value} of {e.CurrentToken.Value} expression at ({nextToken.Value.Line},{nextToken.Value.Column})");
 					}
 					//analyzer.ValidateNextToken(e.TokenReader, "in");
 					// 
@@ -145,7 +145,7 @@ namespace AScript.TokenHandlers
 				}
 				else if (nextToken.Value.Type == ETokenType.String)
 				{
-					throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
 				}
 				else if (nextToken.Value.Value == "]")
 				{
@@ -157,7 +157,7 @@ namespace AScript.TokenHandlers
 				}
 				else if (nextToken.Value.Value != ",")
 				{
-					throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
 				}
 				else
 				{
@@ -178,11 +178,11 @@ namespace AScript.TokenHandlers
 						nextToken = tokenReader.Read();
 						if (!nextToken.HasValue)
 						{
-							throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect ']'");
+							throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect ']'");
 						}
 						if (nextToken.Value.Type == ETokenType.String)
 						{
-							throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
+							throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
 						}
 						if (nextToken.Value.Value == "]")
 						{
@@ -191,7 +191,7 @@ namespace AScript.TokenHandlers
 
 						if (nextToken.Value.Value != ",")
 						{
-							throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
+							throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ',' or ']'");
 						}
 					}
 				}

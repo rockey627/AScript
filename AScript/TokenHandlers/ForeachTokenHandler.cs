@@ -31,7 +31,7 @@ namespace AScript.TokenHandlers
 			nextToken = e.TokenReader.Read();
 			if (!nextToken.HasValue)
 			{
-				throw new Exception($"invalid {e.CurrentToken.Value} expression at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}), expect var word");
+				throw new Exceptions.ScriptAnalyzingException($"invalid {e.CurrentToken.Value} expression at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}), expect var word");
 			}
 			if (nextToken.Value.Type == ETokenType.Word)
 			{
@@ -45,26 +45,26 @@ namespace AScript.TokenHandlers
 					nextToken = e.TokenReader.Read();
 					if (!nextToken.HasValue)
 					{
-						throw new Exception($"invalid {e.CurrentToken.Value} expression at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+						throw new Exceptions.ScriptAnalyzingException($"invalid {e.CurrentToken.Value} expression at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
 					}
 					if (nextToken.Value.Type != ETokenType.Word)
 					{
-						throw new Exception($"invalid {e.CurrentToken.Value} expression '{nextToken.Value.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}), expect var word");
+						throw new Exceptions.ScriptAnalyzingException($"invalid {e.CurrentToken.Value} expression '{nextToken.Value.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}), expect var word");
 					}
 					items.Add(PoolManage.CreateDefineVarNode(nextToken.Value.Value, null, typeof(object)));
 					nextToken = e.TokenReader.Read();
 					if (!nextToken.HasValue)
 					{
-						throw new Exception($"invalid {e.CurrentToken.Value} expression at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+						throw new Exceptions.ScriptAnalyzingException($"invalid {e.CurrentToken.Value} expression at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
 					}
 					if (nextToken.Value.IsSymbol(",")) continue;
 					if (nextToken.Value.IsSymbol(")")) break;
-					throw new Exception($"invalid {e.CurrentToken.Value} expression '{nextToken.Value.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}), expect ')'");
+					throw new Exceptions.ScriptAnalyzingException($"invalid {e.CurrentToken.Value} expression '{nextToken.Value.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}), expect ')'");
 				}
 			}
 			else
 			{
-				throw new Exception($"invalid {e.CurrentToken.Value} expression '{nextToken.Value.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}), expect var word");
+				throw new Exceptions.ScriptAnalyzingException($"invalid {e.CurrentToken.Value} expression '{nextToken.Value.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}), expect var word");
 			}
 			// in
 			analyzer.ValidateNextToken(e.TokenReader, "in");

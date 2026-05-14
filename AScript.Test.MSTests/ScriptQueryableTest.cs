@@ -125,6 +125,90 @@ var r = q.Select(a=>a*2);
 		}
 
 		[TestMethod]
+		public void TestSelect06_ToList()
+		{
+			string s = @"
+var persons = [new Person('tom', 18), new Person('tony', 21), new Person('san', 19), new Person('li', 25)];
+var q = persons.AsQueryable();
+q.Where(a=>a.Age>20).Select(a=>new { a.Name, Age=a.Age+10}).ToList();
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			var r = script.Eval(s);
+			var itemType = Script.AnonymousTypes.CreateType(new[] { "Name", "Age" }, new[] { typeof(string), typeof(int) });
+			Assert.IsInstanceOfType(r, typeof(List<>).MakeGenericType(itemType));
+			var list = (IList)r;
+			Assert.AreEqual(2, list.Count);
+			Assert.AreEqual("tony", ((dynamic)list[0]).Name);
+			Assert.AreEqual(31, ((dynamic)list[0]).Age);
+			Assert.AreEqual("li", ((dynamic)list[1]).Name);
+			Assert.AreEqual(35, ((dynamic)list[1]).Age);
+		}
+
+		[TestMethod]
+		public void TestSelect05_ToList()
+		{
+			string s = @"
+var persons = [new Person('tom', 18), new Person('tony', 21), new Person('san', 19), new Person('li', 25)];
+var q = persons.AsQueryable();
+q.Where(a=>a.Age>20).Select(a=>new { Name =a.Name, Age=a.Age+10}).ToList();
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			var r = script.Eval(s);
+			var itemType = Script.AnonymousTypes.CreateType(new[] { "Name", "Age" }, new[] { typeof(string), typeof(int) });
+			Assert.IsInstanceOfType(r, typeof(List<>).MakeGenericType(itemType));
+			var list = (IList)r;
+			Assert.AreEqual(2, list.Count);
+			Assert.AreEqual("tony", ((dynamic)list[0]).Name);
+			Assert.AreEqual(31, ((dynamic)list[0]).Age);
+			Assert.AreEqual("li", ((dynamic)list[1]).Name);
+			Assert.AreEqual(35, ((dynamic)list[1]).Age);
+		}
+
+		[TestMethod]
+		public void TestSelect04_ToList()
+		{
+			string s = @"
+var persons = [new Person('tom', 18), new Person('tony', 21), new Person('san', 19), new Person('li', 25)];
+var q = persons.AsQueryable();
+q.Where(a=>a.Age>20).Select(a=>new { a.Name, a.Age}).ToList();
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			var r = script.Eval(s);
+			var itemType = Script.AnonymousTypes.CreateType(new[] { "Name", "Age" }, new[] { typeof(string), typeof(int) });
+			Assert.IsInstanceOfType(r, typeof(List<>).MakeGenericType(itemType));
+			var list = (IList)r;
+			Assert.AreEqual(2, list.Count);
+			Assert.AreEqual("tony", ((dynamic)list[0]).Name);
+			Assert.AreEqual(31, ((dynamic)list[0]).Age);
+			Assert.AreEqual("li", ((dynamic)list[1]).Name);
+			Assert.AreEqual(35, ((dynamic)list[1]).Age);
+		}
+
+		[TestMethod]
+		public void TestSelect03_ToList()
+		{
+			string s = @"
+var persons = [new Person('tom', 18), new Person('tony', 21), new Person('san', 19), new Person('li', 25)];
+var q = persons.AsQueryable();
+q.Where(a=>a.Age>20).Select(a=>new { Name = a.Name, Age=a.Age}).ToList();
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			var r = script.Eval(s);
+			var itemType = Script.AnonymousTypes.CreateType(new[] { "Name", "Age" }, new[] { typeof(string), typeof(int) });
+			Assert.IsInstanceOfType(r, typeof(List<>).MakeGenericType(itemType));
+			var list = (IList)r;
+			Assert.AreEqual(2, list.Count);
+			Assert.AreEqual("tony", ((dynamic)list[0]).Name);
+			Assert.AreEqual(21, ((dynamic)list[0]).Age);
+			Assert.AreEqual("li", ((dynamic)list[1]).Name);
+			Assert.AreEqual(25, ((dynamic)list[1]).Age);
+		}
+
+		[TestMethod]
 		public void TestSelect02_ToList_2()
 		{
 			string s = @"

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Exceptions;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +30,7 @@ namespace AScript.Nodes
 		{
 			if (this.CollectionType == null)
 			{
-				throw new Exception("unknown collection type");
+				throw new ScriptAnalyzingException("unknown collection type");
 			}
 
 			Expression[] itemExprs;
@@ -101,7 +102,7 @@ namespace AScript.Nodes
 				var addMethod = listType.GetMethod("Add");
 				if (addMethod == null)
 				{
-					throw new Exception($"type {listType.Name} does not have an Add method");
+					throw new ScriptAnalyzingException($"type {listType.Name} does not have an Add method");
 				}
 
 				// Create instance variable
@@ -190,7 +191,7 @@ namespace AScript.Nodes
 		{
 			if (this.CollectionType == null)
 			{
-				throw new Exception("unknown collection type");
+				throw new ScriptAnalyzingException("unknown collection type");
 			}
 
 			object[] itemValues;
@@ -227,7 +228,7 @@ namespace AScript.Nodes
 				}
 				if (!(listResult is IEnumerable en))
 				{
-					throw new Exception($"invalid foreach collection {collectionType2}");
+					throw new ScriptAnalyzingException($"invalid foreach collection {collectionType2}");
 				}
 
 				var tempContext = ScriptContext.Create(context);

@@ -23,7 +23,7 @@ namespace AScript.Operators
 				left = leftVar.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out _, out var lastType);
 				if (left == null)
 				{
-					throw new Exception($"invalid expression: {leftVar.Name} is not exists");
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression: {leftVar.Name} is not exists");
 				}
 			}
 			else
@@ -72,7 +72,7 @@ namespace AScript.Operators
 					//e.Result = Expression.AddAssign(left, del);
 					return;
 				}
-				throw new Exception($"invalid expression near event +=, expect Delegate");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression near event +=, expect Delegate");
 			}
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 			Expression leftExpr = left;
@@ -138,7 +138,7 @@ namespace AScript.Operators
 									var argTypes = t.GetMethod("Invoke").GetParameters().Select(a => a.ParameterType).ToArray();
 									d = customFunctionObject.Compile(t, e.Options, argTypes, typeof(void));
 								}
-								else throw new Exception($"invalid expression near {opRightNode.Name}+=, expect Delegate");
+								else throw new Exceptions.ScriptAnalyzingException($"invalid expression near {opRightNode.Name}+=, expect Delegate");
 							}
 							eventInfo.AddEventHandler(opLeftValue is TypeWrapper ? null : opLeftValue, d);
 							return d;

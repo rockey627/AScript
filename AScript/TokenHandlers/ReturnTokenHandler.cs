@@ -34,7 +34,7 @@ namespace AScript.TokenHandlers
 
 			if (e.Control == null)
 			{
-				throw new Exception("unsupport return");
+				throw new Exceptions.ScriptAnalyzingException("unsupport return");
 			}
 			e.Control.Terminal = true;
 			e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, returnBuilder);

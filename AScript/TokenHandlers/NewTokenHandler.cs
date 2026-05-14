@@ -15,7 +15,7 @@ namespace AScript.TokenHandlers
 			var typeNameToken = e.TokenReader.Read();
 			if (!typeNameToken.HasValue)
 			{
-				throw new Exception($"invalid expression at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
 			}
 			if (typeNameToken.Value.IsSymbol("{"))
 			{
@@ -27,12 +27,12 @@ namespace AScript.TokenHandlers
 			}
 			if (typeNameToken.Value.Type != ETokenType.Word)
 			{
-				throw new Exception($"invalid expression '{typeNameToken.Value.Value}' at ({typeNameToken.Value.Line},{typeNameToken.Value.Column})");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{typeNameToken.Value.Value}' at ({typeNameToken.Value.Line},{typeNameToken.Value.Column})");
 			}
 			var nextToken = e.TokenReader.Read();
 			if (!nextToken.HasValue)
 			{
-				throw new Exception($"invalid expression near '{typeNameToken.Value.Value}' at ({typeNameToken.Value.Line},{typeNameToken.Value.Column})");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{typeNameToken.Value.Value}' at ({typeNameToken.Value.Line},{typeNameToken.Value.Column})");
 			}
 			List<string> genericTypes = null;
 			if (nextToken.Value.IsSymbol("<"))
@@ -46,7 +46,7 @@ namespace AScript.TokenHandlers
 					nextToken = e.TokenReader.Read();
 					if (!nextToken.HasValue)
 					{
-						throw new Exception($"invalid expression near '{typeNameToken.Value.Value}', expect '>'");
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{typeNameToken.Value.Value}', expect '>'");
 					}
 					if (nextToken.Value.Value == ",") continue;
 					if (nextToken.Value.Value == ">") break;
@@ -103,7 +103,7 @@ namespace AScript.TokenHandlers
 
 			if (!contains)
 			{
-				throw new Exception($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
 			}
 
 			e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, new NewNode { Name = typeNameToken.Value.Value, GenericTypes = genericTypes, Args = args, ArrayDimension = dimension, InitProperties = initProperties });
@@ -132,11 +132,11 @@ namespace AScript.TokenHandlers
 				var nextToken2 = e.TokenReader.Read();
 				if (!nextToken2.HasValue)
 				{
-					throw new Exception($"invalid expression at {e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}, expect '}}'");
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression at {e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}, expect '}}'");
 				}
 				if (nextToken2.Value.IsSymbol(",")) continue;
 				if (nextToken2.Value.IsSymbol("}")) break;
-				throw new Exception($"invalid expression at {nextToken2.Value.Line},{nextToken2.Value.Column}, expect '}}'");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken2.Value.Line},{nextToken2.Value.Column}, expect '}}'");
 			}
 			return initProperties;
 		}

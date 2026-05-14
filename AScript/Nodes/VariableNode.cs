@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Exceptions;
+using System;
 using System.Linq.Expressions;
 
 namespace AScript.Nodes
@@ -18,7 +19,7 @@ namespace AScript.Nodes
 			var value = context.EvalVar(this.Name, out returnType);
 			if (returnType == null && (options.ThrowIfVariableNotExists ?? false))
 			{
-				throw new Exception($"variable {this.Name} is not exists");
+				throw new ScriptAnalyzingException($"variable {this.Name} is not exists");
 			}
 			return value;
 		}
@@ -45,7 +46,7 @@ namespace AScript.Nodes
 			{
 				if (options.ThrowIfVariableNotExists ?? false)
 				{
-					throw new Exception($"variable {this.Name} is not exists");
+					throw new ScriptAnalyzingException($"variable {this.Name} is not exists");
 				}
 				type = typeof(object);
 			}
@@ -85,7 +86,7 @@ namespace AScript.Nodes
 			{
 				//if (options.ThrowIfVariableNotExists ?? false)
 				//{
-				//	throw new Exception($"variable {this.Name} is not exists");
+				//	throw new ScriptAnalyzingException($"variable {this.Name} is not exists");
 				//}
 				//type = typeof(object);
 				return null;

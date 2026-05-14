@@ -33,7 +33,7 @@ namespace AScript.TokenHandlers
 			{
 				if (token.Value.Type != ETokenType.Word && token.Value.Type != ETokenType.String)
 				{
-					throw new Exception($"invalid {e.CurrentToken} '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
+					throw new Exceptions.ScriptAnalyzingException($"invalid {e.CurrentToken} '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
 				}
 				langList.Add(token.Value.Value);
 				//token = e.TokenReader.Read();
@@ -51,7 +51,7 @@ namespace AScript.TokenHandlers
 				}
 				//if (!DefaultTokenStream.SpaceChars.Contains(c.Value))
 				//{
-				//	throw new Exception($"invalid {e.CurrentToken} '{c.Value}' at ({charReader.CurrentLine},{charReader.CurrentColumn})");
+				//	throw new Exceptions.ScriptAnalyzingException($"invalid {e.CurrentToken} '{c.Value}' at ({charReader.CurrentLine},{charReader.CurrentColumn})");
 				//}
 				break;
 			}

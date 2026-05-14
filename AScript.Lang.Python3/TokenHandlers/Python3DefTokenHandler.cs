@@ -28,11 +28,11 @@ namespace AScript.Lang.Python3.TokenHandlers
 			var token = e.TokenReader.Read();
 			if (!token.HasValue)
 			{
-				throw new Exception($"invalid def at ({e.CurrentToken.Line},{e.CurrentToken.Column}), expect function name");
+				throw new Exceptions.ScriptAnalyzingException($"invalid def at ({e.CurrentToken.Line},{e.CurrentToken.Column}), expect function name");
 			}
 			if (token.Value.Type != ETokenType.Word)
 			{
-				throw new Exception($"invalid def name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column}), expect function name");
+				throw new Exceptions.ScriptAnalyzingException($"invalid def name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column}), expect function name");
 			}
 			string funcName = token.Value.Value;
 			// 参数
@@ -44,16 +44,16 @@ namespace AScript.Lang.Python3.TokenHandlers
 			{
 				if (!token.HasValue)
 				{
-					throw new Exception($"invalid def {funcName} at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
+					throw new Exceptions.ScriptAnalyzingException($"invalid def {funcName} at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
 				}
 				if (token.Value.Type == ETokenType.String)
 				{
-					throw new Exception($"invalid argument name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
+					throw new Exceptions.ScriptAnalyzingException($"invalid argument name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
 				}
 				if (token.Value.Value == ")") break;
 				if (token.Value.Type != ETokenType.Word)
 				{
-					throw new Exception($"invalid argument name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
+					throw new Exceptions.ScriptAnalyzingException($"invalid argument name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
 				}
 				string argName = token.Value.Value;
 				string argType = null;
@@ -61,7 +61,7 @@ namespace AScript.Lang.Python3.TokenHandlers
 				token = e.TokenReader.Read();
 				if (!token.HasValue)
 				{
-					throw new Exception($"invalid def {funcName} at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
+					throw new Exceptions.ScriptAnalyzingException($"invalid def {funcName} at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
 				}
 				if (token.Value.Value == ":")
 				{
@@ -69,13 +69,13 @@ namespace AScript.Lang.Python3.TokenHandlers
 					var typeToken = e.TokenReader.Read();
 					if (!typeToken.HasValue || typeToken.Value.Type != ETokenType.Word)
 					{
-						throw new Exception($"invalid parameter type at ({token.Value.Line},{token.Value.Column})");
+						throw new Exceptions.ScriptAnalyzingException($"invalid parameter type at ({token.Value.Line},{token.Value.Column})");
 					}
 					argType = typeToken.Value.Value;
 					token = e.TokenReader.Read();
 					if (!token.HasValue)
 					{
-						throw new Exception($"invalid def {funcName} at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
+						throw new Exceptions.ScriptAnalyzingException($"invalid def {funcName} at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
 					}
 				}
 				if (!e.Ignore)
@@ -86,7 +86,7 @@ namespace AScript.Lang.Python3.TokenHandlers
 				// 逗号分割下一个参数名
 				if (token.Value.Type == ETokenType.String)
 				{
-					throw new Exception($"invalid argument name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
+					throw new Exceptions.ScriptAnalyzingException($"invalid argument name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
 				}
 				if (token.Value.Value == ",")
 				{
@@ -94,14 +94,14 @@ namespace AScript.Lang.Python3.TokenHandlers
 					continue;
 				}
 				if (token.Value.Value == ")") break;
-				throw new Exception($"invalid argument name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
+				throw new Exceptions.ScriptAnalyzingException($"invalid argument name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
 			}
 			// 返回类型注解 -> Type
 			string returnTypeName = null;
 			token = e.TokenReader.Read();
 			if (!token.HasValue)
 			{
-				throw new Exception($"invalid def {funcName} at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
+				throw new Exceptions.ScriptAnalyzingException($"invalid def {funcName} at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
 			}
 			if (token.Value.Value == "->")
 			{
@@ -109,18 +109,18 @@ namespace AScript.Lang.Python3.TokenHandlers
 				var returnTypeToken = e.TokenReader.Read();
 				if (!returnTypeToken.HasValue || returnTypeToken.Value.Type != ETokenType.Word)
 				{
-					throw new Exception($"invalid return type at ({token.Value.Line},{token.Value.Column})");
+					throw new Exceptions.ScriptAnalyzingException($"invalid return type at ({token.Value.Line},{token.Value.Column})");
 				}
 				returnTypeName = returnTypeToken.Value.Value;
 				token = e.TokenReader.Read();
 				if (!token.HasValue)
 				{
-					throw new Exception($"invalid def {funcName} at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}), expect ':'");
+					throw new Exceptions.ScriptAnalyzingException($"invalid def {funcName} at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}), expect ':'");
 				}
 			}
 			if (token.Value.Type == ETokenType.String || token.Value.Value != ":")
 			{
-				throw new Exception($"invalid def {funcName} at ({token.Value.Line},{token.Value.Column}), expect ':'");
+				throw new Exceptions.ScriptAnalyzingException($"invalid def {funcName} at ({token.Value.Line},{token.Value.Column}), expect ':'");
 			}
 			// 函数体
 			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
@@ -138,7 +138,7 @@ namespace AScript.Lang.Python3.TokenHandlers
 						systemType = e.ScriptContext.EvalType(typeName);
 						if (systemType == null)
 						{
-							throw new Exception($"unknown parameter type '{typeName}' in function {funcName}");
+							throw new Exceptions.ScriptAnalyzingException($"unknown parameter type '{typeName}' in function {funcName}");
 						}
 					}
 					else
@@ -153,7 +153,7 @@ namespace AScript.Lang.Python3.TokenHandlers
 					returnSystemType = e.ScriptContext.EvalType(returnTypeName);
 					if (returnSystemType == null)
 					{
-						throw new Exception($"unknown return type '{returnTypeName}' in function {funcName}");
+						throw new Exceptions.ScriptAnalyzingException($"unknown return type '{returnTypeName}' in function {funcName}");
 					}
 				}
 				else

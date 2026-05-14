@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using AScript.Exceptions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,7 +38,7 @@ namespace AScript.Test.MSTests
 			{
 				script.Eval(s);
 			}
-			catch(Exception ex)
+			catch(ScriptException ex)
 			{
 				Assert.AreEqual("variable n is not exists", ex.Message);
 				return;

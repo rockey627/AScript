@@ -287,10 +287,6 @@ namespace AScript
 		public static Delegate CompileEval(ScriptContext context, string name, Type[] argTypes, Type returnType = null)
 		{
 			int c = argTypes == null ? 0 : argTypes.Length;
-			//if (c < 1 || !ScriptUtils.IsMatchArgType(argTypes[0], typeof(ScriptContext)))
-			//{
-			//	throw new Exception("first type must be ScriptContext");
-			//}
 			Type funcType0;
 			Type implType0;
 			if (c == 0)

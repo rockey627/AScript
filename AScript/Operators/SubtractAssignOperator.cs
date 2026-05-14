@@ -18,7 +18,7 @@ namespace AScript.Operators
 				left = leftVar.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out _, out var lastType);
 				if (left == null)
 				{
-					throw new Exception($"invalid expression: {leftVar.Name} is not exists");
+					throw new Exceptions.ScriptRuntimeException($"invalid expression: {leftVar.Name} is not exists");
 				}
 			}
 			else
@@ -40,7 +40,7 @@ namespace AScript.Operators
 					}
 					return;
 				}
-				throw new Exception($"invalid expression near event -=, expect Delegate");
+				throw new Exceptions.ScriptRuntimeException($"invalid expression near event -=, expect Delegate");
 			}
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 			if (left.Type == typeof(object) || right.Type == typeof(object))
@@ -92,7 +92,7 @@ namespace AScript.Operators
 								}
 								return d;
 							}
-							throw new Exception("invalid expression near -= event");
+							throw new Exceptions.ScriptRuntimeException("invalid expression near -= event");
 						}
 						else
 						{

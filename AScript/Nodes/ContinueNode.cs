@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Exceptions;
+using System;
 using System.Linq.Expressions;
 
 namespace AScript.Nodes
@@ -9,7 +10,7 @@ namespace AScript.Nodes
 		{
 			if (control == null)
 			{
-				throw new Exception("invalid continue statement");
+				throw new ScriptAnalyzingException("invalid continue statement");
 			}
 			control.Continue = true;
 			returnType = null;

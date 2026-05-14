@@ -23,16 +23,16 @@ namespace AScript.Lang.Python3.TokenHandlers
 			{
 				if (!token.HasValue)
 				{
-					throw new Exception($"invalid lambda at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
+					throw new Exceptions.ScriptAnalyzingException($"invalid lambda at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
 				}
 				if (token.Value.Type == ETokenType.String)
 				{
-					throw new Exception($"invalid lambda argument name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
+					throw new Exceptions.ScriptAnalyzingException($"invalid lambda argument name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
 				}
 				if (token.Value.Value == ":") break;
 				if (token.Value.Type != ETokenType.Word)
 				{
-					throw new Exception($"invalid lambda argument name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
+					throw new Exceptions.ScriptAnalyzingException($"invalid lambda argument name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
 				}
 				string argName = token.Value.Value;
 				if (!e.Ignore)
@@ -43,7 +43,7 @@ namespace AScript.Lang.Python3.TokenHandlers
 				token = e.TokenReader.Read();
 				if (!token.HasValue)
 				{
-					throw new Exception($"invalid lambda at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
+					throw new Exceptions.ScriptAnalyzingException($"invalid lambda at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
 				}
 				if (token.Value.Value == ",")
 				{
@@ -51,7 +51,7 @@ namespace AScript.Lang.Python3.TokenHandlers
 					continue;
 				}
 				if (token.Value.Value == ":") break;
-				throw new Exception($"invalid lambda argument name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
+				throw new Exceptions.ScriptAnalyzingException($"invalid lambda argument name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
 			}
 			// 解析 lambda 表达式体
 			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };

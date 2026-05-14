@@ -123,10 +123,6 @@ namespace AScript.Nodes
 		internal static void Return(ITreeNode node)
 		{
 			if (node == null) return;
-			//if (objset.Contains(node))
-			//{
-			//	throw new Exception("objset");
-			//}
 			node.Clear();
 			if (node is ObjectNode objectData)
 			{

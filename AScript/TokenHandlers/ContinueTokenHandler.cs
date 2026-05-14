@@ -28,7 +28,7 @@ namespace AScript.TokenHandlers
 			{
 				if (e.Control == null)
 				{
-					throw new Exception("invalid continue statement");
+					throw new Exceptions.ScriptAnalyzingException("invalid continue statement");
 				}
 				e.Control.Continue = true;
 			}

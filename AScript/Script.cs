@@ -684,7 +684,7 @@ namespace AScript
 			int argNamesCount = argNames == null ? 0 : argNames.Length;
 			if (argTypesCount != argNamesCount)
 			{
-				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+				throw new Exceptions.ScriptAnalyzingException($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
 			}
 
 			var buildContext = new BuildContext();
@@ -707,7 +707,7 @@ namespace AScript
 			int argNamesCount = argNames == null ? 0 : argNames.Length;
 			if (argTypesCount != argNamesCount)
 			{
-				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+				throw new Exceptions.ScriptAnalyzingException($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
 			}
 
 			var buildContext = new BuildContext();
@@ -1414,7 +1414,7 @@ namespace AScript
 			int argNamesCount = argNames == null ? 0 : argNames.Length;
 			if (argTypesCount != argNamesCount)
 			{
-				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+				throw new Exceptions.ScriptAnalyzingException($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
 			}
 
 			var buildContext = new BuildContext(null)
@@ -1454,7 +1454,7 @@ namespace AScript
 			int argNamesCount = argNames == null ? 0 : argNames.Length;
 			if (argTypesCount != argNamesCount)
 			{
-				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+				throw new Exceptions.ScriptAnalyzingException($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
 			}
 
 			var buildContext = new BuildContext(null)
@@ -1499,7 +1499,7 @@ namespace AScript
 			int argNamesCount = argNames == null ? 0 : argNames.Length;
 			if (argTypesCount != argNamesCount)
 			{
-				throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+				throw new Exceptions.ScriptAnalyzingException($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
 			}
 
 			var buildContext = new BuildContext(null)
@@ -1543,7 +1543,7 @@ namespace AScript
 		//	int argNamesCount = argNames == null ? 0 : argNames.Length;
 		//	if (argTypesCount != argNamesCount)
 		//	{
-		//		throw new Exception($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
+		//		throw new Exceptions.ScriptAnalyzingException($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
 		//	}
 
 		//	if (argTypesCount > 0)

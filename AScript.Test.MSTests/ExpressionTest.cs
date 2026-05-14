@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using AScript.Exceptions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -144,7 +145,7 @@ namespace AScript.Test.MSTests
 			{
 				Assert.AreEqual(5, script2.Eval("sum(2,3)"));
 			}
-			catch (Exception ex)
+			catch (ScriptException ex)
 			{
 
 				Console.WriteLine(ex.Message);
@@ -166,7 +167,7 @@ namespace AScript.Test.MSTests
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine(ex.Message);
+				Console.WriteLine(ex);
 				n++;
 			}
 			Assert.AreEqual(1, n);
@@ -182,7 +183,7 @@ namespace AScript.Test.MSTests
 			catch (Exception ex)
 			{
 
-				Console.WriteLine(ex.Message);
+				Console.WriteLine(ex);
 				n++;
 			}
 			Assert.AreEqual(1, n);

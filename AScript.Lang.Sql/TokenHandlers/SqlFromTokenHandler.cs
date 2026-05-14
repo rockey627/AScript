@@ -42,7 +42,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 				}
 				else
 				{
-					throw new Exception($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column}), expect 'where'");
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column}), expect 'where'");
 				}
 			}
 

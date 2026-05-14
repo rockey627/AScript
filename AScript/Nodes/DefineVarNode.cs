@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Exceptions;
+using System;
 using System.Linq.Expressions;
 
 namespace AScript.Nodes
@@ -13,7 +14,7 @@ namespace AScript.Nodes
 			var definedType = this.SystemType ?? context.EvalType(this.Type);
 			if (definedType == null)
 			{
-				throw new Exception("unknown type:" + this.Type);
+				throw new ScriptAnalyzingException("unknown type:" + this.Type);
 			}
 			context.SetTempVar(this.Name, null, definedType, false);
 			returnType = definedType;
@@ -25,7 +26,7 @@ namespace AScript.Nodes
 			var type = this.SystemType ?? scriptContext.EvalType(this.Type);
 			if (type == null)
 			{
-				throw new Exception("unknown type:" + this.Type);
+				throw new ScriptAnalyzingException("unknown type:" + this.Type);
 			}
 			var v = Expression.Variable(type, this.Name);
 			buildContext.Variables[this.Name] = v;

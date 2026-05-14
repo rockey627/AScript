@@ -41,7 +41,7 @@ namespace AScript.Lang.Python3
 						var definedType = e.ScriptContext.EvalType(definedTypeName);
 						if (definedType == null)
 						{
-							throw new Exception($"unknown type '{definedTypeName}' at {typeToken.Value.Line},{typeToken.Value.Column}");
+							throw new Exceptions.ScriptAnalyzingException($"unknown type '{definedTypeName}' at {typeToken.Value.Line},{typeToken.Value.Column}");
 						}
 						if (!e.Ignore)
 						{
@@ -81,7 +81,7 @@ namespace AScript.Lang.Python3
 				var token = tokenReader.Read();
 				if (!token.HasValue)
 				{
-					throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect '}}'");
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect '}}'");
 				}
 				if (token.Value.Value == "}")
 				{
@@ -93,11 +93,11 @@ namespace AScript.Lang.Python3
 				var nextToken = tokenReader.Read();
 				if (!nextToken.HasValue)
 				{
-					throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect '}}'");
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect '}}'");
 				}
 				if (nextToken.Value.Type == ETokenType.String)
 				{
-					throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect '}}'");
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect '}}'");
 				}
 				if (nextToken.Value.Value == "}")
 				{
@@ -108,7 +108,7 @@ namespace AScript.Lang.Python3
 					if (!isDict.HasValue) isDict = true;
 					else if (!isDict.Value)
 					{
-						throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ','");
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ','");
 					}
 				}
 				else if (nextToken.Value.Value == ",")
@@ -116,7 +116,7 @@ namespace AScript.Lang.Python3
 					if (!isDict.HasValue) isDict = false;
 					else if (isDict.Value)
 					{
-						throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ':'");
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ':'");
 					}
 					tokenReader.Push(nextToken.Value);
 				}
@@ -124,13 +124,13 @@ namespace AScript.Lang.Python3
 				{
 					if (!isDict.HasValue)
 					{
-						throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect '}}'");
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect '}}'");
 					}
 					if (isDict.Value)
 					{
-						throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ':'");
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ':'");
 					}
-					throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ','");
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ','");
 				}
 				// 
 				if (!isDict.Value)
@@ -153,7 +153,7 @@ namespace AScript.Lang.Python3
 				token = tokenReader.Read();
 				if (!token.HasValue)
 				{
-					throw new Exception("invalid dictionary syntax, expect ',' or '}'");
+					throw new Exceptions.ScriptAnalyzingException("invalid dictionary syntax, expect ',' or '}'");
 				}
 				if (token.Value.Value == "}")
 				{
@@ -161,7 +161,7 @@ namespace AScript.Lang.Python3
 				}
 				if (token.Value.Value != ",")
 				{
-					throw new Exception($"invalid dictionary syntax at {token.Value.Line},{token.Value.Column}, expect ',' or '}}'");
+					throw new Exceptions.ScriptAnalyzingException($"invalid dictionary syntax at {token.Value.Line},{token.Value.Column}, expect ',' or '}}'");
 				}
 			}
 

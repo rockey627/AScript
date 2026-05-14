@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq.Expressions;
@@ -60,12 +61,12 @@ namespace AScript.Nodes
 							}
 							else
 							{
-								throw new Exception("invalid expression near new");
+								throw new ScriptAnalyzingException("invalid expression near new");
 							}
 						}
 						else
 						{
-							throw new Exception("invalid expression near new");
+							throw new ScriptAnalyzingException("invalid expression near new");
 						}
 					}
 
@@ -89,7 +90,7 @@ namespace AScript.Nodes
 				type = scriptContext.EvalType(name);
 				if (type == null)
 				{
-					throw new Exception($"unknow type {this.Name}");
+					throw new ScriptAnalyzingException($"unknow type {this.Name}");
 				}
 				if (this.GenericTypes != null && this.GenericTypes.Count > 0)
 				{
@@ -100,7 +101,7 @@ namespace AScript.Nodes
 						var type0 = scriptContext.EvalType(typeName);
 						if (type0 == null)
 						{
-							throw new Exception($"unknown type '{typeName}'");
+							throw new ScriptAnalyzingException($"unknown type '{typeName}'");
 						}
 						genericTypes[i] = type0;
 					}
@@ -419,12 +420,12 @@ namespace AScript.Nodes
 							}
 							else
 							{
-								throw new Exception("invalid expression near new");
+								throw new ScriptAnalyzingException("invalid expression near new");
 							}
 						}
 						else
 						{
-							throw new Exception("invalid expression near new");
+							throw new ScriptAnalyzingException("invalid expression near new");
 						}
 					}
 				}
@@ -448,7 +449,7 @@ namespace AScript.Nodes
 				type = context.EvalType(name);
 				if (type == null)
 				{
-					throw new Exception($"unknow type {name}");
+					throw new ScriptAnalyzingException($"unknow type {name}");
 				}
 				if (this.GenericTypes != null && this.GenericTypes.Count > 0)
 				{
@@ -459,7 +460,7 @@ namespace AScript.Nodes
 						var type0 = context.EvalType(typeName);
 						if (type0 == null)
 						{
-							throw new Exception($"unknown type '{typeName}'");
+							throw new ScriptAnalyzingException($"unknown type '{typeName}'");
 						}
 						genericTypes[i] = type0;
 					}

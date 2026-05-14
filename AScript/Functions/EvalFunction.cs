@@ -15,8 +15,6 @@ namespace AScript.Functions
 			int argsCount = e.GetArgsCount();
 			if (argsCount == 0 || argsCount > 4) return;
 
-			//var engine = ScriptEngine.GetCurrent(e.ScriptContext);
-			//if (engine == null) throw new Exception("unkown inner ScriptEngine");
 			Expression expressionExpr, cacheTimeExpr, cacheKeyExpr, cacheVersionExpr;
 			// 
 			expressionExpr = e.BuildArgs(0);
@@ -87,29 +85,21 @@ namespace AScript.Functions
 
 		private static object Eval(ScriptContext context, BuildOptions options, string expression)
 		{
-			//var engine = ScriptEngine.GetCurrent(context);
-			//if (engine == null) throw new Exception("unkown inner ScriptEngine");
 			return Script.Eval(null, context, options, expression);
 		}
 
 		private static object Eval(ScriptContext context, BuildOptions options, string expression, int cacheTime)
 		{
-			//var engine = ScriptEngine.GetCurrent(context);
-			//if (engine == null) throw new Exception("unkown inner ScriptEngine");
 			return Script.Eval(null, context, options, expression, cacheTime);
 		}
 
 		private static object Eval(ScriptContext context, BuildOptions options, string expression, int cacheTime, string cacheKey)
 		{
-			//var engine = ScriptEngine.GetCurrent(context);
-			//if (engine == null) throw new Exception("unkown inner ScriptEngine");
 			return Script.Eval(null, context, options, expression, cacheTime, cacheKey);
 		}
 
 		private static object Eval(ScriptContext context, BuildOptions options, string expression, int cacheTime, string cacheKey, string cacheVersion)
 		{
-			//var engine = ScriptEngine.GetCurrent(context);
-			//if (engine == null) throw new Exception("unkown inner ScriptEngine");
 			return Script.Eval(null, context, options, expression, cacheTime, cacheKey, cacheVersion);
 		}
 	}

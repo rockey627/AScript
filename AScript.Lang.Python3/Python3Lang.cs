@@ -168,13 +168,6 @@ namespace AScript.Lang.Python3
 			return true;
 		}
 
-		//private static object Exec(ScriptContext context, string expression)
-		//{
-		//	var engine = ScriptEngine.GetCurrent(context);
-		//	if (engine == null) throw new Exception("unkown inner ScriptEngine");
-		//	return engine.Eval(context, expression);
-		//}
-
 		private static bool List_Equal(IList list1, IList list2)
 		{
 			if (list1 == null) return list2 == null;

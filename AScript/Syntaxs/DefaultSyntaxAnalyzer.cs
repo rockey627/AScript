@@ -217,11 +217,11 @@ namespace AScript.Syntaxs
 					var nextToken = tokenReader.Read();
 					if (!nextToken.HasValue)
 					{
-						throw new Exception($"invalid expression at ({tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}), expect ')'");
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression at ({tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}), expect ')'");
 					}
 					if (nextToken.Value.Type == ETokenType.String)
 					{
-						throw new Exception($"invalid expression near '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column}), expect ')'");
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column}), expect ')'");
 					}
 					// 元组解析：括号内有逗号分隔的多个表达式
 					if (nextToken.Value.Value == ",")
@@ -232,13 +232,13 @@ namespace AScript.Syntaxs
 							var item = BuildOneStatement(buildContext, scriptContext, buildOptions, tokenReader, control, ignore);
 							if (!ignore) items.Add(item);
 							var tok = tokenReader.Read();
-							if (!tok.HasValue) throw new Exception("invalid tuple expression, expect ')'");
+							if (!tok.HasValue) throw new Exceptions.ScriptAnalyzingException("invalid tuple expression, expect ')'");
 							if (tok.Value.Type == ETokenType.String)
 							{
-								throw new Exception($"invalid tuple expression near '{tok.Value.Value}' at ({tok.Value.Line},{tok.Value.Column}), expect ')'");
+								throw new Exceptions.ScriptAnalyzingException($"invalid tuple expression near '{tok.Value.Value}' at ({tok.Value.Line},{tok.Value.Column}), expect ')'");
 							}
 							if (tok.Value.Value == ")") break;
-							if (tok.Value.Value != ",") throw new Exception($"invalid tuple expression near '{tok.Value.Value}' at ({tok.Value.Line},{tok.Value.Column}), expect ',' or ')'");
+							if (tok.Value.Value != ",") throw new Exceptions.ScriptAnalyzingException($"invalid tuple expression near '{tok.Value.Value}' at ({tok.Value.Line},{tok.Value.Column}), expect ',' or ')'");
 						}
 						if (!ignore)
 						{
@@ -251,7 +251,7 @@ namespace AScript.Syntaxs
 					{
 						if (nextToken.Value.Value != ")")
 						{
-							throw new Exception($"invalid expression near '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column}), expect ')'");
+							throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column}), expect ')'");
 						}
 						if (!ignore)
 						{
@@ -264,7 +264,7 @@ namespace AScript.Syntaxs
 				{
 					if (treeBuilder == null || treeBuilder.Current == null)
 					{
-						throw new Exception($"invalid expression '=>' at {t.Value.Line},{t.Value.Column}");
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression '=>' at {t.Value.Line},{t.Value.Column}");
 					}
 					//BuildOptions buildOptions;
 					//if (options.CreateFullTreeNode ?? false)
@@ -315,7 +315,7 @@ namespace AScript.Syntaxs
 					}
 					else
 					{
-						throw new Exception($"invalid expression '=>' at {t.Value.Line},{t.Value.Column}");
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression '=>' at {t.Value.Line},{t.Value.Column}");
 					}
 					break;
 				}
@@ -374,11 +374,11 @@ namespace AScript.Syntaxs
 			var nextToken = tokenReader.Read();
 			if (!nextToken.HasValue)
 			{
-				throw new Exception($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect {nextTokenForValid}");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect {nextTokenForValid}");
 			}
 			if (nextToken.Value.Type == ETokenType.String || nextToken.Value.Value != nextTokenForValid)
 			{
-				throw new Exception($"invalid expression '{nextToken.Value.Value}' at {nextToken.Value.Line},{nextToken.Value.Column}, expect {nextTokenForValid}");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at {nextToken.Value.Line},{nextToken.Value.Column}, expect {nextTokenForValid}");
 			}
 			return nextToken;
 		}
@@ -390,13 +390,13 @@ namespace AScript.Syntaxs
 			{
 				if (currentLine > 0)
 				{
-					throw new Exception($"invalid expression at {currentLine},{currentColumn}, expect {expect ?? nextTokenTypeForValid.ToString()}");
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression at {currentLine},{currentColumn}, expect {expect ?? nextTokenTypeForValid.ToString()}");
 				}
-				throw new Exception($"invalid expression expect {expect ?? nextTokenTypeForValid.ToString()}");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression expect {expect ?? nextTokenTypeForValid.ToString()}");
 			}
 			if (nextToken.Value.Type != nextTokenTypeForValid)
 			{
-				throw new Exception($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect {expect ?? nextTokenTypeForValid.ToString()}");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect {expect ?? nextTokenTypeForValid.ToString()}");
 			}
 			return nextToken;
 		}
@@ -424,7 +424,7 @@ namespace AScript.Syntaxs
 			var nextToken = tokenReader.Read();
 			if (!nextToken.HasValue)
 			{
-				throw new Exception("invalid expression, expect ')'");
+				throw new Exceptions.ScriptAnalyzingException("invalid expression, expect ')'");
 			}
 			if (nextToken.Value.Value == ")") return null;
 			tokenReader.Push(nextToken.Value);
@@ -439,11 +439,11 @@ namespace AScript.Syntaxs
 				nextToken = tokenReader.Read();
 				if (!nextToken.HasValue)
 				{
-					throw new Exception("invalid expression, expect ')'");
+					throw new Exceptions.ScriptAnalyzingException("invalid expression, expect ')'");
 				}
 				if (nextToken.Value.Value == ")") break;
 				if (nextToken.Value.Value == ",") continue;
-				throw new Exception($"invalid expression {nextToken.Value.Value} at {nextToken.Value.Line},{nextToken.Value.Column} expect ')'");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression {nextToken.Value.Value} at {nextToken.Value.Line},{nextToken.Value.Column} expect ')'");
 			}
 			return list;
 		}
@@ -518,7 +518,7 @@ namespace AScript.Syntaxs
 				var definedType = e.ScriptContext.EvalType(definedTypeName);
 				if (definedType == null)
 				{
-					throw new Exception($"unknown type '{definedTypeName}' at {currentToken.Line},{currentToken.Column}");
+					throw new Exceptions.ScriptAnalyzingException($"unknown type '{definedTypeName}' at {currentToken.Line},{currentToken.Column}");
 				}
 				currentToken = nextToken.Value;
 				nextToken = e.TokenReader.Read();
@@ -568,7 +568,7 @@ namespace AScript.Syntaxs
 			}
 			if (e.CurrentToken.Value.Length == 1)
 			{
-				throw new Exception($"unknown operator '{e.CurrentToken.Value}'");
+				throw new Exceptions.ScriptAnalyzingException($"unknown operator '{e.CurrentToken.Value}'");
 			}
 			// 拆分运算符
 			string s0 = e.CurrentToken.Value;
@@ -597,7 +597,7 @@ namespace AScript.Syntaxs
 				cc--;
 				if (cc == 0)
 				{
-					throw new Exception($"unknown operator '{e.CurrentToken.Value}'");
+					throw new Exceptions.ScriptAnalyzingException($"unknown operator '{e.CurrentToken.Value}'");
 				}
 			}
 		}
@@ -639,14 +639,14 @@ namespace AScript.Syntaxs
 				// 参数类型
 				if (token.Value.Type != ETokenType.Word)
 				{
-					throw new Exception("invalid arg type:" + funcName + "->" + token.Value.Value);
+					throw new Exceptions.ScriptAnalyzingException("invalid arg type:" + funcName + "->" + token.Value.Value);
 				}
 				var argType = token.Value.Value;
 				// 参数名
 				token = tokenReader.Read();
 				if (!token.HasValue)
 				{
-					throw new Exception("invalid function define:" + funcName);
+					throw new Exceptions.ScriptAnalyzingException("invalid function define:" + funcName);
 				}
 				if (token.Value.Value == "[")
 				{
@@ -654,22 +654,22 @@ namespace AScript.Syntaxs
 					token = tokenReader.Read();
 					if (!token.HasValue)
 					{
-						throw new Exception("invalid function define:" + funcName);
+						throw new Exceptions.ScriptAnalyzingException("invalid function define:" + funcName);
 					}
 					if (token.Value.Value != "]")
 					{
-						throw new Exception($"invalid function define:{funcName} -> '{token.Value.Value}', expect ']'");
+						throw new Exceptions.ScriptAnalyzingException($"invalid function define:{funcName} -> '{token.Value.Value}', expect ']'");
 					}
 					argType += "[]";
 					token = tokenReader.Read();
 					if (!token.HasValue)
 					{
-						throw new Exception("invalid function define:" + funcName);
+						throw new Exceptions.ScriptAnalyzingException("invalid function define:" + funcName);
 					}
 				}
 				if (token.Value.Type != ETokenType.Word)
 				{
-					throw new Exception("invalid arg name:" + funcName + "->" + token.Value.Value);
+					throw new Exceptions.ScriptAnalyzingException("invalid arg name:" + funcName + "->" + token.Value.Value);
 				}
 				string argName = token.Value.Value;
 				if (!ignore)
@@ -680,32 +680,32 @@ namespace AScript.Syntaxs
 				token = tokenReader.Read();
 				if (!token.HasValue)
 				{
-					throw new Exception("invalid function define:" + funcName);
+					throw new Exceptions.ScriptAnalyzingException("invalid function define:" + funcName);
 				}
 				if (token.Value.Value == ")") break;
 				if (token.Value.Value != ",")
 				{
-					throw new Exception("invalid function define:" + funcName);
+					throw new Exceptions.ScriptAnalyzingException("invalid function define:" + funcName);
 				}
 				token = tokenReader.Read();
 			}
 			//
 			if (!token.HasValue)
 			{
-				throw new Exception("invalid function define, no body:" + funcName);
+				throw new Exceptions.ScriptAnalyzingException("invalid function define, no body:" + funcName);
 			}
 			token = tokenReader.Read();
 			// 函数体
 			if (!token.HasValue)
 			{
-				throw new Exception("invalid function define, no body:" + funcName);
+				throw new Exceptions.ScriptAnalyzingException("invalid function define, no body:" + funcName);
 			}
 			if (token.Value.Value == "=>")
 			{
 				//token = tokenReader.Read();
 				if (!token.HasValue)
 				{
-					throw new Exception("invalid function define, no body:" + funcName);
+					throw new Exceptions.ScriptAnalyzingException("invalid function define, no body:" + funcName);
 				}
 			}
 			else

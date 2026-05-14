@@ -24,11 +24,11 @@ namespace AScript.Lang.Python3.TokenHandlers
 			var nextToken = e.TokenReader.Read();
 			if (!nextToken.HasValue)
 			{
-				throw new Exception($"invalid {e.CurrentToken.Value} expression at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
+				throw new Exceptions.ScriptAnalyzingException($"invalid {e.CurrentToken.Value} expression at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
 			}
 			if (nextToken.Value.Type != ETokenType.Word)
 			{
-				throw new Exception($"invalid '{nextToken.Value.Value}' of {e.CurrentToken.Value} expression at ({nextToken.Value.Line},{nextToken.Value.Column})");
+				throw new Exceptions.ScriptAnalyzingException($"invalid '{nextToken.Value.Value}' of {e.CurrentToken.Value} expression at ({nextToken.Value.Line},{nextToken.Value.Column})");
 			}
 			var varName = nextToken.Value.Value;
 			List<DefineVarNode> varDefines = null;
@@ -48,7 +48,7 @@ namespace AScript.Lang.Python3.TokenHandlers
 					var varToken = e.TokenReader.Read();
 					if (!varToken.HasValue || varToken.Value.Type != ETokenType.Word || varToken.Value.Value == "in")
 					{
-						throw new Exception($"invalid variable name at ({varToken.Value.Line},{varToken.Value.Column})");
+						throw new Exceptions.ScriptAnalyzingException($"invalid variable name at ({varToken.Value.Line},{varToken.Value.Column})");
 					}
 					if (!e.Ignore)
 					{
@@ -61,11 +61,11 @@ namespace AScript.Lang.Python3.TokenHandlers
 
 			if (!nextToken.HasValue)
 			{
-				throw new Exception($"invalid {e.CurrentToken.Value} expression at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+				throw new Exceptions.ScriptAnalyzingException($"invalid {e.CurrentToken.Value} expression at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
 			}
 			if (!nextToken.Value.IsSymbol("in"))
 			{
-				throw new Exception($"invalid {nextToken.Value.Value} of {e.CurrentToken.Value} expression at ({nextToken.Value.Line},{nextToken.Value.Column})");
+				throw new Exceptions.ScriptAnalyzingException($"invalid {nextToken.Value.Value} of {e.CurrentToken.Value} expression at ({nextToken.Value.Line},{nextToken.Value.Column})");
 			}
 			//analyzer.ValidateNextToken(e.TokenReader, "in");
 			// 

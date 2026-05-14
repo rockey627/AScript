@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Exceptions;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -85,7 +86,7 @@ namespace AScript.Nodes
 					var methodInfo = type.GetMethod(this.Name, argTypes);
 					if (methodInfo == null)
 					{
-						throw new Exception($"unknown function: {type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
+						throw new ScriptAnalyzingException($"unknown function: {type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
 					}
 					var parameters = methodInfo.GetParameters();
 					var convertedArgs = Syntaxs.DefaultSyntaxAnalyzer.ConvertObjectArguments(argValues, parameters);
@@ -137,13 +138,17 @@ namespace AScript.Nodes
 								return result2;
 							}
 						}
+						catch (ScriptException ex)
+						{
+							throw;
+						}
 						catch (Exception ex)
 						{
 						}
 					}
 					if (methodInfo == null)
 					{
-						throw new Exception($"unknown function: {t0}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
+						throw new ScriptAnalyzingException($"unknown function: {t0}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
 					}
 					var parameters = methodInfo.GetParameters();
 					var convertedArgs = Syntaxs.DefaultSyntaxAnalyzer.ConvertObjectArguments(argValues, parameters);
@@ -251,7 +256,7 @@ namespace AScript.Nodes
 					var methodInfo = type.GetMethod(this.Name, argTypes);
 					if (methodInfo == null)
 					{
-						throw new Exception($"unknown function: {type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
+						throw new ScriptAnalyzingException($"unknown function: {type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
 					}
 					var parameters = methodInfo.GetParameters();
 					var convertedArgs = Syntaxs.DefaultSyntaxAnalyzer.ConvertArguments(argExprs, parameters);
@@ -311,11 +316,15 @@ namespace AScript.Nodes
 								return expr2;
 							}
 						}
+						catch (ScriptException ex)
+						{
+							throw;
+						}
 						catch { }
 					}
 					if (methodInfo == null)
 					{
-						throw new Exception($"unknown function: {v0.Type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
+						throw new ScriptAnalyzingException($"unknown function: {v0.Type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
 					}
 					var parameters = methodInfo.GetParameters();
 					var convertedArgs = Syntaxs.DefaultSyntaxAnalyzer.ConvertArguments(argExprs, parameters, expressionStartIndex: methodInfo.IsStatic ? 1 : 0);

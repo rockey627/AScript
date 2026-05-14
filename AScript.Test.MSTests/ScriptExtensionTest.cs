@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using AScript.Exceptions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -71,12 +72,13 @@ namespace AScript.Test.MSTests
 			try
 			{
 				script.Eval("'5+6'.eval2()");
-				Assert.IsTrue(false);
 			}
-			catch (Exception ex)
+			catch (ScriptException ex)
 			{
-				Assert.AreEqual("unknown function: System.String.eval2()", ex.Message);
+				Assert.AreEqual("unknown function: eval2(System.String)", ex.Message);
+				return;
 			}
+			Assert.IsTrue(false);
 		}
 
 		[TestMethod]

@@ -174,7 +174,7 @@ namespace AScript
 				return typeof(object);
 			}
 
-			throw new Exception($"{collectionType} is not a enumerable type");
+			throw new Exceptions.ScriptRuntimeException($"{collectionType} is not a enumerable type");
 		}
 
 		public static object GetValue(object instance, string propertyOrFieldName, out Type type)
@@ -217,7 +217,7 @@ namespace AScript
 				return f.GetValue(target);
 			}
 
-			throw new Exception($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
+			throw new Exceptions.ScriptRuntimeException($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
 		}
 
 		public static void SetValue(object instance, string propertyOrFieldName, object value)
@@ -257,7 +257,7 @@ namespace AScript
 				return;
 			}
 
-			throw new Exception($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
+			throw new Exceptions.ScriptRuntimeException($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
 		}
 
 		public static object GetAndSetValue(object instance, string propertyOrFieldName, out Type type, Func<MemberInfo, Type, object, object> valueFac)
@@ -315,7 +315,7 @@ namespace AScript
 				return null;
 			}
 
-			throw new Exception($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
+			throw new Exceptions.ScriptRuntimeException($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
 		}
 
 		/// <summary>
@@ -441,7 +441,7 @@ namespace AScript
 		//				sb.Append('\t');
 		//				continue;
 		//			}
-		//			throw new Exception("unknown string escape:" + s);
+		//			throw new Exceptions.ScriptRuntimeException("unknown string escape:" + s);
 		//		}
 		//		sb.Append(c);
 		//	}
@@ -484,7 +484,7 @@ namespace AScript
 				if (parameters.Length == 7) return typeof(Func<,,,,,>).MakeGenericType(parameters[0].ParameterType, parameters[1].ParameterType, parameters[2].ParameterType, parameters[3].ParameterType, parameters[4].ParameterType, parameters[5].ParameterType, parameters[6].ParameterType, returnType);
 				return null;
 			}
-			catch (Exception)
+			catch
 			{
 				return null;
 			}

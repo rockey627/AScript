@@ -15,7 +15,7 @@ namespace AScript.Lang.Python3.Operators
 				var left = leftVar.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out _, out var lastType);
 				if (left == null)
 				{
-					throw new Exception($"invalid expression: {leftVar.Name} is not exists");
+					throw new Exceptions.ScriptRuntimeException($"invalid expression: {leftVar.Name} is not exists");
 				}
 				var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 

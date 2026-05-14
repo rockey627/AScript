@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Exceptions;
+using System;
 using System.Linq.Expressions;
 
 namespace AScript.Nodes
@@ -11,7 +12,7 @@ namespace AScript.Nodes
 		{
 			if (control == null)
 			{
-				throw new Exception("unsupport return");
+				throw new ScriptAnalyzingException("unsupport return");
 			}
 			try
 			{

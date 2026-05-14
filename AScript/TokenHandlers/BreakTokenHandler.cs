@@ -28,7 +28,7 @@ namespace AScript.TokenHandlers
 			{
 				if (e.Control == null)
 				{
-					throw new Exception("invalid break statement");
+					throw new Exceptions.ScriptAnalyzingException("invalid break statement");
 				}
 				e.Control.Break = true;
 			}

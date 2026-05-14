@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Exceptions;
+using System;
 using System.Linq.Expressions;
 
 namespace AScript.Nodes
@@ -20,7 +21,7 @@ namespace AScript.Nodes
 				funcReturnType = context.EvalType(this.ReturnType);
 				if (funcReturnType == null)
 				{
-					throw new Exception($"unknown type {this.ReturnType}");
+					throw new ScriptAnalyzingException($"unknown type {this.ReturnType}");
 				}
 			}
 			var compileMode = (options ?? Script.DefaultOptions).CompileMode ?? ECompileMode.None;
@@ -41,7 +42,7 @@ namespace AScript.Nodes
 						var type = arg.SystemType ?? context.EvalType(arg.Type);
 						if (type == null)
 						{
-							throw new Exception($"unknown parameter type {arg.Type} in function {this.Name}");
+							throw new ScriptAnalyzingException($"unknown parameter type {arg.Type} in function {this.Name}");
 						}
 						tempBuildContext.Parameters[arg.Name] = Expression.Parameter(type, arg.Name);
 					}
@@ -70,7 +71,7 @@ namespace AScript.Nodes
 						var type = arg.SystemType ?? context.EvalType(arg.Type);
 						if (type == null)
 						{
-							throw new Exception($"unknown parameter type {arg.Type} in function {this.Name}");
+							throw new ScriptAnalyzingException($"unknown parameter type {arg.Type} in function {this.Name}");
 						}
 						argNames[i] = arg.Name;
 						argTypes[i] = type;
@@ -118,7 +119,7 @@ namespace AScript.Nodes
 				funcReturnType = scriptContext.EvalType(this.ReturnType);
 				if (funcReturnType == null)
 				{
-					throw new Exception($"unknown type {this.ReturnType}");
+					throw new ScriptAnalyzingException($"unknown type {this.ReturnType}");
 				}
 			}
 			var tempBuildContext = new BuildContext(buildContext)
@@ -137,7 +138,7 @@ namespace AScript.Nodes
 					var type = arg.SystemType ?? scriptContext.EvalType(arg.Type);
 					if (type == null)
 					{
-						throw new Exception($"unknown parameter type {arg.Type} in function {this.Name}");
+						throw new ScriptAnalyzingException($"unknown parameter type {arg.Type} in function {this.Name}");
 					}
 					string argName = arg.Name;
 					if (argName == "_") argName += i;

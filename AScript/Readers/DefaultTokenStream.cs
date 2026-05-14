@@ -411,13 +411,13 @@ namespace AScript.Readers
 				{
 					_buffer.Append('\t');
 				}
-				else throw new Exception("unknown string escape:\\" + c);
+				else throw new Exceptions.ScriptAnalyzingException("unknown string escape:\\" + c);
 
 				c = _reader.Read();
 			}
 			if (!c.HasValue)
 			{
-				throw new Exception($"invalid string at ({_reader.CurrentLine},{_reader.CurrentColumn}), expect {startChar}");
+				throw new Exceptions.ScriptAnalyzingException($"invalid string at ({_reader.CurrentLine},{_reader.CurrentColumn}), expect {startChar}");
 			}
 		}
 

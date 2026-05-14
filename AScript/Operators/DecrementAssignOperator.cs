@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using AScript.Exceptions;
 using AScript.Nodes;
 
 namespace AScript.Operators
@@ -22,7 +23,7 @@ namespace AScript.Operators
 				left = leftVar.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out _, out var lastType);
 				if (left == null)
 				{
-					throw new Exception($"invalid expression: {leftVar.Name} is not exists");
+					throw new ScriptAnalyzingException($"invalid expression: {leftVar.Name} is not exists");
 				}
 			}
 			else

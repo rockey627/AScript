@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Exceptions;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,21 +18,22 @@ namespace AScript.Nodes
 		{
 			if (this.VarDefine == null && this.VarDefines == null)
 			{
-				throw new Exception("require variable define in foreach statement");
+				throw new ScriptAnalyzingException("require variable define in foreach statement");
 			}
 			if (this.Collection == null)
 			{
-				throw new Exception("require collection in foreach statement");
+				throw new ScriptAnalyzingException("require collection in foreach statement");
 			}
 			// 计算集合
 			var listResult = this.Collection.Eval(context, options, controll, out var listType);
 			if (listResult == null)
 			{
-				throw new NullReferenceException("foreach collection is null");
+				returnType = null;
+				return null;
 			}
 			if (!(listResult is IEnumerable en))
 			{
-				throw new Exception($"invalid foreach collection {listType}");
+				throw new ScriptAnalyzingException($"invalid foreach collection {listType}");
 			}
 			//
 			object bodyResult = null;
@@ -93,11 +95,11 @@ namespace AScript.Nodes
 						}
 						if (itemList == null)
 						{
-							throw new Exception($"cannot unpack item of type {item?.GetType()} into {this.VarDefines.Count} variables");
+							throw new ScriptAnalyzingException($"cannot unpack item of type {item?.GetType()} into {this.VarDefines.Count} variables");
 						}
 						if (itemList.Count < this.VarDefines.Count)
 						{
-							throw new Exception($"not enough values to unpack (expected {this.VarDefines.Count}, got {itemList.Count})");
+							throw new ScriptAnalyzingException($"not enough values to unpack (expected {this.VarDefines.Count}, got {itemList.Count})");
 						}
 						for (int i = 0; i < this.VarDefines.Count; i++)
 						{
