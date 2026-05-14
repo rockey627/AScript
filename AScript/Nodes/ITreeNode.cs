@@ -18,6 +18,8 @@ namespace AScript.Nodes
 		/// </summary>
 		void Clear();
 
+		bool IsFull();
+
 		/// <summary>
 		/// 运算
 		/// </summary>

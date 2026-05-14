@@ -375,11 +375,11 @@ namespace AScript.Nodes
 		public bool IsFullStatement()
 		{
 			if (_Current == null) return false;
-			if (_Current is OperatorNode op)
-			{
-				return op.IsFull();
-			}
-			return true;
+			//if (_Current is OperatorNode op)
+			//{
+			//	return op.IsFull();
+			//}
+			return _Current.IsFull();
 		}
 
 		//public void EvalRoot(ExpressionBuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control)

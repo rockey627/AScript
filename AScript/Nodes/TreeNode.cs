@@ -19,5 +19,7 @@ namespace AScript.Nodes
 		{
 			this.Parent = null;
 		}
+
+		public virtual bool IsFull() => true;
 	}
 }

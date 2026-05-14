@@ -36,7 +36,7 @@ namespace AScript.Nodes
 			}
 		}
 
-		public bool IsFull()
+		public override bool IsFull()
 		{
 			return _Right != null || this.DataCount == GetArgsCount();
 		}
