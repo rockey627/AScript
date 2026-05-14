@@ -64,6 +64,20 @@ namespace AScript.Nodes
 								throw new ScriptAnalyzingException("invalid expression near new");
 							}
 						}
+						else if (propInit is OperatorNode dotNode && dotNode.Name == ".")
+						{
+							// 成员访问表达式: a.Name -> 提取属性名
+							if (dotNode.Right is VariableNode propNameNode)
+							{
+								fieldNames[i] = propNameNode.Name;
+								var propValue = propInit.Build(buildContext, scriptContext, options);
+								fieldValues[i] = propValue;
+							}
+							else
+							{
+								throw new ScriptAnalyzingException("invalid expression near new");
+							}
+						}
 						else
 						{
 							throw new ScriptAnalyzingException("invalid expression near new");
@@ -416,6 +430,20 @@ namespace AScript.Nodes
 							{
 								fieldNames[i] = propNameNode.Name;
 								fieldValues[i] = opNode.Right.Eval(context, options, control, out var propType);
+								fieldTypes[i] = propType;
+							}
+							else
+							{
+								throw new ScriptAnalyzingException("invalid expression near new");
+							}
+						}
+						else if (propInit is OperatorNode dotNode && dotNode.Name == ".")
+						{
+							// 成员访问表达式: a.Name -> 提取属性名
+							if (dotNode.Right is VariableNode propNameNode)
+							{
+								fieldNames[i] = propNameNode.Name;
+								fieldValues[i] = propInit.Eval(context, options, control, out var propType);
 								fieldTypes[i] = propType;
 							}
 							else

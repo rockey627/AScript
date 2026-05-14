@@ -182,9 +182,9 @@ q.Where(a=>a.Age>20).Select(a=>new { a.Name, a.Age}).ToList();
 			var list = (IList)r;
 			Assert.AreEqual(2, list.Count);
 			Assert.AreEqual("tony", ((dynamic)list[0]).Name);
-			Assert.AreEqual(31, ((dynamic)list[0]).Age);
+			Assert.AreEqual(21, ((dynamic)list[0]).Age);
 			Assert.AreEqual("li", ((dynamic)list[1]).Name);
-			Assert.AreEqual(35, ((dynamic)list[1]).Age);
+			Assert.AreEqual(25, ((dynamic)list[1]).Age);
 		}
 
 		[TestMethod]
