@@ -25,6 +25,22 @@ namespace AScript.TokenHandlers
 				e.IsHandled = true;
 				return;
 			}
+			if (typeNameToken.Value.IsSymbol("["))
+			{
+				var lengthStatement = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control);
+				analyzer.ValidateNextToken(e.TokenReader, "]");
+				List<ITreeNode> lengthArgs = null;
+				if (lengthStatement != null)
+				{
+					lengthArgs = new List<ITreeNode> { lengthStatement };
+				}
+				analyzer.ValidateNextToken(e.TokenReader, "{");
+				var initProperties0 = ParseInitProperties(analyzer, e);
+				e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, 
+					new NewNode { ArrayDimension = 1, InitProperties = initProperties0, Args = lengthArgs });
+				e.IsHandled = true;
+				return;
+			}
 			if (typeNameToken.Value.Type != ETokenType.Word)
 			{
 				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{typeNameToken.Value.Value}' at ({typeNameToken.Value.Line},{typeNameToken.Value.Column})");

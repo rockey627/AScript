@@ -30,10 +30,10 @@ namespace AScript.Nodes
 			return _Source.Eval(context, options, control, out returnType);
 		}
 
-		public override bool IsFull()
-		{
-			return _VarParentDict.Count == 0;
-		}
+		//public override bool IsFull()
+		//{
+		//	return _VarParentDict.Count == 0;
+		//}
 
 		public void AddFrom(string varName, ITreeNode source)
 		{
@@ -49,12 +49,12 @@ namespace AScript.Nodes
 				Name = "SelectMany",
 				Args = new ITreeNode[]
 				{
-					// a => source
 					_Source,
+					// a => source
 					new DefineFuncNode
 					{
 						Args = new DefineVarNode[] { new DefineVarNode{ Name = _CurrentVarName } },
-						Body = source
+						Body = TryVisitAndReplace(source)
 					},
 					// (a, b) => new { a, b })
 					new DefineFuncNode
@@ -84,11 +84,6 @@ namespace AScript.Nodes
 
 		public void AddWhere(ITreeNode condition)
 		{
-			// 检索condition中的变量
-			if (_VarParentDict.Count > 0)
-			{
-				condition = VisitAndReplace(condition);
-			}
 			// _Source.Where(<>h__TransparentIdentifier0 => (<>h__TransparentIdentifier0.a.Age == <>h__TransparentIdentifier0.b.Age))
 			var whereNode = new CallFuncNode
 			{
@@ -100,7 +95,7 @@ namespace AScript.Nodes
 					new DefineFuncNode
 					{
 						Args = new DefineVarNode[] { new DefineVarNode { Name = _CurrentVarName } },
-						Body = condition
+						Body = TryVisitAndReplace(condition)
 					}
 				}
 			};
@@ -109,11 +104,6 @@ namespace AScript.Nodes
 
 		public void AddSelect(ITreeNode selector)
 		{
-			// 检索selector中的变量
-			if (_VarParentDict.Count > 0)
-			{
-				selector = VisitAndReplace(selector);
-			}
 			// _Source.Select(<>h__TransparentIdentifier1 => new <> f__AnonymousType0`2(Name = <> h__TransparentIdentifier1.<> h__TransparentIdentifier0.a.Name, Age = <> h__TransparentIdentifier1.<> h__TransparentIdentifier0.b.Age))
 			var selectNode = new CallFuncNode
 			{
@@ -124,7 +114,7 @@ namespace AScript.Nodes
 					new DefineFuncNode
 					{
 						Args = new DefineVarNode[] { new DefineVarNode { Name = _CurrentVarName } },
-						Body = selector
+						Body = TryVisitAndReplace(selector)
 					}
 				}
 			};
@@ -133,6 +123,132 @@ namespace AScript.Nodes
 			_VarParentDict.Clear();
 			_ParentCounter = 0;
 			_CurrentVarName = null;
+		}
+
+		/// <summary>
+		/// join b in q2 on a.Age equals b.Age
+		/// </summary>
+		/// <param name="varName"></param>
+		/// <param name="source"></param>
+		/// <param name="key1"></param>
+		/// <param name="key2"></param>
+		/// <exception cref="Exceptions.ScriptAnalyzingException"></exception>
+		public void AddJoin(string varName, ITreeNode source, ITreeNode key1, ITreeNode key2)
+		{
+			// _Source.Join(source, a => a.Age, b => b.Age, (a, b) => new <> f__AnonymousType2`2(a = a, b = b))
+			if (_Source == null)
+			{
+				throw new Exceptions.ScriptAnalyzingException("invalid expression join");
+			}
+			var joinNode = new CallFuncNode
+			{
+				Name = "Join",
+				Args = new ITreeNode[]
+				{
+					_Source,
+					TryVisitAndReplace(source),
+					// key1: a => a.Age
+					new DefineFuncNode
+					{
+						Args = new DefineVarNode[] { new DefineVarNode{ Name = _CurrentVarName } },
+						Body = TryVisitAndReplace(key1)
+					},
+					// key2: b => b.Age
+					new DefineFuncNode
+					{
+						Args = new DefineVarNode[] { new DefineVarNode{ Name = varName } },
+						Body = TryVisitAndReplace(key2)
+					},
+					// (a, b) => new { a, b })
+					new DefineFuncNode
+					{
+						Args = new DefineVarNode[]
+						{
+							new DefineVarNode { Name = _CurrentVarName },
+							new DefineVarNode { Name = varName }
+						},
+						Body = new NewNode
+						{
+							InitProperties = new ITreeNode[]
+							{
+								new VariableNode{Name = _CurrentVarName },
+								new VariableNode{Name = varName }
+							}
+						}
+					}
+				}
+			};
+			_Source = joinNode;
+			var oldCurrentName = _CurrentVarName;
+			_CurrentVarName = $"<>h__TransparentIdentifier{_ParentCounter++}";
+			_VarParentDict[oldCurrentName] = _CurrentVarName;
+			_VarParentDict[varName] = _CurrentVarName;
+		}
+
+		/// <summary>
+		/// join b in q2 on a.Age equals b.Age into bb
+		/// </summary>
+		/// <param name="varName"></param>
+		/// <param name="source"></param>
+		/// <param name="key1"></param>
+		/// <param name="key2"></param>
+		/// <param name="intoName"></param>
+		public void AddGroupJoin(string varName, ITreeNode source, ITreeNode key1, ITreeNode key2, string intoName)
+		{
+			// _Source.GroupJoin(source, a => a.Age, b => b.Age, (a, bb) => new <> f__AnonymousType2`2(a = a, bb = bb))
+			if (_Source == null)
+			{
+				throw new Exceptions.ScriptAnalyzingException("invalid expression join");
+			}
+			var joinNode = new CallFuncNode
+			{
+				Name = "GroupJoin",
+				Args = new ITreeNode[]
+				{
+					_Source,
+					TryVisitAndReplace(source),
+					// key1: a => a.Age
+					new DefineFuncNode
+					{
+						Args = new DefineVarNode[] { new DefineVarNode{ Name = _CurrentVarName } },
+						Body = TryVisitAndReplace(key1)
+					},
+					// key2: b => b.Age
+					new DefineFuncNode
+					{
+						Args = new DefineVarNode[] { new DefineVarNode{ Name = varName } },
+						Body = TryVisitAndReplace(key2)
+					},
+					// (a, bb) => new { a, bb })
+					new DefineFuncNode
+					{
+						Args = new DefineVarNode[]
+						{
+							new DefineVarNode { Name = _CurrentVarName },
+							new DefineVarNode { Name = intoName }
+						},
+						Body = new NewNode
+						{
+							InitProperties = new ITreeNode[]
+							{
+								new VariableNode{Name = _CurrentVarName },
+								new VariableNode{Name = intoName }
+							}
+						}
+					}
+				}
+			};
+			_Source = joinNode;
+			var oldCurrentName = _CurrentVarName;
+			_CurrentVarName = $"<>h__TransparentIdentifier{_ParentCounter++}";
+			_VarParentDict[oldCurrentName] = _CurrentVarName;
+			_VarParentDict[intoName] = _CurrentVarName;
+		}
+
+		private ITreeNode TryVisitAndReplace(ITreeNode node)
+		{
+			if (_VarParentDict.Count == 0) return node;
+			return VisitAndReplace(node);
 		}
 
 		private ITreeNode VisitAndReplace(ITreeNode node)
@@ -201,6 +317,10 @@ namespace AScript.Nodes
 						var item = callNode.Args[i];
 						callNode.Args[i] = VisitAndReplace(item);
 					}
+				}
+				if (callNode.Target is ITreeNode targetNode)
+				{
+					callNode.Target = VisitAndReplace(targetNode);
 				}
 			}
 			return node;

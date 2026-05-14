@@ -8,6 +8,29 @@ namespace AScript.Test.MSTests
 	public class ScriptListTest
 	{
 		[TestMethod]
+		public void Test13_2()
+		{
+			string s = @"
+var arr = new[]{1,2,3,4,5};
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var arr = script.Eval<int[]>(s);
+			Assert.AreEqual("1,2,3,4,5", string.Join(",", arr));
+		}
+
+		[TestMethod]
+		public void Test13()
+		{
+			string s = @"
+var arr = new[]{1,2,3,4,5};
+";
+			var script = new Script();
+			var arr = script.Eval<int[]>(s);
+			Assert.AreEqual("1,2,3,4,5", string.Join(",", arr));
+		}
+
+		[TestMethod]
 		public void Test12_2()
 		{
 			string s = @"

@@ -38,7 +38,7 @@ namespace AScript.Nodes
 			{
 				type = this.SystemType;
 			}
-			else if (string.IsNullOrEmpty(this.Name))
+			else if (string.IsNullOrEmpty(this.Name) && this.ArrayDimension == 0)
 			{
 				// 匿名类型
 				string[] fieldNames = null;
@@ -92,7 +92,7 @@ namespace AScript.Nodes
 				}
 				return Script.AnonymousTypes.CreateObject(fieldNames, fieldValues);
 			}
-			else
+			else if (!string.IsNullOrEmpty(this.Name))
 			{
 				string name = this.Name;
 				if (this.GenericTypes != null && this.GenericTypes.Count > 0)
@@ -127,6 +127,7 @@ namespace AScript.Nodes
 					type = type.MakeGenericType(genericTypes);
 				}
 			}
+			else type = null;
 
 			if (type == typeof(ExpandoObject))
 			{
@@ -186,14 +187,17 @@ namespace AScript.Nodes
 			if (this.ArrayDimension > 0)
 			{
 				var elementType = type;
-				var elements = new List<Expression>();
 				Expression result = null;
-				if (argValues != null && argValues.Length > 0)
+				if (argValues != null && argValues.Length > 0 && elementType != null)
 				{
 					result = Expression.NewArrayBounds(elementType, argValues[0]);
 				}
 				if (this.InitProperties == null || this.InitProperties.Count == 0)
 				{
+					if (elementType == null)
+					{
+						throw new Exceptions.ScriptRuntimeException("invalid expression new []");
+					}
 					if (result == null)
 					{
 						result = Expression.NewArrayBounds(elementType, Expression.Constant(0));
@@ -203,16 +207,21 @@ namespace AScript.Nodes
 				// 
 				if (result == null)
 				{
-					foreach (var propInit in this.InitProperties)
+					var elements = new Expression[this.InitProperties.Count];
+					bool same = true;
+					for (int i = 0; i < this.InitProperties.Count; i++)
 					{
+						var propInit = this.InitProperties[i];
 						var elemExpr = propInit.Build(buildContext, scriptContext, options);
 						// 将元素转换为数组元素类型
-						if (elemExpr.Type != elementType)
+						if (elemExpr.Type != elementType && elementType != null)
 						{
 							elemExpr = Expression.Convert(elemExpr, elementType);
 						}
-						elements.Add(elemExpr);
+						elements[i] = elemExpr;
+						if (same && i > 0) same = elemExpr.Type == elements[0].Type;
 					}
+					if (elementType == null) elementType = same ? elements[0].Type : typeof(object);
 					return Expression.NewArrayInit(elementType, elements);
 				}
 				// 设置数组项
@@ -414,7 +423,7 @@ namespace AScript.Nodes
 			{
 				type = this.SystemType;
 			}
-			else if (string.IsNullOrEmpty(this.Name))
+			else if (string.IsNullOrEmpty(this.Name) && this.ArrayDimension == 0)
 			{
 				// 匿名类型
 				string[] fieldNames = null;
@@ -471,7 +480,7 @@ namespace AScript.Nodes
 				returnType = Script.AnonymousTypes.CreateType(fieldNames, fieldTypes);
 				return Activator.CreateInstance(returnType, fieldValues);
 			}
-			else
+			else if (!string.IsNullOrEmpty(this.Name))
 			{
 				string name = this.Name;
 				if (this.GenericTypes != null && this.GenericTypes.Count > 0)
@@ -506,6 +515,8 @@ namespace AScript.Nodes
 					type = type.MakeGenericType(genericTypes);
 				}
 			}
+			else type = null;
+			// 
 			if (type == typeof(ExpandoObject))
 			{
 				// 创建匿名类型对象 ExpandoObject
@@ -564,25 +575,55 @@ namespace AScript.Nodes
 					length = this.InitProperties.Count;
 				}
 				var elementType = type;
-				var array = Array.CreateInstance(elementType, length);
-				if (this.InitProperties != null)
+				if (elementType == null)
 				{
+					if (this.InitProperties == null || this.InitProperties.Count == 0)
+					{
+						throw new Exceptions.ScriptRuntimeException("invalid expression new []");
+					}
+					var initValues = new object[this.InitProperties.Count];
 					for (int i = 0; i < this.InitProperties.Count; i++)
 					{
-						var itemValue = this.InitProperties[i].Eval(context, options, control, out _);
-						if (itemValue != null)
+						initValues[i] = this.InitProperties[i].Eval(context, options, control, out var valueType);
+						if (elementType == null)
 						{
-							try
-							{
-								itemValue = Convert.ChangeType(itemValue, elementType);
-							}
-							catch { }
+							elementType = valueType;
 						}
-						array.SetValue(itemValue, i);
+						else if (elementType != typeof(object) && valueType != elementType)
+						{
+							elementType = typeof(object);
+						}
 					}
+					var array = Array.CreateInstance(elementType, length);
+					for (int i = 0; i < initValues.Length; i++)
+					{
+						array.SetValue(initValues[i], i);
+					}
+					returnType = array.GetType();
+					return array;
 				}
-				returnType = array.GetType();
-				return array;
+				else
+				{
+					var array = Array.CreateInstance(elementType, length);
+					if (this.InitProperties != null && this.InitProperties.Count > 0)
+					{
+						for (int i = 0; i < this.InitProperties.Count; i++)
+						{
+							var itemValue = this.InitProperties[i].Eval(context, options, control, out _);
+							if (itemValue != null)
+							{
+								try
+								{
+									itemValue = Convert.ChangeType(itemValue, elementType);
+								}
+								catch { }
+							}
+							array.SetValue(itemValue, i);
+						}
+					}
+					returnType = array.GetType();
+					return array;
+				}
 			}
 
 			returnType = type;

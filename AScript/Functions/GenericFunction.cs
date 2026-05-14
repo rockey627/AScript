@@ -96,12 +96,29 @@ namespace AScript.Functions
 								type = typeArguments[g.GenericParameterPosition];
 								if (type == null) return;
 							}
+							else if (g.IsGenericType)
+							{
+								var ggs = g.GetGenericArguments();
+								var ggTypes = new Type[ggs.Length];
+								for (int k = 0; k < ggs.Length; k++)
+								{
+									var gg = ggs[k];
+									if (gg.IsGenericParameter)
+									{
+										var type00 = typeArguments[gg.GenericParameterPosition];
+										ggTypes[k] = type00;
+									}
+									else ggTypes[k] = gg;
+								}
+								type = g.GetGenericTypeDefinition().MakeGenericType(ggTypes);
+							}
 							else type = g;
 							types[j] = type;
 						}
 						// 构建临时上下文
-						var tempBuildContext = new BuildContext
+						var tempBuildContext = new BuildContext(e.BuildContext)
 						{
+							ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
 							RewriteLocalVariables = false,
 							IsMain = true
 						};
@@ -226,12 +243,29 @@ namespace AScript.Functions
 							type = typeArguments[g.GenericParameterPosition];
 							if (type == null) return;
 						}
+						else if (g.IsGenericType)
+						{
+							var ggs = g.GetGenericArguments();
+							var ggTypes = new Type[ggs.Length];
+							for (int k = 0; k < ggs.Length; k++)
+							{
+								var gg = ggs[k];
+								if (gg.IsGenericParameter)
+								{
+									var type00 = typeArguments[gg.GenericParameterPosition];
+									ggTypes[k] = type00;
+								}
+								else ggTypes[k] = gg;
+							}
+							type = g.GetGenericTypeDefinition().MakeGenericType(ggTypes);
+						}
 						else type = g;
 						types[j] = type;
 					}
 					// 构建临时上下文
-					var tempBuildContext = new BuildContext
+					var tempBuildContext = new BuildContext(e.BuildContext)
 					{
+						ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
 						RewriteLocalVariables = false,
 						IsMain = true
 					};
@@ -396,12 +430,29 @@ namespace AScript.Functions
 								type = typeArguments[g.GenericParameterPosition];
 								if (type == null) return;
 							}
+							else if (g.IsGenericType)
+							{
+								var ggs = g.GetGenericArguments();
+								var ggTypes = new Type[ggs.Length];
+								for (int k = 0; k < ggs.Length; k++)
+								{
+									var gg = ggs[k];
+									if (gg.IsGenericParameter)
+									{
+										var type00 = typeArguments[gg.GenericParameterPosition];
+										ggTypes[k] = type00;
+									}
+									else ggTypes[k] = gg;
+								}
+								type = g.GetGenericTypeDefinition().MakeGenericType(ggTypes);
+							}
 							else type = g;
 							types[j] = type;
 						}
 						// 构建临时上下文
 						var tempBuildContext = new BuildContext
 						{
+							ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
 							RewriteLocalVariables = false,
 							IsMain = true
 						};
@@ -526,12 +577,29 @@ namespace AScript.Functions
 							type = typeArguments[g.GenericParameterPosition];
 							if (type == null) return;
 						}
+						else if (g.IsGenericType)
+						{
+							var ggs = g.GetGenericArguments();
+							var ggTypes = new Type[ggs.Length];
+							for (int k = 0; k < ggs.Length; k++)
+							{
+								var gg = ggs[k];
+								if (gg.IsGenericParameter)
+								{
+									var type00 = typeArguments[gg.GenericParameterPosition];
+									ggTypes[k] = type00;
+								}
+								else ggTypes[k] = gg;
+							}
+							type = g.GetGenericTypeDefinition().MakeGenericType(ggTypes);
+						}
 						else type = g;
 						types[j] = type;
 					}
 					// 构建临时上下文
 					var tempBuildContext = new BuildContext
 					{
+						ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
 						RewriteLocalVariables = false,
 						IsMain = true
 					};
