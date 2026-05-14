@@ -134,24 +134,64 @@ namespace AScript.Functions
 									typeArguments[p.GenericParameterPosition] = returnArgGenericArgs[j];
 								}
 							}
-							tempBuildContext.ReturnType = returnType0;
+							//tempBuildContext.ReturnType = returnType0;
 						}
 						else if (!returnGen.IsGenericParameter)
 						{
 							if (!returnGen.IsAssignableFrom(body.Type)) return;
-							if (returnGen != body.Type)
-							{
-								tempBuildContext.ReturnType = returnGen;
-							}
+							//if (returnGen != body.Type)
+							//{
+							//	tempBuildContext.ReturnType = returnGen;
+							//}
 						}
 						else if (returnGen.IsGenericParameter)
 						{
-							var returnGenType = typeArguments[returnGen.GenericParameterPosition];
-							if (returnGenType != null && returnGenType != body.Type)
+							//var returnGenType = typeArguments[returnGen.GenericParameterPosition];
+							//if (returnGenType != null && returnGenType != body.Type)
+							//{
+							//	tempBuildContext.ReturnType = returnGenType;
+							//}
+						}
+						Type delegateType = null;
+						var innerTypes = new Type[innerGens.Length];
+						bool allHasType = true;
+						for (int j = 0; j < innerGens.Length; j++)
+						{
+							var g = innerGens[j];
+							if (g.IsGenericParameter)
 							{
-								tempBuildContext.ReturnType = returnGenType;
+								var type = typeArguments[g.GenericParameterPosition];
+								if (type == null) { allHasType = false; break; }
+								innerTypes[j] = type;
+							}
+							else if (g.IsGenericType)
+							{
+								var ggs = g.GetGenericArguments();
+								var ggTypes = new Type[ggs.Length];
+								for (int k = 0; k < ggs.Length; k++)
+								{
+									var gg = ggs[k];
+									if (gg.IsGenericParameter)
+									{
+										var type = typeArguments[gg.GenericParameterPosition];
+										if (type == null) { allHasType = false; break; }
+										ggTypes[k] = type;
+									}
+									else ggTypes[k] = gg;
+								}
+								if (!allHasType) break;
+								innerTypes[j] = g.GetGenericTypeDefinition().MakeGenericType(ggTypes);
+							}
+							else
+							{
+								innerTypes[j] = g;
 							}
 						}
+						if (allHasType)
+						{
+							delegateType = innerType.GetGenericTypeDefinition().MakeGenericType(innerTypes);
+						}
+						tempBuildContext.DelegateType = delegateType;
 						var lambdaExpr = tempBuildContext.Build(e.ScriptContext, funcOptions, body);
 						argExpressions[i] = lambdaExpr;
 						if (returnGen.IsGenericParameter)
@@ -394,24 +434,64 @@ namespace AScript.Functions
 									typeArguments[p.GenericParameterPosition] = returnArgGenericArgs[j];
 								}
 							}
-							tempBuildContext.ReturnType = returnType0;
+							//tempBuildContext.ReturnType = returnType0;
 						}
 						else if (!returnGen.IsGenericParameter)
 						{
 							if (!returnGen.IsAssignableFrom(body.Type)) return;
-							if (returnGen != body.Type)
-							{
-								tempBuildContext.ReturnType = returnGen;
-							}
+							//if (returnGen != body.Type)
+							//{
+							//	tempBuildContext.ReturnType = returnGen;
+							//}
 						}
 						else if (returnGen.IsGenericParameter)
 						{
-							var returnGenType = typeArguments[returnGen.GenericParameterPosition];
-							if (returnGenType != null && returnGenType != body.Type)
+							//var returnGenType = typeArguments[returnGen.GenericParameterPosition];
+							//if (returnGenType != null && returnGenType != body.Type)
+							//{
+							//	tempBuildContext.ReturnType = returnGenType;
+							//}
+						}
+						Type delegateType = null;
+						var innerTypes = new Type[innerGens.Length];
+						bool allHasType = true;
+						for (int j = 0; j < innerGens.Length; j++)
+						{
+							var g = innerGens[j];
+							if (g.IsGenericParameter)
 							{
-								tempBuildContext.ReturnType = returnGenType;
+								var type = typeArguments[g.GenericParameterPosition];
+								if (type == null) { allHasType = false; break; }
+								innerTypes[j] = type;
+							}
+							else if (g.IsGenericType)
+							{
+								var ggs = g.GetGenericArguments();
+								var ggTypes = new Type[ggs.Length];
+								for (int k = 0; k < ggs.Length; k++)
+								{
+									var gg = ggs[k];
+									if (gg.IsGenericParameter)
+									{
+										var type = typeArguments[gg.GenericParameterPosition];
+										if (type == null) { allHasType = false; break; }
+										ggTypes[k] = type;
+									}
+									else ggTypes[k] = gg;
+								}
+								if (!allHasType) break;
+								innerTypes[j] = g.GetGenericTypeDefinition().MakeGenericType(ggTypes);
+							}
+							else
+							{
+								innerTypes[j] = g;
 							}
 						}
+						if (allHasType)
+						{
+							delegateType = innerType.GetGenericTypeDefinition().MakeGenericType(innerTypes);
+						}
+						tempBuildContext.DelegateType = delegateType;
 						var lambdaExpr = tempBuildContext.Build(e.Context, funcOptions, body);
 						argValues[i] = lambdaExpr;
 						if (returnGen.IsGenericParameter)
@@ -469,6 +549,7 @@ namespace AScript.Functions
 					var body = defineFuncNode.Body.Build(tempBuildContext, e.Context, funcOptions);
 					// 构建 Func<T, bool>
 					var returnGen = innerGens[innerGens.Length - 1];
+					Type returnType = null;
 					if (returnGen.IsGenericType)
 					{
 						var returnType0 = GetGenericType(returnGen, body.Type);
@@ -484,14 +565,16 @@ namespace AScript.Functions
 								typeArguments[p.GenericParameterPosition] = returnArgGenericArgs[j];
 							}
 						}
-						tempBuildContext.ReturnType = returnType0;
+						returnType = returnType0;
+						//tempBuildContext.ReturnType = returnType0;
 					}
 					else if (!returnGen.IsGenericParameter)
 					{
 						if (!returnGen.IsAssignableFrom(body.Type)) return;
 						if (returnGen != body.Type)
 						{
-							tempBuildContext.ReturnType = returnGen;
+							returnType = returnGen;
+							//tempBuildContext.ReturnType = returnGen;
 						}
 					}
 					else if (returnGen.IsGenericParameter)
@@ -499,8 +582,53 @@ namespace AScript.Functions
 						var returnGenType = typeArguments[returnGen.GenericParameterPosition];
 						if (returnGenType != null && returnGenType != body.Type)
 						{
-							tempBuildContext.ReturnType = returnGenType;
+							returnType = returnGenType;
+							//tempBuildContext.ReturnType = returnGenType;
 						}
+					}
+					Type delegateType = null;
+					var innerTypes = new Type[innerGens.Length];
+					bool allHasType = true;
+					for (int j = 0; j < innerGens.Length; j++)
+					{
+						var g = innerGens[j];
+						if (g.IsGenericParameter)
+						{
+							var type = typeArguments[g.GenericParameterPosition];
+							if (type == null) { allHasType = false; break; }
+							innerTypes[j] = type;
+						}
+						else if (g.IsGenericType)
+						{
+							var ggs = g.GetGenericArguments();
+							var ggTypes = new Type[ggs.Length];
+							for (int k = 0; k < ggs.Length; k++)
+							{
+								var gg = ggs[k];
+								if (gg.IsGenericParameter)
+								{
+									var type = typeArguments[gg.GenericParameterPosition];
+									if (type == null) { allHasType = false; break; }
+									ggTypes[k] = type;
+								}
+								else ggTypes[k] = gg;
+							}
+							if (!allHasType) break;
+							innerTypes[j] = g.GetGenericTypeDefinition().MakeGenericType(ggTypes);
+						}
+						else
+						{
+							innerTypes[j] = g;
+						}
+					}
+					if (allHasType)
+					{
+						delegateType = paramType.GetGenericTypeDefinition().MakeGenericType(innerTypes);
+					}
+					tempBuildContext.DelegateType = delegateType;
+					if (returnType == typeof(object) && body.Type.IsValueType)
+					{
+						tempBuildContext.ReturnType = returnType;
 					}
 					var lambdaExpr = tempBuildContext.Build(e.Context, funcOptions, body);
 					argValues[i] = lambdaExpr.Compile();
