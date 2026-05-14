@@ -138,7 +138,11 @@ namespace AScript.Nodes
 		private ITreeNode VisitAndReplace(ITreeNode node)
 		{
 			if (node == null) return null;
-			if (node is VariableNode varNode)
+			if (node is DefineVarNode)
+			{
+
+			}
+			else if (node is VariableNode varNode)
 			{
 				string varName = varNode.Name;
 				OperatorNode root = null;
@@ -153,7 +157,7 @@ namespace AScript.Nodes
 				}
 				return root ?? node;
 			}
-			if (node is OperatorNode opNode)
+			else if (node is OperatorNode opNode)
 			{
 				if (opNode.Name == ".")
 				{

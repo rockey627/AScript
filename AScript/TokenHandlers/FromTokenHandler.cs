@@ -14,12 +14,12 @@ namespace AScript.TokenHandlers
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;
-			if (e.TreeBuilder.IsFullStatement())
-			{
-				e.End = true;
-				e.TokenReader.Push(e.CurrentToken);
-				return;
-			}
+			//if (e.TreeBuilder.IsFullStatement())
+			//{
+			//	e.End = true;
+			//	e.TokenReader.Push(e.CurrentToken);
+			//	return;
+			//}
 
 			var varToken = e.TokenReader.Read();
 			if (!varToken.HasValue)
@@ -31,6 +31,7 @@ namespace AScript.TokenHandlers
 				throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' {varToken.Value.Value} at {varToken.Value.Line},{varToken.Value.Column}");
 			}
 			analyzer.ValidateNextToken(e.TokenReader, "in");
+			//var buildOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
 			var source = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, QueryNode.Keywords);
 
 			if (e.Ignore) return;

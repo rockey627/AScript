@@ -18,10 +18,11 @@ namespace AScript.TokenHandlers
 					throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at {e.CurrentToken.Line},{e.CurrentToken.Column}");
 				}
 			}
-			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, QueryNode.Keywords);
+			var buildOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
+			var selector = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, buildOptions, e.TokenReader, e.Control, e.Ignore, QueryNode.Keywords);
 			if (!e.Ignore)
 			{
-				(e.TreeBuilder.Current as QueryNode).AddSelect(condition);
+				(e.TreeBuilder.Current as QueryNode).AddSelect(selector);
 			}
 		}
 	}
