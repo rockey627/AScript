@@ -12,14 +12,14 @@
 
 ## 介绍
 
-动态脚本解析、编译、执行
+C#动态脚本解析编译执行引擎
 
 * 支持注入变量
 * 支持定义变量
 * 支持注入函数
 * 支持定义函数
 * 支持注入类型
-* 支持C#语法
+* 支持LINQ语法、Lambda表达式
 * 支持元组类型、匿名类型、动态类型
 * 支持事件处理
 * 支持16进制整数表示：0x0A
@@ -344,6 +344,30 @@ while(n <= 10) {
 total";
 var script = new Script();
 Assert.AreEqual(55, script.Eval(s));
+```
+
+#### LINQ
+```C#
+string s = @"
+var persons = new[] { new Person(""tom"", 20), new Person(""jim"", 25), new Person(""san"", 18), new Person(""kit"", 25) }.AsQueryable();
+var q = from a in persons
+		group a by a.Age into g
+		select new { g.Key, Count = g.Count() };
+q.ToList()
+";
+var script = new Script();
+script.Context.AddType<Person>();
+var list = script.Eval<IList>(s);
+Assert.AreEqual(3, list.Count);
+dynamic d0 = list[0];
+Assert.AreEqual(20, d0.Key);
+Assert.AreEqual(1, d0.Count);
+dynamic d1 = list[1];
+Assert.AreEqual(25, d1.Key);
+Assert.AreEqual(2, d1.Count);
+dynamic d2 = list[2];
+Assert.AreEqual(18, d2.Key);
+Assert.AreEqual(1, d2.Count);
 ```
 
 #### Queryable扩展方法
