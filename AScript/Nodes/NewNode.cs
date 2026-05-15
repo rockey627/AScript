@@ -265,11 +265,14 @@ namespace AScript.Nodes
 							if (opNode.Left is VariableNode propNameNode)
 							{
 								var property = type.GetProperty(propNameNode.Name, BindingFlags.Public | BindingFlags.Instance);
-								if (property != null)
-								{
-									initBindings.Add(Expression.Bind(property, propValue));
-								}
+								initBindings.Add(Expression.Bind(property, propValue));
 							}
+						}
+						else if (opNode.Name == "." || opNode.Name == "?.")
+						{
+							var propValue = opNode.Build(buildContext, scriptContext, options);
+							var property = type.GetProperty((opNode.Right as VariableNode).Name, BindingFlags.Public | BindingFlags.Instance);
+							initBindings.Add(Expression.Bind(property, propValue));
 						}
 						else if (opNode.Name == "[]")
 						{
@@ -297,6 +300,12 @@ namespace AScript.Nodes
 						// 集合初始化器: 直接添加到集合中
 						var itemExpr = propInit.Build(buildContext, scriptContext, options);
 						elementInitializers.Add(itemExpr);
+					}
+					else if (propInit is VariableNode varNode)
+					{
+						var propValue = varNode.Build(buildContext, scriptContext, options);
+						var property = type.GetProperty(varNode.Name, BindingFlags.Public | BindingFlags.Instance);
+						initBindings.Add(Expression.Bind(property, propValue));
 					}
 				}
 
@@ -409,6 +418,7 @@ namespace AScript.Nodes
 				// 处理属性绑定
 				if (initBindings.Count > 0)
 				{
+					//return Expression.MemberInit(newExpr, initBindings);
 					return Expression.MemberInit(newExpr, initBindings);
 				}
 			}

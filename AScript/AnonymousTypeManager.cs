@@ -44,12 +44,25 @@ namespace AScript
 		/// <param name="fieldNames"></param>
 		/// <param name="fieldValues"></param>
 		/// <param name="useGeneric">是否定义泛型类型</param>
-		public NewExpression CreateObject(string[] fieldNames, Expression[] fieldValues, bool? useGeneric = null)
+		public Expression CreateObject(string[] fieldNames, Expression[] fieldValues, bool? useGeneric = null)
 		{
-			Type[] fieldTypes = fieldValues.Select(f => f.Type).ToArray();
+			Type[] fieldTypes = fieldValues?.Select(f => f.Type).ToArray();
 			Type type = CreateType(fieldNames, fieldTypes, useGeneric ?? this.DefaultUseGeneric);
+			MemberInfo[] properties;
+			if (fieldNames != null && fieldNames.Length > 0)
+			{
+				properties = new MemberInfo[fieldNames.Length];
+				for (int i = 0; i < fieldNames.Length; i++)
+				{
+					properties[i] = type.GetProperty(fieldNames[i]);
+				}
+			}
+			else
+			{
+				properties = null;
+			}
 			ConstructorInfo constructor = type.GetConstructors()[0];
-			return Expression.New(constructor, fieldValues);
+			return Expression.New(constructor, fieldValues, properties);
 		}
 
 #if NETSTANDARD2_0_OR_GREATER
