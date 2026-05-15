@@ -103,6 +103,7 @@ namespace AScript.Lang.CSharp
 			AddFunc("&&", AndAlsoOperator.Instance);
 			AddFunc("||", OrElseOperator.Instance);
 			AddFunc(".", DotOperator.Instance);
+			AddFunc("?.", new DotOperator(true));
 			AddFunc("[]", IndexOperator.Instance);
 			AddFunc("[:]", IndexStartEndOperator.Instance);
 

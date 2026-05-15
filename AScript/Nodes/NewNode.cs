@@ -64,7 +64,7 @@ namespace AScript.Nodes
 								throw new ScriptAnalyzingException("invalid expression near new");
 							}
 						}
-						else if (propInit is OperatorNode dotNode && dotNode.Name == ".")
+						else if (propInit is OperatorNode dotNode && (dotNode.Name == "." || dotNode.Name == "?."))
 						{
 							// 成员访问表达式: a.Name -> 提取属性名
 							if (dotNode.Right is VariableNode propNameNode)

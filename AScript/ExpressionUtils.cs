@@ -388,7 +388,7 @@ namespace AScript
 			return true;
 		}
 
-		public static Expression GetValue(Expression instance, string propertyOrFieldName)
+		public static Expression GetValue(Expression instance, string propertyOrFieldName, bool nullable = false)
 		{
 			if (instance.Type == typeof(TypeWrapper))
 			{
@@ -412,6 +412,19 @@ namespace AScript
 			}
 
 			// 变量的属性或字段
+			if (nullable)
+			{
+				// ?. 判断
+				var propOrField = Expression.PropertyOrField(instance, propertyOrFieldName);
+				var propType = propOrField.Type;
+				// 值类型需要返回 Nullable<>
+				if (propType.IsValueType && Nullable.GetUnderlyingType(propType) == null)
+				{
+					propType = typeof(Nullable<>).MakeGenericType(propType);
+				}
+				var nullCheck = Expression.Equal(instance, Expression.Constant(null, instance.Type));
+				return Expression.Condition(nullCheck, Expression.Constant(null, propType), Expression.Convert(propOrField, propType));
+			}
 			return Expression.PropertyOrField(instance, propertyOrFieldName);
 		}
 

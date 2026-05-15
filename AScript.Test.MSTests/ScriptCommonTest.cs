@@ -13,6 +13,14 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test47()
+		{
+			string s = "+.9";
+			var script = new Script();
+			Assert.AreEqual(+.9, script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test46_Anonymous_2()
 		{
 			string s = @"

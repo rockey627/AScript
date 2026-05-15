@@ -70,7 +70,7 @@ namespace AScript.Readers
 							c = _reader.Read();
 							continue;
 						}
-						else
+						else if (startChar != '?')
 						{
 							_reader.Push(c.Value);
 							// 如果前面不是数字，则返回前面的

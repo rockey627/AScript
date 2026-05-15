@@ -45,4 +45,16 @@ namespace AScript.Test.MSTests
 			return new Person(name, age);
 		}
 	}
+
+	public class AddressInfo
+	{
+		public string UserName { get; set; }
+		public string Address { get; set; }
+
+		public AddressInfo(string userName, string address)
+		{
+			this.UserName = userName;
+			this.Address = address;
+		}
+	}
 }

@@ -275,7 +275,7 @@ namespace AScript.Nodes
 			}
 			else if (node is OperatorNode opNode)
 			{
-				if (opNode.Name == ".")
+				if (opNode.Name == "." || opNode.Name == "?.")
 				{
 					opNode.Left = VisitAndReplace(opNode.Left);
 					if (!(opNode.Right is VariableNode))
