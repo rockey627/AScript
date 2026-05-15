@@ -2,7 +2,11 @@
 using BenchmarkDotNet.Running;
 using IronPython.Hosting;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Scripting.Hosting;
+using Microsoft.Scripting.Utils;
+using Newtonsoft.Json;
+using System.Collections;
 using System.Dynamic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -50,11 +54,67 @@ namespace AScript.Test.Consoles
 			//Test21_ExpandoObject();
 			//Test22();
 			//Test23();
+			//Test24_MySql();
 			Console.WriteLine("end");
 			Console.ReadLine();
 		}
 
-		static void Test23()
+		static void Test24_MySql()
+		{
+			using (var context = new TestMySqlContext())
+			{
+				context.Persons.ExecuteDelete();
+				context.AddressInfos.ExecuteDelete();
+				context.SaveChanges();
+
+				context.Persons.AddRange(new[]
+				{
+					new Person{ Id = "1001", Name = "tom", Age = 20 },
+					new Person{ Id = "1002", Name = "san", Age = 25 },
+					new Person{ Id = "1003", Name = "tony", Age = 18 },
+					new Person{ Id = "1004", Name = "tim", Age = 25 }
+				});
+				context.SaveChanges();
+
+				//string s = @"
+				//var persons = context.Persons;
+				//var q = from a in persons
+				//		orderby a.Age
+				//		select new Person { a.Name, a.Age };
+				//q.ToList();
+				//";
+				//var script = new Script();
+				//script.Context.AddType<Person>();
+				//script.Context.SetVar("context", context);
+				//var list = script.Eval<IList>(s);
+				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
+
+				string s = @"
+				var persons = context.Persons;
+				var q = from a in persons
+						group a by a.Age into g
+						select new { g.Key, Count1 = g.Count(), Total = g.Sum(k=>k.Age) };
+				q.ToList();
+				";
+				var script = new Script();
+				script.Context.SetVar("context", context);
+				var list = script.Eval<IList>(s);
+				Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
+
+				//var persons = context.Persons;
+				//var q = from a in persons
+				//		group a by a.Age into g
+				//		select new { g.Key, Count1 = g.Count(), Total = g.Sum(k => k.Age) };
+				//var list = q.ToList();
+				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
+
+				//var cc = new { Name = "h" };
+				//Expression<Func<Person, object>> f = p => new Person { Name = "hello" + p.Age };
+				//Console.WriteLine(f.ToString());
+			}
+		}
+
+		static void Test23_AnonymousTypeManager()
 		{
 			var a = new { Name = "tom", Age = 18 };
 			var at = a.GetType();
