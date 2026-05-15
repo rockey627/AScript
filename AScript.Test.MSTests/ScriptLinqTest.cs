@@ -13,6 +13,125 @@ namespace AScript.Test.MSTests
 	public class ScriptLinqTest
 	{
 		[TestMethod]
+		public void Test05_2()
+		{
+			// ascending
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") }.AsQueryable();
+			var q = from a in q1
+					orderby a.Age ascending
+					select a;
+			//q.ToList();
+			Console.WriteLine(q.ToString());
+
+			string s = @"
+			var q1 = new[] { new Person(""tom"", 20), new Person(""jim"", 25), new Person(""san"", 18), new Person(""kit"", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo(""jim"", ""a""), new AddressInfo(""cc"", ""b""), new AddressInfo(""tom"", ""c""), new AddressInfo(""ee"", ""d"") }.AsQueryable();
+			var q = from a in q1
+					orderby a.Age ascending
+					select a;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			script.Context.AddType<AddressInfo>();
+			var r = script.Eval(s);
+			Console.WriteLine(r.ToString());
+			var list = script.Eval<IList>("q.ToList()");
+			Assert.AreEqual(4, list.Count);
+			dynamic d0 = list[0];
+			Assert.AreEqual(18, d0.Age);
+			Assert.AreEqual("san", d0.Name);
+			dynamic d1 = list[1];
+			Assert.AreEqual(20, d1.Age);
+			Assert.AreEqual("tom", d1.Name);
+			dynamic d2 = list[2];
+			Assert.AreEqual(25, d2.Age);
+			Assert.AreEqual("jim", d2.Name);
+			dynamic d3 = list[3];
+			Assert.AreEqual(25, d3.Age);
+			Assert.AreEqual("kit", d3.Name);
+		}
+
+		[TestMethod]
+		public void Test05_1()
+		{
+			// ascending
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") }.AsQueryable();
+			var q = from a in q1
+					orderby a.Age ascending
+					select a;
+			//q.ToList();
+			Console.WriteLine(q.ToString());
+
+			string s = @"
+			var q1 = new[] { new Person(""tom"", 20), new Person(""jim"", 25), new Person(""san"", 18), new Person(""kit"", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo(""jim"", ""a""), new AddressInfo(""cc"", ""b""), new AddressInfo(""tom"", ""c""), new AddressInfo(""ee"", ""d"") }.AsQueryable();
+			var q = from a in q1
+					orderby a.Age ascending
+					select a;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			script.Context.AddType<AddressInfo>();
+			var r = script.Eval(s);
+			Console.WriteLine(r.ToString());
+			var list = script.Eval<IList>("q.ToList()");
+			Assert.AreEqual(4, list.Count);
+			dynamic d0 = list[0];
+			Assert.AreEqual(18, d0.Age);
+			Assert.AreEqual("san", d0.Name);
+			dynamic d1 = list[1];
+			Assert.AreEqual(20, d1.Age);
+			Assert.AreEqual("tom", d1.Name);
+			dynamic d2 = list[2];
+			Assert.AreEqual(25, d2.Age);
+			Assert.AreEqual("jim", d2.Name);
+			dynamic d3 = list[3];
+			Assert.AreEqual(25, d3.Age);
+			Assert.AreEqual("kit", d3.Name);
+		}
+
+		[TestMethod]
+		public void Test04_2()
+		{
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") }.AsQueryable();
+			var q = from a in q1
+					group a.Name by a.Age into g
+					select new { g.Key, Count = g.Count() };
+			//q.ToList();
+			Console.WriteLine(q.ToString());
+
+			string s = @"
+			var q1 = new[] { new Person(""tom"", 20), new Person(""jim"", 25), new Person(""san"", 18), new Person(""kit"", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo(""jim"", ""a""), new AddressInfo(""cc"", ""b""), new AddressInfo(""tom"", ""c""), new AddressInfo(""ee"", ""d"") }.AsQueryable();
+			var q = from a in q1
+					group a.Name by a.Age into g
+					select new { g.Key, Count = g.Count() };
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			script.Context.AddType<AddressInfo>();
+			var r = script.Eval(s);
+			Console.WriteLine(r.ToString());
+			var list = script.Eval<IList>("q.ToList()");
+			Assert.AreEqual(3, list.Count);
+			dynamic d0 = list[0];
+			Assert.AreEqual(20, d0.Key);
+			Assert.AreEqual(1, d0.Count);
+			dynamic d1 = list[1];
+			Assert.AreEqual(25, d1.Key);
+			Assert.AreEqual(2, d1.Count);
+			dynamic d2 = list[2];
+			Assert.AreEqual(18, d2.Key);
+			Assert.AreEqual(1, d2.Count);
+		}
+
+		[TestMethod]
 		public void Test04()
 		{
 			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 25) }.AsQueryable();
@@ -35,6 +154,17 @@ namespace AScript.Test.MSTests
 			script.Context.AddType<AddressInfo>();
 			var r = script.Eval(s);
 			Console.WriteLine(r.ToString());
+			var list = script.Eval<IList>("q.ToList()");
+			Assert.AreEqual(3, list.Count);
+			dynamic d0 = list[0];
+			Assert.AreEqual(20, d0.Key);
+			Assert.AreEqual(1, d0.Count);
+			dynamic d1 = list[1];
+			Assert.AreEqual(25, d1.Key);
+			Assert.AreEqual(2, d1.Count);
+			dynamic d2 = list[2];
+			Assert.AreEqual(18, d2.Key);
+			Assert.AreEqual(1, d2.Count);
 		}
 
 		[TestMethod]

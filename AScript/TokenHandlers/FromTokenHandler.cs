@@ -15,7 +15,7 @@ namespace AScript.TokenHandlers
 		private static readonly HashSet<string> _OnTokens = new HashSet<string> { "on" };
 		private static readonly HashSet<string> _EqualsTokens = new HashSet<string> { "equals" };
 		private static readonly HashSet<string> _ByTokens = new HashSet<string> { "by" };
-		private static readonly HashSet<string> _Keywords = new HashSet<string> { "from", "where", "join", "into", "select", "orderby", "group" };
+		private static readonly HashSet<string> _Keywords = new HashSet<string> { "from", "where", "join", "into", "ascending", "descending", "asc", "desc", "select", "orderby", "group" };
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
@@ -57,6 +57,10 @@ namespace AScript.TokenHandlers
 				else if (token.Value.IsSymbol("group"))
 				{
 					BuildGroup(analyzer, e, createFullOptions, queryNode);
+				}
+				else if (token.Value.IsSymbol("orderby"))
+				{
+					BuildOrderby(analyzer, e, createFullOptions, queryNode);
 				}
 				else
 				{
@@ -196,6 +200,33 @@ namespace AScript.TokenHandlers
 				}
 			}
 			queryNode?.AddGroup(key, element, intoName);
+		}
+
+		/// <summary>
+		/// from a in q
+		/// orderby a.Age ascending/descending
+		/// </summary>
+		/// <param name="analyzer"></param>
+		/// <param name="e"></param>
+		/// <param name="createFullOptions"></param>
+		/// <param name="queryNode"></param>
+		private void BuildOrderby(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
+		{
+			var key = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
+			var token = e.TokenReader.Read();
+			string mode = null;
+			if (token.HasValue)
+			{
+				if (token.Value.IsSymbol("ascending") || token.Value.IsSymbol("asc") || token.Value.IsSymbol("descending") || token.Value.IsSymbol("desc"))
+				{
+					mode = token.Value.Value;
+				}
+				else
+				{
+					e.TokenReader.Push(token.Value);
+				}
+			}
+			queryNode?.AddOrderby(key, mode);
 		}
 	}
 }

@@ -197,6 +197,26 @@ namespace AScript.Nodes
 			}
 		}
 
+		public void AddOrderby(ITreeNode key, string mode)
+		{
+			// _Source.OrderByDescending(a => a.Age)
+			var orderby = new CallFuncNode
+			{
+				Name = mode == "desc" || mode == "descending" ? "OrderByDescending" : "OrderBy",
+				Args = new ITreeNode[]
+				{
+					_Source,
+					// key: a => a.Age
+					new DefineFuncNode
+					{
+						Args = new DefineVarNode[] { new DefineVarNode{ Name = _CurrentVarName } },
+						Body = TryVisitAndReplace(key)
+					}
+				}
+			};
+			_Source = orderby;
+		}
+
 		/// <summary>
 		/// join b in q2 on a.Age equals b.Age
 		/// </summary>
