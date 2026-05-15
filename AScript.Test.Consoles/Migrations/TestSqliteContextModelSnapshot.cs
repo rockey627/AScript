@@ -8,27 +8,25 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AScript.Test.Consoles.Migrations
 {
-    [DbContext(typeof(TestMySqlContext))]
-    partial class TestMySqlContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(TestSqliteContext))]
+    partial class TestSqliteContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.2")
-                .HasAnnotation("Relational:MaxIdentifierLength", 64);
+            modelBuilder.HasAnnotation("ProductVersion", "7.0.2");
 
             modelBuilder.Entity("AScript.Test.Consoles.AddressInfo", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Address")
-                        .HasColumnType("longtext");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("UserId")
-                        .HasColumnType("longtext");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -38,13 +36,13 @@ namespace AScript.Test.Consoles.Migrations
             modelBuilder.Entity("AScript.Test.Consoles.Person", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("varchar(95)");
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("Age")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
-                        .HasColumnType("longtext");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 

@@ -31,7 +31,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			Test01_Benchmark();
+			//Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -54,15 +54,17 @@ namespace AScript.Test.Consoles
 			//Test21_ExpandoObject();
 			//Test22();
 			//Test23();
-			//Test24_MySql();
+			Test24_Sqlite();
 			Console.WriteLine("end");
 			Console.ReadLine();
 		}
 
-		static void Test24_MySql()
+		static void Test24_Sqlite()
 		{
-			using (var context = new TestMySqlContext())
+			using (var context = new TestSqliteContext())
 			{
+				context.Database.Migrate();
+
 				context.Persons.ExecuteDelete();
 				context.AddressInfos.ExecuteDelete();
 				context.SaveChanges();

@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AScript.Test.Consoles
 {
-	public class TestMySqlContext : DbContext
+	public class TestSqliteContext : DbContext
 	{
 		public DbSet<Person> Persons { get; set; }
 		public DbSet<AddressInfo> AddressInfos { get; set; }
@@ -19,7 +18,7 @@ namespace AScript.Test.Consoles
 
 			optionsBuilder.LogTo(Console.WriteLine);
 
-			optionsBuilder.UseMySql("Data Source=127.0.0.1;port=3306;Initial Catalog=testdb;user id=root;password=xxxxxx;", new MySqlServerVersion("5.7.0"));// MySqlServerVersion.LatestSupportedServerVersion);
+			optionsBuilder.UseSqlite("Data Source=./test.db");
 		}
 	}
 }
