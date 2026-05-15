@@ -1,5 +1,4 @@
 ﻿using AScript.Functions;
-using AScript.Nodes;
 using AScript.Operators;
 using AScript.TokenHandlers;
 using System;
@@ -141,9 +140,6 @@ namespace AScript.Lang.CSharp
 			AddTokenHandler("static", StaticTokenHandler.Instance);
 			AddTokenHandler("as", new OperatorTokenHandler("??"));
 			AddTokenHandler("from", FromTokenHandler.Instance);
-			AddTokenHandler("where", WhereTokenHandler.Instance);
-			AddTokenHandler("select", SelectTokenHandler.Instance);
-			AddTokenHandler("join", JoinTokenHandler.Instance);
 		}
 	}
 }

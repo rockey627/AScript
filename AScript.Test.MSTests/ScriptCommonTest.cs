@@ -13,6 +13,34 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test048_2()
+		{
+			string s = "p?.Name";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("p", new Person("tom", 20));
+			Assert.AreEqual("tom", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test048()
+		{
+			string s = "p?.Name";
+			var script = new Script();
+			script.Context.SetVar("p", new Person("tom", 20));
+			Assert.AreEqual("tom", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test47_2()
+		{
+			string s = "+.9";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(+.9, script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test47()
 		{
 			string s = "+.9";

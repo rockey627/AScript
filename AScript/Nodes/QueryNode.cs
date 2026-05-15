@@ -11,8 +11,6 @@ namespace AScript.Nodes
 	/// </summary>
 	public class QueryNode : TreeNode
 	{
-		public static readonly HashSet<string> Keywords = new HashSet<string> { "from", "where", "join", "into", "select", "orderby", "group" };
-
 		// 变量所属上级
 		private readonly Dictionary<string, string> _VarParentDict = new Dictionary<string, string>();
 
@@ -125,6 +123,18 @@ namespace AScript.Nodes
 			_CurrentVarName = null;
 		}
 
+		public void AddJoin(string varName, ITreeNode source, ITreeNode key1, ITreeNode key2, string intoName = null)
+		{
+			if (string.IsNullOrEmpty(intoName))
+			{
+				AddJoin1(varName, source, key1, key2);
+			}
+			else
+			{
+				AddJoin2(varName, source, key1, key2, intoName);
+			}
+		}
+
 		/// <summary>
 		/// join b in q2 on a.Age equals b.Age
 		/// </summary>
@@ -132,8 +142,9 @@ namespace AScript.Nodes
 		/// <param name="source"></param>
 		/// <param name="key1"></param>
 		/// <param name="key2"></param>
+		/// <param name="intoName"></param>
 		/// <exception cref="Exceptions.ScriptAnalyzingException"></exception>
-		public void AddJoin(string varName, ITreeNode source, ITreeNode key1, ITreeNode key2)
+		private void AddJoin1(string varName, ITreeNode source, ITreeNode key1, ITreeNode key2)
 		{
 			// _Source.Join(source, a => a.Age, b => b.Age, (a, b) => new <> f__AnonymousType2`2(a = a, b = b))
 			if (_Source == null)
@@ -193,7 +204,7 @@ namespace AScript.Nodes
 		/// <param name="key1"></param>
 		/// <param name="key2"></param>
 		/// <param name="intoName"></param>
-		public void AddGroupJoin(string varName, ITreeNode source, ITreeNode key1, ITreeNode key2, string intoName)
+		private void AddJoin2(string varName, ITreeNode source, ITreeNode key1, ITreeNode key2, string intoName)
 		{
 			// _Source.GroupJoin(source, a => a.Age, b => b.Age, (a, bb) => new <> f__AnonymousType2`2(a = a, bb = bb))
 			if (_Source == null)
