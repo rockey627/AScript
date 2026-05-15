@@ -15,7 +15,9 @@ namespace AScript.TokenHandlers
 		private static readonly HashSet<string> _OnTokens = new HashSet<string> { "on" };
 		private static readonly HashSet<string> _EqualsTokens = new HashSet<string> { "equals" };
 		private static readonly HashSet<string> _ByTokens = new HashSet<string> { "by" };
-		private static readonly HashSet<string> _Keywords = new HashSet<string> { "from", "where", "join", "into", "ascending", "descending", "asc", "desc", "select", "orderby", "group" };
+		private static readonly HashSet<string> _Keywords = new HashSet<string> { "from", "where", "join", "select", "orderby", "group" };
+		private static readonly HashSet<string> _JoinEndTokens = new HashSet<string> { "from", "where", "join", "select", "orderby", "group", "into" };
+		private static readonly HashSet<string> _OrderbyEndTokens = new HashSet<string> { "from", "where", "join", "select", "orderby", "group", "ascending", "descending", "asc", "desc" };
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
@@ -125,7 +127,7 @@ namespace AScript.TokenHandlers
 
 			var key1 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _EqualsTokens);
 			analyzer.ValidateNextToken(e.TokenReader, "equals");
-			var key2 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
+			var key2 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _JoinEndTokens);
 
 			string intoName = null;
 			var intoToken = e.TokenReader.Read();
@@ -176,7 +178,7 @@ namespace AScript.TokenHandlers
 		{
 			var element = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _ByTokens);
 			analyzer.ValidateNextToken(e.TokenReader, "by");
-			var key = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
+			var key = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _JoinEndTokens);
 			string intoName = null;
 			var token = e.TokenReader.Read();
 			if (token.HasValue)
@@ -212,7 +214,7 @@ namespace AScript.TokenHandlers
 		/// <param name="queryNode"></param>
 		private void BuildOrderby(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
 		{
-			var key = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
+			var key = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _OrderbyEndTokens);
 			var token = e.TokenReader.Read();
 			string mode = null;
 			if (token.HasValue)
