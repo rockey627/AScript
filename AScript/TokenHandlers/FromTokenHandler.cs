@@ -14,6 +14,7 @@ namespace AScript.TokenHandlers
 
 		private static readonly HashSet<string> _OnTokens = new HashSet<string> { "on" };
 		private static readonly HashSet<string> _EqualsTokens = new HashSet<string> { "equals" };
+		private static readonly HashSet<string> _ByTokens = new HashSet<string> { "by" };
 		private static readonly HashSet<string> _Keywords = new HashSet<string> { "from", "where", "join", "into", "select", "orderby", "group" };
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
@@ -26,7 +27,8 @@ namespace AScript.TokenHandlers
 			//	return;
 			//}
 			var queryNode = e.Ignore ? null : new QueryNode();
-			BuildFrom(analyzer, e, queryNode);
+			var createFullOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
+			BuildFrom(analyzer, e, createFullOptions, queryNode);
 			while (true)
 			{
 				var token = e.TokenReader.Read();
@@ -38,19 +40,27 @@ namespace AScript.TokenHandlers
 				}
 				if (token.Value.IsSymbol("from"))
 				{
-					BuildFrom(analyzer, e, queryNode);
+					BuildFrom(analyzer, e, createFullOptions, queryNode);
 				}
 				else if (token.Value.IsSymbol("join"))
 				{
-					BuildJoin(analyzer, e, queryNode);
+					BuildJoin(analyzer, e, createFullOptions, queryNode);
 				}
 				else if (token.Value.IsSymbol("where"))
 				{
-					BuildWhere(analyzer, e, queryNode);
+					BuildWhere(analyzer, e, createFullOptions, queryNode);
 				}
 				else if (token.Value.IsSymbol("select"))
 				{
-					BuildSelect(analyzer, e, queryNode);
+					BuildSelect(analyzer, e, createFullOptions, queryNode);
+				}
+				else if (token.Value.IsSymbol("group"))
+				{
+					BuildGroup(analyzer, e, createFullOptions, queryNode);
+				}
+				else
+				{
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression near from, unknow {token.Value.Value} at ({token.Value.Line},{token.Value.Column})");
 				}
 			}
 			if (!e.Ignore)
@@ -59,7 +69,15 @@ namespace AScript.TokenHandlers
 			}
 		}
 
-		private void BuildFrom(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, QueryNode queryNode)
+		/// <summary>
+		/// from a in q1
+		/// </summary>
+		/// <param name="analyzer"></param>
+		/// <param name="e"></param>
+		/// <param name="createFullOptions"></param>
+		/// <param name="queryNode"></param>
+		/// <exception cref="Exceptions.ScriptAnalyzingException"></exception>
+		private void BuildFrom(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
 		{
 			var varToken = e.TokenReader.Read();
 			if (!varToken.HasValue)
@@ -71,12 +89,20 @@ namespace AScript.TokenHandlers
 				throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' {varToken.Value.Value} at {varToken.Value.Line},{varToken.Value.Column}");
 			}
 			analyzer.ValidateNextToken(e.TokenReader, "in");
-			var buildOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			var source = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, buildOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
+			var source = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
 			queryNode?.AddFrom(varToken.Value.Value, source);
 		}
 
-		private void BuildJoin(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, QueryNode queryNode)
+		/// <summary>
+		/// from a in q1
+		/// join b in q2 on a.Id equals b.Id into cc
+		/// </summary>
+		/// <param name="analyzer"></param>
+		/// <param name="e"></param>
+		/// <param name="createFullOptions"></param>
+		/// <param name="queryNode"></param>
+		/// <exception cref="Exceptions.ScriptAnalyzingException"></exception>
+		private void BuildJoin(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
 		{
 			var varToken = e.TokenReader.Read();
 			if (!varToken.HasValue)
@@ -93,10 +119,9 @@ namespace AScript.TokenHandlers
 
 			analyzer.ValidateNextToken(e.TokenReader, "on");
 
-			var buildOptions = e.Options.CreateFullTreeNode ?? false ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			var key1 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, buildOptions, e.TokenReader, e.Control, e.Ignore, _EqualsTokens);
+			var key1 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _EqualsTokens);
 			analyzer.ValidateNextToken(e.TokenReader, "equals");
-			var key2 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, buildOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
+			var key2 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
 
 			string intoName = null;
 			var intoToken = e.TokenReader.Read();
@@ -123,18 +148,54 @@ namespace AScript.TokenHandlers
 			queryNode?.AddJoin(varToken.Value.Value, source, key1, key2, intoName);
 		}
 
-		private void BuildWhere(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, QueryNode queryNode)
+		private void BuildWhere(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
 		{
-			var buildOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, buildOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
+			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
 			queryNode?.AddWhere(condition);
 		}
 
-		private void BuildSelect(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, QueryNode queryNode)
+		private void BuildSelect(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
 		{
-			var buildOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			var selector = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, buildOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
+			var selector = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
 			queryNode?.AddSelect(selector);
+		}
+
+		/// <summary>
+		/// from a in q1
+		/// group a.Name by a.Age into g
+		/// </summary>
+		/// <param name="analyzer"></param>
+		/// <param name="e"></param>
+		/// <param name="createFullOptions"></param>
+		/// <param name="queryNode"></param>
+		private void BuildGroup(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
+		{
+			var element = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _ByTokens);
+			analyzer.ValidateNextToken(e.TokenReader, "by");
+			var key = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
+			string intoName = null;
+			var token = e.TokenReader.Read();
+			if (token.HasValue)
+			{
+				if (token.Value.IsSymbol("into"))
+				{
+					var intoNameToken = e.TokenReader.Read();
+					if (!intoNameToken.HasValue)
+					{
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression near into at {token.Value.Line},{token.Value.Column}");
+					}
+					if (intoNameToken.Value.Type != ETokenType.Word)
+					{
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression near into at {intoNameToken.Value.Line},{intoNameToken.Value.Column}");
+					}
+					intoName = intoNameToken.Value.Value;
+				}
+				else
+				{
+					e.TokenReader.Push(token.Value);
+				}
+			}
+			queryNode?.AddGroup(key, element, intoName);
 		}
 	}
 }

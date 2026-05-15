@@ -135,6 +135,68 @@ namespace AScript.Nodes
 			}
 		}
 
+		public void AddGroup(ITreeNode key, ITreeNode element, string intoName = null)
+		{
+			// _Source.GroupBy(a => a.Age, a => a.Name)
+			bool hasElement;
+			if (element == null) hasElement = false;
+			else if (element is VariableNode elementVarNode && elementVarNode.Name == _CurrentVarName)
+			{
+				hasElement = false;
+			}
+			else
+			{
+				hasElement = true;
+			}
+
+			ITreeNode group;
+			if (hasElement)
+			{
+				group = new CallFuncNode
+				{
+					Name = "GroupBy",
+					Args = new ITreeNode[]
+					{
+						_Source,
+						// key: a => a.Age
+						new DefineFuncNode
+						{
+							Args = new DefineVarNode[] { new DefineVarNode{ Name = _CurrentVarName } },
+							Body = TryVisitAndReplace(key)
+						},
+						// element: a => a.Name
+						new DefineFuncNode
+						{
+							Args = new DefineVarNode[] { new DefineVarNode{ Name = _CurrentVarName } },
+							Body = TryVisitAndReplace(element)
+						},
+					}
+				};
+			}
+			else
+			{
+				group = new CallFuncNode
+				{
+					Name = "GroupBy",
+					Args = new ITreeNode[]
+					{
+						_Source,
+						// key: a => a.Age
+						new DefineFuncNode
+						{
+							Args = new DefineVarNode[] { new DefineVarNode{ Name = _CurrentVarName } },
+							Body = TryVisitAndReplace(key)
+						}
+					}
+				};
+			}
+			_Source = group;
+			if (!string.IsNullOrEmpty(intoName))
+			{
+				_CurrentVarName = intoName;
+			}
+		}
+
 		/// <summary>
 		/// join b in q2 on a.Age equals b.Age
 		/// </summary>

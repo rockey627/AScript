@@ -13,6 +13,47 @@ namespace AScript.Test.MSTests
 	public class ScriptLinqTest
 	{
 		[TestMethod]
+		public void Test04()
+		{
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") }.AsQueryable();
+			var q = from a in q1
+					group a.Name by a.Age into g
+					select new { g.Key, Count = g.Count() };
+			//q.ToList();
+			Console.WriteLine(q.ToString());
+
+			string s = @"
+			var q1 = new[] { new Person(""tom"", 20), new Person(""jim"", 25), new Person(""san"", 18), new Person(""kit"", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo(""jim"", ""a""), new AddressInfo(""cc"", ""b""), new AddressInfo(""tom"", ""c""), new AddressInfo(""ee"", ""d"") }.AsQueryable();
+			var q = from a in q1
+					group a.Name by a.Age into g
+					select new { g.Key, Count = g.Count() };
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			script.Context.AddType<AddressInfo>();
+			var r = script.Eval(s);
+			Console.WriteLine(r.ToString());
+		}
+
+		[TestMethod]
+		public void Test04_0()
+		{
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") }.AsQueryable();
+			var q = from a in q1
+					group a.Name by a.Age into g
+					select new { g.Key, Count = g.Count() };
+			//q.ToList();
+			Console.WriteLine(q.ToString());
+
+			var qq = q1.GroupBy(a => a.Age, a => a.Name)
+				.Select(g => new { g.Key, Count = g.Count() });
+			Console.WriteLine(q.ToString());
+		}
+
+		[TestMethod]
 		public void Test03_2()
 		{
 			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 30) }.AsEnumerable();
@@ -74,22 +115,6 @@ namespace AScript.Test.MSTests
 
 			Expression<Func<Person, string>> lambda = p => p == null ? null : p.Name;
 			Console.WriteLine(lambda.ToString());
-		}
-
-		[TestMethod]
-		public void Test03_0()
-		{
-			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 25) }.AsQueryable();
-			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") }.AsQueryable();
-			var q = from a in q1
-					group a.Name by a.Age into g
-					select new { g.Key, Count = g.Count() };
-			//q.ToList();
-			Console.WriteLine(q.ToString());
-
-			var qq = q1.GroupBy(a => a.Age, a => a.Name)
-				.Select(g => new { g.Key, Count = g.Count() });
-			Console.WriteLine(q.ToString());
 		}
 
 		[TestMethod]
