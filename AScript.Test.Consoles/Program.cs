@@ -76,6 +76,11 @@ namespace AScript.Test.Consoles
 					new Person{ Id = "1003", Name = "tony", Age = 18 },
 					new Person{ Id = "1004", Name = "tim", Age = 25 }
 				});
+				context.AddressInfos.AddRange(new[]
+				{
+					new AddressInfo{UserId = "1002", Address = "a" },
+					new AddressInfo{UserId = "1004", Address = "b" },
+				});
 				context.SaveChanges();
 
 				//string s = @"
@@ -91,11 +96,23 @@ namespace AScript.Test.Consoles
 				//var list = script.Eval<IList>(s);
 				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
 
+				//string s = @"
+				//var persons = context.Persons;
+				//var q = from a in persons
+				//		group a by a.Age into g
+				//		select new { g.Key, Count1 = g.Count(), Total = g.Sum(k=>k.Age) };
+				//q.ToList();
+				//";
+				//var script = new Script();
+				//script.Context.SetVar("context", context);
+				//var list = script.Eval<IList>(s);
+				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
+
 				string s = @"
-				var persons = context.Persons;
-				var q = from a in persons
-						group a by a.Age into g
-						select new { g.Key, Count1 = g.Count(), Total = g.Sum(k=>k.Age) };
+				var q = from a in context.Persons
+						join b in context.AddressInfos on a.Id equals b.UserId into bb
+						from b in bb.DefaultIfEmpty()
+						select new { a.Id, a.Name, a.Age, MyAddress = b.Address };
 				q.ToList();
 				";
 				var script = new Script();
