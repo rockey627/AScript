@@ -13,7 +13,27 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
-		public void Test048_2()
+		public void Test50()
+		{
+			string s = "(string)null";
+			var script = new Script();
+			var r = script.Eval(s, out var type);
+			Assert.IsNull(r);
+			Assert.AreEqual(typeof(string), type);
+		}
+
+		[TestMethod]
+		public void Test49()
+		{
+			string s = "(int?)null";
+			var script = new Script();
+			var r = script.Eval(s, out var type);
+			Assert.IsNull(r);
+			Assert.AreEqual(typeof(int?), type);
+		}
+
+		[TestMethod]
+		public void Test48_2()
 		{
 			string s = "p?.Name";
 			var script = new Script();
@@ -23,7 +43,7 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
-		public void Test048()
+		public void Test48()
 		{
 			string s = "p?.Name";
 			var script = new Script();

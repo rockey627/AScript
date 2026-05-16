@@ -198,6 +198,105 @@ namespace AScript.Syntaxs
 						tokenReader.Push(t.Value);
 						break;
 					}
+					// 判断类型转换语法：(int?)v (string)(x+b) (long)5
+					var typeToken = tokenReader.Read();
+					if (!typeToken.HasValue)
+					{
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression at ({tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}), expect ')'");
+					}
+					if (typeToken.Value.Type == ETokenType.Word)
+					{
+						var nextToken2 = tokenReader.Read();
+						if (!nextToken2.HasValue)
+						{
+							throw new Exceptions.ScriptAnalyzingException($"invalid expression at ({tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}), expect ')'");
+						}
+						Token? nextToken3 = null;
+						if (nextToken2.Value.IsSymbol("?"))
+						{
+							nextToken3 = tokenReader.Read();
+							if (!nextToken3.HasValue)
+							{
+								throw new Exceptions.ScriptAnalyzingException($"invalid expression at ({tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}), expect ')'");
+							}
+							if (nextToken3.Value.IsSymbol(")"))
+							{
+								var valueToken = tokenReader.Read();
+								if (!valueToken.HasValue)
+								{
+									throw new Exceptions.ScriptAnalyzingException($"invalid expression '?' at ({nextToken2.Value.Line},{nextToken2.Value.Column})");
+								}
+								else if (valueToken.Value.Type == ETokenType.Operator)
+								{
+									throw new Exceptions.ScriptAnalyzingException($"invalid expression '?' at ({nextToken2.Value.Line},{nextToken2.Value.Column})");
+								}
+								else
+								{
+									var type0 = scriptContext.EvalType(typeToken.Value.Value);
+									if (type0 == null)
+									{
+										throw new Exceptions.ScriptAnalyzingException($"unkown type '{typeToken.Value.Value}'");
+									}
+									if (!type0.IsValueType)
+									{
+										throw new Exceptions.ScriptAnalyzingException($"invalid expression '?' at ({nextToken2.Value.Line},{nextToken2.Value.Column})");
+									}
+									var type = typeof(Nullable<>).MakeGenericType(type0);
+									var typeOpNode = PoolManage.CreateOperatorNode("__convert__", 2, OperatorPriorities["."] - 1);
+									typeOpNode.Left = PoolManage.CreateObjectNode(type);
+									if (treeBuilder == null) treeBuilder = new TreeBuilder();
+									treeBuilder.AddData(buildContext, scriptContext, options, control, typeOpNode);
+									t = valueToken;
+									continue;
+								}
+							}
+							else
+							{
+								tokenReader.Push(nextToken3.Value);
+								tokenReader.Push(nextToken2.Value);
+								tokenReader.Push(typeToken.Value);
+							}
+						}
+						else if (nextToken2.Value.IsSymbol(")"))
+						{
+							var valueToken = tokenReader.Read();
+							if (!valueToken.HasValue)
+							{
+								tokenReader.Push(nextToken2.Value);
+								tokenReader.Push(typeToken.Value);
+							}
+							else if (valueToken.Value.Type == ETokenType.Operator)
+							{
+								tokenReader.Push(valueToken.Value);
+								tokenReader.Push(nextToken2.Value);
+								tokenReader.Push(typeToken.Value);
+							}
+							else
+							{
+								var type = scriptContext.EvalType(typeToken.Value.Value);
+								if (type == null)
+								{
+									throw new Exceptions.ScriptAnalyzingException($"unkown type '{typeToken.Value.Value}'");
+								}
+								var typeOpNode = PoolManage.CreateOperatorNode("__convert__", 2, OperatorPriorities["."] - 1);
+								typeOpNode.Left = PoolManage.CreateObjectNode(type);
+								if (treeBuilder == null) treeBuilder = new TreeBuilder();
+								treeBuilder.AddData(buildContext, scriptContext, options, control, typeOpNode);
+								t = valueToken;
+								continue;
+							}
+						}
+						else
+						{
+							tokenReader.Push(nextToken2.Value);
+							tokenReader.Push(typeToken.Value);
+						}
+					}
+					else
+					{
+						tokenReader.Push(typeToken.Value);
+					}
+					// 
 					var buildOptions = options;
 					if (!(buildOptions.CreateFullTreeNode ?? false))
 					{

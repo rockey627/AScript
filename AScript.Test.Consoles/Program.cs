@@ -80,6 +80,7 @@ namespace AScript.Test.Consoles
 				{
 					new AddressInfo{UserId = "1002", Address = "a" },
 					new AddressInfo{UserId = "1004", Address = "b" },
+					new AddressInfo{UserId = "1005", Address = "c" },
 				});
 				context.SaveChanges();
 
@@ -108,11 +109,23 @@ namespace AScript.Test.Consoles
 				//var list = script.Eval<IList>(s);
 				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
 
+				//string s = @"
+				//var q = from a in context.Persons
+				//		join b in context.AddressInfos on a.Id equals b.UserId into bb
+				//		from b in bb.DefaultIfEmpty()
+				//		select new { a.Id, a.Name, a.Age, MyAddress = b.Address };
+				//q.ToList();
+				//";
+				//var script = new Script();
+				//script.Context.SetVar("context", context);
+				//var list = script.Eval<IList>(s);
+				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
+
 				string s = @"
-				var q = from a in context.Persons
-						join b in context.AddressInfos on a.Id equals b.UserId into bb
+				var q = from a in context.AddressInfos
+						join b in context.Persons on a.UserId equals b.Id into bb
 						from b in bb.DefaultIfEmpty()
-						select new { a.Id, a.Name, a.Age, MyAddress = b.Address };
+						select new { a.Id, a.Address, UserId=b.Id, b.Name, Age = (int?)b.Age };
 				q.ToList();
 				";
 				var script = new Script();

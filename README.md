@@ -9,6 +9,7 @@
 * [AScript之eval函数详解](https://mp.weixin.qq.com/s/781Sw5FdFXJxe0eWqWjCCw)
 * [基于AScript的python3脚本语言发布啦！](https://mp.weixin.qq.com/s/tcrPXFaLPz8kI2hlw-ZkuA)
 * [AScript中一个很有意思的语法](https://mp.weixin.qq.com/s/JrXlUosfpWbSfKLVIl7pzg)
+* [AScript之匿名类型与动态类型](https://mp.weixin.qq.com/s/6PzH9JxRsNlLMi5eISd7kg)
 
 ## 介绍
 
@@ -141,6 +142,7 @@ a.Name + ':' + a.Age
 var script = new Script();
 Assert.AreEqual("tony:20", script.Eval(s));
 var a = script.Eval("a");
+// 获取脚本中定义的匿名类型
 var type = Script.AnonymousTypes.CreateType(new[] { "Name", "Age" }, new[] { typeof(string), typeof(int) });
 Assert.IsInstanceOfType(a, type);
 dynamic d = a;

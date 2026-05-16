@@ -28,11 +28,6 @@ namespace AScript.Nodes
 			return _Source.Eval(context, options, control, out returnType);
 		}
 
-		//public override bool IsFull()
-		//{
-		//	return _VarParentDict.Count == 0;
-		//}
-
 		public void AddFrom(string varName, ITreeNode source)
 		{
 			if (_Source == null)
