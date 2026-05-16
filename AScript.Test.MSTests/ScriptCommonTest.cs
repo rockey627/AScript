@@ -13,6 +13,60 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test52_2()
+		{
+			string s = "int n = 10; (n)+(long)(n+10)";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var r = script.Eval(s, out var type);
+			Assert.AreEqual(30L, r);
+			Assert.AreEqual(typeof(long), type);
+		}
+
+		[TestMethod]
+		public void Test52()
+		{
+			string s = "int n = 10; (n)+(long)(n+10)";
+			var script = new Script();
+			var r = script.Eval(s, out var type);
+			Assert.AreEqual(30L, r);
+			Assert.AreEqual(typeof(long), type);
+		}
+
+		[TestMethod]
+		public void Test51_2()
+		{
+			string s = "int n = 10; (n)+(long)n";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var r = script.Eval(s, out var type);
+			Assert.AreEqual(20L, r);
+			Assert.AreEqual(typeof(long), type);
+		}
+
+		[TestMethod]
+		public void Test51()
+		{
+			string s = "int n = 10; (n)+(long)n";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var r = script.Eval(s, out var type);
+			Assert.AreEqual(20L, r);
+			Assert.AreEqual(typeof(long), type);
+		}
+
+		[TestMethod]
+		public void Test50_2()
+		{
+			string s = "(string)null";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var r = script.Eval(s, out var type);
+			Assert.IsNull(r);
+			Assert.AreEqual(typeof(string), type);
+		}
+
+		[TestMethod]
 		public void Test50()
 		{
 			string s = "(string)null";
@@ -20,6 +74,17 @@ namespace AScript.Test.MSTests
 			var r = script.Eval(s, out var type);
 			Assert.IsNull(r);
 			Assert.AreEqual(typeof(string), type);
+		}
+
+		[TestMethod]
+		public void Test49_2()
+		{
+			string s = "(int?)null";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var r = script.Eval(s, out var type);
+			Assert.IsNull(r);
+			Assert.AreEqual(typeof(int?), type);
 		}
 
 		[TestMethod]
