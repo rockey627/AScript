@@ -49,7 +49,6 @@ namespace AScript.Test.MSTests
 		{
 			string s = "int n = 10; (n)+(long)n";
 			var script = new Script();
-			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s, out var type);
 			Assert.AreEqual(20L, r);
 			Assert.AreEqual(typeof(long), type);

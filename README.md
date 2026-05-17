@@ -10,6 +10,7 @@
 * [基于AScript的python3脚本语言发布啦！](https://mp.weixin.qq.com/s/tcrPXFaLPz8kI2hlw-ZkuA)
 * [AScript中一个很有意思的语法](https://mp.weixin.qq.com/s/JrXlUosfpWbSfKLVIl7pzg)
 * [AScript之匿名类型与动态类型](https://mp.weixin.qq.com/s/6PzH9JxRsNlLMi5eISd7kg)
+* [AScript如何实现LINQ语法](https://mp.weixin.qq.com/s/ZEz2BPE5kayvXRQom73khw)
 
 ## 介绍
 
@@ -164,6 +165,15 @@ dynamic a = script.Eval(s);
 Assert.IsInstanceOfType(a, typeof(ExpandoObject));
 Assert.AreEqual("jim", a.Name);
 Assert.AreEqual(23, a.Age);
+```
+
+#### 类型转换
+```C#
+string s = "int n = 10; n+(long)n";
+var script = new Script();
+var r = script.Eval(s, out var type);
+Assert.AreEqual(20L, r);
+Assert.AreEqual(typeof(long), type);
 ```
 
 #### 注入函数

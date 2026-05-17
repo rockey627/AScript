@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Xml.Linq;
 
 namespace AScript.Nodes
 {
@@ -11,11 +10,14 @@ namespace AScript.Nodes
 	/// </summary>
 	public class QueryNode : TreeNode
 	{
-		// 变量所属上级
+		// 变量所属上级（变量聚合）
 		private readonly Dictionary<string, string> _VarParentDict = new Dictionary<string, string>();
 
+		// 变量所属上级计数（变量聚合计数）
 		private int _ParentCounter = 0;
+		// 当前变量名
 		private string _CurrentVarName;
+		// 当前数据源
 		private ITreeNode _Source;
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
@@ -28,55 +30,73 @@ namespace AScript.Nodes
 			return _Source.Eval(context, options, control, out returnType);
 		}
 
+		/// <summary>
+		/// from varName in source
+		/// </summary>
+		/// <param name="varName"></param>
+		/// <param name="source"></param>
 		public void AddFrom(string varName, ITreeNode source)
 		{
 			if (_Source == null)
 			{
+				// 第1个from语句
 				_Source = source;
 				_CurrentVarName = varName;
 				return;
 			}
-			// _Source.SelectMany(a => source, (a, b) => new { a, b })
+			// _Source.SelectMany(_CurrentVarName => source, (_CurrentVarName, varName) => new { _CurrentVarName, varName })
 			var selectMany = new CallFuncNode
 			{
 				Name = "SelectMany",
 				Args = new ITreeNode[]
 				{
 					_Source,
-					// a => source
+					// _CurrentVarName => source
 					new DefineFuncNode
 					{
-						Args = new DefineVarNode[] { new DefineVarNode{ Name = _CurrentVarName } },
+						Args = new[] { new DefineVarNode(_CurrentVarName) },
 						Body = TryVisitAndReplace(source)
 					},
-					// (a, b) => new { a, b })
+					// (_CurrentVarName, varName) => new { _CurrentVarName, varName }
 					new DefineFuncNode
 					{
-						Args = new DefineVarNode[]
+						Args = new[]
 						{
-							new DefineVarNode { Name = _CurrentVarName },
-							new DefineVarNode { Name = varName }
+							new DefineVarNode(_CurrentVarName),
+							new DefineVarNode(varName)
 						},
 						Body = new NewNode
 						{
 							InitProperties = new ITreeNode[]
 							{
-								new VariableNode{Name = _CurrentVarName },
-								new VariableNode{Name = varName }
+								new VariableNode(_CurrentVarName),
+								new VariableNode(varName)
 							}
 						}
 					}
 				}
 			};
+			// 更新当前数据源
 			_Source = selectMany;
+			// 变量聚合
 			var oldCurrentName = _CurrentVarName;
 			_CurrentVarName = $"<>h__TransparentIdentifier{_ParentCounter++}";
 			_VarParentDict[oldCurrentName] = _CurrentVarName;
 			_VarParentDict[varName] = _CurrentVarName;
 		}
 
+		/// <summary>
+		/// from a in query1
+		/// from b in query2
+		/// where a.Age == b.Age
+		/// </summary>
+		/// <param name="condition"></param>
 		public void AddWhere(ITreeNode condition)
 		{
+			if (_Source == null)
+			{
+				throw new Exceptions.ScriptAnalyzingException("invalid expression where");
+			}
 			// _Source.Where(<>h__TransparentIdentifier0 => (<>h__TransparentIdentifier0.a.Age == <>h__TransparentIdentifier0.b.Age))
 			var whereNode = new CallFuncNode
 			{
@@ -87,17 +107,26 @@ namespace AScript.Nodes
 					// <>h__TransparentIdentifier0 => (<>h__TransparentIdentifier0.a.Age == <>h__TransparentIdentifier0.b.Age)
 					new DefineFuncNode
 					{
-						Args = new DefineVarNode[] { new DefineVarNode { Name = _CurrentVarName } },
+						Args = new[] { new DefineVarNode(_CurrentVarName) },
 						Body = TryVisitAndReplace(condition)
 					}
 				}
 			};
+			// 更新当前数据源
 			_Source = whereNode;
 		}
 
+		/// <summary>
+		/// select new { a.Name, b.Age }
+		/// </summary>
+		/// <param name="selector"></param>
 		public void AddSelect(ITreeNode selector)
 		{
-			// _Source.Select(<>h__TransparentIdentifier1 => new <> f__AnonymousType0`2(Name = <> h__TransparentIdentifier1.<> h__TransparentIdentifier0.a.Name, Age = <> h__TransparentIdentifier1.<> h__TransparentIdentifier0.b.Age))
+			if (_Source == null)
+			{
+				throw new Exceptions.ScriptAnalyzingException("invalid expression select");
+			}
+			// _Source.Select(<>h__TransparentIdentifier0 => new <> f__AnonymousType0`2(Name = <> h__TransparentIdentifier0.a.Name, Age = <> h__TransparentIdentifier0.b.Age))
 			var selectNode = new CallFuncNode
 			{
 				Name = "Select",
@@ -106,20 +135,33 @@ namespace AScript.Nodes
 					_Source,
 					new DefineFuncNode
 					{
-						Args = new DefineVarNode[] { new DefineVarNode { Name = _CurrentVarName } },
+						Args = new[] { new DefineVarNode(_CurrentVarName) },
 						Body = TryVisitAndReplace(selector)
 					}
 				}
 			};
+			// 更新当前数据源
 			_Source = selectNode;
-			// 重置
+			// 重置变量
 			_VarParentDict.Clear();
 			_ParentCounter = 0;
 			_CurrentVarName = null;
 		}
 
+		/// <summary>
+		/// join varName in source on a.Age equals varName.Age into intoName
+		/// </summary>
+		/// <param name="varName"></param>
+		/// <param name="source"></param>
+		/// <param name="key1"></param>
+		/// <param name="key2"></param>
+		/// <param name="intoName"></param>
 		public void AddJoin(string varName, ITreeNode source, ITreeNode key1, ITreeNode key2, string intoName = null)
 		{
+			if (_Source == null)
+			{
+				throw new Exceptions.ScriptAnalyzingException("invalid expression join");
+			}
 			if (string.IsNullOrEmpty(intoName))
 			{
 				AddJoin1(varName, source, key1, key2);
@@ -130,8 +172,18 @@ namespace AScript.Nodes
 			}
 		}
 
+		/// <summary>
+		/// group a.Name by a.Age into intoName
+		/// </summary>
+		/// <param name="key"></param>
+		/// <param name="element"></param>
+		/// <param name="intoName"></param>
 		public void AddGroup(ITreeNode key, ITreeNode element, string intoName = null)
 		{
+			if (_Source == null)
+			{
+				throw new Exceptions.ScriptAnalyzingException("invalid expression join");
+			}
 			// _Source.GroupBy(a => a.Age, a => a.Name)
 			bool hasElement;
 			if (element == null) hasElement = false;
@@ -156,13 +208,13 @@ namespace AScript.Nodes
 						// key: a => a.Age
 						new DefineFuncNode
 						{
-							Args = new DefineVarNode[] { new DefineVarNode{ Name = _CurrentVarName } },
+							Args = new[] { new DefineVarNode(_CurrentVarName) },
 							Body = TryVisitAndReplace(key)
 						},
 						// element: a => a.Name
 						new DefineFuncNode
 						{
-							Args = new DefineVarNode[] { new DefineVarNode{ Name = _CurrentVarName } },
+							Args = new[] { new DefineVarNode(_CurrentVarName) },
 							Body = TryVisitAndReplace(element)
 						},
 					}
@@ -179,21 +231,32 @@ namespace AScript.Nodes
 						// key: a => a.Age
 						new DefineFuncNode
 						{
-							Args = new DefineVarNode[] { new DefineVarNode{ Name = _CurrentVarName } },
+							Args = new[] { new DefineVarNode(_CurrentVarName) },
 							Body = TryVisitAndReplace(key)
 						}
 					}
 				};
 			}
+			// 更新当前数据源
 			_Source = group;
-			if (!string.IsNullOrEmpty(intoName))
-			{
-				_CurrentVarName = intoName;
-			}
+			// 重置变量
+			_CurrentVarName = intoName;
+			_VarParentDict.Clear();
+			_ParentCounter = 0;
 		}
 
+		/// <summary>
+		/// orderby a.Age descending
+		/// </summary>
+		/// <param name="key"></param>
+		/// <param name="mode">ascending（默认）/descending</param>
+		/// <exception cref="Exceptions.ScriptAnalyzingException"></exception>
 		public void AddOrderby(ITreeNode key, string mode)
 		{
+			if (_Source == null)
+			{
+				throw new Exceptions.ScriptAnalyzingException("invalid expression orderby");
+			}
 			// _Source.OrderByDescending(a => a.Age)
 			var orderby = new CallFuncNode
 			{
@@ -204,30 +267,26 @@ namespace AScript.Nodes
 					// key: a => a.Age
 					new DefineFuncNode
 					{
-						Args = new DefineVarNode[] { new DefineVarNode{ Name = _CurrentVarName } },
+						Args = new[] { new DefineVarNode(_CurrentVarName) },
 						Body = TryVisitAndReplace(key)
 					}
 				}
 			};
+			// 更新当前数据源
 			_Source = orderby;
 		}
 
 		/// <summary>
-		/// join b in q2 on a.Age equals b.Age
+		/// join varName in source on a.Age equals varName.Age
 		/// </summary>
 		/// <param name="varName"></param>
 		/// <param name="source"></param>
 		/// <param name="key1"></param>
 		/// <param name="key2"></param>
-		/// <param name="intoName"></param>
 		/// <exception cref="Exceptions.ScriptAnalyzingException"></exception>
 		private void AddJoin1(string varName, ITreeNode source, ITreeNode key1, ITreeNode key2)
 		{
-			// _Source.Join(source, a => a.Age, b => b.Age, (a, b) => new <> f__AnonymousType2`2(a = a, b = b))
-			if (_Source == null)
-			{
-				throw new Exceptions.ScriptAnalyzingException("invalid expression join");
-			}
+			// _Source.Join(source, a => a.Age, varName => varName.Age, (a, varName) => new <> f__AnonymousType2`2(a = a, varName = varName))
 			var joinNode = new CallFuncNode
 			{
 				Name = "Join",
@@ -238,35 +297,37 @@ namespace AScript.Nodes
 					// key1: a => a.Age
 					new DefineFuncNode
 					{
-						Args = new DefineVarNode[] { new DefineVarNode{ Name = _CurrentVarName } },
+						Args = new[] { new DefineVarNode(_CurrentVarName) },
 						Body = TryVisitAndReplace(key1)
 					},
-					// key2: b => b.Age
+					// key2: varName => varName.Age
 					new DefineFuncNode
 					{
-						Args = new DefineVarNode[] { new DefineVarNode{ Name = varName } },
+						Args = new[] { new DefineVarNode(varName) },
 						Body = TryVisitAndReplace(key2)
 					},
-					// (a, b) => new { a, b })
+					// (a, varName) => new { a, varName })
 					new DefineFuncNode
 					{
-						Args = new DefineVarNode[]
+						Args = new[]
 						{
-							new DefineVarNode { Name = _CurrentVarName },
-							new DefineVarNode { Name = varName }
+							new DefineVarNode(_CurrentVarName),
+							new DefineVarNode(varName)
 						},
 						Body = new NewNode
 						{
 							InitProperties = new ITreeNode[]
 							{
-								new VariableNode{Name = _CurrentVarName },
-								new VariableNode{Name = varName }
+								new VariableNode(_CurrentVarName),
+								new VariableNode(varName)
 							}
 						}
 					}
 				}
 			};
+			// 更新当前数据源
 			_Source = joinNode;
+			// 变量聚合
 			var oldCurrentName = _CurrentVarName;
 			_CurrentVarName = $"<>h__TransparentIdentifier{_ParentCounter++}";
 			_VarParentDict[oldCurrentName] = _CurrentVarName;
@@ -274,7 +335,7 @@ namespace AScript.Nodes
 		}
 
 		/// <summary>
-		/// join b in q2 on a.Age equals b.Age into bb
+		/// join varName in source on a.Age equals varName.Age into intoName
 		/// </summary>
 		/// <param name="varName"></param>
 		/// <param name="source"></param>
@@ -283,11 +344,7 @@ namespace AScript.Nodes
 		/// <param name="intoName"></param>
 		private void AddJoin2(string varName, ITreeNode source, ITreeNode key1, ITreeNode key2, string intoName)
 		{
-			// _Source.GroupJoin(source, a => a.Age, b => b.Age, (a, bb) => new <> f__AnonymousType2`2(a = a, bb = bb))
-			if (_Source == null)
-			{
-				throw new Exceptions.ScriptAnalyzingException("invalid expression join");
-			}
+			// _Source.GroupJoin(source, a => a.Age, varName => varName.Age, (a, intoName) => new <> f__AnonymousType2`2(a = a, intoName = intoName))
 			var joinNode = new CallFuncNode
 			{
 				Name = "GroupJoin",
@@ -298,35 +355,37 @@ namespace AScript.Nodes
 					// key1: a => a.Age
 					new DefineFuncNode
 					{
-						Args = new DefineVarNode[] { new DefineVarNode{ Name = _CurrentVarName } },
+						Args = new[] { new DefineVarNode(_CurrentVarName) },
 						Body = TryVisitAndReplace(key1)
 					},
-					// key2: b => b.Age
+					// key2: varName => varName.Age
 					new DefineFuncNode
 					{
-						Args = new DefineVarNode[] { new DefineVarNode{ Name = varName } },
+						Args = new[] { new DefineVarNode(varName) },
 						Body = TryVisitAndReplace(key2)
 					},
-					// (a, bb) => new { a, bb })
+					// (a, intoName) => new { a, intoName })
 					new DefineFuncNode
 					{
-						Args = new DefineVarNode[]
+						Args = new[]
 						{
-							new DefineVarNode { Name = _CurrentVarName },
-							new DefineVarNode { Name = intoName }
+							new DefineVarNode(_CurrentVarName),
+							new DefineVarNode(intoName)
 						},
 						Body = new NewNode
 						{
 							InitProperties = new ITreeNode[]
 							{
-								new VariableNode{Name = _CurrentVarName },
-								new VariableNode{Name = intoName }
+								new VariableNode(_CurrentVarName),
+								new VariableNode(intoName)
 							}
 						}
 					}
 				}
 			};
+			// 更新当前数据源
 			_Source = joinNode;
+			// 变量聚合
 			var oldCurrentName = _CurrentVarName;
 			_CurrentVarName = $"<>h__TransparentIdentifier{_ParentCounter++}";
 			_VarParentDict[oldCurrentName] = _CurrentVarName;

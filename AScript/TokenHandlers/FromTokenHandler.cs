@@ -7,6 +7,12 @@ namespace AScript.TokenHandlers
 {
 	/// <summary>
 	/// from a in query1
+	/// from b in query2
+	/// join c in query3 on a.Id equals c.Id into cc
+	/// from c in cc.DefaultIfEmpty
+	/// orderby b.Age desc
+	/// group a by a.Name into g
+	/// select new { Name = g.Key, Count = g.Count() }
 	/// </summary>
 	public class FromTokenHandler : ITokenHandler
 	{
@@ -22,15 +28,11 @@ namespace AScript.TokenHandlers
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;
-			//if (e.TreeBuilder.IsFullStatement())
-			//{
-			//	e.End = true;
-			//	e.TokenReader.Push(e.CurrentToken);
-			//	return;
-			//}
 			var queryNode = e.Ignore ? null : new QueryNode();
 			var createFullOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
+			// 解析from语句
 			BuildFrom(analyzer, e, createFullOptions, queryNode);
+			// 解析后续linq语句
 			while (true)
 			{
 				var token = e.TokenReader.Read();
@@ -69,6 +71,7 @@ namespace AScript.TokenHandlers
 					throw new Exceptions.ScriptAnalyzingException($"invalid expression near from, unknow {token.Value.Value} at ({token.Value.Line},{token.Value.Column})");
 				}
 			}
+			// 将LINQ语句添加到语法树中
 			if (!e.Ignore)
 			{
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, queryNode);
@@ -85,15 +88,7 @@ namespace AScript.TokenHandlers
 		/// <exception cref="Exceptions.ScriptAnalyzingException"></exception>
 		private void BuildFrom(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
 		{
-			var varToken = e.TokenReader.Read();
-			if (!varToken.HasValue)
-			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at {e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}");
-			}
-			if (varToken.Value.Type != ETokenType.Word)
-			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' {varToken.Value.Value} at {varToken.Value.Line},{varToken.Value.Column}");
-			}
+			var varToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
 			analyzer.ValidateNextToken(e.TokenReader, "in");
 			var source = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
 			queryNode?.AddFrom(varToken.Value.Value, source);
@@ -110,15 +105,7 @@ namespace AScript.TokenHandlers
 		/// <exception cref="Exceptions.ScriptAnalyzingException"></exception>
 		private void BuildJoin(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
 		{
-			var varToken = e.TokenReader.Read();
-			if (!varToken.HasValue)
-			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at {e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}");
-			}
-			if (varToken.Value.Type != ETokenType.Word)
-			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' {varToken.Value.Value} at {varToken.Value.Line},{varToken.Value.Column}");
-			}
+			var varToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
 			analyzer.ValidateNextToken(e.TokenReader, "in");
 
 			var source = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, _OnTokens);
@@ -135,15 +122,7 @@ namespace AScript.TokenHandlers
 			{
 				if (intoToken.Value.IsSymbol("into"))
 				{
-					var intoNameToken = e.TokenReader.Read();
-					if (!intoNameToken.HasValue)
-					{
-						throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at {e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}");
-					}
-					if (intoNameToken.Value.Type != ETokenType.Word)
-					{
-						throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' {intoNameToken.Value.Value} at {intoNameToken.Value.Line},{intoNameToken.Value.Column}");
-					}
+					var intoNameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
 					intoName = intoNameToken.Value.Value;
 				}
 				else
@@ -180,25 +159,17 @@ namespace AScript.TokenHandlers
 			analyzer.ValidateNextToken(e.TokenReader, "by");
 			var key = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _JoinEndTokens);
 			string intoName = null;
-			var token = e.TokenReader.Read();
-			if (token.HasValue)
+			var intoToken = e.TokenReader.Read();
+			if (intoToken.HasValue)
 			{
-				if (token.Value.IsSymbol("into"))
+				if (intoToken.Value.IsSymbol("into"))
 				{
-					var intoNameToken = e.TokenReader.Read();
-					if (!intoNameToken.HasValue)
-					{
-						throw new Exceptions.ScriptAnalyzingException($"invalid expression near into at {token.Value.Line},{token.Value.Column}");
-					}
-					if (intoNameToken.Value.Type != ETokenType.Word)
-					{
-						throw new Exceptions.ScriptAnalyzingException($"invalid expression near into at {intoNameToken.Value.Line},{intoNameToken.Value.Column}");
-					}
+					var intoNameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
 					intoName = intoNameToken.Value.Value;
 				}
 				else
 				{
-					e.TokenReader.Push(token.Value);
+					e.TokenReader.Push(intoToken.Value);
 				}
 			}
 			queryNode?.AddGroup(key, element, intoName);
@@ -206,7 +177,7 @@ namespace AScript.TokenHandlers
 
 		/// <summary>
 		/// from a in q
-		/// orderby a.Age ascending/descending
+		/// orderby a.Age ascending
 		/// </summary>
 		/// <param name="analyzer"></param>
 		/// <param name="e"></param>

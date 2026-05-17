@@ -21,13 +21,11 @@ namespace AScript.TokenHandlers
 
 			analyzer.ValidateNextToken(e.TokenReader, "(");
 			// 类型
-			var nextToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word, expect: "type word");
+			var nextToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
 			var itemType = nextToken.Value.Value;
 			string itemName = null;
 			List<DefineVarNode> items = null;
 			// 变量名
-			//nextToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word, expect: "var word");
-			//itemName = nextToken.Value.Value;
 			nextToken = e.TokenReader.Read();
 			if (!nextToken.HasValue)
 			{

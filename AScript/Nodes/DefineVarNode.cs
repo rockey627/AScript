@@ -9,6 +9,14 @@ namespace AScript.Nodes
 		public Type SystemType { get; set; }
 		public string Type { get; set; }
 
+		public DefineVarNode() { }
+		public DefineVarNode(string name) : base(name) { }
+		public DefineVarNode(string name, string type, Type systemType) : base(name)
+		{
+			this.Type = type;
+			this.SystemType = systemType;
+		}
+
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
 			var definedType = this.SystemType ?? context.EvalType(this.Type);

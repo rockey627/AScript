@@ -109,29 +109,29 @@ namespace AScript.Test.Consoles
 				//var list = script.Eval<IList>(s);
 				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
 
-				//string s = @"
-				//var q = from a in context.Persons
-				//		join b in context.AddressInfos on a.Id equals b.UserId into bb
-				//		from b in bb.DefaultIfEmpty()
-				//		select new { a.Id, a.Name, a.Age, MyAddress = b.Address };
-				//q.ToList();
-				//";
-				//var script = new Script();
-				//script.Context.SetVar("context", context);
-				//var list = script.Eval<IList>(s);
-				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
-
 				string s = @"
-				var q = from a in context.AddressInfos
-						join b in context.Persons on a.UserId equals b.Id into bb
-						from b in bb.DefaultIfEmpty()
-						select new { a.Id, a.Address, UserId=b.Id, b.Name, Age = (int?)b.Age };
+				var q = from p in context.Persons
+						join a in context.AddressInfos on p.Id equals a.UserId into aa
+						from a in aa.DefaultIfEmpty()
+						select new { p.Id, p.Name, p.Age, MyAddress = a.Address };
 				q.ToList();
 				";
 				var script = new Script();
 				script.Context.SetVar("context", context);
 				var list = script.Eval<IList>(s);
 				Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
+
+				//string s = @"
+				//var q = from a in context.AddressInfos
+				//		join p in context.Persons on a.UserId equals p.Id into pp
+				//		from p in pp.DefaultIfEmpty()
+				//		select new { a.Id, a.Address, UserId=p.Id, p.Name, Age = (int?)p.Age };
+				//q.ToList();
+				//";
+				//var script = new Script();
+				//script.Context.SetVar("context", context);
+				//var list = script.Eval(s);
+				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
 
 				//var persons = context.Persons;
 				//var q = from a in persons

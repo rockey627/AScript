@@ -245,6 +245,12 @@ namespace AScript.Test.MSTests
 
 			Expression<Func<Person, string>> lambda = p => p == null ? null : p.Name;
 			Console.WriteLine(lambda.ToString());
+
+			var qq = from a in q1 orderby a.Age ascending
+					 group a by a.Age into b
+					 select new {b.Key, Count=b.Count()} into c
+					 select c.Key;
+			Console.WriteLine(qq.ToString());
 		}
 
 		[TestMethod]

@@ -483,20 +483,16 @@ namespace AScript.Syntaxs
 			return nextToken;
 		}
 
-		public virtual Token? ValidateNextToken(TokenReader tokenReader, ETokenType nextTokenTypeForValid, int currentLine = -1, int currentColumn = -1, string expect = null)
+		public virtual Token? ValidateNextToken(TokenReader tokenReader, ETokenType nextTokenTypeForValid)
 		{
 			var nextToken = tokenReader.Read();
 			if (!nextToken.HasValue)
 			{
-				if (currentLine > 0)
-				{
-					throw new Exceptions.ScriptAnalyzingException($"invalid expression at {currentLine},{currentColumn}, expect {expect ?? nextTokenTypeForValid.ToString()}");
-				}
-				throw new Exceptions.ScriptAnalyzingException($"invalid expression expect {expect ?? nextTokenTypeForValid.ToString()}");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect {nextTokenTypeForValid.ToString()}");
 			}
 			if (nextToken.Value.Type != nextTokenTypeForValid)
 			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect {expect ?? nextTokenTypeForValid.ToString()}");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect {nextTokenTypeForValid.ToString()}");
 			}
 			return nextToken;
 		}

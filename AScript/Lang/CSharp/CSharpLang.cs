@@ -6,7 +6,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 
 namespace AScript.Lang.CSharp
@@ -110,9 +109,9 @@ namespace AScript.Lang.CSharp
 			// Convert方法，调用示例：'12'.ToInt32()
 			AddFunc(typeof(Convert));
 			// IEnumerable<T>扩展方法
-			AddFunc(typeof(Enumerable));
+			AddFunc(typeof(System.Linq.Enumerable));
 			// IQueryable<T>扩展方法
-			AddFunc(typeof(Queryable), method => !method.IsGenericMethod && method.Name == "AsQueryable" ? null : method.Name);
+			AddFunc(typeof(System.Linq.Queryable), method => !method.IsGenericMethod && method.Name == "AsQueryable" ? null : method.Name);
 
 			// 自定函数的Invoke方法
 			AddFunc("Invoke", CustomFunctionEvaluator.Instance);
