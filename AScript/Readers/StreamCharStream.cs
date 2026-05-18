@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AScript.Readers
@@ -46,8 +47,9 @@ namespace AScript.Readers
 			return (char)d;
 		}
 
-		public async Task<char?> NextAsync()
+		public async Task<char?> NextAsync(CancellationToken cancellationToken = default)
 		{
+			cancellationToken.ThrowIfCancellationRequested();
 			if (_reader == null && _stream != null)
 			{
 				_reader = new StreamReader(_stream, Encoding.UTF8);

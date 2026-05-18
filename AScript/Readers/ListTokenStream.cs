@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AScript.Readers
@@ -24,8 +25,9 @@ namespace AScript.Readers
             return _tokens[_currentIndex++];
         }
 
-		public Task<Token?> NextAsync()
+		public Task<Token?> NextAsync(CancellationToken cancellationToken = default)
 		{
+            cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult(Next());
 		}
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AScript.Readers
@@ -23,8 +24,9 @@ namespace AScript.Readers
             return _expression[_currentIndex++];
         }
 
-		public Task<char?> NextAsync()
+		public Task<char?> NextAsync(CancellationToken cancellationToken = default)
 		{
+            cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult(Next());
 		}
 	}

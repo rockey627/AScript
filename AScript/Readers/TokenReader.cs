@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AScript.Readers
@@ -45,13 +46,13 @@ namespace AScript.Readers
 		/// 异步读取下一个记号，如果栈中有记号则优先从栈中读取，否则从流中读取
 		/// </summary>
 		/// <returns></returns>
-		public async Task<Token?> ReadAsync()
+		public async Task<Token?> ReadAsync(CancellationToken cancellationToken = default)
 		{
 			if (_peekStack.Count > 0)
 			{
 				return _peekStack.Pop();
 			}
-			return await this.TokenStream.NextAsync().ConfigureAwait(false);
+			return await this.TokenStream.NextAsync(cancellationToken).ConfigureAwait(false);
 		}
 
 		public Token? Peek()
@@ -65,13 +66,13 @@ namespace AScript.Readers
 			return c1;
 		}
 
-		public async Task<Token?> PeekAsync()
+		public async Task<Token?> PeekAsync(CancellationToken cancellationToken = default)
 		{
 			if (_peekStack.Count > 0)
 			{
 				return _peekStack.Peek();
 			}
-			var c1 = await this.TokenStream.NextAsync().ConfigureAwait(false);
+			var c1 = await this.TokenStream.NextAsync(cancellationToken).ConfigureAwait(false);
 			if (c1.HasValue) _peekStack.Push(c1.Value);
 			return c1;
 		}

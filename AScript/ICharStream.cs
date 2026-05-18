@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AScript
@@ -17,6 +18,6 @@ namespace AScript
 		/// 异步读取下一个字符
 		/// </summary>
 		/// <returns></returns>
-		Task<char?> NextAsync();
+		Task<char?> NextAsync(CancellationToken cancellationToken = default);
 	}
 }

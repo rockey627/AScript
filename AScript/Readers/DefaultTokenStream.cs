@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AScript.Readers
@@ -164,9 +165,9 @@ namespace AScript.Readers
 			return new Token(v, tokenType ?? GetTokenType(v), startLine, startColumn);
 		}
 
-		public async Task<Token?> NextAsync()
+		public async Task<Token?> NextAsync(CancellationToken cancellationToken = default)
 		{
-			var c = await _reader.ReadAsync().ConfigureAwait(false);
+			var c = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 			var startLine = _reader.CurrentLine;
 			var startColumn = _reader.CurrentColumn;
 			ETokenType? tokenType = null;
@@ -196,7 +197,7 @@ namespace AScript.Readers
 						// 如果前面是数字，则判断小数点后面如果不是数字则返回
 						if (IsNumber(startChar))
 						{
-							var nextChar2 = await _reader.ReadAsync().ConfigureAwait(false);
+							var nextChar2 = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 							if (nextChar2.HasValue && !IsNumber(nextChar2.Value))
 							{
 								_reader.Push(nextChar2.Value);
@@ -205,7 +206,7 @@ namespace AScript.Readers
 							}
 							_buffer.Append(c.Value);
 							_buffer.Append(nextChar2.Value);
-							c = await _reader.ReadAsync().ConfigureAwait(false);
+							c = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 							continue;
 						}
 						else
@@ -215,14 +216,14 @@ namespace AScript.Readers
 							break;
 						}
 					}
-					var nextChar = await _reader.PeekAsync().ConfigureAwait(false);
+					var nextChar = await _reader.PeekAsync(cancellationToken).ConfigureAwait(false);
 					if (nextChar.HasValue && !IsNumber(nextChar.Value))
 					{
 						_buffer.Append(c.Value);
 						break;
 					}
 					_buffer.Append(c.Value);
-					c = await _reader.ReadAsync().ConfigureAwait(false);
+					c = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 					continue;
 				}
 				// 
@@ -248,7 +249,7 @@ namespace AScript.Readers
 					{
 						break;
 					}
-					c = await _reader.ReadAsync().ConfigureAwait(false);
+					c = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 					startLine = _reader.CurrentLine;
 					startColumn = _reader.CurrentColumn;
 					continue;
@@ -273,7 +274,7 @@ namespace AScript.Readers
 						break;
 					}
 					_buffer.Append(c.Value);
-					c = await _reader.ReadAsync().ConfigureAwait(false);
+					c = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 					continue;
 				}
 				if (_buffer.Length > 0)
@@ -282,7 +283,7 @@ namespace AScript.Readers
 					if (startChar2 == '.' && IsNumber(c.Value))
 					{
 						_buffer.Append(c.Value);
-						c = await _reader.ReadAsync().ConfigureAwait(false);
+						c = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 						continue;
 					}
 					if (IsOperator(startChar2))
@@ -292,7 +293,7 @@ namespace AScript.Readers
 					}
 				}
 				_buffer.Append(c.Value);
-				c = await _reader.ReadAsync().ConfigureAwait(false);
+				c = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 			}
 			// 
 			if (_buffer.Length == 0 && !tokenType.HasValue) return null;
