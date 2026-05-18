@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using AScript.Nodes;
 
 namespace AScript
@@ -18,6 +20,18 @@ namespace AScript
 			return list;
 		}
 
+		public static async Task<IList<Token>> ParseAllAsync(this ITokenStream parser, CancellationToken cancellationToken = default)
+		{
+			var list = new List<Token>();
+			Token? token = await parser.NextAsync(cancellationToken).ConfigureAwait(false);
+			while (token.HasValue)
+			{
+				list.Add(token.Value);
+				token = await parser.NextAsync(cancellationToken).ConfigureAwait(false);
+			}
+			return list;
+		}
+
 		public static object Eval(this ISyntaxAnalyzer analyzer, ScriptContext context, BuildOptions options, ITokenStream tokenStream, out Type returnType)
 		{
 			var buildContext = new BuildContext();
@@ -27,9 +41,35 @@ namespace AScript
 				returnType = null;
 				return null;
 			}
-			var result = treeBuilder.Eval(context, options, null, out returnType);
+			var value = treeBuilder.Eval(context, options, null, out returnType);
 			PoolManage.Return(treeBuilder);
-			return result;
+			return value;
+		}
+
+		public static async Task<object> EvalAsync(this ISyntaxAnalyzer analyzer, ScriptContext context, BuildOptions options, ITokenStream tokenStream, CancellationToken cancellationToken = default)
+		{
+			var buildContext = new BuildContext();
+			var treeBuilder = await analyzer.BuildAsync(buildContext, context, options, new Readers.TokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
+			if (treeBuilder == null)
+			{
+				return null;
+			}
+			var value = treeBuilder.Eval(context, options, null, out _);
+			PoolManage.Return(treeBuilder);
+			return value;
+		}
+
+		public static async Task<EvalResult> Eval2Async(this ISyntaxAnalyzer analyzer, ScriptContext context, BuildOptions options, ITokenStream tokenStream, CancellationToken cancellationToken = default)
+		{
+			var buildContext = new BuildContext();
+			var treeBuilder = await analyzer.BuildAsync(buildContext, context, options, new Readers.TokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
+			if (treeBuilder == null)
+			{
+				return default;
+			}
+			var value = treeBuilder.Eval(context, options, null, out var returnType);
+			PoolManage.Return(treeBuilder);
+			return new EvalResult(value, returnType);
 		}
 	}
 }

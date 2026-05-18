@@ -5,6 +5,8 @@ namespace AScript.Operators
 {
 	public class ConvertOperator : IFunctionEvaluator, IFunctionBuilder
 	{
+		public const string NAME = "<>__convert__";
+
 		public int TypeIndex { get; set; }
 
 		public ConvertOperator() { }

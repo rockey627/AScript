@@ -4,6 +4,8 @@ using System.IO;
 using AScript.Nodes;
 using System.Linq.Expressions;
 using AScript.Readers;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace AScript
 {
@@ -90,6 +92,48 @@ namespace AScript
 		}
 
 		/// <summary>
+		/// 异步计算表达式，返回结果
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public Task<object> EvalAsync(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			return EvalAsync(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken);
+		}
+
+		/// <summary>
+		/// 异步计算表达式，返回结果
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public Task<EvalResult> Eval2Async(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			return Eval2Async(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken);
+		}
+
+		/// <summary>
 		/// 计算表达式，返回结果和类型（结果可能为null，此时returnType可以判断返回类型）
 		/// </summary>
 		/// <param name="expression"></param>
@@ -141,6 +185,35 @@ namespace AScript
 		/// <summary>
 		/// 计算表达式，返回结果
 		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<T> EvalAsync<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (string.IsNullOrEmpty(expression)) return default;
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync<T>(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				return func(this.Context);
+			}
+			return (T)(await EvalAsync(this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false));
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果
+		/// </summary>
 		/// <param name="expression"></param>
 		/// <param name="cacheTime">
 		/// <para>缓存时长</para>
@@ -156,6 +229,71 @@ namespace AScript
 		public object Eval(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			return Eval(expression, out _, cacheTime, cacheKey, cacheVersion);
+		}
+
+		/// <summary>
+		/// 异步计算表达式，返回结果
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<object> EvalAsync(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (expression == null || expression.Length == 0L)
+			{
+				return null;
+			}
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
+				|| compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				return func.DynamicInvoke(this.Context);
+			}
+			return await EvalAsync(this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false);
+		}
+
+		/// <summary>
+		/// 异步计算表达式，返回结果
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<EvalResult> Eval2Async(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (expression == null || expression.Length == 0L)
+			{
+				return default;
+			}
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
+				|| compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				var value = func.DynamicInvoke(this.Context);
+				return new EvalResult(value, func.Method.ReturnType);
+			}
+			return await Eval2Async(this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -216,6 +354,31 @@ namespace AScript
 			return (T)Eval(this.Context, this.Options, expression, out _);
 		}
 
+		/// <summary>
+		/// 异步计算表达式，返回结果
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime"></param>
+		/// <param name="cacheKey"></param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<T> EvalAsync<T>(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (expression == null || expression.Length == 0L)
+			{
+				return default;
+			}
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync<T>(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				return func(this.Context);
+			}
+			return (T)(await EvalAsync(this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false));
+		}
+
 		public object Eval(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			return Eval(expression, out _, cacheTime, cacheKey, cacheVersion);
@@ -238,11 +401,41 @@ namespace AScript
 			return Eval(this.Context, this.Options, expression(), out returnType);
 		}
 
+		public async Task<object> EvalAsync(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (expression == null)
+			{
+				return default;
+			}
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				return func.DynamicInvoke(this.Context);
+			}
+			return await EvalAsync(this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false);
+		}
+
+		public async Task<EvalResult> Eval2Async(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (expression == null)
+			{
+				return default;
+			}
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				var value = func.DynamicInvoke(this.Context);
+				return new EvalResult(value, func.Method.ReturnType);
+			}
+			return await Eval2Async(this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false);
+		}
+
 		/// <summary>
 		/// 计算表达式，返回结果
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
-		/// <param name="context"></param>
 		/// <param name="expression"></param>
 		/// <param name="cacheTime">
 		/// <para>缓存时长</para>
@@ -268,6 +461,38 @@ namespace AScript
 				return func(this.Context);
 			}
 			return (T)Eval(this.Context, this.Options, expression(), out _);
+		}
+
+		/// <summary>
+		/// 异步计算表达式，返回结果
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<T> EvalAsync<T>(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (expression == null)
+			{
+				return default;
+			}
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync<T>(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				return func(this.Context);
+			}
+			return (T)(await EvalAsync(this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false));
 		}
 
 		/// <summary>
@@ -324,6 +549,37 @@ namespace AScript
 			return Eval(this.Context, this.Options, expression(), out returnType);
 		}
 
+		public async Task<object> EvalAsync(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (expression == null)
+			{
+				return default;
+			}
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				return func.DynamicInvoke(this.Context);
+			}
+			return await EvalAsync(this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false);
+		}
+
+		public async Task<EvalResult> Eval2Async(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (expression == null)
+			{
+				return default;
+			}
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				var value = func.DynamicInvoke(this.Context);
+				return new EvalResult(value, func.Method.ReturnType);
+			}
+			return await Eval2Async(this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false);
+		}
+
 		/// <summary>
 		/// 计算表达式，返回结果
 		/// </summary>
@@ -346,6 +602,38 @@ namespace AScript
 				return func(this.Context);
 			}
 			return (T)Eval(this.Context, this.Options, expression(), out _);
+		}
+
+		/// <summary>
+		/// 异步计算表达式，返回结果
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<T> EvalAsync<T>(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (expression == null)
+			{
+				return default;
+			}
+			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync<T>(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				return func(this.Context);
+			}
+			return (T)(await EvalAsync(this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false));
 		}
 
 		/// <summary>
@@ -384,6 +672,51 @@ namespace AScript
 		}
 
 		/// <summary>
+		/// 异步计算表达式，返回结果
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="compileMode"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<object> EvalAsync(string expression, ECompileMode compileMode, CancellationToken cancellationToken = default)
+		{
+			if (string.IsNullOrEmpty(expression))
+			{
+				return default;
+			}
+			if (compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync(expression, cancellationToken: cancellationToken).ConfigureAwait(false);
+				return func.DynamicInvoke(this.Context);
+			}
+			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
+			return await EvalAsync(this.Context, options, expression, cancellationToken).ConfigureAwait(false);
+		}
+
+		/// <summary>
+		/// 异步计算表达式，返回结果
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="compileMode"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<EvalResult> Eval2Async(string expression, ECompileMode compileMode, CancellationToken cancellationToken = default)
+		{
+			if (string.IsNullOrEmpty(expression))
+			{
+				return default;
+			}
+			if (compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync(expression, cancellationToken: cancellationToken).ConfigureAwait(false);
+				var value = func.DynamicInvoke(this.Context);
+				return new EvalResult(value, func.Method.ReturnType);
+			}
+			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
+			return await Eval2Async(this.Context, options, expression, cancellationToken).ConfigureAwait(false);
+		}
+
+		/// <summary>
 		/// 计算表达式，返回结果
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
@@ -403,6 +736,29 @@ namespace AScript
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
 			return (T)Eval(this.Context, options, expression, out _);
+		}
+
+		/// <summary>
+		/// 异步计算表达式，返回结果
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="compileMode"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<T> EvalAsync<T>(string expression, ECompileMode compileMode, CancellationToken cancellationToken = default)
+		{
+			if (string.IsNullOrEmpty(expression))
+			{
+				return default;
+			}
+			if (compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync<T>(expression, cancellationToken: cancellationToken).ConfigureAwait(false);
+				return func(this.Context);
+			}
+			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
+			return (T)(await EvalAsync(this.Context, options, expression, cancellationToken).ConfigureAwait(false));
 		}
 
 		/// <summary>
@@ -441,6 +797,51 @@ namespace AScript
 		}
 
 		/// <summary>
+		/// 异步计算表达式，返回结果
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="compileMode"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<object> EvalAsync(Stream expression, ECompileMode compileMode, CancellationToken cancellationToken = default)
+		{
+			if (expression == null || expression.Length == 0L)
+			{
+				return default;
+			}
+			if (compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync(expression, cancellationToken: cancellationToken).ConfigureAwait(false);
+				return func.DynamicInvoke(this.Context);
+			}
+			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
+			return await EvalAsync(this.Context, options, expression, cancellationToken).ConfigureAwait(false);
+		}
+
+		/// <summary>
+		/// 异步计算表达式，返回结果
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="compileMode"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<EvalResult> Eval2Async(Stream expression, ECompileMode compileMode, CancellationToken cancellationToken = default)
+		{
+			if (expression == null || expression.Length == 0L)
+			{
+				return default;
+			}
+			if (compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync(expression, cancellationToken: cancellationToken).ConfigureAwait(false);
+				var value = func.DynamicInvoke(this.Context);
+				return new EvalResult(value, func.Method.ReturnType);
+			}
+			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
+			return await Eval2Async(this.Context, options, expression, cancellationToken).ConfigureAwait(false);
+		}
+
+		/// <summary>
 		/// 计算表达式，返回结果
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
@@ -460,6 +861,28 @@ namespace AScript
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
 			return (T)Eval(this.Context, options, expression, out _);
+		}
+
+		/// <summary>
+		/// 异步计算表达式，返回结果
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="compileMode"></param>
+		/// <returns></returns>
+		public async Task<T> EvalAsync<T>(Stream expression, ECompileMode compileMode, CancellationToken cancellationToken = default)
+		{
+			if (expression == null || expression.Length == 0L)
+			{
+				return default;
+			}
+			if (compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync<T>(expression, cancellationToken: cancellationToken).ConfigureAwait(false);
+				return func(this.Context);
+			}
+			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
+			return (T)(await EvalAsync(this.Context, options, expression, cancellationToken).ConfigureAwait(false));
 		}
 
 		/// <summary>
@@ -535,9 +958,36 @@ namespace AScript
 			return Eval(this.Context, this.Options, tokenStream, out returnType);
 		}
 
+		/// <summary>
+		/// 异步计算表达式，返回结果和类型
+		/// </summary>
+		/// <param name="tokenStream"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public Task<object> EvalAsync(ITokenStream tokenStream, CancellationToken cancellationToken = default)
+		{
+			return EvalAsync(this.Context, this.Options, tokenStream, cancellationToken);
+		}
+
+		/// <summary>
+		/// 异步计算表达式，返回结果和类型
+		/// </summary>
+		/// <param name="tokenStream"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public Task<EvalResult> Eval2Async(ITokenStream tokenStream, CancellationToken cancellationToken = default)
+		{
+			return Eval2Async(this.Context, this.Options, tokenStream, cancellationToken);
+		}
+
 		public Delegate CompileGlobal(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			return CompileGlobal(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion);
+		}
+
+		public Task<Delegate> CompileGlobalAsync(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			return CompileGlobalAsync(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken);
 		}
 
 		/// <summary>
@@ -557,22 +1007,12 @@ namespace AScript
 		/// <returns></returns>
 		public Delegate CompileGlobal(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			if (expression == null || expression.Length == 0L) return null;
+			return CompileGlobal(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion);
+		}
 
-			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
-				&& Cache.TryGetValue(cacheKey, cacheVersion, out var d))
-			{
-				return d;
-			}
-
-			var func = Compile(null, this.Context, this.Options, expression);
-
-			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
-			{
-				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
-			}
-
-			return func;
+		public Task<Delegate> CompileGlobalAsync(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			return CompileGlobalAsync(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken);
 		}
 
 		/// <summary>
@@ -620,6 +1060,51 @@ namespace AScript
 		}
 
 		/// <summary>
+		/// 异步编译生成委托
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<Delegate> CompileGlobalAsync(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (expression == null) return null;
+
+			string s = null;
+			if (cacheTime != 0)
+			{
+				if (string.IsNullOrEmpty(cacheKey))
+				{
+					s = expression();
+					if (string.IsNullOrEmpty(s)) return null;
+					cacheKey = s;
+				}
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				{
+					return d;
+				}
+			}
+
+			var func = await CompileAsync(null, this.Context, this.Options, s ?? expression(), cancellationToken).ConfigureAwait(false);
+
+			if (cacheTime != 0)
+			{
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+			}
+
+			return func;
+		}
+
+		/// <summary>
 		/// 编译生成委托
 		/// </summary>
 		/// <param name="expression"></param>
@@ -645,6 +1130,42 @@ namespace AScript
 			}
 
 			var func = Compile(null, this.Context, this.Options, expression());
+
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
+			{
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+			}
+
+			return func;
+		}
+
+		/// <summary>
+		/// 异步编译生成委托
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<Delegate> CompileGlobalAsync(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (expression == null) return null;
+
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
+				&& Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+			{
+				return d;
+			}
+
+			var func = await CompileAsync(null, this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false);
 
 			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
 			{
@@ -763,6 +1284,35 @@ namespace AScript
 		/// <para>大于0表示缓存时长（单位：毫秒）</para>
 		/// </param>
 		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<Func<ScriptContext, T>> CompileGlobalAsync<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+			if (func == null) return null;
+			if (func.Method.ReturnType != typeof(T))
+			{
+				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
+				return targetFunc;
+			}
+			return (Func<ScriptContext, T>)func;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
 		/// 缓存key（如果为空则不缓存）
 		/// </param>
 		/// <param name="cacheVersion"></param>
@@ -770,6 +1320,35 @@ namespace AScript
 		public Func<ScriptContext, T> CompileGlobal<T>(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
+			if (func == null) return null;
+			if (func.Method.ReturnType != typeof(T))
+			{
+				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
+				return targetFunc;
+			}
+			return (Func<ScriptContext, T>)func;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<Func<ScriptContext, T>> CompileGlobalAsync<T>(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
 			if (func == null) return null;
 			if (func.Method.ReturnType != typeof(T))
 			{
@@ -808,6 +1387,35 @@ namespace AScript
 		}
 
 		/// <summary>
+		/// 异步编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<Func<ScriptContext, T>> CompileGlobalAsync<T>(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+			if (func == null) return null;
+			if (func.Method.ReturnType != typeof(T))
+			{
+				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
+				return targetFunc;
+			}
+			return (Func<ScriptContext, T>)func;
+		}
+
+		/// <summary>
 		/// 编译生成委托
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
@@ -826,6 +1434,35 @@ namespace AScript
 		public Func<ScriptContext, T> CompileGlobal<T>(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
+			if (func == null) return null;
+			if (func.Method.ReturnType != typeof(T))
+			{
+				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
+				return targetFunc;
+			}
+			return (Func<ScriptContext, T>)func;
+		}
+
+		/// <summary>
+		/// 异步编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<Func<ScriptContext, T>> CompileGlobalAsync<T>(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
 			if (func == null) return null;
 			if (func.Method.ReturnType != typeof(T))
 			{
@@ -869,6 +1506,27 @@ namespace AScript
 				};
 			}
 			var node = GetSyntaxAnalyzer(this.Context).Build(buildContext, this.Context, buildOptions, new Readers.TokenReader(tokenStream, false));
+			var body = node.Build(buildContext, this.Context, buildOptions);
+			PoolManage.Return(node);
+			return buildContext.Compile(this.Context, buildOptions, body);
+		}
+
+		public async Task<Delegate> CompileGlobalAsync(ITokenStream tokenStream, CancellationToken cancellationToken = default)
+		{
+			var buildContext = new BuildContext();
+			BuildOptions buildOptions;
+			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				buildOptions = this.Options;
+			}
+			else
+			{
+				buildOptions = new BuildOptions(this.Options)
+				{
+					CompileMode = ECompileMode.All
+				};
+			}
+			var node = await GetSyntaxAnalyzer(this.Context).BuildAsync(buildContext, this.Context, buildOptions, new Readers.TokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
 			var body = node.Build(buildContext, this.Context, buildOptions);
 			PoolManage.Return(node);
 			return buildContext.Compile(this.Context, buildOptions, body);
@@ -1063,7 +1721,7 @@ namespace AScript
 		{
 			return (Func<T1, T2, T3, T4, T5, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, new[] { argName1, argName2, argName3, argName4, argName5 }, typeof(TReturn));
 		}
-		
+
 		public LambdaExpression Lambda(string expression, Type[] argTypes, string[] argNames, Type returnType = null)
 		{
 			return Lambda(this.Context, this.Options, expression, argTypes, argNames, returnType);
@@ -1218,6 +1876,24 @@ namespace AScript
 		}
 
 		/// <summary>
+		/// 异步构建表达式树
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <returns></returns>
+		public async Task<ITreeNode> BuildNodeAsync(Stream expression, CancellationToken cancellationToken = default)
+		{
+			var buildContext = new BuildContext();
+			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
+			var tokenStream = GetTokenStream(this.Context, expression);
+			var node = await GetSyntaxAnalyzer(this.Context).BuildAsync(buildContext, this.Context, new BuildOptions(this.Options) { CreateFullTreeNode = true }, new Readers.TokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
+			if (node is TreeBuilder treeBuilder)
+			{
+				return treeBuilder.Root;
+			}
+			return node;
+		}
+
+		/// <summary>
 		/// 构建表达式树
 		/// </summary>
 		/// <param name="buildContext"></param>
@@ -1233,6 +1909,29 @@ namespace AScript
 			if (options.CreateFullTreeNode ?? false) buildOptions = options;
 			else buildOptions = new BuildOptions(options) { CreateFullTreeNode = true };
 			var node = GetSyntaxAnalyzer(scriptContext).Build(buildContext, scriptContext, buildOptions, new TokenReader(tokenStream, false));
+			if (node is TreeBuilder treeBuilder)
+			{
+				return treeBuilder.Root;
+			}
+			return node;
+		}
+
+		/// <summary>
+		/// 异步构建表达式树
+		/// </summary>
+		/// <param name="buildContext"></param>
+		/// <param name="scriptContext"></param>
+		/// <param name="options"></param>
+		/// <param name="expression"></param>
+		/// <returns></returns>
+		public static async Task<ITreeNode> BuildNodeAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, CancellationToken cancellationToken = default)
+		{
+			if (buildContext == null) buildContext = new BuildContext();
+			var tokenStream = GetTokenStream(scriptContext, expression);
+			BuildOptions buildOptions;
+			if (options.CreateFullTreeNode ?? false) buildOptions = options;
+			else buildOptions = new BuildOptions(options) { CreateFullTreeNode = true };
+			var node = await GetSyntaxAnalyzer(scriptContext).BuildAsync(buildContext, scriptContext, buildOptions, new TokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
 			if (node is TreeBuilder treeBuilder)
 			{
 				return treeBuilder.Root;
@@ -1281,10 +1980,89 @@ namespace AScript
 			return Eval(scriptContext, options, expression, out returnType);
 		}
 
+		/// <summary>
+		/// 异步计算表达式，返回结果和类型（结果可能为null，此时returnType可以判断返回类型）
+		/// </summary>
+		/// <param name="buildContext"></param>
+		/// <param name="scriptContext"></param>
+		/// <param name="options"></param>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public static async Task<object> EvalAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (string.IsNullOrEmpty(expression))
+			{
+				return null;
+			}
+			var compileMode = options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync(buildContext, scriptContext, options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				return func.DynamicInvoke(scriptContext);
+			}
+			return await EvalAsync(scriptContext, options, expression, cancellationToken).ConfigureAwait(false);
+		}
+
+		/// <summary>
+		/// 异步计算表达式，返回结果和类型（结果可能为null，此时returnType可以判断返回类型）
+		/// </summary>
+		/// <param name="buildContext"></param>
+		/// <param name="scriptContext"></param>
+		/// <param name="options"></param>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public static async Task<EvalResult> Eval2Async(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (string.IsNullOrEmpty(expression))
+			{
+				return default;
+			}
+			var compileMode = options.CompileMode ?? ECompileMode.None;
+			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			{
+				var func = await CompileGlobalAsync(buildContext, scriptContext, options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				var value = func.DynamicInvoke(scriptContext);
+				return new EvalResult(value, func.Method.ReturnType);
+			}
+			return await Eval2Async(scriptContext, options, expression, cancellationToken).ConfigureAwait(false);
+		}
+
 		public static object Eval(ScriptContext context, BuildOptions options, string expression, out Type returnType)
 		{
 			var tokenStream = GetTokenStream(context, expression);
 			return GetSyntaxAnalyzer(context).Eval(context, options, tokenStream, out returnType);
+		}
+
+		public static async Task<object> EvalAsync(ScriptContext context, BuildOptions options, string expression, CancellationToken cancellationToken = default)
+		{
+			var tokenStream = GetTokenStream(context, expression);
+			return await GetSyntaxAnalyzer(context).EvalAsync(context, options, tokenStream, cancellationToken).ConfigureAwait(false);
+		}
+
+		public static async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, string expression, CancellationToken cancellationToken = default)
+		{
+			var tokenStream = GetTokenStream(context, expression);
+			return await GetSyntaxAnalyzer(context).Eval2Async(context, options, tokenStream, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static object Eval(ScriptContext context, BuildOptions options, Stream expression, out Type returnType)
@@ -1293,9 +2071,31 @@ namespace AScript
 			return GetSyntaxAnalyzer(context).Eval(context, options, tokenStream, out returnType);
 		}
 
+		public static async Task<object> EvalAsync(ScriptContext context, BuildOptions options, Stream expression, CancellationToken cancellationToken = default)
+		{
+			var tokenStream = GetTokenStream(context, expression);
+			return await GetSyntaxAnalyzer(context).EvalAsync(context, options, tokenStream, cancellationToken).ConfigureAwait(false);
+		}
+
+		public static async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, Stream expression, CancellationToken cancellationToken = default)
+		{
+			var tokenStream = GetTokenStream(context, expression);
+			return await GetSyntaxAnalyzer(context).Eval2Async(context, options, tokenStream, cancellationToken).ConfigureAwait(false);
+		}
+
 		public static object Eval(ScriptContext context, BuildOptions options, ITokenStream expression, out Type returnType)
 		{
 			return GetSyntaxAnalyzer(context).Eval(context, options, expression, out returnType);
+		}
+
+		public static async Task<object> EvalAsync(ScriptContext context, BuildOptions options, ITokenStream expression, CancellationToken cancellationToken = default)
+		{
+			return await GetSyntaxAnalyzer(context).EvalAsync(context, options, expression, cancellationToken).ConfigureAwait(false);
+		}
+
+		public static async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, ITokenStream expression, CancellationToken cancellationToken = default)
+		{
+			return await GetSyntaxAnalyzer(context).Eval2Async(context, options, expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -1339,19 +2139,143 @@ namespace AScript
 			return func;
 		}
 
+		/// <summary>
+		/// 异步编译生成委托
+		/// </summary>
+		/// <param name="buildContext"></param>
+		/// <param name="scriptContext"></param>
+		/// <param name="options"></param>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public static async Task<Delegate> CompileGlobalAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (string.IsNullOrEmpty(expression)) return null;
+
+			if (cacheTime != 0)
+			{
+				if (string.IsNullOrEmpty(cacheKey)) cacheKey = expression;
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				{
+					return d;
+				}
+			}
+
+			var func = await CompileAsync(buildContext, scriptContext, options, expression, cancellationToken).ConfigureAwait(false);
+
+			if (cacheTime != 0)
+			{
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+			}
+
+			return func;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <param name="buildContext"></param>
+		/// <param name="scriptContext"></param>
+		/// <param name="options"></param>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public static Delegate CompileGlobal(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			if (expression == null || expression.Length == 0L) return null;
+
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
+				&& Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+			{
+				return d;
+			}
+
+			var func = Compile(buildContext, scriptContext, options, expression);
+
+			if (cacheTime != 0)
+			{
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+			}
+
+			return func;
+		}
+
+		/// <summary>
+		/// 异步编译生成委托
+		/// </summary>
+		/// <param name="buildContext"></param>
+		/// <param name="scriptContext"></param>
+		/// <param name="options"></param>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public static async Task<Delegate> CompileGlobalAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (expression == null || expression.Length == 0L) return null;
+
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
+				&& Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+			{
+				return d;
+			}
+
+			var func = await CompileAsync(buildContext, scriptContext, options, expression, cancellationToken).ConfigureAwait(false);
+
+			if (cacheTime != 0)
+			{
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+			}
+
+			return func;
+		}
+
 		public static Delegate Compile(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression)
 		{
 			return Lambda(buildContext, scriptContext, options, expression).Compile();
 		}
 
+		public static async Task<Delegate> CompileAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, CancellationToken cancellationToken = default)
+		{
+			return (await LambdaAsync(buildContext, scriptContext, options, expression, cancellationToken).ConfigureAwait(false)).Compile();
+		}
+
 		public static Delegate Compile(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression)
 		{
-			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
-			//var node = GetSyntaxAnalyzer().Build(buildContext, scriptContext, options, new Readers.TokenReader(tokenStream, false));
-			//var body = node.Build(buildContext, scriptContext, options);
-			//PoolManage.Return(node);
-			//return buildContext.Compile(scriptContext, options, body);
 			return Lambda(buildContext, scriptContext, options, expression).Compile();
+		}
+
+		public static async Task<Delegate> CompileAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression, CancellationToken cancellationToken = default)
+		{
+			return (await LambdaAsync(buildContext, scriptContext, options, expression, cancellationToken).ConfigureAwait(false)).Compile();
 		}
 
 		public static Delegate Compile(ScriptContext context, BuildOptions options, ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
@@ -1383,6 +2307,30 @@ namespace AScript
 			return buildContext.Build(scriptContext, buildOptions, bodys);
 		}
 
+		public static async Task<LambdaExpression> LambdaAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, CancellationToken cancellationToken = default)
+		{
+			if (buildContext == null) buildContext = new BuildContext();
+			BuildOptions buildOptions;
+			if (options == null)
+			{
+				buildOptions = new BuildOptions(DefaultOptions) { CompileMode = ECompileMode.All };
+			}
+			else if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				buildOptions = options;
+			}
+			else
+			{
+				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
+			}
+			var tokenStream = GetTokenStream(scriptContext, expression);
+			var node = await GetSyntaxAnalyzer(scriptContext).BuildAsync(buildContext, scriptContext, buildOptions, new TokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
+			var body = node.Build(buildContext, scriptContext, buildOptions);
+			PoolManage.Return(node);
+			var bodys = body == null ? null : new[] { body };
+			return buildContext.Build(scriptContext, buildOptions, bodys);
+		}
+
 		public static LambdaExpression Lambda(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression)
 		{
 			if (buildContext == null) buildContext = new BuildContext();
@@ -1401,6 +2349,30 @@ namespace AScript
 			}
 			var tokenStream = GetTokenStream(scriptContext, expression);
 			var node = GetSyntaxAnalyzer(scriptContext).Build(buildContext, scriptContext, buildOptions, new TokenReader(tokenStream, false));
+			var body = node.Build(buildContext, scriptContext, buildOptions);
+			PoolManage.Return(node);
+			var bodys = body == null ? null : new[] { body };
+			return buildContext.Build(scriptContext, buildOptions, bodys);
+		}
+
+		public static async Task<LambdaExpression> LambdaAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression, CancellationToken cancellationToken = default)
+		{
+			if (buildContext == null) buildContext = new BuildContext();
+			BuildOptions buildOptions;
+			if (options == null)
+			{
+				buildOptions = new BuildOptions(DefaultOptions) { CompileMode = ECompileMode.All };
+			}
+			else if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				buildOptions = options;
+			}
+			else
+			{
+				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
+			}
+			var tokenStream = GetTokenStream(scriptContext, expression);
+			var node = await GetSyntaxAnalyzer(scriptContext).BuildAsync(buildContext, scriptContext, buildOptions, new TokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
 			var body = node.Build(buildContext, scriptContext, buildOptions);
 			PoolManage.Return(node);
 			var bodys = body == null ? null : new[] { body };

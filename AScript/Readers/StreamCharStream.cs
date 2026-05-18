@@ -9,7 +9,9 @@ namespace AScript.Readers
 	public class StreamCharStream : ICharStream, IDisposable
 	{
 		private readonly bool _autoDisposeStream;
-		private readonly char[] buffer = new char[1];
+		private readonly char[] buffer = new char[32];
+		private int _currentIndex = 0;
+		private int _currentLength = 0;
 
 		private Stream _stream;
 		private StreamReader _reader;
@@ -27,6 +29,10 @@ namespace AScript.Readers
 
 		public char? Next()
 		{
+			if (_currentLength > 0 && _currentIndex < _currentLength)
+			{
+				return buffer[_currentIndex++];
+			}
 			if (_reader == null && _stream != null)
 			{
 				_reader = new StreamReader(_stream, Encoding.UTF8);
@@ -35,21 +41,26 @@ namespace AScript.Readers
 			{
 				return null;
 			}
-			int d = _reader.Read();
+			_currentIndex = 0;
+			_currentLength = _reader.Read(buffer, 0, buffer.Length);
 			if (_reader.EndOfStream)
 			{
 				DisposeReader();
 			}
-			if (d == -1)
+			if (_currentLength <= 0)
 			{
 				return null;
 			}
-			return (char)d;
+			return buffer[_currentIndex++];
 		}
 
 		public async Task<char?> NextAsync(CancellationToken cancellationToken = default)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
+			if (_currentLength > 0 && _currentIndex < _currentLength)
+			{
+				return buffer[_currentIndex++];
+			}
 			if (_reader == null && _stream != null)
 			{
 				_reader = new StreamReader(_stream, Encoding.UTF8);
@@ -58,16 +69,17 @@ namespace AScript.Readers
 			{
 				return null;
 			}
-			int d = await _reader.ReadAsync(buffer, 0, 1).ConfigureAwait(false);
+			_currentIndex = 0;
+			_currentLength = await _reader.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
 			if (_reader.EndOfStream)
 			{
 				DisposeReader();
 			}
-			if (d <= 0)
+			if (_currentLength <= 0)
 			{
 				return null;
 			}
-			return buffer[0];
+			return buffer[_currentIndex++];
 		}
 
 		public void Dispose()

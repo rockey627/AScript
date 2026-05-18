@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace AScript.Syntaxs
 {
@@ -87,6 +89,11 @@ namespace AScript.Syntaxs
 			return BuildMultiStatement(buildContext, scriptContext, options, tokenReader, new EvalControl());
 		}
 
+		public virtual Task<ITreeNode> BuildAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, CancellationToken cancellationToken = default)
+		{
+			return BuildMultiStatementAsync(buildContext, scriptContext, options, tokenReader, new EvalControl());
+		}
+
 		public virtual ITreeNode BuildMultiStatement(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)
 		{
 			var treeBuilder = ignore ? null : PoolManage.CreateTreeBuilder();
@@ -104,6 +111,36 @@ namespace AScript.Syntaxs
 				// 判断是否结束当前循环
 				if (control != null && (control.Break || control.Terminal || control.Continue)) break;
 				var nextToken = tokenReader.Read();
+				if (!nextToken.HasValue) break;
+				if (nextToken.Value.Value == ";" || nextToken.Value.Value == "," || nextToken.Value.Value == ":") continue;
+				tokenReader.Push(nextToken.Value);
+				if (nextToken.Value.Value == "}" || nextToken.Value.Value == ")" || nextToken.Value.Value == "]") break;
+				if (ScriptUtils.Contains(endTokens, nextToken.Value.Value)) break;
+			}
+			//if (treeBuilder != null)
+			//{
+			//	treeBuilder.TryEvalRoot(buildContext, scriptContext, options, control);
+			//}
+			return treeBuilder;
+		}
+
+		public virtual async Task<ITreeNode> BuildMultiStatementAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null, CancellationToken cancellationToken = default)
+		{
+			var treeBuilder = ignore ? null : PoolManage.CreateTreeBuilder();
+			while (true)
+			{
+				if (treeBuilder != null)
+				{
+					treeBuilder.TryEvalRoot(buildContext, scriptContext, options, control);
+				}
+				var statement = await BuildOneStatementAsync(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens: endTokens, cancellationToken).ConfigureAwait(false);
+				if (treeBuilder != null && statement != null)
+				{
+					treeBuilder.Add(buildContext, scriptContext, options, control, statement);
+				}
+				// 判断是否结束当前循环
+				if (control != null && (control.Break || control.Terminal || control.Continue)) break;
+				var nextToken = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 				if (!nextToken.HasValue) break;
 				if (nextToken.Value.Value == ";" || nextToken.Value.Value == "," || nextToken.Value.Value == ":") continue;
 				tokenReader.Push(nextToken.Value);
@@ -171,25 +208,6 @@ namespace AScript.Syntaxs
 					var block = BuildBlock(buildContext, scriptContext, options, tokenReader, control, ignore);
 					if (treeBuilder == null) treeBuilder = new TreeBuilder();
 					treeBuilder.AddData(buildContext, scriptContext, options, control, block);
-					//if (treeBuilder != null && (treeBuilder.Current is OperatorNode opNode2) && !opNode2.IsFull())
-					//{
-					//	treeBuilder.AddData(buildContext, scriptContext, options, control, block);
-					//}
-					//else
-					//{
-					//	t = tokenReader.Read();
-					//	if (t.HasValue && t.Value.Type != ETokenType.String && t.Value.Value == ".")
-					//	{
-					//		if (treeBuilder == null) treeBuilder = new TreeBuilder();
-					//		treeBuilder.AddData(buildContext, scriptContext, options, control, block);
-					//		continue;
-					//	}
-					//	if (t.HasValue)
-					//	{
-					//		tokenReader.Push(t.Value);
-					//	}
-					//	return block;
-					//}
 				}
 				else if (t.Value.Value == "(")
 				{
@@ -242,7 +260,7 @@ namespace AScript.Syntaxs
 										throw new Exceptions.ScriptAnalyzingException($"invalid expression '?' at ({nextToken2.Value.Line},{nextToken2.Value.Column})");
 									}
 									var type = typeof(Nullable<>).MakeGenericType(type0);
-									var typeOpNode = PoolManage.CreateOperatorNode("__convert__", 2, OperatorPriorities["."] - 1);
+									var typeOpNode = PoolManage.CreateOperatorNode(Operators.ConvertOperator.NAME, 2, OperatorPriorities["."] - 1);
 									typeOpNode.Left = PoolManage.CreateObjectNode(type);
 									if (treeBuilder == null) treeBuilder = new TreeBuilder();
 									treeBuilder.AddData(buildContext, scriptContext, options, control, typeOpNode);
@@ -278,7 +296,7 @@ namespace AScript.Syntaxs
 								{
 									throw new Exceptions.ScriptAnalyzingException($"unkown type '{typeToken.Value.Value}'");
 								}
-								var typeOpNode = PoolManage.CreateOperatorNode("__convert__", 2, OperatorPriorities["."] - 1);
+								var typeOpNode = PoolManage.CreateOperatorNode(Operators.ConvertOperator.NAME, 2, OperatorPriorities["."] - 1);
 								typeOpNode.Left = PoolManage.CreateObjectNode(type);
 								if (treeBuilder == null) treeBuilder = new TreeBuilder();
 								treeBuilder.AddData(buildContext, scriptContext, options, control, typeOpNode);
@@ -451,6 +469,321 @@ namespace AScript.Syntaxs
 			return result;
 		}
 
+		public virtual async Task<ITreeNode> BuildOneStatementAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null, CancellationToken cancellationToken = default)
+		{
+			var t = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+			TreeBuilder treeBuilder = null;
+			while (t.HasValue)
+			{
+				if (t.Value.Type == ETokenType.Number)
+				{
+					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
+					else if (treeBuilder.IsFullStatement())
+					{
+						tokenReader.Push(t.Value);
+						break;
+					}
+					treeBuilder.AddData(buildContext, scriptContext, options, control, EvalNumber(t.Value.Value), null);
+				}
+				else if (t.Value.Type == ETokenType.String)
+				{
+					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
+					else if (treeBuilder.IsFullStatement())
+					{
+						tokenReader.Push(t.Value);
+						break;
+					}
+					treeBuilder.AddData(buildContext, scriptContext, options, control, t.Value.Value, typeof(string));
+				}
+				else if (t.Value.Value == ")" || t.Value.Value == "]" || t.Value.Value == "}" || t.Value.Value == "," || t.Value.Value == ";" || t.Value.Value == ":")
+				{
+					tokenReader.Push(t.Value);
+					break;
+				}
+				else if (ScriptUtils.Contains(endTokens, t.Value.Value))
+				{
+					tokenReader.Push(t.Value);
+					break;
+				}
+				else if (t.Value.Value == "{")
+				{
+					if (treeBuilder != null && treeBuilder.Current != null && treeBuilder.Current is CallFuncNode funcHead
+						&& (funcHead.Args == null || funcHead.Args.All(a => a is DefineVarNode)))
+					{
+						tokenReader.Push(t.Value);
+						ParseFuncDefine(buildContext, scriptContext, options, tokenReader, control, treeBuilder, funcHead, ignore);
+						break;
+					}
+					if (treeBuilder != null && treeBuilder.Current != null &&
+						(!(treeBuilder.Current is OperatorNode opNode) || opNode.IsFull()))
+					{
+						tokenReader.Push(t.Value);
+						break;
+					}
+					var block = BuildBlock(buildContext, scriptContext, options, tokenReader, control, ignore);
+					if (treeBuilder == null) treeBuilder = new TreeBuilder();
+					treeBuilder.AddData(buildContext, scriptContext, options, control, block);
+				}
+				else if (t.Value.Value == "(")
+				{
+					if (treeBuilder != null && treeBuilder.IsFullStatement())
+					{
+						tokenReader.Push(t.Value);
+						break;
+					}
+					// 判断类型转换语法：(int?)v (string)(x+b) (long)5
+					var typeToken = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+					if (!typeToken.HasValue)
+					{
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression at ({tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}), expect ')'");
+					}
+					if (typeToken.Value.Type == ETokenType.Word)
+					{
+						var nextToken2 = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+						if (!nextToken2.HasValue)
+						{
+							throw new Exceptions.ScriptAnalyzingException($"invalid expression at ({tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}), expect ')'");
+						}
+						Token? nextToken3 = null;
+						if (nextToken2.Value.IsSymbol("?"))
+						{
+							nextToken3 = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+							if (!nextToken3.HasValue)
+							{
+								throw new Exceptions.ScriptAnalyzingException($"invalid expression at ({tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}), expect ')'");
+							}
+							if (nextToken3.Value.IsSymbol(")"))
+							{
+								var valueToken = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+								if (!valueToken.HasValue)
+								{
+									throw new Exceptions.ScriptAnalyzingException($"invalid expression '?' at ({nextToken2.Value.Line},{nextToken2.Value.Column})");
+								}
+								else if (valueToken.Value.Type == ETokenType.Operator)
+								{
+									throw new Exceptions.ScriptAnalyzingException($"invalid expression '?' at ({nextToken2.Value.Line},{nextToken2.Value.Column})");
+								}
+								else
+								{
+									var type0 = scriptContext.EvalType(typeToken.Value.Value);
+									if (type0 == null)
+									{
+										throw new Exceptions.ScriptAnalyzingException($"unkown type '{typeToken.Value.Value}'");
+									}
+									if (!type0.IsValueType)
+									{
+										throw new Exceptions.ScriptAnalyzingException($"invalid expression '?' at ({nextToken2.Value.Line},{nextToken2.Value.Column})");
+									}
+									var type = typeof(Nullable<>).MakeGenericType(type0);
+									var typeOpNode = PoolManage.CreateOperatorNode(Operators.ConvertOperator.NAME, 2, OperatorPriorities["."] - 1);
+									typeOpNode.Left = PoolManage.CreateObjectNode(type);
+									if (treeBuilder == null) treeBuilder = new TreeBuilder();
+									treeBuilder.AddData(buildContext, scriptContext, options, control, typeOpNode);
+									t = valueToken;
+									continue;
+								}
+							}
+							else
+							{
+								tokenReader.Push(nextToken3.Value);
+								tokenReader.Push(nextToken2.Value);
+								tokenReader.Push(typeToken.Value);
+							}
+						}
+						else if (nextToken2.Value.IsSymbol(")"))
+						{
+							var valueToken = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+							if (!valueToken.HasValue)
+							{
+								tokenReader.Push(nextToken2.Value);
+								tokenReader.Push(typeToken.Value);
+							}
+							else if (valueToken.Value.Type == ETokenType.Operator)
+							{
+								tokenReader.Push(valueToken.Value);
+								tokenReader.Push(nextToken2.Value);
+								tokenReader.Push(typeToken.Value);
+							}
+							else
+							{
+								var type = scriptContext.EvalType(typeToken.Value.Value);
+								if (type == null)
+								{
+									throw new Exceptions.ScriptAnalyzingException($"unkown type '{typeToken.Value.Value}'");
+								}
+								var typeOpNode = PoolManage.CreateOperatorNode(Operators.ConvertOperator.NAME, 2, OperatorPriorities["."] - 1);
+								typeOpNode.Left = PoolManage.CreateObjectNode(type);
+								if (treeBuilder == null) treeBuilder = new TreeBuilder();
+								treeBuilder.AddData(buildContext, scriptContext, options, control, typeOpNode);
+								t = valueToken;
+								continue;
+							}
+						}
+						else
+						{
+							tokenReader.Push(nextToken2.Value);
+							tokenReader.Push(typeToken.Value);
+						}
+					}
+					else
+					{
+						tokenReader.Push(typeToken.Value);
+					}
+					// 
+					var buildOptions = options;
+					if (!(buildOptions.CreateFullTreeNode ?? false))
+					{
+						var token1 = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+						Token? token2 = null;
+						if (token1.HasValue && token1.Value.Type == ETokenType.Word)
+						{
+							token2 = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+							if (token2.HasValue && (token2.Value.Type == ETokenType.Word || token2.Value.IsSymbol(",")))
+							{
+								buildOptions = new BuildOptions(options) { CreateFullTreeNode = true };
+							}
+						}
+						if (token2.HasValue) tokenReader.Push(token2.Value);
+						if (token1.HasValue) tokenReader.Push(token1.Value);
+					}
+					var statement0 = BuildOneStatement(buildContext, scriptContext, buildOptions, tokenReader, control, ignore);
+					var nextToken = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+					if (!nextToken.HasValue)
+					{
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression at ({tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}), expect ')'");
+					}
+					if (nextToken.Value.Type == ETokenType.String)
+					{
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column}), expect ')'");
+					}
+					// 元组解析：括号内有逗号分隔的多个表达式
+					if (nextToken.Value.Value == ",")
+					{
+						var items = ignore ? null : new List<ITreeNode> { statement0 };
+						while (true)
+						{
+							var item = BuildOneStatement(buildContext, scriptContext, buildOptions, tokenReader, control, ignore);
+							if (!ignore) items.Add(item);
+							var tok = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+							if (!tok.HasValue) throw new Exceptions.ScriptAnalyzingException("invalid tuple expression, expect ')'");
+							if (tok.Value.Type == ETokenType.String)
+							{
+								throw new Exceptions.ScriptAnalyzingException($"invalid tuple expression near '{tok.Value.Value}' at ({tok.Value.Line},{tok.Value.Column}), expect ')'");
+							}
+							if (tok.Value.Value == ")") break;
+							if (tok.Value.Value != ",") throw new Exceptions.ScriptAnalyzingException($"invalid tuple expression near '{tok.Value.Value}' at ({tok.Value.Line},{tok.Value.Column}), expect ',' or ')'");
+						}
+						if (!ignore)
+						{
+							var tupleNode = new TupleNode { Items = items };
+							if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
+							treeBuilder.AddData(buildContext, scriptContext, options, control, tupleNode);
+						}
+					}
+					else
+					{
+						if (nextToken.Value.Value != ")")
+						{
+							throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column}), expect ')'");
+						}
+						if (!ignore)
+						{
+							if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
+							treeBuilder.AddData(buildContext, scriptContext, options, control, statement0);
+						}
+					}
+				}
+				else if (t.Value.Value == "=>")
+				{
+					if (treeBuilder == null || treeBuilder.Current == null)
+					{
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression '=>' at {t.Value.Line},{t.Value.Column}");
+					}
+					//BuildOptions buildOptions;
+					//if (options.CreateFullTreeNode ?? false)
+					//{
+					//	buildOptions = options;
+					//}
+					//else
+					//{
+					//	buildOptions = new BuildOptions(options) { CreateFullTreeNode = true };
+					//}
+					if (!(options.CreateFullTreeNode ?? false))
+					{
+						options = new BuildOptions(options) { CreateFullTreeNode = true };
+					}
+					// a => body 语法：单个变量作为参数
+					if (treeBuilder.Current is DefineVarNode defineVarNode)
+					{
+						var funcHead = new CallFuncNode
+						{
+							Name = "_",
+							Args = new DefineVarNode[] { defineVarNode }
+						};
+						ParseFuncDefine(buildContext, scriptContext, options, tokenReader, control, treeBuilder, funcHead, ignore);
+					}
+					else if (treeBuilder.Current is VariableNode varNode)
+					{
+						var funcHead = new CallFuncNode
+						{
+							Name = "_",
+							Args = new DefineVarNode[] { PoolManage.CreateDefineVarNode(varNode.Name, null, typeof(object)) }
+						};
+						ParseFuncDefine(buildContext, scriptContext, options, tokenReader, control, treeBuilder, funcHead, ignore);
+					}
+					// func(a, b) => body 语法：函数调用作为参数
+					else if (treeBuilder.Current is CallFuncNode funcHead
+						&& (funcHead.Args == null || funcHead.Args.Length == 0 || funcHead.Args.All(a => a is VariableNode)))
+					{
+						ParseFuncDefine(buildContext, scriptContext, options, tokenReader, control, treeBuilder, funcHead, ignore);
+					}
+					else if (treeBuilder.Current is TupleNode tupleNode && tupleNode.Items.All(a => a is VariableNode || a is DefineVarNode))
+					{
+						var funcHead2 = new CallFuncNode
+						{
+							Name = "_",
+							Args = tupleNode.Items.Select(a => a is DefineVarNode defineVar ? defineVar : PoolManage.CreateDefineVarNode(((VariableNode)a).Name, null, typeof(object))).ToArray()
+						};
+						ParseFuncDefine(buildContext, scriptContext, options, tokenReader, control, treeBuilder, funcHead2, ignore);
+					}
+					else
+					{
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression '=>' at {t.Value.Line},{t.Value.Column}");
+					}
+					break;
+				}
+				else
+				{
+					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
+					var e = TokenAnalyzingArgs.Create(buildContext, scriptContext, options, control, treeBuilder, tokenReader, t.Value);
+					try
+					{
+						e.Ignore = ignore;
+						await OnTokenAnalyzingAsync(e, cancellationToken).ConfigureAwait(false);
+						if (!e.IsHandled)
+						{
+							ParseIdentifierOrOperator(e, endTokens);
+						}
+						if (e.End) break;
+					}
+					finally
+					{
+						TokenAnalyzingArgs.Return(e);
+					}
+				}
+				t = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+			}
+			//if (treeBuilder != null)
+			//{
+			//	treeBuilder.TryEvalRoot(buildContext, scriptContext, options, control);
+			//}
+			//return treeBuilder;
+			if (treeBuilder == null) return null;
+			var result = treeBuilder.EvalRoot(buildContext, scriptContext, options, control);
+			PoolManage.Return(treeBuilder);
+			return result;
+		}
+
 		public ITreeNode BuildOneStatement2(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null, bool noblock = false)
 		{
 			var token = tokenReader.Read();
@@ -461,6 +794,24 @@ namespace AScript.Syntaxs
 				{
 					var node = BuildMultiStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens);
 					ValidateNextToken(tokenReader, "}");
+					return node;
+				}
+				return BuildBlock(buildContext, scriptContext, options, tokenReader, control, ignore);
+			}
+			tokenReader.Push(token.Value);
+			return BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens);
+		}
+
+		public async Task<ITreeNode> BuildOneStatement2Async(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null, bool noblock = false, CancellationToken cancellationToken = default)
+		{
+			var token = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+			if (!token.HasValue) return null;
+			if (token.Value.Type != ETokenType.String && token.Value.Value == "{")
+			{
+				if (noblock)
+				{
+					var node = await BuildMultiStatementAsync(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens, cancellationToken).ConfigureAwait(false);
+					await ValidateNextTokenAsync(tokenReader, "}", cancellationToken).ConfigureAwait(false);
 					return node;
 				}
 				return BuildBlock(buildContext, scriptContext, options, tokenReader, control, ignore);
@@ -483,9 +834,37 @@ namespace AScript.Syntaxs
 			return nextToken;
 		}
 
+		public virtual async Task<Token?> ValidateNextTokenAsync(TokenReader tokenReader, string nextTokenForValid, CancellationToken cancellationToken = default)
+		{
+			var nextToken = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+			if (!nextToken.HasValue)
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect {nextTokenForValid}");
+			}
+			if (nextToken.Value.Type == ETokenType.String || nextToken.Value.Value != nextTokenForValid)
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at {nextToken.Value.Line},{nextToken.Value.Column}, expect {nextTokenForValid}");
+			}
+			return nextToken;
+		}
+
 		public virtual Token? ValidateNextToken(TokenReader tokenReader, ETokenType nextTokenTypeForValid)
 		{
 			var nextToken = tokenReader.Read();
+			if (!nextToken.HasValue)
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect {nextTokenTypeForValid.ToString()}");
+			}
+			if (nextToken.Value.Type != nextTokenTypeForValid)
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect {nextTokenTypeForValid.ToString()}");
+			}
+			return nextToken;
+		}
+
+		public virtual async Task<Token?> ValidateNextTokenAsync(TokenReader tokenReader, ETokenType nextTokenTypeForValid, CancellationToken cancellationToken = default)
+		{
+			var nextToken = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 			if (!nextToken.HasValue)
 			{
 				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect {nextTokenTypeForValid.ToString()}");
@@ -973,6 +1352,17 @@ namespace AScript.Syntaxs
 			if (e.IsHandled) return;
 
 			e.ScriptContext.HandleToken(this, e);
+		}
+
+		protected virtual async Task OnTokenAnalyzingAsync(TokenAnalyzingArgs e, CancellationToken cancellationToken)
+		{
+			if (e.IsHandled) return;
+
+			this.TokenAnalyzing?.Invoke(this, e);
+
+			if (e.IsHandled) return;
+
+			await e.ScriptContext.HandleTokenAsync(this, e, cancellationToken);
 		}
 	}
 }

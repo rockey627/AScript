@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AScript
 {
@@ -708,6 +710,39 @@ namespace AScript
 				for (int i = 0; i < _TokenHandlers.Count; i++)
 				{
 					_TokenHandlers[i].Build(analyzer, e);
+					if (e.IsHandled) return;
+				}
+			}
+		}
+
+		public async Task HandleTokenAsync(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, CancellationToken cancellationToken = default)
+		{
+			if (e.IsHandled) return;
+			if (_TokenHandlerDict != null && _TokenHandlerDict.TryGetValue(e.CurrentToken.Value, out var handler))
+			{
+				if (handler is IAsyncTokenHandler asyncTokenHandler)
+				{
+					await asyncTokenHandler.BuildAsync(analyzer, e, cancellationToken).ConfigureAwait(false);
+				}
+				else
+				{
+					handler.Build(analyzer, e);
+				}
+				if (e.IsHandled) return;
+			}
+			if (_TokenHandlers != null)
+			{
+				for (int i = 0; i < _TokenHandlers.Count; i++)
+				{
+					var handler2 = _TokenHandlers[i];
+					if (handler2 is IAsyncTokenHandler asyncTokenHandler)
+					{
+						await asyncTokenHandler.BuildAsync(analyzer, e, cancellationToken).ConfigureAwait(false);
+					}
+					else
+					{
+						handler2.Build(analyzer, e);
+					}
 					if (e.IsHandled) return;
 				}
 			}

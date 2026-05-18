@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AScript
 {
@@ -631,7 +633,7 @@ namespace AScript
 			return null;
 		}
 
-		public TDelegate GetEvent<TDelegate>(string name) where TDelegate: Delegate
+		public TDelegate GetEvent<TDelegate>(string name) where TDelegate : Delegate
 		{
 			var d = GetEvent(name, typeof(TDelegate));
 			return (TDelegate)d;
@@ -2019,6 +2021,73 @@ namespace AScript
 					if (Script.Langs.TryGetValue(langs[i], out var lang))
 					{
 						lang.HandleToken(analyzer, e);
+						if (e.IsHandled) return;
+					}
+				}
+			}
+		}
+
+		public async Task HandleTokenAsync(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, CancellationToken cancellationToken = default)
+		{
+			if (e.IsHandled) return;
+
+			var context = this;
+			while (context != null)
+			{
+				var tokenHandlerDict = context._TokenHandlerDict;
+				if (tokenHandlerDict != null && tokenHandlerDict.TryGetValue(e.CurrentToken.Value, out var handler))
+				{
+					if (handler is IAsyncTokenHandler asyncTokenHandler)
+					{
+						await asyncTokenHandler.BuildAsync(analyzer, e, cancellationToken).ConfigureAwait(false);
+					}
+					else
+					{
+						handler.Build(analyzer, e);
+					}
+					if (e.IsHandled) return;
+				}
+				var tokenHandlers = context._TokenHandlers;
+				if (tokenHandlers != null)
+				{
+					for (int i = 0; i < tokenHandlers.Count; i++)
+					{
+						var handler2 = tokenHandlers[i];
+						if (handler2 is IAsyncTokenHandler asyncTokenHandler)
+						{
+							await asyncTokenHandler.BuildAsync(analyzer, e, cancellationToken).ConfigureAwait(false);
+						}
+						else
+						{
+							handler2.Build(analyzer, e);
+						}
+						if (e.IsHandled) return;
+					}
+				}
+				context = context.Parent;
+			}
+
+			var langs = this.Langs;
+			if (langs == null || langs.Length == 0)
+			{
+				// 所有可兼容脚本语言
+				foreach (var langName in Script.Langs.GetDefaults())
+				{
+					if (Script.Langs.TryGetValue(langName, out var lang))
+					{
+						await lang.HandleTokenAsync(analyzer, e, cancellationToken).ConfigureAwait(false);
+						if (e.IsHandled) return;
+					}
+				}
+			}
+			else
+			{
+				// 指定脚本语言
+				for (int i = 0; i < langs.Length; i++)
+				{
+					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					{
+						await lang.HandleTokenAsync(analyzer, e, cancellationToken).ConfigureAwait(false);
 						if (e.IsHandled) return;
 					}
 				}

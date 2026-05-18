@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using AScript.Nodes;
 using AScript.Readers;
 
@@ -20,5 +22,16 @@ namespace AScript
 		/// <param name="tokenReader"></param>
 		/// <returns></returns>
 		ITreeNode Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="buildContext"></param>
+		/// <param name="scriptContext"></param>
+		/// <param name="options"></param>
+		/// <param name="tokenReader"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		Task<ITreeNode> BuildAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, CancellationToken cancellationToken = default);
 	}
 }
