@@ -79,7 +79,7 @@ namespace AScript
 				e.SetResult(null, null);
 				return;
 			}
-			var result = await this.Body.Eval2Async(tempContext, e.Options, new EvalControl(), cancellationToken).ConfigureAwait(false);
+			var result = await this.Body.EvalAsync(tempContext, e.Options, new EvalControl(), cancellationToken).ConfigureAwait(false);
 			e.SetResult(result.Value, result.Type);
 		}
 

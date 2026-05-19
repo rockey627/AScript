@@ -31,7 +31,7 @@ namespace AScript.Nodes
 			return null;
 		}
 
-		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		public override async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
 		{
 			if (await EvalConditionAsync(context, cancellationToken).ConfigureAwait(false))
 			{
@@ -39,11 +39,11 @@ namespace AScript.Nodes
 				{
 					return default;
 				}
-				return await this.Body.Eval2Async(context, options, control, cancellationToken).ConfigureAwait(false);
+				return await this.Body.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
 			}
 			if (this.Else != null)
 			{
-				return await this.Else.Eval2Async(context, options, control, cancellationToken).ConfigureAwait(false);
+				return await this.Else.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
 			}
 			return default;
 		}
@@ -62,7 +62,7 @@ namespace AScript.Nodes
 		private async Task<bool> EvalConditionAsync(ScriptContext context, CancellationToken cancellationToken)
 		{
 			if (this.Condition == null) return true;
-			var result = await this.Condition.Eval2Async(context, null, null, cancellationToken).ConfigureAwait(false);
+			var result = await this.Condition.EvalAsync(context, null, null, cancellationToken).ConfigureAwait(false);
 			var conditionResult = result.Value;
 			if (!(conditionResult is bool b))
 			{

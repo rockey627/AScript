@@ -122,7 +122,7 @@ namespace AScript.Nodes
 			return bodyResult;
 		}
 
-		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		public override async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
 		{
 			if (this.VarDefine == null && this.VarDefines == null)
 			{
@@ -133,7 +133,7 @@ namespace AScript.Nodes
 				throw new ScriptAnalyzingException("require collection in foreach statement");
 			}
 			// 计算集合
-			var evalResult = await this.Collection.Eval2Async(context, options, control, cancellationToken).ConfigureAwait(false);
+			var evalResult = await this.Collection.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
 			var listResult = evalResult.Value;
 			var listType = evalResult.Type;
 			if (listResult == null)
@@ -155,12 +155,12 @@ namespace AScript.Nodes
 				{
 					foreach (var vd in this.VarDefines)
 					{
-						await vd.Eval2Async(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+						await vd.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 					}
 				}
 				else
 				{
-					await this.VarDefine.Eval2Async(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+					await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 				}
 				// 循环
 				foreach (var item in en)
@@ -216,10 +216,10 @@ namespace AScript.Nodes
 					}
 					else
 					{
-						var varDefineResult = await this.VarDefine.Eval2Async(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+						var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 						tempContext.SetVar(this.VarDefine.Name, item, item == null ? varDefineResult.Type : null);
 					}
-					bodyResult = await this.Body.Eval2Async(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
+					bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
 					if (tempController.Terminal || tempController.Break) break;
 					tempController.Continue = false;
 				}

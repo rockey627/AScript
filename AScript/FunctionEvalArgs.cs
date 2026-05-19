@@ -146,7 +146,7 @@ namespace AScript
 				}
 				else
 				{
-					var result = await arg.Eval2Async(this.Context, this.Options, this.Control, cancellationToken).ConfigureAwait(false);
+					var result = await arg.EvalAsync(this.Context, this.Options, this.Control, cancellationToken).ConfigureAwait(false);
 					this.ArgValues[i] = result.Value;
 					this.ArgTypes[i] = result.Type;
 					if (!(arg is ObjectNode))

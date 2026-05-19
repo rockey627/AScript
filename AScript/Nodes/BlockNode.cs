@@ -19,11 +19,11 @@ namespace AScript.Nodes
 			return null;
 		}
 
-		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		public override async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
 		{
 			if (this.Block != null)
 			{
-				return await this.Block.Eval2Async(ScriptContext.Create(context), options, control, cancellationToken).ConfigureAwait(false);
+				return await this.Block.EvalAsync(ScriptContext.Create(context), options, control, cancellationToken).ConfigureAwait(false);
 			}
 			return default;
 		}

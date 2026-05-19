@@ -121,14 +121,14 @@ namespace AScript.Nodes
 			return v;
 		}
 
-		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		public override async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
 		{
 			var itemValues = new object[this.Items.Count];
 			var itemTypes = new Type[this.Items.Count];
 
 			for (int i = 0; i < this.Items.Count; i++)
 			{
-				var result = await this.Items[i].Eval2Async(context, options, control, cancellationToken).ConfigureAwait(false);
+				var result = await this.Items[i].EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
 				itemValues[i] = result.Value;
 				itemTypes[i] = result.Type;
 			}

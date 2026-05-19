@@ -31,7 +31,7 @@ namespace AScript.Nodes
 			}
 		}
 
-		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		public override async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
 		{
 			if (control == null)
 			{
@@ -43,7 +43,7 @@ namespace AScript.Nodes
 				{
 					return default;
 				}
-				return await this.Body.Eval2Async(context, options, control, cancellationToken).ConfigureAwait(false);
+				return await this.Body.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
 			}
 			finally
 			{

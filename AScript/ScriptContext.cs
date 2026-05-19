@@ -804,9 +804,9 @@ namespace AScript
 			return EvalFunc(options, control, name, false, args, out returnType);
 		}
 
-		public Task<EvalResult> EvalFunc2Async(BuildOptions options, EvalControl control, string name, IList<ITreeNode> args, CancellationToken cancellationToken = default)
+		public Task<EvalResult> EvalFuncAsync(BuildOptions options, EvalControl control, string name, IList<ITreeNode> args, CancellationToken cancellationToken = default)
 		{
-			return EvalFunc2Async(options, control, name, false, args, cancellationToken);
+			return EvalFuncAsync(options, control, name, false, args, cancellationToken);
 		}
 
 		public object EvalFunc(BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args, out Type returnType)
@@ -918,7 +918,7 @@ namespace AScript
 			}
 		}
 
-		public async Task<EvalResult> EvalFunc2Async(BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args, CancellationToken cancellationToken = default)
+		public async Task<EvalResult> EvalFuncAsync(BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args, CancellationToken cancellationToken = default)
 		{
 			var functionEvalArgs = FunctionEvalArgs.Create(this, options, control, name, isPrefix, args);
 			try

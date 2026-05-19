@@ -35,7 +35,7 @@ namespace AScript.Nodes
 			return bodyResult;
 		}
 
-		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		public override async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
 		{
 			var tempContext = ScriptContext.Create(context);
 			var tempControl = new EvalControl(control, true);
@@ -48,7 +48,7 @@ namespace AScript.Nodes
 				}
 				if (this.Body != null)
 				{
-					bodyResult = await this.Body.Eval2Async(ScriptContext.Create(tempContext), options, tempControl, cancellationToken).ConfigureAwait(false);
+					bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempControl, cancellationToken).ConfigureAwait(false);
 					if (tempControl.Terminal || tempControl.Break) break;
 					tempControl.Continue = false;
 				}
@@ -70,7 +70,7 @@ namespace AScript.Nodes
 		private async Task<bool> EvalConditionAsync(ScriptContext context, BuildOptions options, CancellationToken cancellationToken)
 		{
 			if (this.Condition == null) return true;
-			var evalResult = await this.Condition.Eval2Async(context, options, null, cancellationToken).ConfigureAwait(false);
+			var evalResult = await this.Condition.EvalAsync(context, options, null, cancellationToken).ConfigureAwait(false);
 			var conditionResult = evalResult.Value;
 			var conditionType = evalResult.Type;
 			if (!(conditionResult is bool b))

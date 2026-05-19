@@ -46,20 +46,7 @@ namespace AScript
 			return value;
 		}
 
-		public static async Task<object> EvalAsync(this ISyntaxAnalyzer analyzer, ScriptContext context, BuildOptions options, ITokenStream tokenStream, CancellationToken cancellationToken = default)
-		{
-			var buildContext = new BuildContext();
-			var treeBuilder = await analyzer.BuildAsync(buildContext, context, options, new Readers.TokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
-			if (treeBuilder == null)
-			{
-				return null;
-			}
-			var value = treeBuilder.Eval(context, options, null, out _);
-			PoolManage.Return(treeBuilder);
-			return value;
-		}
-
-		public static async Task<EvalResult> Eval2Async(this ISyntaxAnalyzer analyzer, ScriptContext context, BuildOptions options, ITokenStream tokenStream, CancellationToken cancellationToken = default)
+		public static async Task<EvalResult> EvalAsync(this ISyntaxAnalyzer analyzer, ScriptContext context, BuildOptions options, ITokenStream tokenStream, CancellationToken cancellationToken = default)
 		{
 			var buildContext = new BuildContext();
 			var treeBuilder = await analyzer.BuildAsync(buildContext, context, options, new Readers.TokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
@@ -67,9 +54,9 @@ namespace AScript
 			{
 				return default;
 			}
-			var value = treeBuilder.Eval(context, options, null, out var returnType);
+			var result = await treeBuilder.EvalAsync(context, options, null, cancellationToken).ConfigureAwait(false);
 			PoolManage.Return(treeBuilder);
-			return new EvalResult(value, returnType);
+			return result;
 		}
 	}
 }

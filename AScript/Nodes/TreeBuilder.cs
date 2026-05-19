@@ -75,15 +75,15 @@ namespace AScript.Nodes
 			return Expression.Block(_Expressions);
 		}
 
-		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		public override async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
 		{
 			if (_Root != null)
 			{
-				return await _Root.Eval2Async(context, options, control, cancellationToken).ConfigureAwait(false);
+				return await _Root.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
 			}
 			if (_LastResult != null)
 			{
-				return await _LastResult.Eval2Async(context, options, control, cancellationToken).ConfigureAwait(false);
+				return await _LastResult.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
 			}
 			return default;
 		}

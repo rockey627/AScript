@@ -57,14 +57,14 @@ namespace AScript.Nodes
 			return bodyResult;
 		}
 
-		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		public override async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
 		{
 			var tempContext = ScriptContext.Create(context);
 			var tempControl = new EvalControl(control, true);
 			// 执行初始语句
 			if (this.Init != null)
 			{
-				await this.Init.Eval2Async(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+				await this.Init.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 			}
 			// 执行循环
 			EvalResult bodyResult = default;
@@ -73,7 +73,7 @@ namespace AScript.Nodes
 				// 条件判断
 				if (this.Condition != null)
 				{
-					var evalResult = await this.Condition.Eval2Async(tempContext, null, null, cancellationToken).ConfigureAwait(false);
+					var evalResult = await this.Condition.EvalAsync(tempContext, null, null, cancellationToken).ConfigureAwait(false);
 					var conditionResult = evalResult.Value;
 					var conditionType = evalResult.Type;
 					if (conditionType != null)
@@ -88,14 +88,14 @@ namespace AScript.Nodes
 				// 执行body
 				if (this.Body != null)
 				{
-					bodyResult = await this.Body.Eval2Async(ScriptContext.Create(tempContext), options, tempControl, cancellationToken).ConfigureAwait(false);
+					bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempControl, cancellationToken).ConfigureAwait(false);
 					if (tempControl.Terminal || tempControl.Break) break;
 					tempControl.Continue = false;
 				}
 				// 执行后置语句
 				if (this.Post != null)
 				{
-					await this.Post.Eval2Async(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+					await this.Post.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 				}
 			}
 			return bodyResult;

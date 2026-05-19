@@ -118,7 +118,7 @@ namespace AScript.Nodes
 			}
 		}
 
-		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		public override async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
 		{
 			if (this.Name == ";")
 			{
@@ -126,7 +126,7 @@ namespace AScript.Nodes
 				Type type = null;
 				if (this._Left != null)
 				{
-					result = await this._Left.Eval2Async(context, options, control, cancellationToken).ConfigureAwait(false);
+					result = await this._Left.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
 					if (control != null && (control.Continue || control.Break || control.Terminal))
 					{
 						return result;
@@ -134,7 +134,7 @@ namespace AScript.Nodes
 				}
 				if (this._Right != null)
 				{
-					result = await this._Right.Eval2Async(context, options, control, cancellationToken).ConfigureAwait(false);
+					result = await this._Right.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
 				}
 				return result;
 			}
@@ -143,7 +143,7 @@ namespace AScript.Nodes
 				var args = GetArgs(context);
 				try
 				{
-					return await context.EvalFunc2Async(options, control, this.Name, IsPrefix(), args, cancellationToken).ConfigureAwait(false);
+					return await context.EvalFuncAsync(options, control, this.Name, IsPrefix(), args, cancellationToken).ConfigureAwait(false);
 				}
 				finally
 				{

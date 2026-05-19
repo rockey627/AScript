@@ -358,7 +358,7 @@ namespace AScript.Nodes
 			return null;
 		}
 
-		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		public override async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
 		{
 			if (string.IsNullOrEmpty(this.Name))
 			{
@@ -381,7 +381,7 @@ namespace AScript.Nodes
 							}
 							else
 							{
-								args[i] = await arg.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
+								args[i] = (await arg.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false)).Value;
 							}
 						}
 					}
@@ -413,13 +413,13 @@ namespace AScript.Nodes
 						}
 						else
 						{
-							var argResult = await this.Args[i].Eval2Async(context, options, null, cancellationToken).ConfigureAwait(false);
+							var argResult = await this.Args[i].EvalAsync(context, options, null, cancellationToken).ConfigureAwait(false);
 							argValues[i] = argResult.Value;
 							argTypes[i] = argResult.Type;
 						}
 					}
 				}
-				var targetResult = await ((ITreeNode)this.Target).Eval2Async(context, options, null, cancellationToken).ConfigureAwait(false);
+				var targetResult = await ((ITreeNode)this.Target).EvalAsync(context, options, null, cancellationToken).ConfigureAwait(false);
 				var v0 = targetResult.Value;
 				var t0 = targetResult.Type;
 				if (t0 == typeof(TypeWrapper))
@@ -509,7 +509,7 @@ namespace AScript.Nodes
 					}
 				}
 				var tmpContext = ScriptContext.Create(context);
-				return await tmpContext.EvalFunc2Async(options, control, this.Name, args, cancellationToken).ConfigureAwait(false);
+				return await tmpContext.EvalFuncAsync(options, control, this.Name, args, cancellationToken).ConfigureAwait(false);
 			}
 			return new EvalResult();
 		}
