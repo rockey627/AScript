@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AScript.Nodes
 {
@@ -71,6 +73,19 @@ namespace AScript.Nodes
 			if (_Expressions == null || _Expressions.Count == 0) return null;
 			if (_Expressions.Count == 1) return _Expressions[0];
 			return Expression.Block(_Expressions);
+		}
+
+		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		{
+			if (_Root != null)
+			{
+				return await _Root.Eval2Async(context, options, control, cancellationToken).ConfigureAwait(false);
+			}
+			if (_LastResult != null)
+			{
+				return await _LastResult.Eval2Async(context, options, control, cancellationToken).ConfigureAwait(false);
+			}
+			return default;
 		}
 
 		public override void Clear()

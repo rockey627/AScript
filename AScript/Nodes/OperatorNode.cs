@@ -2,6 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AScript.Nodes
 {
@@ -108,6 +110,40 @@ namespace AScript.Nodes
 				try
 				{
 					return context.EvalFunc(options, control, this.Name, IsPrefix(), args, out returnType);
+				}
+				finally
+				{
+					ReturnArray(args);
+				}
+			}
+		}
+
+		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		{
+			if (this.Name == ";")
+			{
+				EvalResult result = default;
+				Type type = null;
+				if (this._Left != null)
+				{
+					result = await this._Left.Eval2Async(context, options, control, cancellationToken).ConfigureAwait(false);
+					if (control != null && (control.Continue || control.Break || control.Terminal))
+					{
+						return result;
+					}
+				}
+				if (this._Right != null)
+				{
+					result = await this._Right.Eval2Async(context, options, control, cancellationToken).ConfigureAwait(false);
+				}
+				return result;
+			}
+			else
+			{
+				var args = GetArgs(context);
+				try
+				{
+					return await context.EvalFunc2Async(options, control, this.Name, IsPrefix(), args, cancellationToken).ConfigureAwait(false);
 				}
 				finally
 				{

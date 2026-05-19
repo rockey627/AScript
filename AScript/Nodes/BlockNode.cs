@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AScript.Nodes
 {
@@ -15,6 +17,15 @@ namespace AScript.Nodes
 			}
 			returnType = null;
 			return null;
+		}
+
+		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		{
+			if (this.Block != null)
+			{
+				return await this.Block.Eval2Async(ScriptContext.Create(context), options, control, cancellationToken).ConfigureAwait(false);
+			}
+			return default;
 		}
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)

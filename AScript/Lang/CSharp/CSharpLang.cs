@@ -118,7 +118,7 @@ namespace AScript.Lang.CSharp
 			AddFunc("eval", EvalFunction.Instance);
 			// 类型转换
 			AddFunc("as", new ConvertFunction(1));
-			AddFunc(ConvertFunction.FORCE_NAME, new ConvertFunction());
+			AddFunc(ConvertFunction.FORCE_NAME, new ConvertFunction(0));
 			AddFunc("await", new AwaitFunction());
 
 			AddTokenHandler("??", LazyTokenHandler.Instance);
