@@ -104,7 +104,6 @@ namespace AScript.Lang.CSharp
 			AddFunc("?.", new DotOperator(true));
 			AddFunc("[]", IndexOperator.Instance);
 			AddFunc("[:]", IndexStartEndOperator.Instance);
-			AddFunc(ConvertOperator.NAME, new ConvertOperator());
 
 			// Convert方法，调用示例：'12'.ToInt32()
 			AddFunc(typeof(Convert));
@@ -118,7 +117,10 @@ namespace AScript.Lang.CSharp
 			// 内置eval函数
 			AddFunc("eval", EvalFunction.Instance);
 			// 类型转换
-			AddFunc("as", ConvertFunction.Instance);
+			//AddFunc("as", ConvertFunction.Instance);
+			AddFunc("as", new ConvertFunction(1));
+			AddFunc(ConvertFunction.FORCE_NAME, new ConvertFunction());
+			//AddFunc("await", new AwaitFunction());
 
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);
@@ -140,6 +142,7 @@ namespace AScript.Lang.CSharp
 			AddTokenHandler("static", StaticTokenHandler.Instance);
 			AddTokenHandler("as", new OperatorTokenHandler("??"));
 			AddTokenHandler("from", FromTokenHandler.Instance);
+			//AddTokenHandler("await", AwaitTokenHandler.Instance);
 		}
 	}
 }
