@@ -260,7 +260,7 @@ namespace AScript.Syntaxs
 										throw new Exceptions.ScriptAnalyzingException($"invalid expression '?' at ({nextToken2.Value.Line},{nextToken2.Value.Column})");
 									}
 									var type = typeof(Nullable<>).MakeGenericType(type0);
-									var typeOpNode = PoolManage.CreateOperatorNode(Operators.ConvertOperator.NAME, 2, OperatorPriorities["."] - 1);
+									var typeOpNode = PoolManage.CreateOperatorNode(Functions.ConvertFunction.FORCE_NAME, 2, OperatorPriorities["."] - 1);
 									typeOpNode.Left = PoolManage.CreateObjectNode(type);
 									if (treeBuilder == null) treeBuilder = new TreeBuilder();
 									treeBuilder.AddData(buildContext, scriptContext, options, control, typeOpNode);
@@ -296,7 +296,7 @@ namespace AScript.Syntaxs
 								{
 									throw new Exceptions.ScriptAnalyzingException($"unkown type '{typeToken.Value.Value}'");
 								}
-								var typeOpNode = PoolManage.CreateOperatorNode(Operators.ConvertOperator.NAME, 2, OperatorPriorities["."] - 1);
+								var typeOpNode = PoolManage.CreateOperatorNode(Functions.ConvertFunction.FORCE_NAME, 2, OperatorPriorities["."] - 1);
 								typeOpNode.Left = PoolManage.CreateObjectNode(type);
 								if (treeBuilder == null) treeBuilder = new TreeBuilder();
 								treeBuilder.AddData(buildContext, scriptContext, options, control, typeOpNode);
@@ -575,7 +575,7 @@ namespace AScript.Syntaxs
 										throw new Exceptions.ScriptAnalyzingException($"invalid expression '?' at ({nextToken2.Value.Line},{nextToken2.Value.Column})");
 									}
 									var type = typeof(Nullable<>).MakeGenericType(type0);
-									var typeOpNode = PoolManage.CreateOperatorNode(Operators.ConvertOperator.NAME, 2, OperatorPriorities["."] - 1);
+									var typeOpNode = PoolManage.CreateOperatorNode(Functions.ConvertFunction.FORCE_NAME, 2, OperatorPriorities["."] - 1);
 									typeOpNode.Left = PoolManage.CreateObjectNode(type);
 									if (treeBuilder == null) treeBuilder = new TreeBuilder();
 									treeBuilder.AddData(buildContext, scriptContext, options, control, typeOpNode);
@@ -611,7 +611,7 @@ namespace AScript.Syntaxs
 								{
 									throw new Exceptions.ScriptAnalyzingException($"unkown type '{typeToken.Value.Value}'");
 								}
-								var typeOpNode = PoolManage.CreateOperatorNode(Operators.ConvertOperator.NAME, 2, OperatorPriorities["."] - 1);
+								var typeOpNode = PoolManage.CreateOperatorNode(Functions.ConvertFunction.FORCE_NAME, 2, OperatorPriorities["."] - 1);
 								typeOpNode.Left = PoolManage.CreateObjectNode(type);
 								if (treeBuilder == null) treeBuilder = new TreeBuilder();
 								treeBuilder.AddData(buildContext, scriptContext, options, control, typeOpNode);
