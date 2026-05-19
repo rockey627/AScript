@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AScript.Nodes
 {
@@ -117,6 +119,23 @@ namespace AScript.Nodes
 			var v = CreateTuple(itemValues, itemTypes);
 			returnType = v.GetType();
 			return v;
+		}
+
+		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		{
+			var itemValues = new object[this.Items.Count];
+			var itemTypes = new Type[this.Items.Count];
+
+			for (int i = 0; i < this.Items.Count; i++)
+			{
+				var result = await this.Items[i].Eval2Async(context, options, control, cancellationToken).ConfigureAwait(false);
+				itemValues[i] = result.Value;
+				itemTypes[i] = result.Type;
+			}
+
+			var v = CreateTuple(itemValues, itemTypes);
+			var returnType = v.GetType();
+			return new EvalResult(v, returnType);
 		}
 
 		public static object CreateTuple(object[] values, Type[] types)

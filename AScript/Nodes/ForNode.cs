@@ -1,6 +1,8 @@
 ﻿using AScript.Exceptions;
 using System;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AScript.Nodes
 {
@@ -53,6 +55,49 @@ namespace AScript.Nodes
 			}
 			returnType = bodyReturnType;
 			return bodyResult;
+		}
+
+		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		{
+			var tempContext = ScriptContext.Create(context);
+			var tempControl = new EvalControl(control, true);
+			// 执行初始语句
+			if (this.Init != null)
+			{
+				await this.Init.Eval2Async(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+			}
+			// 执行循环
+			while (true)
+			{
+				// 条件判断
+				if (this.Condition != null)
+				{
+					var evalResult = await this.Condition.Eval2Async(tempContext, null, null, cancellationToken).ConfigureAwait(false);
+					var conditionResult = evalResult.Value;
+					var conditionType = evalResult.Type;
+					if (conditionType != null)
+					{
+						if (!(conditionResult is bool b))
+						{
+							throw new ScriptAnalyzingException($"invalid for condition [{conditionType}], must be bool");
+						}
+						if (!b) break;
+					}
+				}
+				// 执行body
+				if (this.Body != null)
+				{
+					await this.Body.Eval2Async(ScriptContext.Create(tempContext), options, tempControl, cancellationToken).ConfigureAwait(false);
+					if (tempControl.Terminal || tempControl.Break) break;
+					tempControl.Continue = false;
+				}
+				// 执行后置语句
+				if (this.Post != null)
+				{
+					await this.Post.Eval2Async(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+				}
+			}
+			return default;
 		}
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)

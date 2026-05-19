@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AScript.Nodes
 {
@@ -35,6 +37,24 @@ namespace AScript.Nodes
 			try
 			{
 				return this.Body.Eval(context, options, control, out returnType);
+			}
+			finally
+			{
+				context.Langs = oldLangs;
+			}
+		}
+
+		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		{
+			if (this.Body == null)
+			{
+				return default;
+			}
+			var oldLangs = context.Langs;
+			context.Langs = this.Langs;
+			try
+			{
+				return await this.Body.Eval2Async(context, options, control, cancellationToken).ConfigureAwait(false);
 			}
 			finally
 			{

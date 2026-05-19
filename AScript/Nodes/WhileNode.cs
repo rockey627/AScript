@@ -2,6 +2,8 @@
 using System;
 using System.CodeDom;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AScript.Nodes
 {
@@ -33,10 +35,43 @@ namespace AScript.Nodes
 			return bodyResult;
 		}
 
+		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		{
+			var tempContext = ScriptContext.Create(context);
+			var tempControl = new EvalControl(control, true);
+			while (true)
+			{
+				if (!(await EvalConditionAsync(tempContext, options, cancellationToken).ConfigureAwait(false)))
+				{
+					break;
+				}
+				if (this.Body != null)
+				{
+					await this.Body.Eval2Async(ScriptContext.Create(tempContext), options, tempControl, cancellationToken).ConfigureAwait(false);
+					if (tempControl.Terminal || tempControl.Break) break;
+					tempControl.Continue = false;
+				}
+			}
+			return default;
+		}
+
 		private bool EvalCondition(ScriptContext context, BuildOptions options)
 		{
 			if (this.Condition == null) return true;
 			var conditionResult = this.Condition.Eval(context, options, null, out var conditionType);
+			if (!(conditionResult is bool b))
+			{
+				throw new ScriptAnalyzingException($"invalid if condition type {conditionType}");
+			}
+			return b;
+		}
+
+		private async Task<bool> EvalConditionAsync(ScriptContext context, BuildOptions options, CancellationToken cancellationToken)
+		{
+			if (this.Condition == null) return true;
+			var evalResult = await this.Condition.Eval2Async(context, options, null, cancellationToken).ConfigureAwait(false);
+			var conditionResult = evalResult.Value;
+			var conditionType = evalResult.Type;
 			if (!(conditionResult is bool b))
 			{
 				throw new ScriptAnalyzingException($"invalid if condition type {conditionType}");

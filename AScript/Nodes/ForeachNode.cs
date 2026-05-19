@@ -4,6 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AScript.Nodes
 {
@@ -118,6 +120,110 @@ namespace AScript.Nodes
 			}
 			returnType = bodyType;
 			return bodyResult;
+		}
+
+		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		{
+			if (this.VarDefine == null && this.VarDefines == null)
+			{
+				throw new ScriptAnalyzingException("require variable define in foreach statement");
+			}
+			if (this.Collection == null)
+			{
+				throw new ScriptAnalyzingException("require collection in foreach statement");
+			}
+			// 计算集合
+			var evalResult = await this.Collection.Eval2Async(context, options, control, cancellationToken).ConfigureAwait(false);
+			var listResult = evalResult.Value;
+			var listType = evalResult.Type;
+			if (listResult == null)
+			{
+				return default;
+			}
+			if (!(listResult is IEnumerable en))
+			{
+				throw new ScriptAnalyzingException($"invalid foreach collection {listType}");
+			}
+			//
+			if (this.Body != null)
+			{
+				var tempContext = ScriptContext.Create(context);
+				var tempController = new EvalControl(control, true);
+				// 定义变量
+				if (this.VarDefines != null)
+				{
+					foreach (var vd in this.VarDefines)
+					{
+						await vd.Eval2Async(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+					}
+				}
+				else
+				{
+					await this.VarDefine.Eval2Async(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+				}
+				// 循环
+				foreach (var item in en)
+				{
+					if (this.VarDefines != null)
+					{
+						// 解构列表项赋值到各个变量
+						var itemList = new List<object>();
+						if (item is IList list)
+						{
+							foreach (var i in list)
+							{
+								itemList.Add(i);
+							}
+						}
+						else
+						{
+							// 支持 Tuple/ValueTuple 解构
+							var itemType = item.GetType();
+							if (itemType.IsGenericType)
+							{
+								var genericType = itemType.GetGenericTypeDefinition();
+								if (genericType.Name.StartsWith("Tuple`"))
+								{
+									foreach (var prop in itemType.GetProperties())
+									{
+										itemList.Add(prop.GetValue(item));
+									}
+								}
+#if NETSTANDARD
+								else if (genericType.Name.StartsWith("ValueTuple`"))
+								{
+									foreach (var field in itemType.GetFields())
+									{
+										itemList.Add(field.GetValue(item));
+									}
+								}
+#endif
+							}
+						}
+						if (itemList == null)
+						{
+							throw new ScriptAnalyzingException($"cannot unpack item of type {item?.GetType()} into {this.VarDefines.Count} variables");
+						}
+						if (itemList.Count < this.VarDefines.Count)
+						{
+							throw new ScriptAnalyzingException($"not enough values to unpack (expected {this.VarDefines.Count}, got {itemList.Count})");
+						}
+						for (int i = 0; i < this.VarDefines.Count; i++)
+						{
+							tempContext.SetVar(this.VarDefines[i].Name, itemList[i], null);
+						}
+					}
+					else
+					{
+						var varDefineResult = await this.VarDefine.Eval2Async(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+						tempContext.SetVar(this.VarDefine.Name, item, item == null ? varDefineResult.Type : null);
+					}
+					await this.Body.Eval2Async(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
+					if (tempController.Terminal || tempController.Break) break;
+					tempController.Continue = false;
+				}
+			}
+			return default;
 		}
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
