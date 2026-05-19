@@ -67,6 +67,7 @@ namespace AScript.Nodes
 				await this.Init.Eval2Async(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 			}
 			// 执行循环
+			EvalResult bodyResult = default;
 			while (true)
 			{
 				// 条件判断
@@ -87,7 +88,7 @@ namespace AScript.Nodes
 				// 执行body
 				if (this.Body != null)
 				{
-					await this.Body.Eval2Async(ScriptContext.Create(tempContext), options, tempControl, cancellationToken).ConfigureAwait(false);
+					bodyResult = await this.Body.Eval2Async(ScriptContext.Create(tempContext), options, tempControl, cancellationToken).ConfigureAwait(false);
 					if (tempControl.Terminal || tempControl.Break) break;
 					tempControl.Continue = false;
 				}
@@ -97,7 +98,7 @@ namespace AScript.Nodes
 					await this.Post.Eval2Async(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 				}
 			}
-			return default;
+			return bodyResult;
 		}
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)

@@ -145,6 +145,7 @@ namespace AScript.Nodes
 				throw new ScriptAnalyzingException($"invalid foreach collection {listType}");
 			}
 			//
+			EvalResult bodyResult = default;
 			if (this.Body != null)
 			{
 				var tempContext = ScriptContext.Create(context);
@@ -218,12 +219,12 @@ namespace AScript.Nodes
 						var varDefineResult = await this.VarDefine.Eval2Async(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 						tempContext.SetVar(this.VarDefine.Name, item, item == null ? varDefineResult.Type : null);
 					}
-					await this.Body.Eval2Async(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
+					bodyResult = await this.Body.Eval2Async(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
 					if (tempController.Terminal || tempController.Break) break;
 					tempController.Continue = false;
 				}
 			}
-			return default;
+			return bodyResult;
 		}
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)

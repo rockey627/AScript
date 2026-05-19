@@ -39,6 +39,7 @@ namespace AScript.Nodes
 		{
 			var tempContext = ScriptContext.Create(context);
 			var tempControl = new EvalControl(control, true);
+			EvalResult bodyResult = default;
 			while (true)
 			{
 				if (!(await EvalConditionAsync(tempContext, options, cancellationToken).ConfigureAwait(false)))
@@ -47,12 +48,12 @@ namespace AScript.Nodes
 				}
 				if (this.Body != null)
 				{
-					await this.Body.Eval2Async(ScriptContext.Create(tempContext), options, tempControl, cancellationToken).ConfigureAwait(false);
+					bodyResult = await this.Body.Eval2Async(ScriptContext.Create(tempContext), options, tempControl, cancellationToken).ConfigureAwait(false);
 					if (tempControl.Terminal || tempControl.Break) break;
 					tempControl.Continue = false;
 				}
 			}
-			return default;
+			return bodyResult;
 		}
 
 		private bool EvalCondition(ScriptContext context, BuildOptions options)
