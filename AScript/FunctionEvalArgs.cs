@@ -144,9 +144,9 @@ namespace AScript
 					this.ArgValues[i] = arg;
 					this.ArgTypes[i] = typeof(Delegate);
 				}
-				else if (arg is IAsyncTreeNode asyncTreeNode)
+				else
 				{
-					var result = await asyncTreeNode.Eval2Async(this.Context, this.Options, this.Control, cancellationToken).ConfigureAwait(false);
+					var result = await arg.Eval2Async(this.Context, this.Options, this.Control, cancellationToken).ConfigureAwait(false);
 					this.ArgValues[i] = result.Value;
 					this.ArgTypes[i] = result.Type;
 					if (!(arg is ObjectNode))
@@ -154,20 +154,6 @@ namespace AScript
 						this.Args[i] = PoolManage.CreateObjectNode(result.Value, result.Type);
 					}
 				}
-				else
-				{
-					var value = arg.Eval(this.Context, this.Options, this.Control, out var type);
-					this.ArgValues[i] = value;
-					this.ArgTypes[i] = type;
-					if (!(arg is ObjectNode))
-					{
-						this.Args[i] = PoolManage.CreateObjectNode(value, type);
-					}
-				}
-				//if (!(arg is ObjectNode))
-				//{
-				//	this.Args[i] = PoolManage.CreateObjectNode(value, type);
-				//}
 			}
 		}
 

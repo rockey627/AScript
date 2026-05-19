@@ -3,6 +3,8 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AScript.Nodes
 {
@@ -51,14 +53,10 @@ namespace AScript.Nodes
 			{
 				object[] argValues;
 				Type[] argTypes;
-				if (this.Args == null)
+				if (this.Args == null || this.Args.Length == 0)
 				{
 					argValues = null;
-#if NETSTANDARD
-					argTypes = Array.Empty<Type>();
-#else
-					argTypes = new Type[0];
-#endif
+					argTypes = Type.EmptyTypes;
 				}
 				else
 				{
@@ -144,6 +142,7 @@ namespace AScript.Nodes
 						}
 						catch (Exception ex)
 						{
+							throw new ScriptRuntimeException(ex.Message, ex);
 						}
 					}
 					if (methodInfo == null)
@@ -357,6 +356,162 @@ namespace AScript.Nodes
 				//return ExpressionUtils.BuildCall(buildContext, scriptContext, options, this.Name, this.Args);
 			}
 			return null;
+		}
+
+		public override async Task<EvalResult> Eval2Async(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		{
+			if (string.IsNullOrEmpty(this.Name))
+			{
+				if (this.Method != null)
+				{
+					object[] args = null;
+					if (this.Args != null && this.Args.Length > 0)
+					{
+						args = new object[this.Args.Length];
+						for (int i = 0; i < this.Args.Length; i++)
+						{
+							var arg = this.Args[i];
+							if (arg == null)
+							{
+								args[i] = null;
+							}
+							else if (arg is ObjectNode objNode)
+							{
+								args[i] = objNode.Data;
+							}
+							else
+							{
+								args[i] = await arg.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
+							}
+						}
+					}
+					var returnType = this.Method.ReturnType;
+					var result = this.Method.Invoke(this.Target, args);
+					return new EvalResult(result, returnType);
+				}
+			}
+			else if (this.Target != null)
+			{
+				object[] argValues;
+				Type[] argTypes;
+				if (this.Args == null || this.Args.Length == 0)
+				{
+					argValues = null;
+					argTypes = Type.EmptyTypes;
+				}
+				else
+				{
+					argValues = new object[this.Args.Length];
+					argTypes = new Type[this.Args.Length];
+					for (int i = 0; i < this.Args.Length; i++)
+					{
+						var arg = this.Args[i];
+						if (arg is DefineFuncNode)
+						{
+							argValues[i] = arg;
+							argTypes[i] = typeof(Delegate);
+						}
+						else
+						{
+							var argResult = await this.Args[i].Eval2Async(context, options, null, cancellationToken).ConfigureAwait(false);
+							argValues[i] = argResult.Value;
+							argTypes[i] = argResult.Type;
+						}
+					}
+				}
+				var targetResult = await ((ITreeNode)this.Target).Eval2Async(context, options, null, cancellationToken).ConfigureAwait(false);
+				var v0 = targetResult.Value;
+				var t0 = targetResult.Type;
+				if (t0 == typeof(TypeWrapper))
+				{
+					var type = ((TypeWrapper)v0).Type;
+					var methodInfo = type.GetMethod(this.Name, argTypes);
+					if (methodInfo == null)
+					{
+						throw new ScriptAnalyzingException($"unknown function: {type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
+					}
+					var parameters = methodInfo.GetParameters();
+					var convertedArgs = Syntaxs.DefaultSyntaxAnalyzer.ConvertObjectArguments(argValues, parameters);
+					var result = methodInfo.Invoke(null, convertedArgs);
+					return new EvalResult(result, methodInfo.ReturnType);
+				}
+				else
+				{
+					var methodInfo = t0.GetMethod(this.Name, argTypes);
+					if (methodInfo == null)
+					{
+						var argTypes2 = new Type[argTypes.Length + 1];
+						argTypes2[0] = typeof(ScriptContext);
+						Array.Copy(argTypes, 0, argTypes2, 1, argTypes.Length);
+						methodInfo = t0.GetMethod(this.Name, argTypes2);
+						if (methodInfo != null)
+						{
+							argTypes = argTypes2;
+							var argValues2 = new object[argValues == null ? 1 : argValues.Length + 1];
+							argValues2[0] = context;
+							if (argValues != null && argValues.Length > 0)
+							{
+								Array.Copy(argValues, 0, argValues2, 1, argValues.Length);
+							}
+							argValues = argValues2;
+						}
+					}
+					if (methodInfo == null)
+					{
+						var argValues2 = new object[argValues == null ? 1 : argValues.Length + 1];
+						argValues2[0] = v0;
+						if (argValues != null && argValues.Length > 0)
+						{
+							Array.Copy(argValues, 0, argValues2, 1, argValues.Length);
+						}
+						var argTypes2 = new Type[argTypes == null ? 1 : argTypes.Length + 1];
+						argTypes2[0] = t0;
+						if (argTypes != null && argTypes.Length > 0)
+						{
+							Array.Copy(argTypes, 0, argTypes2, 1, argTypes.Length);
+						}
+						try
+						{
+							var result2 = context.EvalFunc(options, this.Name, false, argValues2, argTypes2, out var returnType2);
+							if (returnType2 != null)
+							{
+								return new EvalResult(result2, returnType2);
+							}
+						}
+						catch (ScriptException ex)
+						{
+							throw;
+						}
+						catch (Exception ex)
+						{
+							throw new ScriptRuntimeException(ex.Message, ex);
+						}
+					}
+					if (methodInfo == null)
+					{
+						throw new ScriptAnalyzingException($"unknown function: {t0}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
+					}
+					var parameters = methodInfo.GetParameters();
+					var convertedArgs = Syntaxs.DefaultSyntaxAnalyzer.ConvertObjectArguments(argValues, parameters);
+					var result = methodInfo.Invoke(v0, convertedArgs);
+					return new EvalResult(result, methodInfo.ReturnType);
+				}
+			}
+			else
+			{
+				ITreeNode[] args = null;
+				if (this.Args != null && this.Args.Length > 0)
+				{
+					args = new ITreeNode[this.Args.Length];
+					for (int i = 0; i < this.Args.Length; i++)
+					{
+						args[i] = this.Args[i];
+					}
+				}
+				var tmpContext = ScriptContext.Create(context);
+				return await tmpContext.EvalFunc2Async(options, control, this.Name, args, cancellationToken).ConfigureAwait(false);
+			}
+			return new EvalResult();
 		}
 
 		public override void Clear()

@@ -378,7 +378,7 @@ namespace AScript
 			}
 		}
 
-		public virtual ITokenStream GetTokenStream(CharReader charReader)
+		public ITokenStream GetTokenStream(CharReader charReader)
 		{
 			var langs = this.Langs;
 			if (langs == null || langs.Length == 0)
@@ -406,7 +406,7 @@ namespace AScript
 			return null;
 		}
 
-		public virtual ISyntaxAnalyzer GetSyntaxAnalyzer()
+		public ISyntaxAnalyzer GetSyntaxAnalyzer()
 		{
 			var langs = this.Langs;
 			if (langs == null || langs.Length == 0)
@@ -434,7 +434,7 @@ namespace AScript
 			return null;
 		}
 
-		public virtual int? GetOperatorPriority(string op)
+		public int? GetOperatorPriority(string op)
 		{
 			var langs = this.Langs;
 			if (langs == null || langs.Length == 0)
@@ -535,7 +535,7 @@ namespace AScript
 		/// <summary>
 		/// 清空所有数据
 		/// </summary>
-		public virtual void Clear()
+		public void Clear()
 		{
 			ClearTemp();
 			this._Assemblies?.Clear();
@@ -548,7 +548,7 @@ namespace AScript
 		/// <summary>
 		/// 清空临时数据（临时变量、临时函数）
 		/// </summary>
-		public virtual void ClearTemp()
+		public void ClearTemp()
 		{
 			ClearTempVariable();
 			ClearTempFunction();
@@ -557,7 +557,7 @@ namespace AScript
 		/// <summary>
 		/// 清空临时变量
 		/// </summary>
-		public virtual void ClearTempVariable()
+		public void ClearTempVariable()
 		{
 			this._TempVariables?.Clear();
 			this._TempVariableTypes?.Clear();
@@ -566,7 +566,7 @@ namespace AScript
 		/// <summary>
 		/// 清空临时函数
 		/// </summary>
-		public virtual void ClearTempFunction()
+		public void ClearTempFunction()
 		{
 			this._TempFunctions?.Clear();
 			this._CustomFunctions?.Clear();
@@ -580,7 +580,7 @@ namespace AScript
 		/// <param name="type"></param>
 		/// <param name="searchType"></param>
 		/// <returns></returns>
-		public virtual ScriptContext GetOwnerContext(string variable, out object value, out Type type, bool searchType = false)
+		public ScriptContext GetOwnerContext(string variable, out object value, out Type type, bool searchType = false)
 		{
 			var context = this;
 			do
@@ -804,7 +804,12 @@ namespace AScript
 			return EvalFunc(options, control, name, false, args, out returnType);
 		}
 
-		public virtual object EvalFunc(BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args, out Type returnType)
+		public Task<EvalResult> EvalFunc2Async(BuildOptions options, EvalControl control, string name, IList<ITreeNode> args, CancellationToken cancellationToken = default)
+		{
+			return EvalFunc2Async(options, control, name, false, args, cancellationToken);
+		}
+
+		public object EvalFunc(BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args, out Type returnType)
 		{
 			var functionEvalArgs = FunctionEvalArgs.Create(this, options, control, name, isPrefix, args);
 			try
@@ -913,6 +918,122 @@ namespace AScript
 			}
 		}
 
+		public async Task<EvalResult> EvalFunc2Async(BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args, CancellationToken cancellationToken = default)
+		{
+			var functionEvalArgs = FunctionEvalArgs.Create(this, options, control, name, isPrefix, args);
+			try
+			{
+				var context = this;
+				while (context != null)
+				{
+					// 事件
+					await context.OnFunctionEvalAsync(functionEvalArgs, cancellationToken).ConfigureAwait(false);
+					if (functionEvalArgs.IsHandled)
+					{
+						var returnType = functionEvalArgs.ResultType ?? functionEvalArgs.Result?.GetType() ?? typeof(object);
+						return new EvalResult( functionEvalArgs.Result, returnType);
+					}
+					// 自定义函数
+					await EvalFuncAsync(functionEvalArgs, context._CustomFunctions, cancellationToken).ConfigureAwait(false);
+					if (functionEvalArgs.IsHandled)
+					{
+						//returnType = functionEvalArgs.ResultType;
+						var returnType = functionEvalArgs.ResultType ?? functionEvalArgs.Result?.GetType() ?? typeof(object);
+						return new EvalResult(functionEvalArgs.Result, returnType);
+					}
+					// 临时函数
+					await EvalFuncAsync(functionEvalArgs, context._TempFunctions, cancellationToken).ConfigureAwait(false);
+					if (functionEvalArgs.IsHandled)
+					{
+						//returnType = functionEvalArgs.ResultType;
+						var returnType = functionEvalArgs.ResultType ?? functionEvalArgs.Result?.GetType() ?? typeof(object);
+						return new EvalResult(functionEvalArgs.Result, returnType);
+					}
+					// 全局函数
+					await EvalFuncAsync(functionEvalArgs, context._Functions, cancellationToken).ConfigureAwait(false);
+					if (functionEvalArgs.IsHandled)
+					{
+						//returnType = functionEvalArgs.ResultType;
+						var returnType = functionEvalArgs.ResultType ?? functionEvalArgs.Result?.GetType() ?? typeof(object);
+						return new EvalResult(functionEvalArgs.Result, returnType);
+					}
+					context = context.Parent;
+				}
+				// 脚本语言环境
+				var langs = this.Langs;
+				if (langs == null || langs.Length == 0)
+				{
+					foreach (var item in Script.Langs.GetDefaults())
+					{
+						if (Script.Langs.TryGetValue(item, out var lang))
+						{
+							await lang.EvalFuncAsync(functionEvalArgs, cancellationToken).ConfigureAwait(false);
+							if (functionEvalArgs.IsHandled)
+							{
+								//returnType = functionEvalArgs.ResultType;
+								var returnType = functionEvalArgs.ResultType ?? functionEvalArgs.Result?.GetType() ?? typeof(object);
+								return new EvalResult(functionEvalArgs.Result, returnType);
+							}
+						}
+					}
+				}
+				else
+				{
+					foreach (var langName in langs)
+					{
+						if (Script.Langs.TryGetValue(langName, out var lang))
+						{
+							await lang.EvalFuncAsync(functionEvalArgs, cancellationToken).ConfigureAwait(false);
+							if (functionEvalArgs.IsHandled)
+							{
+								//returnType = functionEvalArgs.ResultType;
+								var returnType = functionEvalArgs.ResultType ?? functionEvalArgs.Result?.GetType() ?? typeof(object);
+								return new EvalResult(functionEvalArgs.Result, returnType);
+							}
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				FunctionEvalArgs.Return(functionEvalArgs);
+				throw;
+			}
+			try
+			{
+				// 获取Delegate变量
+				GetOwnerContext(name, out var value, out _, false);
+				functionEvalArgs.EvalArgs();
+				if (value is Delegate || value is CustomFunctionObject)
+				{
+					if (value is Delegate del)
+					{
+						var returnType = del.Method.ReturnType;
+						var result = del.DynamicInvoke(functionEvalArgs.ArgValues);
+						return new EvalResult(result, returnType);
+					}
+					if (value is CustomFunctionObject customFunctionObject)
+					{
+						var returnType = customFunctionObject.Function.ReturnType;
+						var result = customFunctionObject.DynamicInvoke(this, functionEvalArgs.ArgValues);
+						return new EvalResult(result, returnType);
+					}
+				}
+				// 抛出未知函数异常
+				var types = functionEvalArgs.ArgTypes;
+				//// 判断前置/后置运算符或者函数调用
+				//string funcName = isPrefix || args.Length > 1 || !DefaultAnalyzer.OperatorPriorities.ContainsKey(name) ?
+				//	$"{name}({string.Join(",", types.Select(a => (a ?? typeof(object)).FullName))})" :
+				//	$"({string.Join(",", types.Select(a => (a ?? typeof(object)).FullName))}){name}";
+				string funcName = types == null || types.Length == 0 ? $"{name}()" : $"{name}({string.Join(",", types.Select(a => (a ?? typeof(object)).FullName))})";
+				throw new Exceptions.ScriptRuntimeException($"unknown function: {funcName}");
+			}
+			finally
+			{
+				FunctionEvalArgs.Return(functionEvalArgs);
+			}
+		}
+
 		protected void EvalFunc(FunctionEvalArgs e, IDictionary<string, List<CustomFunction>> functions)
 		{
 			if (functions == null || !functions.TryGetValue(e.Name, out var list1))
@@ -929,6 +1050,24 @@ namespace AScript
 			}
 
 			d.Eval(e);
+		}
+
+		protected async Task EvalFuncAsync(FunctionEvalArgs e, IDictionary<string, List<CustomFunction>> functions, CancellationToken cancellationToken)
+		{
+			if (functions == null || !functions.TryGetValue(e.Name, out var list1))
+			{
+				return;
+			}
+
+			await e.EvalArgsAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+
+			var d = GetFunc(list1, e.ArgTypes);
+			if (d == null)
+			{
+				return;
+			}
+
+			await d.EvalAsync(e, cancellationToken).ConfigureAwait(false);
 		}
 
 		internal void EvalFunc(FunctionEvalArgs e, IDictionary<string, List<Delegate>> functions)
@@ -984,6 +1123,59 @@ namespace AScript
 			e.SetResult(result, returnType);
 		}
 
+		internal async Task EvalFuncAsync(FunctionEvalArgs e, IDictionary<string, List<Delegate>> functions, CancellationToken cancellationToken)
+		{
+			if (functions == null || !functions.TryGetValue(e.Name, out var list3))
+			{
+				return;
+			}
+
+			await e.EvalArgsAsync(false, cancellationToken).ConfigureAwait(false);
+
+			var d = GetFunc(list3, e.ArgTypes, out var useScriptContext, out var hasClosure);
+			if (d == null)
+			{
+				return;
+			}
+
+			var returnType = d.Method.ReturnType ?? typeof(object);
+			var argValues = e.ArgValues;
+			var argTypes = e.ArgTypes;
+			if (useScriptContext)
+			{
+				var datas2 = new object[(argValues?.Length ?? 0) + 1];
+				datas2[0] = this;
+				if (argValues != null && argValues.Length > 0)
+				{
+					Array.Copy(argValues, 0, datas2, 1, argValues.Length);
+				}
+				argValues = datas2;
+			}
+			if (argValues != null && argValues.Length > 0)
+			{
+				int startIndex = 0;
+				if (hasClosure) startIndex++;
+				if (useScriptContext) startIndex++;
+				var parameters = d.Method.GetParameters();
+				for (int i = 0; i < argValues.Length; i++)
+				{
+					if (i < startIndex) continue;
+					var paramType = parameters[i].ParameterType;
+					var dataType = argTypes[i - startIndex];
+					if (dataType != paramType)
+					{
+						var data = argValues[hasClosure ? i - 1 : i];
+						if (data is IConvertible && !paramType.IsInstanceOfType(data))
+						{
+							argValues[hasClosure ? i - 1 : i] = Convert.ChangeType(data, paramType);
+						}
+					}
+				}
+			}
+			var result = d.DynamicInvoke(argValues);
+			e.SetResult(result, returnType);
+		}
+
 		/// <summary>
 		/// 构建函数表达式
 		/// </summary>
@@ -994,7 +1186,7 @@ namespace AScript
 		/// <param name="isPrefix"></param>
 		/// <param name="args"></param>
 		/// <returns></returns>
-		public virtual Expression BuildFunc(BuildContext buildContext, BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args)
+		public Expression BuildFunc(BuildContext buildContext, BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args)
 		{
 			Expression[] argExprs = null;
 			Type[] argTypes = null;
@@ -1088,7 +1280,7 @@ namespace AScript
 		/// <param name="argExprs"></param>
 		/// <param name="buildEvalEnabled"></param>
 		/// <returns></returns>
-		public virtual Expression BuildFunc(BuildContext buildContext, BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args, Expression[] argExprs, bool buildEvalEnabled = true)
+		public Expression BuildFunc(BuildContext buildContext, BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args, Expression[] argExprs, bool buildEvalEnabled = true)
 		{
 			Type[] argTypes = null;
 
@@ -1436,7 +1628,7 @@ namespace AScript
 			return result;
 		}
 
-		public virtual Type EvalType(string name)
+		public Type EvalType(string name)
 		{
 			if (string.IsNullOrEmpty(name)) return null;
 			if (name.EndsWith("[]"))
@@ -2402,6 +2594,30 @@ namespace AScript
 				foreach (var item in list)
 				{
 					item.Eval(e);
+					if (e.IsHandled) return;
+				}
+			}
+
+			this.FunctionEval?.Invoke(this, e);
+		}
+
+		protected virtual async Task OnFunctionEvalAsync(FunctionEvalArgs e, CancellationToken cancellationToken)
+		{
+			if (e.IsHandled) return;
+
+			var functionEvaluators = _FunctionEvaluators;
+			if (functionEvaluators != null && functionEvaluators.TryGetValue(e.Name, out var list))
+			{
+				foreach (var item in list)
+				{
+					if (item is IAsyncFunctionEvaluator asyncFunctionEvaluator)
+					{
+						await asyncFunctionEvaluator.EvalAsync(e, cancellationToken).ConfigureAwait(false);
+					}
+					else
+					{
+						item.Eval(e);
+					}
 					if (e.IsHandled) return;
 				}
 			}

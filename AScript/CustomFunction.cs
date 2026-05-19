@@ -79,14 +79,8 @@ namespace AScript
 				e.SetResult(null, null);
 				return;
 			}
-			if (this.Body is IAsyncTreeNode asyncTreeNode)
-			{
-				var result = await asyncTreeNode.Eval2Async(tempContext, e.Options, new EvalControl(), cancellationToken).ConfigureAwait(false);
-				e.SetResult(result.Value, result.Type);
-				return;
-			}
-			var value = this.Body.Eval(tempContext, e.Options, new EvalControl(), out var returnType);
-			e.SetResult(value, returnType);
+			var result = await this.Body.Eval2Async(tempContext, e.Options, new EvalControl(), cancellationToken).ConfigureAwait(false);
+			e.SetResult(result.Value, result.Type);
 		}
 
 		public Delegate Compile(Type delegateType, ScriptContext context, BuildOptions options)

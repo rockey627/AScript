@@ -9,5 +9,6 @@ namespace AScript.Exceptions
 	{
 		public ScriptRuntimeException() : base() { }
 		public ScriptRuntimeException(string message) : base(message) { }
+		public ScriptRuntimeException(string message, Exception innerException) : base(message, innerException) { }
 	}
 }
