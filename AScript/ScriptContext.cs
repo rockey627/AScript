@@ -807,11 +807,9 @@ namespace AScript
 		public virtual object EvalFunc(BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args, out Type returnType)
 		{
 			var functionEvalArgs = FunctionEvalArgs.Create(this, options, control, name, isPrefix, args);
-			var context = this;
-			object[] datas = null;
-			Type[] types = null;
 			try
 			{
+				var context = this;
 				while (context != null)
 				{
 					// 事件
@@ -822,19 +820,25 @@ namespace AScript
 						return functionEvalArgs.Result;
 					}
 					// 自定义函数
-					if (EvalFunc(options, control, context._CustomFunctions, name, isPrefix, args, ref datas, ref types, out var result, out returnType))
+					EvalFunc(functionEvalArgs, context._CustomFunctions);
+					if (functionEvalArgs.IsHandled)
 					{
-						return result;
+						returnType = functionEvalArgs.ResultType;
+						return functionEvalArgs.Result;
 					}
 					// 临时函数
-					if (EvalFunc(options, control, context._TempFunctions, name, isPrefix, args, ref datas, ref types, out result, out returnType))
+					EvalFunc(functionEvalArgs, context._TempFunctions);
+					if (functionEvalArgs.IsHandled)
 					{
-						return result;
+						returnType = functionEvalArgs.ResultType;
+						return functionEvalArgs.Result;
 					}
 					// 全局函数
-					if (EvalFunc(options, control, context._Functions, name, isPrefix, args, ref datas, ref types, out result, out returnType))
+					EvalFunc(functionEvalArgs, context._Functions);
+					if (functionEvalArgs.IsHandled)
 					{
-						return result;
+						returnType = functionEvalArgs.ResultType;
+						return functionEvalArgs.Result;
 					}
 					context = context.Parent;
 				}
@@ -873,150 +877,78 @@ namespace AScript
 			}
 			catch (Exception ex)
 			{
+				FunctionEvalArgs.Return(functionEvalArgs);
 				throw;
+			}
+			try
+			{
+				// 获取Delegate变量
+				GetOwnerContext(name, out var value, out _, false);
+				functionEvalArgs.EvalArgs();
+				if (value is Delegate || value is CustomFunctionObject)
+				{
+					if (value is Delegate del)
+					{
+						returnType = del.Method.ReturnType;
+						return del.DynamicInvoke(functionEvalArgs.ArgValues);
+					}
+					if (value is CustomFunctionObject customFunctionObject)
+					{
+						returnType = customFunctionObject.Function.ReturnType;
+						return customFunctionObject.DynamicInvoke(this, functionEvalArgs.ArgValues);
+					}
+				}
+				// 抛出未知函数异常
+				var types = functionEvalArgs.ArgTypes;
+				//// 判断前置/后置运算符或者函数调用
+				//string funcName = isPrefix || args.Length > 1 || !DefaultAnalyzer.OperatorPriorities.ContainsKey(name) ?
+				//	$"{name}({string.Join(",", types.Select(a => (a ?? typeof(object)).FullName))})" :
+				//	$"({string.Join(",", types.Select(a => (a ?? typeof(object)).FullName))}){name}";
+				string funcName = types == null || types.Length == 0 ? $"{name}()" : $"{name}({string.Join(",", types.Select(a => (a ?? typeof(object)).FullName))})";
+				throw new Exceptions.ScriptRuntimeException($"unknown function: {funcName}");
 			}
 			finally
 			{
 				FunctionEvalArgs.Return(functionEvalArgs);
 			}
-			// 获取Delegate变量
-			GetOwnerContext(name, out var value, out _, false);
-			if (value is Delegate || value is CustomFunctionObject)
-			{
-				if (datas == null && args != null && args.Count > 0)
-				{
-					datas = new object[args.Count];
-					for (int i = 0; i < args.Count; i++)
-					{
-						var arg = args[i];
-						datas[i] = arg.Eval(this, options, control, out var type);
-						if (!(arg is ObjectNode))
-						{
-							args[i] = PoolManage.CreateObjectNode(value, type);
-						}
-					}
-				}
-				if (value is Delegate del)
-				{
-					returnType = del.Method.ReturnType;
-					return del.DynamicInvoke(datas);
-				}
-				if (value is CustomFunctionObject customFunctionObject)
-				{
-					returnType = customFunctionObject.Function.ReturnType;
-					return customFunctionObject.DynamicInvoke(this, datas);
-				}
-			}
-			// 抛出未知函数异常
-			if (types == null)
-			{
-				if (args == null || args.Count == 0)
-				{
-#if NETFRAMEWORK
-					types = new Type[0];
-#else
-					types = Array.Empty<Type>();
-#endif
-				}
-				else
-				{
-					types = new Type[args.Count];
-					for (int i = 0; i < args.Count; i++)
-					{
-						args[i].Eval(this, options, control, out var type);
-						types[i] = type;
-					}
-				}
-			}
-			//// 判断前置/后置运算符或者函数调用
-			//string funcName = isPrefix || args.Length > 1 || !DefaultAnalyzer.OperatorPriorities.ContainsKey(name) ?
-			//	$"{name}({string.Join(",", types.Select(a => (a ?? typeof(object)).FullName))})" :
-			//	$"({string.Join(",", types.Select(a => (a ?? typeof(object)).FullName))}){name}";
-			string funcName = $"{name}({string.Join(",", types.Select(a => (a ?? typeof(object)).FullName))})";
-			throw new Exceptions.ScriptRuntimeException($"unknown function: {funcName}");
 		}
 
-		protected bool EvalFunc(BuildOptions options, EvalControl control, IDictionary<string, List<CustomFunction>> functions, string name, bool isPrefix, IList<ITreeNode> args, ref object[] datas, ref Type[] types, out object result, out Type returnType)
+		protected void EvalFunc(FunctionEvalArgs e, IDictionary<string, List<CustomFunction>> functions)
 		{
-			if (functions == null || !functions.TryGetValue(name, out var list1))
+			if (functions == null || !functions.TryGetValue(e.Name, out var list1))
 			{
-				result = null;
-				returnType = null;
-				return false;
+				return;
 			}
 
-			if (types == null && args != null && args.Count > 0)
-			{
-				types = new Type[args.Count];
-				datas = new object[args.Count];
-				for (int i = 0; i < args.Count; i++)
-				{
-					var arg = args[i];
-					var value = arg.Eval(this, options, control, out var type);
-					datas[i] = value;
-					types[i] = type;
-					if (!(arg is ObjectNode))
-					{
-						args[i] = PoolManage.CreateObjectNode(value, type);
-					}
-				}
-			}
+			e.EvalArgs();
 
-			var d = GetFunc(list1, types);
+			var d = GetFunc(list1, e.ArgTypes);
 			if (d == null)
 			{
-				result = null;
-				returnType = null;
-				return false;
+				return;
 			}
 
-			result = d.Eval(this, options, control, args, out returnType);
-			return true;
+			d.Eval(e);
 		}
 
-		internal bool EvalFunc(BuildOptions options, EvalControl control, IDictionary<string, List<Delegate>> functions, string name, bool isPrefix, IList<ITreeNode> args, ref object[] argValues, ref Type[] argTypes, out object result, out Type returnType)
+		internal void EvalFunc(FunctionEvalArgs e, IDictionary<string, List<Delegate>> functions)
 		{
-			if (functions == null || !functions.TryGetValue(name, out var list3))
+			if (functions == null || !functions.TryGetValue(e.Name, out var list3))
 			{
-				result = null;
-				returnType = null;
-				return false;
+				return;
 			}
 
-			if (argTypes == null && args != null && args.Count > 0)
-			{
-				argTypes = new Type[args.Count];
-				argValues = new object[args.Count];
-				for (int i = 0; i < args.Count; i++)
-				{
-					var arg = args[i];
-					if (arg is DefineFuncNode)
-					{
-						argValues[i] = arg;
-						argTypes[i] = typeof(Delegate);
-					}
-					else
-					{
-						var value = arg.Eval(this, options, control, out var type);
-						argValues[i] = value;
-						argTypes[i] = type;
-						if (!(arg is ObjectNode))
-						{
-							args[i] = PoolManage.CreateObjectNode(value, type);
-						}
-					}
-				}
-			}
+			e.EvalArgs(false);
 
-			var d = GetFunc(list3, argTypes, out var useScriptContext, out var hasClosure);
+			var d = GetFunc(list3, e.ArgTypes, out var useScriptContext, out var hasClosure);
 			if (d == null)
 			{
-				result = null;
-				returnType = null;
-				return false;
+				return;
 			}
 
-			returnType = d.Method.ReturnType ?? typeof(object);
+			var returnType = d.Method.ReturnType ?? typeof(object);
+			var argValues = e.ArgValues;
+			var argTypes = e.ArgTypes;
 			if (useScriptContext)
 			{
 				var datas2 = new object[(argValues?.Length ?? 0) + 1];
@@ -1048,8 +980,8 @@ namespace AScript
 					}
 				}
 			}
-			result = d.DynamicInvoke(argValues);
-			return true;
+			var result = d.DynamicInvoke(argValues);
+			e.SetResult(result, returnType);
 		}
 
 		/// <summary>

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Xml.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using AScript.Nodes;
 
 namespace AScript
@@ -34,6 +35,10 @@ namespace AScript
 		/// 参数列表
 		/// </summary>
 		public IList<ITreeNode> Args { get; private set; }
+
+		public object[] ArgValues { get; private set; }
+
+		public Type[] ArgTypes { get; private set; }
 		/// <summary>
 		/// 是否已执行
 		/// </summary>
@@ -90,10 +95,80 @@ namespace AScript
 				e.Result = null;
 				e.ResultType = null;
 				e.Args = args;
+				e.ArgValues = null;
+				e.ArgTypes = null;
 				e.IsHandled = false;
 				return e;
 			}
 			return new FunctionEvalArgs(context, options, control, name, isPrefix, args);
+		}
+
+		public void EvalArgs(bool evalDefineFuncNode = true)
+		{
+			if (this.ArgValues != null) return;
+			if (this.Args == null || this.Args.Count == 0) return;
+			this.ArgValues = new object[this.Args.Count];
+			this.ArgTypes = new Type[this.Args.Count];
+			for (int i = 0; i < this.Args.Count; i++)
+			{
+				var arg = this.Args[i];
+				if (!evalDefineFuncNode && arg is DefineFuncNode)
+				{
+					this.ArgValues[i] = arg;
+					this.ArgTypes[i] = typeof(Delegate);
+				}
+				else
+				{
+					var value = arg.Eval(this.Context, this.Options, this.Control, out var type);
+					this.ArgValues[i] = value;
+					this.ArgTypes[i] = type;
+					if (!(arg is ObjectNode))
+					{
+						this.Args[i] = PoolManage.CreateObjectNode(value, type);
+					}
+				}
+			}
+		}
+
+		public async Task EvalArgsAsync(bool evalDefineFuncNode = true, CancellationToken cancellationToken = default)
+		{
+			if (this.ArgValues != null) return;
+			if (this.Args == null || this.Args.Count == 0) return;
+			this.ArgValues = new object[this.Args.Count];
+			this.ArgTypes = new Type[this.Args.Count];
+			for (int i = 0; i < this.Args.Count; i++)
+			{
+				var arg = this.Args[i];
+				if (!evalDefineFuncNode && arg is DefineFuncNode)
+				{
+					this.ArgValues[i] = arg;
+					this.ArgTypes[i] = typeof(Delegate);
+				}
+				else if (arg is IAsyncTreeNode asyncTreeNode)
+				{
+					var result = await asyncTreeNode.Eval2Async(this.Context, this.Options, this.Control, cancellationToken).ConfigureAwait(false);
+					this.ArgValues[i] = result.Value;
+					this.ArgTypes[i] = result.Type;
+					if (!(arg is ObjectNode))
+					{
+						this.Args[i] = PoolManage.CreateObjectNode(result.Value, result.Type);
+					}
+				}
+				else
+				{
+					var value = arg.Eval(this.Context, this.Options, this.Control, out var type);
+					this.ArgValues[i] = value;
+					this.ArgTypes[i] = type;
+					if (!(arg is ObjectNode))
+					{
+						this.Args[i] = PoolManage.CreateObjectNode(value, type);
+					}
+				}
+				//if (!(arg is ObjectNode))
+				//{
+				//	this.Args[i] = PoolManage.CreateObjectNode(value, type);
+				//}
+			}
 		}
 
 		internal static void Return(FunctionEvalArgs e)
@@ -105,6 +180,8 @@ namespace AScript
 			e.Result = null;
 			e.ResultType = null;
 			e.Args = null;
+			e.ArgValues = null;
+			e.ArgTypes = null;
 			e.IsHandled = false;
 			if (_pool.Count < 10)
 			{

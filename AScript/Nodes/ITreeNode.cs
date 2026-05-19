@@ -21,7 +21,7 @@ namespace AScript.Nodes
 		bool IsFull();
 
 		/// <summary>
-		/// 运算
+		/// 执行
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="options"></param>

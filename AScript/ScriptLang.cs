@@ -323,11 +323,9 @@ namespace AScript
 
 		public void EvalFunc(FunctionEvalArgs e)
 		{
-			object[] argValues = null;
-			Type[] argTypes = null;
-			if (e.Context.EvalFunc(e.Options, e.Control, _Functions, e.Name, e.IsPrefix, e.Args, ref argValues, ref argTypes, out var result, out var returnType))
+			e.Context.EvalFunc(e, _Functions);
+			if (e.IsHandled)
 			{
-				e.SetResult(result, returnType);
 				return;
 			}
 

@@ -192,6 +192,16 @@ namespace AScript.Test.MSTests
 		[TestMethod]
 		public void Test11()
 		{
+			{
+				int n = 10;
+				Func<int, int> func = a => a + n;
+				var script = new Script();
+				script.Context.AddFunc("sum", func);
+				var t = script.CompileGlobal("sum(5)+100");
+				Assert.AreEqual(115, t.DynamicInvoke(script.Context));
+				Assert.AreEqual(215, script.Eval("sum(5)+200"));
+			}
+
 			string s1 = "int sum(int a, int b)=>a+b";
 			var script1 = new Script();
 			script1.CompileGlobal(s1, -1).DynamicInvoke(script1.Context);

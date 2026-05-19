@@ -1,6 +1,8 @@
 ﻿using AScript.Nodes;
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AScript
 {
@@ -37,6 +39,54 @@ namespace AScript
 				return null;
 			}
 			return this.Body.Eval(tempContext, options, new EvalControl(), out returnType);
+		}
+
+		public void Eval(FunctionEvalArgs e)
+		{
+			e.EvalArgs();
+			var tempContext = e.Context;
+			// 填充参数
+			if (this.ArgNames != null)
+			{
+				for (int i = 0; i < this.ArgNames.Length; i++)
+				{
+					tempContext.SetVar(this.ArgNames[i], e.ArgValues[i], e.ArgTypes[i]);
+				}
+			}
+			if (this.Body == null)
+			{
+				e.SetResult(null, null);
+				return;
+			}
+			var value = this.Body.Eval(tempContext, e.Options, new EvalControl(), out var returnType);
+			e.SetResult(value, returnType);
+		}
+
+		public async Task EvalAsync(FunctionEvalArgs e, CancellationToken cancellationToken = default)
+		{
+			await e.EvalArgsAsync(cancellationToken: cancellationToken);
+			var tempContext = e.Context;
+			// 填充参数
+			if (this.ArgNames != null)
+			{
+				for (int i = 0; i < this.ArgNames.Length; i++)
+				{
+					tempContext.SetVar(this.ArgNames[i], e.ArgValues[i], e.ArgTypes[i]);
+				}
+			}
+			if (this.Body == null)
+			{
+				e.SetResult(null, null);
+				return;
+			}
+			if (this.Body is IAsyncTreeNode asyncTreeNode)
+			{
+				var result = await asyncTreeNode.Eval2Async(tempContext, e.Options, new EvalControl(), cancellationToken).ConfigureAwait(false);
+				e.SetResult(result.Value, result.Type);
+				return;
+			}
+			var value = this.Body.Eval(tempContext, e.Options, new EvalControl(), out var returnType);
+			e.SetResult(value, returnType);
 		}
 
 		public Delegate Compile(Type delegateType, ScriptContext context, BuildOptions options)
