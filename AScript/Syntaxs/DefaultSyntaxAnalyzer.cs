@@ -91,7 +91,7 @@ namespace AScript.Syntaxs
 
 		public virtual Task<ITreeNode> BuildAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, CancellationToken cancellationToken = default)
 		{
-			return BuildMultiStatementAsync(buildContext, scriptContext, options, tokenReader, new EvalControl());
+			return BuildMultiStatementAsync(buildContext, scriptContext, options, tokenReader, new EvalControl(), cancellationToken: cancellationToken);
 		}
 
 		public virtual ITreeNode BuildMultiStatement(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)
@@ -468,6 +468,10 @@ namespace AScript.Syntaxs
 			//}
 			//return treeBuilder;
 			if (treeBuilder == null) return null;
+			if (treeBuilder.Current is OperatorNode operatorNode && operatorNode.Name != ";" && !operatorNode.IsFull())
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at ({tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn})");
+			}
 			var result = treeBuilder.EvalRoot(buildContext, scriptContext, options, control);
 			PoolManage.Return(treeBuilder);
 			return result;
@@ -787,6 +791,10 @@ namespace AScript.Syntaxs
 			//}
 			//return treeBuilder;
 			if (treeBuilder == null) return null;
+			if (treeBuilder.Current is OperatorNode operatorNode && operatorNode.Name != ";" && !operatorNode.IsFull())
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at ({tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn})");
+			}
 			var result = await treeBuilder.EvalRootAsync(buildContext, scriptContext, options, control, cancellationToken).ConfigureAwait(false);
 			PoolManage.Return(treeBuilder);
 			return result;

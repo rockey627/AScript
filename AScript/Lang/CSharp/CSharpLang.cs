@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AScript.Lang.CSharp
 {
@@ -61,6 +63,8 @@ namespace AScript.Lang.CSharp
 			AddType(typeof(Guid));
 			AddType(typeof(EventArgs));
 			AddType(typeof(ExpandoObject));
+			AddType(typeof(Task));
+			AddType(typeof(Thread));
 
 			AddFunc("=", AssignOperator.Instance);
 			AddFunc("+=", PlusAssignOperator.Instance);
