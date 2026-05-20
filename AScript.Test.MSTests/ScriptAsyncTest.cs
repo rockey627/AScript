@@ -12,6 +12,37 @@ namespace AScript.Test.MSTests
 	public class ScriptAsyncTest
 	{
 		[TestMethod]
+		public async Task Test01_2()
+		{
+			Func<int, int, Task<int>> sum = async (a, b) =>
+			{
+				await Task.Delay(1000);
+				return a + b;
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddFunc("sum", sum);
+			{
+				Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff"));
+				var result = await script.EvalAsync("await sum(5, 10)");
+				Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff"));
+				Assert.AreEqual(15, result.Value);
+				Assert.AreEqual(typeof(int), result.Type);
+			}
+			{
+				Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff"));
+				var result = script.Eval("await sum(5, 10)", out var type);
+				Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff"));
+				Assert.AreEqual(15, result);
+				Assert.AreEqual(typeof(int), type);
+			}
+			{
+				var cts = new CancellationTokenSource(100);
+				await script.EvalAsync("(await sum(5, 10)) + 5", cancellationToken: cts.Token);
+			}
+		}
+
+		[TestMethod]
 		public async Task Test01()
 		{
 			Func<int, int, Task<int>> sum = async (a, b) =>

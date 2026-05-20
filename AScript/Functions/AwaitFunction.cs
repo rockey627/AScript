@@ -13,7 +13,7 @@ namespace AScript.Functions
 		public void Build(FunctionBuildArgs e)
 		{
 			var value = e.BuildArgs(0);
-			if (value.Type.IsAssignableFrom(typeof(Task)))
+			if (typeof(Task).IsAssignableFrom(value.Type))
 			{
 				if (value.Type.IsGenericType)
 				{
