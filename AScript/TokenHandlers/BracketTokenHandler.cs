@@ -212,7 +212,7 @@ namespace AScript.TokenHandlers
 			}
 			else
 			{
-				var arr = collectionNode.Eval(e.ScriptContext, e.Options, out _);
+				var arr = collectionNode.Eval(e.ScriptContext, e.Options, null, out _);
 				PoolManage.Return(collectionNode);
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(arr));
 			}

@@ -67,14 +67,6 @@ namespace AScript.Nodes
 			return null;
 		}
 
-		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
-		{
-			TryEvalRoot(buildContext, scriptContext, options, null);
-			if (_Expressions == null || _Expressions.Count == 0) return null;
-			if (_Expressions.Count == 1) return _Expressions[0];
-			return Expression.Block(_Expressions);
-		}
-
 		public override async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
 		{
 			if (_Root != null)
@@ -86,6 +78,14 @@ namespace AScript.Nodes
 				return await _LastResult.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
 			}
 			return default;
+		}
+
+		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
+		{
+			TryEvalRoot(buildContext, scriptContext, options, null);
+			if (_Expressions == null || _Expressions.Count == 0) return null;
+			if (_Expressions.Count == 1) return _Expressions[0];
+			return Expression.Block(_Expressions);
 		}
 
 		public override void Clear()
@@ -126,14 +126,38 @@ namespace AScript.Nodes
 			return AddData(buildContext, scriptContext, options, control, node);
 		}
 
+		/// <summary>
+		/// <para>如果context不为空，则实时计算；</para>
+		/// <para>如果当前节点是数据节点，并且又添加数据节点，则计算已有树并返回计算数据，然后清空树再添加数据节点</para>
+		/// </summary>
+		/// <param name="buildContext"></param>
+		/// <param name="scriptContext"></param>
+		/// <param name="options"></param>
+		/// <param name="control"></param>
+		/// <param name="node"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task AddAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, ITreeNode node, CancellationToken cancellationToken = default)
+		{
+			if (node == null) return;
+			if (node is OperatorNode operatorNode && !operatorNode.IsFull())
+			{
+				await AddOperatorAsync(buildContext, scriptContext, options, control, operatorNode, cancellationToken).ConfigureAwait(false);
+			}
+			else
+			{
+				await AddDataAsync(buildContext, scriptContext, options, control, node, cancellationToken).ConfigureAwait(false);
+			}
+		}
+
 		public TreeBuilder AddData(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, object data, Type dataType)
 		{
 			return AddData(buildContext, scriptContext, options, control, PoolManage.CreateObjectNode(data, dataType));
 		}
 
-		public TreeBuilder AddData(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, TreeBuilder dataNode)
+		public Task AddDataAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, object data, Type dataType, CancellationToken cancellationToken = default)
 		{
-			return AddData(buildContext, scriptContext, options, control, (ITreeNode)dataNode);
+			return AddDataAsync(buildContext, scriptContext, options, control, PoolManage.CreateObjectNode(data, dataType), cancellationToken);
 		}
 
 		public TreeBuilder AddData(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, ITreeNode dataNode)
@@ -167,9 +191,44 @@ namespace AScript.Nodes
 			return this;
 		}
 
+		public async Task AddDataAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, ITreeNode dataNode, CancellationToken cancellationToken = default)
+		{
+			if (_Current == null && _Root != null)
+			{
+				// 用分号构建根节点
+				var root = PoolManage.CreateOperatorNode(";", 2, 0);
+				root.Left = _Root;
+				_Root = _Current = root;
+			}
+			if (_Current == null)
+			{
+				_Root = _Current = dataNode;
+				return;
+			}
+			if (_Current is OperatorNode operatorNode)
+			{
+				if (operatorNode.IsFull())
+				{
+					await TryEvalRootAsync(buildContext, scriptContext, options, control, cancellationToken).ConfigureAwait(false);
+					await AddDataAsync(buildContext, scriptContext, options, control, dataNode, cancellationToken).ConfigureAwait(false);
+					return;
+				}
+				operatorNode.Right = dataNode;
+				_Current = dataNode;
+				return;
+			}
+			await TryEvalRootAsync(buildContext, scriptContext, options, control, cancellationToken).ConfigureAwait(false);
+			await AddDataAsync(buildContext, scriptContext, options, control, dataNode, cancellationToken).ConfigureAwait(false);
+		}
+
 		public TreeBuilder AddOperator(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, string name, int dataCount, int priority)
 		{
 			return AddOperator(buildContext, scriptContext, options, control, PoolManage.CreateOperatorNode(name, dataCount, priority));
+		}
+
+		public Task AddOperatorAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, string name, int dataCount, int priority, CancellationToken cancellationToken = default)
+		{
+			return AddOperatorAsync(buildContext, scriptContext, options, control, PoolManage.CreateOperatorNode(name, dataCount, priority), cancellationToken);
 		}
 
 		public TreeBuilder AddOperator(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, OperatorNode operatorNode)
@@ -240,14 +299,14 @@ namespace AScript.Nodes
 			else
 			{
 				var current = _Current;
-				while (current.Parent != null && 
+				while (current.Parent != null &&
 					(current.Parent.Priority >= operatorNode.Priority || current.Parent.Left == null && current.Parent.Right != null && operatorNode.Priority < DefaultSyntaxAnalyzer.OperatorPriorities["**"]))
 				{
 					current = current.Parent;
 				}
 				// 
 				var pp = current.Parent;
-				if ((options.CreateFullTreeNode ?? false) || !(current is OperatorNode) || operatorNode.Priority == DefaultSyntaxAnalyzer.ASSIGN 
+				if ((options.CreateFullTreeNode ?? false) || !(current is OperatorNode) || operatorNode.Priority == DefaultSyntaxAnalyzer.ASSIGN
 					|| operatorNode.Name == "++" || operatorNode.Name == "--")
 				{
 					operatorNode.Left = current;
@@ -285,6 +344,118 @@ namespace AScript.Nodes
 			}
 		}
 
+		public async Task AddOperatorAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, OperatorNode operatorNode, CancellationToken cancellationToken = default)
+		{
+			if (_Current == null && _Root != null)
+			{
+				// 用分号构建根节点
+				var root = PoolManage.CreateOperatorNode(";", 2, 0);
+				root.Left = _Root;
+				_Root = _Current = root;
+			}
+			if (_Current == null)
+			{
+				_Root = _Current = operatorNode;
+				return;
+			}
+			if (_Current is OperatorNode currentOperatorNode)
+			{
+				if (currentOperatorNode.IsFull())
+				{
+					var currentOp = currentOperatorNode;
+					while (currentOp.Parent != null && currentOp.Parent.Priority >= operatorNode.Priority)
+					{
+						currentOp = currentOp.Parent;
+					}
+					// 
+					var pp = currentOp.Parent;
+					if (options.CreateFullTreeNode ?? false)
+					{
+						operatorNode.Left = currentOp;
+					}
+					else
+					{
+						if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+						{
+							var expr = currentOp.Build(buildContext, scriptContext, options);
+							PoolManage.Return(currentOp);
+							operatorNode.Left = PoolManage.CreateExpressionNode(expr);
+						}
+						else if (currentOp.Name == "." && operatorNode.Name != ".")
+						{
+							operatorNode.Left = currentOp;
+						}
+						else
+						{
+							// 计算节点
+							var currentResult = await currentOp.EvalAsync(scriptContext, options, control, cancellationToken).ConfigureAwait(false);
+							PoolManage.Return(currentOp);
+							operatorNode.Left = PoolManage.CreateObjectNode(currentResult.Value, currentResult.Type);
+						}
+					}
+					if (pp == null)
+					{
+						_Root = operatorNode;
+					}
+					else
+					{
+						pp.Right = operatorNode;
+					}
+				}
+				else
+				{
+					currentOperatorNode.Right = operatorNode;
+				}
+				_Current = operatorNode;
+				return;
+			}
+			else
+			{
+				var current = _Current;
+				while (current.Parent != null &&
+					(current.Parent.Priority >= operatorNode.Priority || current.Parent.Left == null && current.Parent.Right != null && operatorNode.Priority < DefaultSyntaxAnalyzer.OperatorPriorities["**"]))
+				{
+					current = current.Parent;
+				}
+				// 
+				var pp = current.Parent;
+				if ((options.CreateFullTreeNode ?? false) || !(current is OperatorNode) || operatorNode.Priority == DefaultSyntaxAnalyzer.ASSIGN
+					|| operatorNode.Name == "++" || operatorNode.Name == "--")
+				{
+					operatorNode.Left = current;
+				}
+				else
+				{
+					if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+					{
+						var expr = current.Build(buildContext, scriptContext, options);
+						PoolManage.Return(current);
+						operatorNode.Left = PoolManage.CreateExpressionNode(expr);
+					}
+					else if ((current is OperatorNode currentOp) && currentOp.Name == "." && operatorNode.Name != ".")
+					{
+						operatorNode.Left = current;
+					}
+					else
+					{
+						// 计算节点
+						var currentResult = await current.EvalAsync(scriptContext, options, control, cancellationToken).ConfigureAwait(false);
+						PoolManage.Return(current);
+						operatorNode.Left = PoolManage.CreateObjectNode(currentResult.Value, currentResult.Type);
+					}
+				}
+				_Current = operatorNode;
+				if (pp == null)
+				{
+					_Root = operatorNode;
+				}
+				else
+				{
+					pp.Right = operatorNode;
+				}
+			}
+		}
+
 		//public bool TryCurrentEndToken(ExpressionBuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, string token)
 		//{
 		//	if (_Current is TreeBuilder treeBuilder && treeBuilder.EndToken == token)
@@ -319,6 +490,17 @@ namespace AScript.Nodes
 				return;
 			}
 			TryEvalRoot(buildContext, scriptContext, options, control);
+		}
+
+		public async Task TryEvalCurrent(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		{
+			if (options.CreateFullTreeNode ?? false) return;
+			if (_Current == null) return;
+			if (_Current is OperatorNode operatorNode && !operatorNode.IsFull())
+			{
+				return;
+			}
+			await TryEvalRootAsync(buildContext, scriptContext, options, control, cancellationToken).ConfigureAwait(false);
 		}
 
 		public void TryEvalRoot(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control)
@@ -360,6 +542,45 @@ namespace AScript.Nodes
 			}
 		}
 
+		public async Task TryEvalRootAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		{
+			if (options.CreateFullTreeNode ?? false)
+			{
+				if (_Root != null)
+				{
+					//// 用分号构建根节点
+					//var root = PoolManage.CreateOperatorNode(";", 2, 0);
+					//root.Left = _Root;
+					//_Root = _Current = root;
+					_Current = null;
+				}
+				return;
+			}
+			//if (_Root == null)
+			//{
+			//	Clear();
+			//	_LastResult = null;
+			//}
+			//else
+			if (_Root != null)
+			{
+				if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+				{
+					var expr = _Root.Build(buildContext, scriptContext, options);
+					if (_Expressions == null) _Expressions = new List<Expression>();
+					_Expressions.Add(expr);
+					PoolManage.Return(_Root);
+					_Root = _Current = null;
+				}
+				else
+				{
+					var result = await _Root.EvalAsync(scriptContext, options, control, cancellationToken).ConfigureAwait(false);
+					Clear();
+					_LastResult = PoolManage.CreateObjectNode(result.Value, result.Type);
+				}
+			}
+		}
+
 		public ITreeNode EvalRoot(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control)
 		{
 			if (options.CreateFullTreeNode ?? false)
@@ -384,6 +605,33 @@ namespace AScript.Nodes
 				var result = _Root.Eval(scriptContext, options, control, out var resultType);
 				Clear();
 				return PoolManage.CreateObjectNode(result, resultType);
+			}
+		}
+
+		public async Task<ITreeNode> EvalRootAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		{
+			if (options.CreateFullTreeNode ?? false)
+			{
+				var r = _Root;
+				_Root = _Current = _LastResult = null;
+				return r;
+			}
+			if (_Root == null)
+			{
+				return null;
+			}
+			if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				var expr = _Root.Build(buildContext, scriptContext, options);
+				PoolManage.Return(_Root);
+				_Root = _Current = null;
+				return PoolManage.CreateExpressionNode(expr);
+			}
+			else
+			{
+				var result = await _Root.EvalAsync(scriptContext, options, control, cancellationToken).ConfigureAwait(false);
+				Clear();
+				return PoolManage.CreateObjectNode(result.Value, result.Type);
 			}
 		}
 

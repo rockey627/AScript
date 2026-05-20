@@ -234,7 +234,7 @@ namespace AScript.Nodes
 				var tempContext = ScriptContext.Create(context);
 				var tempController = new EvalControl(control, true);
 				var varType = this.ForeachNode.VarDefine.SystemType ?? typeof(object);
-				this.ForeachNode.VarDefine.Eval(tempContext, options, out _);
+				this.ForeachNode.VarDefine.Eval(tempContext, options, null, out _);
 
 				var results = new List<object>();
 				foreach (var item in en)

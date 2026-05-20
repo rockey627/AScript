@@ -49,12 +49,12 @@ namespace AScript.Nodes
 				{
 					foreach (var vd in this.VarDefines)
 					{
-						vd.Eval(tempContext, options, out _);
+						vd.Eval(tempContext, options, null, out _);
 					}
 				}
 				else
 				{
-					this.VarDefine.Eval(tempContext, options, out _);
+					this.VarDefine.Eval(tempContext, options, null, out _);
 				}
 				// 循环
 				foreach (var item in en)
@@ -110,7 +110,7 @@ namespace AScript.Nodes
 					}
 					else
 					{
-						this.VarDefine.Eval(tempContext, options, out var varType);
+						this.VarDefine.Eval(tempContext, options, null, out var varType);
 						tempContext.SetVar(this.VarDefine.Name, item, item == null ? varType : null);
 					}
 					bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempController, out bodyType);
