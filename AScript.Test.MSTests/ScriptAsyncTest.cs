@@ -11,6 +11,39 @@ namespace AScript.Test.MSTests
 	[TestClass]
 	public class ScriptAsyncTest
 	{
+		[TestMethod]
+		public async Task Test01()
+		{
+			Func<int, int, Task<int>> sum = async (a, b) =>
+			{
+				await Task.Delay(1000);
+				return a + b;
+			};
+			var script = new Script();
+			script.Context.AddFunc("sum", sum);
+			{
+				Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff"));
+				var result = await script.EvalAsync("await sum(5, 10)");
+				Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff"));
+				Assert.AreEqual(15, result.Value);
+				Assert.AreEqual(typeof(int), result.Type);
+			}
+			{
+				Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff"));
+				var result = script.Eval("await sum(5, 10)", out var type);
+				Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff"));
+				Assert.AreEqual(15, result);
+				Assert.AreEqual(typeof(int), type);
+			}
+			{
+				var cts = new CancellationTokenSource(100);
+				await Assert.ThrowsExceptionAsync<OperationCanceledException>(async () =>
+				{
+					await script.EvalAsync("(await sum(5, 10)) + 5", cancellationToken: cts.Token);
+				});
+			}
+		}
+
 		#region Basic EvalAsync Tests
 
 		[TestMethod]
@@ -428,16 +461,16 @@ sum(5);
 			Assert.AreEqual(15, result.Value);
 		}
 
-//		[TestMethod]
-//		public async Task EvalAsync_AwaitTask()
-//		{
-//			var script = new Script();
-//			var result = await script.EvalAsync(@"
-//var t = Task.FromResult(42);
-//await t
-//");
-//			Assert.AreEqual(42, result.Value);
-//		}
+		//		[TestMethod]
+		//		public async Task EvalAsync_AwaitTask()
+		//		{
+		//			var script = new Script();
+		//			var result = await script.EvalAsync(@"
+		//var t = Task.FromResult(42);
+		//await t
+		//");
+		//			Assert.AreEqual(42, result.Value);
+		//		}
 
 		[TestMethod]
 		public async Task EvalAsync_AwaitTaskDelay()

@@ -24,6 +24,7 @@ C#动态脚本解析编译执行引擎
 * 支持LINQ语法、Lambda表达式
 * 支持元组类型、匿名类型、动态类型
 * 支持事件处理
+* 支持异步
 * 支持16进制整数表示：0x0A
 * 支持多语句：用分号分隔多条语句
 * 支持行注释：// 行注释
@@ -485,4 +486,29 @@ var script = new Script();
 var whereCondition = script.Lambda<Person, bool>("p.Name=='tom' || p.Name=='jim'", "p");
 IQueryable<Person> query = ...;
 var list = query.Where(whereCondition).ToList();
+```
+
+#### 异步和await
+```C#
+Func<int, int, Task<int>> sum = async (a, b) =>
+{
+	await Task.Delay(1000);
+	return a + b;
+};
+var script = new Script();
+script.Context.AddFunc("sum", sum);
+// 方式一：EvalAsync异步执行await脚本，传递async/await到脚本
+var result = await script.EvalAsync("await sum(5, 10)");
+Assert.AreEqual(15, result.Value);
+Assert.AreEqual(typeof(int), result.Type);
+// 方式二：Eval同步执行await脚本，脚本实际调用Task.Wait() + Task<T>.Result
+var result = script.Eval("await sum(5, 10)", out var type);
+Assert.AreEqual(15, result);
+Assert.AreEqual(typeof(int), type);
+// 超时取消
+var cts = new CancellationTokenSource(100);
+await Assert.ThrowsExceptionAsync<OperationCanceledException>(async () =>
+{
+	await script.EvalAsync("(await sum(5, 10)) + 5", cancellationToken: cts.Token);
+});
 ```
