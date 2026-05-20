@@ -1,13 +1,15 @@
 ﻿using AScript.Nodes;
 using AScript.Syntaxs;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AScript.TokenHandlers
 {
 	/// <summary>
 	/// 
 	/// </summary>
-	public class OperatorTokenHandler : ITokenHandler
+	public class OperatorTokenHandler : ITokenHandler, IAsyncTokenHandler
 	{
 		/// <summary>
 		/// 优先级操作符（使用该操作符来获取优先级）
@@ -39,6 +41,16 @@ namespace AScript.TokenHandlers
 			{
 				var op = new OperatorNode(string.IsNullOrEmpty(this.TargetOperator) ? e.CurrentToken.Value : this.TargetOperator, DefaultSyntaxAnalyzer.OperatorPriorities[this.PriorityOperator], this.DataCount);
 				e.TreeBuilder.AddOperator(e.BuildContext, e.ScriptContext, e.Options, e.Control, op);
+			}
+		}
+
+		public async Task BuildAsync(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, CancellationToken cancellationToken)
+		{
+			e.IsHandled = true;
+			if (!e.Ignore)
+			{
+				var op = new OperatorNode(string.IsNullOrEmpty(this.TargetOperator) ? e.CurrentToken.Value : this.TargetOperator, DefaultSyntaxAnalyzer.OperatorPriorities[this.PriorityOperator], this.DataCount);
+				await e.TreeBuilder.AddOperatorAsync(e.BuildContext, e.ScriptContext, e.Options, e.Control, op, cancellationToken).ConfigureAwait(false);
 			}
 		}
 	}

@@ -511,7 +511,7 @@ namespace AScript.Nodes
 				var tmpContext = ScriptContext.Create(context);
 				return await tmpContext.EvalFuncAsync(options, control, this.Name, args, cancellationToken).ConfigureAwait(false);
 			}
-			return new EvalResult();
+			return default;
 		}
 
 		public override void Clear()
