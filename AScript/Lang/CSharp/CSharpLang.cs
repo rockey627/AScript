@@ -146,6 +146,7 @@ namespace AScript.Lang.CSharp
 			AddTokenHandler("as", new OperatorTokenHandler("??"));
 			AddTokenHandler("from", FromTokenHandler.Instance);
 			AddTokenHandler("await", AwaitTokenHandler.Instance);
+			AddTokenHandler("@@CancellationToken", CancellationTokenHandler.Instance);
 		}
 	}
 }

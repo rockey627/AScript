@@ -150,6 +150,11 @@ namespace AScript.Nodes
 			}
 		}
 
+		public TreeBuilder AddData(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, object data)
+		{
+			return AddData(buildContext, scriptContext, options, control, PoolManage.CreateObjectNode(data));
+		}
+
 		public TreeBuilder AddData(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, object data, Type dataType)
 		{
 			return AddData(buildContext, scriptContext, options, control, PoolManage.CreateObjectNode(data, dataType));

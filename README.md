@@ -511,4 +511,9 @@ await Assert.ThrowsExceptionAsync<OperationCanceledException>(async () =>
 {
 	await script.EvalAsync("(await sum(5, 10)) + 5", cancellationToken: cts.Token);
 });
+// @@CancellationToken关键字：异步执行值为参数中的cts.Token，同步执行值为CancellationToken.None
+await Assert.ThrowsExceptionAsync<TaskCanceledException>(async () =>
+{
+	await script.EvalAsync("await Task.Delay(1000, @@CancellationToken)", cancellationToken: cts.Token);
+});
 ```

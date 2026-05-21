@@ -520,6 +520,48 @@ await Task.Delay(1000);
 		}
 
 		[TestMethod]
+		public async Task EvalAsync_AwaitTaskDelay_Cancellation_4()
+		{
+			string s = @"
+await Task.Delay(1000, @@CancellationToken);
+42
+";
+			var script = new Script();
+			var cts = new CancellationTokenSource(100);
+			await Assert.ThrowsExceptionAsync<TaskCanceledException>(async () =>
+			{
+				await script.EvalAsync(s, cancellationToken: cts.Token);
+			});
+
+			var result = script.Eval(s);
+			Assert.AreEqual(42, result);
+		}
+
+		[TestMethod]
+		public async Task EvalAsync_AwaitTaskDelay_Cancellation_3()
+		{
+			string s = @"
+await Task.Delay(1000, @@CancellationToken);
+42
+";
+			var cts = new CancellationTokenSource();
+
+			var script = new Script();
+			var resultTask = script.EvalAsync(s, cancellationToken: cts.Token);
+
+			await Task.Delay(100);
+			cts.Cancel();
+
+			await Assert.ThrowsExceptionAsync<TaskCanceledException>(async () =>
+			{
+				await resultTask;
+			});
+
+			var result = script.Eval(s);
+			Assert.AreEqual(42, result);
+		}
+
+		[TestMethod]
 		public async Task EvalAsync_AwaitTaskDelay_Cancellation_2()
 		{
 			var cts = new CancellationTokenSource();
