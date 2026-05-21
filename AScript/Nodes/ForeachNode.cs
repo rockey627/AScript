@@ -165,6 +165,7 @@ namespace AScript.Nodes
 				// 循环
 				foreach (var item in en)
 				{
+					cancellationToken.ThrowIfCancellationRequested();
 					if (this.VarDefines != null)
 					{
 						// 解构列表项赋值到各个变量

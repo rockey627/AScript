@@ -70,6 +70,7 @@ namespace AScript.Nodes
 			EvalResult bodyResult = default;
 			while (true)
 			{
+				cancellationToken.ThrowIfCancellationRequested();
 				// 条件判断
 				if (this.Condition != null)
 				{

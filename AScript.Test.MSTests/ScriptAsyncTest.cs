@@ -180,30 +180,24 @@ sum(3, 5);
 			Assert.AreEqual(6, result.Value);
 		}
 
-		//		[TestMethod]
-		//		public async Task EvalAsync_Cancellation_WithLongRunningScript()
-		//		{
-		//			var script = new Script();
-		//			var cts = new CancellationTokenSource();
-
-		//			// Script with loop that can be cancelled
-		//			var resultTask = script.EvalAsync(@"
-		//int sum = 0;
-		//for (int i = 0; i < 1000000000; i++) {
-		//	sum += i;
-		//}
-		//sum
-		//", cancellationToken: cts.Token);
-
-		//			// Wait a bit then cancel
-		//			await Task.Delay(50);
-		//			cts.Cancel();
-
-		//			await Assert.ThrowsExceptionAsync<OperationCanceledException>(async () =>
-		//			{
-		//				await resultTask;
-		//			});
-		//		}
+		[TestMethod]
+		public async Task EvalAsync_Cancellation_WithLongRunningScript()
+		{
+			// Script with loop that can be cancelled
+			string s = @"
+int sum = 0;
+for (int i = 0; i < 1000000000; i++) {
+	sum += i;
+}
+sum
+";
+			var script = new Script();
+			var cts = new CancellationTokenSource(100);
+			await Assert.ThrowsExceptionAsync<OperationCanceledException>(async () =>
+			{
+				await script.EvalAsync(s, cancellationToken: cts.Token);
+			});
+		}
 
 		[TestMethod]
 		public async Task EvalAsync_Cancellation_FastExecution()

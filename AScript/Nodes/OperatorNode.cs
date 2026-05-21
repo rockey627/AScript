@@ -123,9 +123,9 @@ namespace AScript.Nodes
 			if (this.Name == ";")
 			{
 				EvalResult result = default;
-				Type type = null;
 				if (this._Left != null)
 				{
+					cancellationToken.ThrowIfCancellationRequested();
 					result = await this._Left.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
 					if (control != null && (control.Continue || control.Break || control.Terminal))
 					{
@@ -134,6 +134,7 @@ namespace AScript.Nodes
 				}
 				if (this._Right != null)
 				{
+					cancellationToken.ThrowIfCancellationRequested();
 					result = await this._Right.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
 				}
 				return result;

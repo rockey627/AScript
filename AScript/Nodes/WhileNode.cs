@@ -42,6 +42,7 @@ namespace AScript.Nodes
 			EvalResult bodyResult = default;
 			while (true)
 			{
+				cancellationToken.ThrowIfCancellationRequested();
 				if (!(await EvalConditionAsync(tempContext, options, cancellationToken).ConfigureAwait(false)))
 				{
 					break;
