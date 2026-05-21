@@ -54,19 +54,19 @@ namespace AScript.Functions
 
 		public async Task EvalAsync(FunctionEvalArgs e, CancellationToken cancellationToken = default)
 		{
-			var value = e.Args[0].Eval(e.Context, e.Options, e.Control, out var returnType);
-			if (value == null || !(value is Task task))
+			var result = await e.Args[0].EvalAsync(e.Context, e.Options, e.Control, cancellationToken).ConfigureAwait(false);
+			if (result.Value == null || !(result.Value is Task task))
 			{
-				e.SetResult(value, returnType);
+				e.SetResult(result.Value, result.Type);
 				return;
 			}
 			await task.ConfigureAwait(false);
-			if (returnType.IsGenericType)
+			if (result.Type.IsGenericType)
 			{
 				// Task<TResult>
 				dynamic t = task;
 				var v = t.Result;
-				e.SetResult(v, returnType.GetGenericArguments()[0]);
+				e.SetResult(v, result.Type.GetGenericArguments()[0]);
 			}
 			else
 			{
