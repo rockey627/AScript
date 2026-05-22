@@ -11,6 +11,7 @@
 * [AScript中一个很有意思的语法](https://mp.weixin.qq.com/s/JrXlUosfpWbSfKLVIl7pzg)
 * [AScript之匿名类型与动态类型](https://mp.weixin.qq.com/s/6PzH9JxRsNlLMi5eISd7kg)
 * [AScript如何实现LINQ语法](https://mp.weixin.qq.com/s/ZEz2BPE5kayvXRQom73khw)
+* [AScript异步执行与await关键字](https://mp.weixin.qq.com/s/LPjcCugmJK6o-ONhle2Hkw)
 
 ## 介绍
 
