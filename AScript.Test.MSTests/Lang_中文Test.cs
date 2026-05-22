@@ -11,12 +11,30 @@ namespace AScript.Test.MSTests
 		public static void Init(TestContext context)
 		{
 			Script.Langs.TryAdd("中文", 中文语言.实例, true);
+			Script.Langs.TryAdd("python3", Lang.Python3.Python3Lang.Instance);
 		}
 
 		[ClassCleanup]
 		public static void Cleanup()
 		{
 			Script.Langs.TryRemove("中文");
+		}
+
+		[TestMethod]
+		public void Test03()
+		{
+			string s = @"
+int n=10;
+@lang python3
+def sum(a,b):
+	return a+b
+@end
+@lang 中文
+整型 m=20;
+@end
+sum(m, n)";
+			var script = new Script();
+			Assert.AreEqual(30, script.Eval(s));
 		}
 
 		[TestMethod]

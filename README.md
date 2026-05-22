@@ -72,13 +72,13 @@ int result = sum(10, 20);
 
 ## 安装
 
-install-package AScript
+`install-package AScript`
 
 ## 使用说明
 
-* 命名空间：using AScript;
-* 已内置C#常用数据类型，如：int/bool/string/long/double/DateTime等
-* 已内置Convert数据转换方法，使用示例：'12'.ToInt32() 等同于 ToInt32('12') 或者 Convert.ToInt32('12')
+* 命名空间：`using AScript;`
+* 已内置C#常用数据类型，如：`int/bool/string/long/double/DateTime`等
+* 已内置Convert数据转换方法，使用示例：`'12'.ToInt32()`等同于`ToInt32('12')`或者`Convert.ToInt32('12')`
 
 #### 注入类型及类型中的方法
 ```C#
@@ -458,15 +458,18 @@ Assert.AreEqual(25, script.Eval(s));
 ```
 
 #### 多脚本语言
-脚本中使用#lang/#end或者@lang/@end语法嵌入其他语言，如果没有#end/@end，则表示后面的脚本都指定该语言执行。
-如果要嵌入python语言，请使用@lang/@end，因为#是python中的注释语句，#lang/#end会失效。
+脚本中使用`@lang/@end`语法嵌入其他语言，如果没有`@end`，则表示后面的脚本都指定该语言执行。
 ```C#
 string s = @"
 int n=10;
-#lang 中文
+@lang python3
+def sum(a,b):
+	return a+b
+@end
+@lang 中文
 整型 m=20;
-#end
-m+n";
+@end
+sum(m, n)";
 var script = new Script();
 Assert.AreEqual(30, script.Eval(s));
 ```
