@@ -850,6 +850,20 @@ namespace AScript.Syntaxs
 			return nextToken;
 		}
 
+		public virtual Token? ValidateNextToken(TokenReader tokenReader, string nextTokenForValid, StringComparison comparisonType)
+		{
+			var nextToken = tokenReader.Read();
+			if (!nextToken.HasValue)
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect {nextTokenForValid}");
+			}
+			if (nextToken.Value.Type == ETokenType.String || !nextTokenForValid.Equals(nextToken.Value.Value, comparisonType))
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at {nextToken.Value.Line},{nextToken.Value.Column}, expect {nextTokenForValid}");
+			}
+			return nextToken;
+		}
+
 		public virtual async Task<Token?> ValidateNextTokenAsync(TokenReader tokenReader, string nextTokenForValid, CancellationToken cancellationToken = default)
 		{
 			var nextToken = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
@@ -858,6 +872,20 @@ namespace AScript.Syntaxs
 				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect {nextTokenForValid}");
 			}
 			if (nextToken.Value.Type == ETokenType.String || nextToken.Value.Value != nextTokenForValid)
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at {nextToken.Value.Line},{nextToken.Value.Column}, expect {nextTokenForValid}");
+			}
+			return nextToken;
+		}
+
+		public virtual async Task<Token?> ValidateNextTokenAsync(TokenReader tokenReader, string nextTokenForValid, StringComparison comparisonType, CancellationToken cancellationToken = default)
+		{
+			var nextToken = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+			if (!nextToken.HasValue)
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect {nextTokenForValid}");
+			}
+			if (nextToken.Value.Type == ETokenType.String || !nextTokenForValid.Equals(nextToken.Value.Value, comparisonType))
 			{
 				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at {nextToken.Value.Line},{nextToken.Value.Column}, expect {nextTokenForValid}");
 			}

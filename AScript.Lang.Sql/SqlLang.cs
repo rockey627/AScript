@@ -36,6 +36,7 @@ namespace AScript.Lang.Sql
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);
 			AddTokenHandler("or", OrElseTokenHandler.Instance);
 			AddTokenHandler("like", SqlLikeTokenHandler.Instance);
+			AddTokenHandler("select", SqlSelectTokenHandler.Instance);
 			AddTokenHandler("from", SqlFromTokenHandler.Instance);
 		}
 

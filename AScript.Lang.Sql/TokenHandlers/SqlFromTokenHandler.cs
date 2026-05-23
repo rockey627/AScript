@@ -16,9 +16,9 @@ namespace AScript.Lang.Sql.TokenHandlers
 		private static readonly HashSet<string> _OnTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "on" };
 		private static readonly HashSet<string> _EqualsTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "equals" };
 		private static readonly HashSet<string> _ByTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "by" };
-		private static readonly HashSet<string> _Keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "from", "where", "left", "inner", "join", "order", "group" };
-		private static readonly HashSet<string> _OrderbyEndTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "from", "where", "left", "inner", "join", "order", "group", "asc", "desc" };
-		private static readonly HashSet<string> _TableEndTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "from", "where", "left", "inner", "join", "order", "group", "as" };
+		private static readonly HashSet<string> _Keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "from", "where", "left", "right", "inner", "join", "order", "group" };
+		private static readonly HashSet<string> _OrderbyEndTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "from", "where", "left", "right", "inner", "join", "order", "group", "asc", "desc" };
+		private static readonly HashSet<string> _TableEndTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "from", "where", "left", "right", "inner", "join", "order", "group", "as" };
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
@@ -44,6 +44,10 @@ namespace AScript.Lang.Sql.TokenHandlers
 				{
 					BuildLeftJoin(analyzer, e, createFullOptions, queryNode);
 				}
+				else if (token.Value.IsSymbol("right", StringComparison.OrdinalIgnoreCase))
+				{
+					BuildRightJoin(analyzer, e, createFullOptions, queryNode);
+				}
 				else if (token.Value.IsSymbol("where", StringComparison.OrdinalIgnoreCase))
 				{
 					BuildWhere(analyzer, e, createFullOptions, queryNode);
@@ -58,7 +62,6 @@ namespace AScript.Lang.Sql.TokenHandlers
 				}
 				else
 				{
-
 					e.TokenReader.Push(token.Value);
 					break;
 					//throw new Exceptions.ScriptAnalyzingException($"invalid expression near from, unknow {token.Value.Value} at ({token.Value.Line},{token.Value.Column})");
@@ -129,12 +132,98 @@ namespace AScript.Lang.Sql.TokenHandlers
 
 		private void BuildInnerJoin(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
 		{
-
+			analyzer.ValidateNextToken(e.TokenReader, "join", StringComparison.OrdinalIgnoreCase);
+			var table = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: _TableEndTokens);
+			analyzer.ValidateNextToken(e.TokenReader, "as", StringComparison.OrdinalIgnoreCase);
+			var nameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+			analyzer.ValidateNextToken(e.TokenReader, "on", StringComparison.OrdinalIgnoreCase);
+			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
+			if (queryNode != null)
+			{
+				GroupCondition(condition, nameToken.Value.Value, out var key1, out var key2);
+				queryNode.AddJoin(nameToken.Value.Value, table, key1, key2);
+			}
 		}
 
 		private void BuildLeftJoin(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
 		{
+			analyzer.ValidateNextToken(e.TokenReader, "join", StringComparison.OrdinalIgnoreCase);
+			var table = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: _TableEndTokens);
+			analyzer.ValidateNextToken(e.TokenReader, "as", StringComparison.OrdinalIgnoreCase);
+			var nameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+			analyzer.ValidateNextToken(e.TokenReader, "on", StringComparison.OrdinalIgnoreCase);
+			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
+			if (queryNode != null)
+			{
+				GroupCondition(condition, nameToken.Value.Value, out var key1, out var key2);
+				queryNode.AddLeftJoin(nameToken.Value.Value, table, key1, key2);
+			}
+		}
 
+		private void BuildRightJoin(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
+		{
+			analyzer.ValidateNextToken(e.TokenReader, "join", StringComparison.OrdinalIgnoreCase);
+			var table = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: _TableEndTokens);
+			analyzer.ValidateNextToken(e.TokenReader, "as", StringComparison.OrdinalIgnoreCase);
+			var nameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+			analyzer.ValidateNextToken(e.TokenReader, "on", StringComparison.OrdinalIgnoreCase);
+			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
+			if (queryNode != null)
+			{
+				GroupCondition(condition, nameToken.Value.Value, out var key1, out var key2);
+				queryNode.AddRightJoin(nameToken.Value.Value, table, key1, key2);
+			}
+		}
+
+		private void GroupCondition(ITreeNode condition, string key2Name, out ITreeNode key1, out ITreeNode key2)
+		{
+			var list1 = new List<ITreeNode>();
+			var list2 = new List<ITreeNode>();
+			GroupCondition(condition, key2Name, list1, list2);
+			if (list1.Count == 1)
+			{
+				key1 = list1[0];
+				key2 = list2[0];
+			}
+			else
+			{
+				key1 = new NewNode { InitProperties = list1 };
+				key2 = new NewNode { InitProperties = list2 };
+			}
+		}
+
+		private void GroupCondition(ITreeNode condition, string key2Name, List<ITreeNode> list1, List<ITreeNode> list2)
+		{
+			if (!(condition is OperatorNode opNode))
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression near join on");
+			}
+			var left = opNode.Left;
+			var right = opNode.Right;
+			if (opNode.Name == "=")
+			{
+				if (IsMatchKey(left, key2Name))
+				{
+					list1.Add(right);
+					list2.Add(left);
+				}
+				else
+				{
+					list1.Add(left);
+					list2.Add(right);
+				}
+				return;
+			}
+			GroupCondition(left, key2Name, list1, list2);
+			GroupCondition(right, key2Name, list1, list2);
+		}
+
+		private bool IsMatchKey(ITreeNode node, string keyName)
+		{
+			if (!(node is OperatorNode opNode)) return false;
+			if (opNode.Name != ".") return false;
+			if (opNode.Left is VariableNode varNode) return keyName.Equals(varNode.Name);
+			return IsMatchKey(opNode.Left, keyName);
 		}
 
 		private void BuildGroup(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)

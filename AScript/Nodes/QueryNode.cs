@@ -172,6 +172,23 @@ namespace AScript.Nodes
 			}
 		}
 
+		public void AddLeftJoin(string varName, ITreeNode source, ITreeNode key1, ITreeNode key2)
+		{
+			string name0 = $"__{varName}_0__";
+			string name1 = $"__{varName}_1__";
+			AddJoin(name0, source, key1, key2, name1);
+			AddFrom(varName, new CallFuncNode { Name = "DefaultIfEmpty", Args = new ITreeNode[] { new VariableNode(name1) } });
+		}
+
+		public void AddRightJoin(string varName, ITreeNode source, ITreeNode key1, ITreeNode key2)
+		{
+			var right = _Source;
+			var rightName = _CurrentVarName;
+			_Source = source;
+			_CurrentVarName = varName;
+			AddLeftJoin(rightName, right, key2, key1);
+		}
+
 		/// <summary>
 		/// group a.Name by a.Age into intoName
 		/// </summary>
