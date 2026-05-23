@@ -21,9 +21,10 @@ namespace AScript.TokenHandlers
 		private static readonly HashSet<string> _OnTokens = new HashSet<string> { "on" };
 		private static readonly HashSet<string> _EqualsTokens = new HashSet<string> { "equals" };
 		private static readonly HashSet<string> _ByTokens = new HashSet<string> { "by" };
-		private static readonly HashSet<string> _Keywords = new HashSet<string> { "from", "where", "join", "select", "orderby", "group" };
-		private static readonly HashSet<string> _JoinEndTokens = new HashSet<string> { "from", "where", "join", "select", "orderby", "group", "into" };
-		private static readonly HashSet<string> _OrderbyEndTokens = new HashSet<string> { "from", "where", "join", "select", "orderby", "group", "ascending", "descending", "asc", "desc" };
+		private static readonly HashSet<string> _Keywords = new HashSet<string> { "from", "where", "join", "left", "right", "select", "orderby", "group" };
+		private static readonly HashSet<string> _JoinEndTokens = new HashSet<string> { "from", "where", "join", "left", "right", "select", "orderby", "group", "into" };
+		private static readonly HashSet<string> _Join2EndTokens = new HashSet<string> { "from", "where", "join", "left", "right", "select", "orderby", "group" };
+		private static readonly HashSet<string> _OrderbyEndTokens = new HashSet<string> { "from", "where", "join", "left", "right", "select", "orderby", "group", "ascending", "descending", "asc", "desc" };
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
@@ -49,6 +50,14 @@ namespace AScript.TokenHandlers
 				else if (token.Value.IsSymbol("join"))
 				{
 					BuildJoin(analyzer, e, createFullOptions, queryNode);
+				}
+				else if (token.Value.IsSymbol("left"))
+				{
+					BuildLeftJoin(analyzer, e, createFullOptions, queryNode);
+				}
+				else if (token.Value.IsSymbol("right"))
+				{
+					BuildRightJoin(analyzer, e, createFullOptions, queryNode);
 				}
 				else if (token.Value.IsSymbol("where"))
 				{
@@ -131,6 +140,60 @@ namespace AScript.TokenHandlers
 				}
 			}
 			queryNode?.AddJoin(varToken.Value.Value, source, key1, key2, intoName);
+		}
+
+		/// <summary>
+		/// from a in q1
+		/// left join b in q2 on a.Id equals b.Id
+		/// </summary>
+		/// <param name="analyzer"></param>
+		/// <param name="e"></param>
+		/// <param name="createFullOptions"></param>
+		/// <param name="queryNode"></param>
+		/// <exception cref="Exceptions.ScriptAnalyzingException"></exception>
+		private void BuildLeftJoin(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
+		{
+			analyzer.ValidateNextToken(e.TokenReader, "join");
+
+			var varToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+			analyzer.ValidateNextToken(e.TokenReader, "in");
+
+			var source = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, _OnTokens);
+
+			analyzer.ValidateNextToken(e.TokenReader, "on");
+
+			var key1 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _EqualsTokens);
+			analyzer.ValidateNextToken(e.TokenReader, "equals");
+			var key2 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Join2EndTokens);
+
+			queryNode?.AddLeftJoin(varToken.Value.Value, source, key1, key2);
+		}
+
+		/// <summary>
+		/// from a in q1
+		/// right join b in q2 on a.Id equals b.Id
+		/// </summary>
+		/// <param name="analyzer"></param>
+		/// <param name="e"></param>
+		/// <param name="createFullOptions"></param>
+		/// <param name="queryNode"></param>
+		/// <exception cref="Exceptions.ScriptAnalyzingException"></exception>
+		private void BuildRightJoin(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
+		{
+			analyzer.ValidateNextToken(e.TokenReader, "join");
+
+			var varToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+			analyzer.ValidateNextToken(e.TokenReader, "in");
+
+			var source = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, _OnTokens);
+
+			analyzer.ValidateNextToken(e.TokenReader, "on");
+
+			var key1 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _EqualsTokens);
+			analyzer.ValidateNextToken(e.TokenReader, "equals");
+			var key2 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Join2EndTokens);
+
+			queryNode?.AddRightJoin(varToken.Value.Value, source, key1, key2);
 		}
 
 		private void BuildWhere(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
