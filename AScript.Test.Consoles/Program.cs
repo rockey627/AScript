@@ -109,10 +109,20 @@ namespace AScript.Test.Consoles
 				//var list = script.Eval<IList>(s);
 				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
 
+				//string s = @"
+				//var q = from a in context.AddressInfos
+				//		right join p in context.Persons on a.UserId equals p.Id
+				//		select new { p.Id, p.Name, p.Age, MyAddress = a.Address };
+				//q.ToList();
+				//";
+				//var script = new Script();
+				//script.Context.SetVar("context", context);
+				//var list = script.Eval<IList>(s);
+				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
+
 				string s = @"
 				var q = from p in context.Persons
-						join a in context.AddressInfos on p.Id equals a.UserId into aa
-						from a in aa.DefaultIfEmpty()
+						left join a in context.AddressInfos on p.Id equals a.UserId
 						select new { p.Id, p.Name, p.Age, MyAddress = a.Address };
 				q.ToList();
 				";
@@ -120,6 +130,18 @@ namespace AScript.Test.Consoles
 				script.Context.SetVar("context", context);
 				var list = script.Eval<IList>(s);
 				Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
+
+				//string s = @"
+				//var q = from p in context.Persons
+				//		join a in context.AddressInfos on p.Id equals a.UserId into aa
+				//		from a in aa.DefaultIfEmpty()
+				//		select new { p.Id, p.Name, p.Age, MyAddress = a.Address };
+				//q.ToList();
+				//";
+				//var script = new Script();
+				//script.Context.SetVar("context", context);
+				//var list = script.Eval<IList>(s);
+				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
 
 				//string s = @"
 				//var q = from a in context.AddressInfos
