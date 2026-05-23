@@ -24,5 +24,10 @@ namespace AScript
 		{
 			return this.Type != ETokenType.String && this.Type != ETokenType.Number && this.Value == w;
 		}
+
+		public bool IsSymbol(string w, StringComparison comparisonType)
+		{
+			return this.Type != ETokenType.String && this.Type != ETokenType.Number && w.Equals(this.Value, comparisonType);
+		}
 	}
 }

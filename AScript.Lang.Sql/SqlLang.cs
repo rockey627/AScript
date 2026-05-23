@@ -26,6 +26,11 @@ namespace AScript.Lang.Sql
 			AddFunc("and", AndAlsoOperator.Instance);
 			AddFunc("or", OrElseOperator.Instance);
 
+			// IEnumerable<T>扩展方法
+			AddFunc(typeof(System.Linq.Enumerable));
+			// IQueryable<T>扩展方法
+			AddFunc(typeof(System.Linq.Queryable), method => !method.IsGenericMethod && method.Name == "AsQueryable" ? null : method.Name);
+
 			AddTokenHandler("=", new OperatorTokenHandler("=="));
 			AddTokenHandler("<>", new OperatorTokenHandler("!=", "!="));
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);
