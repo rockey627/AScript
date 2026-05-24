@@ -292,6 +292,31 @@ namespace AScript.Nodes
 			_Source = orderby;
 		}
 
+		public void AddThenby(ITreeNode key, string mode)
+		{
+			if (_Source == null)
+			{
+				throw new Exceptions.ScriptAnalyzingException("invalid expression orderby");
+			}
+			// _Source.OrderByDescending(a => a.Age)
+			var thenby = new CallFuncNode
+			{
+				Name = mode == "desc" || mode == "descending" ? "ThenByDescending" : "ThenBy",
+				Args = new ITreeNode[]
+				{
+					_Source,
+					// key: a => a.Age
+					new DefineFuncNode
+					{
+						Args = new[] { new DefineVarNode(_CurrentVarName) },
+						Body = TryVisitAndReplace(key)
+					}
+				}
+			};
+			// 更新当前数据源
+			_Source = thenby;
+		}
+
 		/// <summary>
 		/// join varName in source on a.Age equals varName.Age
 		/// </summary>

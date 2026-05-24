@@ -248,21 +248,43 @@ namespace AScript.TokenHandlers
 		/// <param name="queryNode"></param>
 		private void BuildOrderby(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
 		{
-			var key = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _OrderbyEndTokens);
-			var token = e.TokenReader.Read();
-			string mode = null;
-			if (token.HasValue)
+			bool f = true;
+			while (true)
 			{
-				if (token.Value.IsSymbol("ascending") || token.Value.IsSymbol("asc") || token.Value.IsSymbol("descending") || token.Value.IsSymbol("desc"))
+				var key = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _OrderbyEndTokens);
+				var token = e.TokenReader.Read();
+				string mode = null;
+
+				if (token.HasValue &&
+					(token.Value.IsSymbol("ascending") || token.Value.IsSymbol("asc") || token.Value.IsSymbol("descending") || token.Value.IsSymbol("desc")))
 				{
 					mode = token.Value.Value;
+					token = e.TokenReader.Read();
 				}
-				else
+
+				if (queryNode != null)
 				{
-					e.TokenReader.Push(token.Value);
+					if (f)
+					{
+						queryNode.AddOrderby(key, mode);
+						f = false;
+					}
+					else queryNode.AddThenby(key, mode);
 				}
+
+				if (!token.HasValue)
+				{
+					break;
+				}
+
+				if (token.Value.IsSymbol(","))
+				{
+					continue;
+				}
+
+				e.TokenReader.Push(token.Value);
+				break;
 			}
-			queryNode?.AddOrderby(key, mode);
 		}
 	}
 }
