@@ -23,7 +23,41 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
-		public void Test10_2()
+		public void Test11_orderby_2()
+		{
+			// ascending
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") }.AsQueryable();
+
+			string s = @"
+set q = from q1 as a
+		order by a.Age asc
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("q1", q1);
+			script.Context.SetVar("q2", q2);
+			var r = script.Eval(s);
+			Console.WriteLine(r.ToString());
+			var list = script.Eval<IList>("q.ToList()");
+			Assert.AreEqual(4, list.Count);
+			dynamic d0 = list[0];
+			Assert.AreEqual(18, d0.Age);
+			Assert.AreEqual("san", d0.Name);
+			dynamic d1 = list[1];
+			Assert.AreEqual(20, d1.Age);
+			Assert.AreEqual("tom", d1.Name);
+			dynamic d2 = list[2];
+			Assert.AreEqual(25, d2.Age);
+			Assert.AreEqual("jim", d2.Name);
+			dynamic d3 = list[3];
+			Assert.AreEqual(25, d3.Age);
+			Assert.AreEqual("kit", d3.Name);
+		}
+
+		[TestMethod]
+		public void Test10_select_2()
 		{
 			var s = @"select a.Name as Name2, a.Age from list as a where a.age=10";
 			var list = new[]
@@ -62,7 +96,7 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
-		public void Test10()
+		public void Test10_select()
 		{
 			var s = @"select a.Name as Name2, a.Age from list as a where a.age=10";
 			var list = new[]
@@ -100,7 +134,7 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
-		public void Test09_2()
+		public void Test09_select_2()
 		{
 			var s = @"select a.Name, a.Age from list as a where a.age=10";
 			var list = new[]
@@ -139,7 +173,7 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
-		public void Test09()
+		public void Test09_select()
 		{
 			var s = @"select a.Name, a.Age from list as a where a.age=10";
 			var list = new[]
@@ -177,7 +211,7 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
-		public void Test08_2()
+		public void Test08_where_2()
 		{
 			var s = @"from list as a where a.age=10";
 			var list = new[]
@@ -198,7 +232,7 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
-		public void Test08()
+		public void Test08_where()
 		{
 			var s = @"from list as a where a.age=10";
 			var list = new[]
@@ -218,7 +252,7 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
-		public void Test07_2()
+		public void Test07_lang_2()
 		{
 			string s = @"
 bool a = #lang sql age=10 #end
@@ -236,7 +270,7 @@ a ? 1 : 2;
 		}
 
 		[TestMethod]
-		public void Test07()
+		public void Test07_lang()
 		{
 			string s = @"
 bool a = #lang sql age=10 #end
@@ -253,7 +287,7 @@ a ? 1 : 2;
 		}
 
 		[TestMethod]
-		public void Test06_2()
+		public void Test06_lang_2()
 		{
 			string s = @"
 var matchedList = new List<Person>();
@@ -281,7 +315,7 @@ matchedList;
 		}
 
 		[TestMethod]
-		public void Test06()
+		public void Test06_lang()
 		{
 			string s = @"
 var matchedList = new List<Person>();
@@ -308,7 +342,7 @@ matchedList;
 		}
 
 		[TestMethod]
-		public void Test05_2()
+		public void Test05_lang_2()
 		{
 			string s = @"
 bool isMatch(Person p) {
@@ -340,7 +374,7 @@ matchedList;
 		}
 
 		[TestMethod]
-		public void Test05()
+		public void Test05_lang()
 		{
 			string s = @"
 bool isMatch(Person p) {
@@ -371,7 +405,7 @@ matchedList;
 		}
 
 		[TestMethod]
-		public void Test04_2()
+		public void Test04_lang_2()
 		{
 			string s = @"
 bool isMatch(Person p) => 
@@ -403,7 +437,7 @@ matchedList;
 		}
 
 		[TestMethod]
-		public void Test04()
+		public void Test04_lang()
 		{
 			string s = @"
 bool isMatch(Person p) => 
@@ -434,7 +468,7 @@ matchedList;
 		}
 
 		[TestMethod]
-		public void Test03_2()
+		public void Test03_lang_2()
 		{
 			string s = @"
 bool isMatch(Person p) => #lang sql p.Age>20 and p.Age<50 or p.Name like 'to%'; #end
@@ -465,7 +499,7 @@ matchedList;
 		}
 
 		[TestMethod]
-		public void Test03()
+		public void Test03_lang()
 		{
 			string s = @"
 bool isMatch(Person p) => #lang sql p.Age>20 and p.Age<50 or p.Name like 'to%'; #end

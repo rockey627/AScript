@@ -361,6 +361,7 @@ Assert.AreEqual(55, script.Eval(s));
 ```
 
 #### LINQ
+* group
 ```C#
 string s = @"
 var persons = new[] { new Person(""tom"", 20), new Person(""jim"", 25), new Person(""san"", 18), new Person(""kit"", 25) }.AsQueryable();
@@ -383,9 +384,42 @@ dynamic d2 = list[2];
 Assert.AreEqual(18, d2.Key);
 Assert.AreEqual(1, d2.Count);
 ```
+* join
+```C#
+from p in persons
+join a in addresses on p.Id equals a.UserId
+where p.Age > 20
+```
+* left join（AScript定制语法）
+```C#
+// 写法1
+from p in persons
+join a in addresses on p.Id equals a.UserId into aa
+from a in aa.DefaultIfEmpty()
+// 写法2
+from p in persons
+left join a in addresses on p.Id equals a.UserId
+```
+* right join（AScript定制语法）
+```C#
+from p in persons
+right join a in addresses on p.Id equals a.UserId
+```
+实际会转换为left join：
+```C#
+from a in addresses
+left join p in persons on a.UserId equals p.Id
+```
+* orderby
+asc/desc为AScript定制语法，也支持C#标准语法ascending/descending
+```C#
+from p in persons
+orderby p.Age desc
+```
 
 #### Queryable扩展方法
 Queryable中的扩展方法，包含Where/Select/OrderBy/Skip/Take/FirstOrDefault/SelectMany/Join等等。
+注：.NET10新增了LeftJoin/RightJoin扩展方法
 ```C#
 string s = @"
 var q = [1,2,3,4,5].AsQueryable();

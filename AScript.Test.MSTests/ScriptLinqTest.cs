@@ -19,7 +19,7 @@ namespace AScript.Test.MSTests
 			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 25) }.AsQueryable();
 			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") }.AsQueryable();
 			var q = from a in q1
-					orderby a.Age ascending
+					orderby a.Age ascending, a.Name descending
 					select a;
 			//q.ToList();
 			Console.WriteLine(q.ToString());

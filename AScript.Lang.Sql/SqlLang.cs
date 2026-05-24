@@ -1,6 +1,5 @@
 ﻿using AScript.Lang.Sql.TokenHandlers;
 using AScript.Operators;
-using AScript.Syntaxs;
 using AScript.TokenHandlers;
 using System;
 
@@ -19,7 +18,8 @@ namespace AScript.Lang.Sql
 			AddFunc("!", BoolNotOperator.Instance);
 			AddFunc("<", LessThanOperator.Instance);
 			AddFunc(">", GreaterThanOperator.Instance);
-			AddFunc("=", EqualOperator.Instance);
+			AddFunc("=", AssignOperator.Instance);
+			AddFunc("==", EqualOperator.Instance);
 			AddFunc(">=", GreaterThanOrEqualOperator.Instance);
 			AddFunc("<=", LessThanOrEqualOperator.Instance);
 			AddFunc("!=", NotEqualOperator.Instance);
@@ -31,25 +31,14 @@ namespace AScript.Lang.Sql
 			// IQueryable<T>扩展方法
 			AddFunc(typeof(System.Linq.Queryable), method => !method.IsGenericMethod && method.Name == "AsQueryable" ? null : method.Name);
 
-			AddTokenHandler("=", new OperatorTokenHandler("=="));
+			AddTokenHandler("=", new OperatorTokenHandler("==", "=="));
 			AddTokenHandler("<>", new OperatorTokenHandler("!=", "!="));
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);
 			AddTokenHandler("or", OrElseTokenHandler.Instance);
 			AddTokenHandler("like", SqlLikeTokenHandler.Instance);
 			AddTokenHandler("select", SqlSelectTokenHandler.Instance);
 			AddTokenHandler("from", SqlFromTokenHandler.Instance);
-		}
-
-		public override int? GetOperatorPriority(string op)
-		{
-			switch (op)
-			{
-				case "=":
-					return DefaultSyntaxAnalyzer.OperatorPriorities["=="];
-				default:
-					break;
-			}
-			return base.GetOperatorPriority(op);
+			AddTokenHandler("set", SqlSetTokenHandler.Instance);
 		}
 	}
 }

@@ -7,15 +7,16 @@ using System.Collections.Generic;
 namespace AScript.Lang.Sql.TokenHandlers
 {
 	/// <summary>
-	/// from table1 as a1, table2 as a2 where a1.Id=a2.Id
+	/// FROM table1 AS a1, table2 AS a2 WHERE a1.Id=a2.Id
+	/// LEFT JOIN table3 AS a3 ON a1.Id=a3.Id
+	/// GROUP BY a1.Name,a3.Id
+	/// ORDER BY a1.Name DESC
 	/// </summary>
 	public class SqlFromTokenHandler : ITokenHandler
 	{
 		public static readonly SqlFromTokenHandler Instance = new SqlFromTokenHandler();
 
-		private static readonly HashSet<string> _OnTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "on" };
-		private static readonly HashSet<string> _EqualsTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "equals" };
-		private static readonly HashSet<string> _ByTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "by" };
+		private static readonly HashSet<string> _GroupByEndTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "having" };
 		private static readonly HashSet<string> _Keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "from", "where", "left", "right", "inner", "join", "order", "group" };
 		private static readonly HashSet<string> _OrderbyEndTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "from", "where", "left", "right", "inner", "join", "order", "group", "asc", "desc" };
 		private static readonly HashSet<string> _TableEndTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "from", "where", "left", "right", "inner", "join", "order", "group", "as" };
@@ -228,12 +229,67 @@ namespace AScript.Lang.Sql.TokenHandlers
 
 		private void BuildGroup(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
 		{
-
+			analyzer.ValidateNextToken(e.TokenReader, "by", StringComparison.OrdinalIgnoreCase);
+			var list = queryNode == null ? null : new List<ITreeNode>();
+			Token? nextToken;
+			while (true)
+			{
+				var node = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _GroupByEndTokens);
+				list?.Add(node);
+				nextToken = e.TokenReader.Read();
+				if (!nextToken.HasValue) break;
+				if (nextToken.Value.IsSymbol(",")) continue;
+				break;
+			}
+			if (nextToken.HasValue && 
+				(nextToken.Value.Type == ETokenType.String || !_GroupByEndTokens.Contains(nextToken.Value.Value)))
+			{
+				e.TokenReader.Push(nextToken.Value);
+			}
+			if (queryNode != null)
+			{
+				var key = list.Count == 1 ? list[0] : new NewNode { InitProperties = list };
+				string intoName = null;
+				//if (nextToken.Value.Type == ETokenType.Word && _GroupByEndTokens.Contains(nextToken.Value.Value))
+				//{
+				//	intoName = 
+				//}
+				queryNode.AddGroup(key, null, intoName);
+			}
 		}
 
 		private void BuildOrder(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
 		{
-
+			analyzer.ValidateNextToken(e.TokenReader, "by", StringComparison.OrdinalIgnoreCase);
+			Token? nextToken;
+			while (true)
+			{
+				var node = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _OrderbyEndTokens);
+				nextToken = e.TokenReader.Read();
+				if (!nextToken.HasValue)
+				{
+					queryNode?.AddOrderby(node, null);
+					break;
+				}
+				if (nextToken.Value.IsSymbol("asc"))
+				{
+					queryNode?.AddOrderby(node, "asc");
+					nextToken = e.TokenReader.Read();
+					if (!nextToken.HasValue) break;
+				}
+				if (nextToken.Value.IsSymbol("desc"))
+				{
+					queryNode?.AddOrderby(node, "desc");
+					nextToken = e.TokenReader.Read();
+					if (!nextToken.HasValue) break;
+				}
+				if (nextToken.Value.IsSymbol(",")) continue;
+				break;
+			}
+			if (nextToken.HasValue)
+			{
+				e.TokenReader.Push(nextToken.Value);
+			}
 		}
 	}
 }
