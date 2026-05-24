@@ -23,6 +23,73 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
+		public void Test12_thenby_2()
+		{
+			// ascending
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") }.AsQueryable();
+
+			string s = @"
+set q = from q1 as a
+		order by a.Age asc, a.Name desc
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("q1", q1);
+			script.Context.SetVar("q2", q2);
+			var r = script.Eval(s);
+			Console.WriteLine(r.ToString());
+			var list = script.Eval<IList>("q.ToList()");
+			Assert.AreEqual(4, list.Count);
+			dynamic d0 = list[0];
+			Assert.AreEqual(18, d0.Age);
+			Assert.AreEqual("san", d0.Name);
+			dynamic d1 = list[1];
+			Assert.AreEqual(20, d1.Age);
+			Assert.AreEqual("tom", d1.Name);
+			dynamic d2 = list[2];
+			Assert.AreEqual(25, d2.Age);
+			Assert.AreEqual("kit", d2.Name);
+			dynamic d3 = list[3];
+			Assert.AreEqual(25, d3.Age);
+			Assert.AreEqual("jim", d3.Name);
+		}
+
+		[TestMethod]
+		public void Test12_thenby()
+		{
+			// ascending
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") }.AsQueryable();
+
+			string s = @"
+set q = from q1 as a
+		order by a.Age asc, a.Name desc
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("q1", q1);
+			script.Context.SetVar("q2", q2);
+			var r = script.Eval(s);
+			Console.WriteLine(r.ToString());
+			var list = script.Eval<IList>("q.ToList()");
+			Assert.AreEqual(4, list.Count);
+			dynamic d0 = list[0];
+			Assert.AreEqual(18, d0.Age);
+			Assert.AreEqual("san", d0.Name);
+			dynamic d1 = list[1];
+			Assert.AreEqual(20, d1.Age);
+			Assert.AreEqual("tom", d1.Name);
+			dynamic d2 = list[2];
+			Assert.AreEqual(25, d2.Age);
+			Assert.AreEqual("kit", d2.Name);
+			dynamic d3 = list[3];
+			Assert.AreEqual(25, d3.Age);
+			Assert.AreEqual("jim", d3.Name);
+		}
+
+		[TestMethod]
 		public void Test11_orderby_2()
 		{
 			// ascending
@@ -35,6 +102,39 @@ set q = from q1 as a
 ";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("q1", q1);
+			script.Context.SetVar("q2", q2);
+			var r = script.Eval(s);
+			Console.WriteLine(r.ToString());
+			var list = script.Eval<IList>("q.ToList()");
+			Assert.AreEqual(4, list.Count);
+			dynamic d0 = list[0];
+			Assert.AreEqual(18, d0.Age);
+			Assert.AreEqual("san", d0.Name);
+			dynamic d1 = list[1];
+			Assert.AreEqual(20, d1.Age);
+			Assert.AreEqual("tom", d1.Name);
+			dynamic d2 = list[2];
+			Assert.AreEqual(25, d2.Age);
+			Assert.AreEqual("jim", d2.Name);
+			dynamic d3 = list[3];
+			Assert.AreEqual(25, d3.Age);
+			Assert.AreEqual("kit", d3.Name);
+		}
+
+		[TestMethod]
+		public void Test11_orderby()
+		{
+			// ascending
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") }.AsQueryable();
+
+			string s = @"
+set q = from q1 as a
+		order by a.Age asc
+";
+			var script = new Script();
 			script.Context.Langs = new[] { "sql" };
 			script.Context.SetVar("q1", q1);
 			script.Context.SetVar("q2", q2);

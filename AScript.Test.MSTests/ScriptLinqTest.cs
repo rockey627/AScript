@@ -13,6 +13,87 @@ namespace AScript.Test.MSTests
 	public class ScriptLinqTest
 	{
 		[TestMethod]
+		public void Test06_thenby_2()
+		{
+			// ascending
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") }.AsQueryable();
+			var q = from a in q1
+					orderby a.Age ascending, a.Name descending
+					select a;
+			//q.ToList();
+			Console.WriteLine(q.ToString());
+
+			string s = @"
+			var q1 = new[] { new Person(""tom"", 20), new Person(""jim"", 25), new Person(""san"", 18), new Person(""kit"", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo(""jim"", ""a""), new AddressInfo(""cc"", ""b""), new AddressInfo(""tom"", ""c""), new AddressInfo(""ee"", ""d"") }.AsQueryable();
+			var q = from a in q1
+					orderby a.Age ascending, a.Name desc
+					select a;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			script.Context.AddType<AddressInfo>();
+			var r = script.Eval(s);
+			Console.WriteLine(r.ToString());
+			var list = script.Eval<IList>("q.ToList()");
+			Assert.AreEqual(4, list.Count);
+			dynamic d0 = list[0];
+			Assert.AreEqual(18, d0.Age);
+			Assert.AreEqual("san", d0.Name);
+			dynamic d1 = list[1];
+			Assert.AreEqual(20, d1.Age);
+			Assert.AreEqual("tom", d1.Name);
+			dynamic d2 = list[2];
+			Assert.AreEqual(25, d2.Age);
+			Assert.AreEqual("kit", d2.Name);
+			dynamic d3 = list[3];
+			Assert.AreEqual(25, d3.Age);
+			Assert.AreEqual("jim", d3.Name);
+		}
+
+		[TestMethod]
+		public void Test06_thenby()
+		{
+			// ascending
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") }.AsQueryable();
+			var q = from a in q1
+					orderby a.Age ascending, a.Name descending
+					select a;
+			//q.ToList();
+			Console.WriteLine(q.ToString());
+
+			string s = @"
+			var q1 = new[] { new Person(""tom"", 20), new Person(""jim"", 25), new Person(""san"", 18), new Person(""kit"", 25) }.AsQueryable();
+			var q2 = new[] { new AddressInfo(""jim"", ""a""), new AddressInfo(""cc"", ""b""), new AddressInfo(""tom"", ""c""), new AddressInfo(""ee"", ""d"") }.AsQueryable();
+			var q = from a in q1
+					orderby a.Age ascending, a.Name desc
+					select a;
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			script.Context.AddType<AddressInfo>();
+			var r = script.Eval(s);
+			Console.WriteLine(r.ToString());
+			var list = script.Eval<IList>("q.ToList()");
+			Assert.AreEqual(4, list.Count);
+			dynamic d0 = list[0];
+			Assert.AreEqual(18, d0.Age);
+			Assert.AreEqual("san", d0.Name);
+			dynamic d1 = list[1];
+			Assert.AreEqual(20, d1.Age);
+			Assert.AreEqual("tom", d1.Name);
+			dynamic d2 = list[2];
+			Assert.AreEqual(25, d2.Age);
+			Assert.AreEqual("kit", d2.Name);
+			dynamic d3 = list[3];
+			Assert.AreEqual(25, d3.Age);
+			Assert.AreEqual("jim", d3.Name);
+		}
+
+		[TestMethod]
 		public void Test05_orderby_2()
 		{
 			// ascending

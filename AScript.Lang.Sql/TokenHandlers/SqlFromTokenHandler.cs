@@ -241,7 +241,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 				if (nextToken.Value.IsSymbol(",")) continue;
 				break;
 			}
-			if (nextToken.HasValue && 
+			if (nextToken.HasValue &&
 				(nextToken.Value.Type == ETokenType.String || !_GroupByEndTokens.Contains(nextToken.Value.Value)))
 			{
 				e.TokenReader.Push(nextToken.Value);
@@ -261,34 +261,41 @@ namespace AScript.Lang.Sql.TokenHandlers
 		private void BuildOrder(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
 		{
 			analyzer.ValidateNextToken(e.TokenReader, "by", StringComparison.OrdinalIgnoreCase);
-			Token? nextToken;
+			bool f = true;
 			while (true)
 			{
-				var node = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _OrderbyEndTokens);
-				nextToken = e.TokenReader.Read();
-				if (!nextToken.HasValue)
+				var key = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _OrderbyEndTokens);
+				var token = e.TokenReader.Read();
+				string mode = null;
+
+				if (token.HasValue && (token.Value.IsSymbol("asc") || token.Value.IsSymbol("desc")))
 				{
-					queryNode?.AddOrderby(node, null);
+					mode = token.Value.Value;
+					token = e.TokenReader.Read();
+				}
+
+				if (queryNode != null)
+				{
+					if (f)
+					{
+						queryNode.AddOrderby(key, mode);
+						f = false;
+					}
+					else queryNode.AddThenby(key, mode);
+				}
+
+				if (!token.HasValue)
+				{
 					break;
 				}
-				if (nextToken.Value.IsSymbol("asc"))
+
+				if (token.Value.IsSymbol(","))
 				{
-					queryNode?.AddOrderby(node, "asc");
-					nextToken = e.TokenReader.Read();
-					if (!nextToken.HasValue) break;
+					continue;
 				}
-				if (nextToken.Value.IsSymbol("desc"))
-				{
-					queryNode?.AddOrderby(node, "desc");
-					nextToken = e.TokenReader.Read();
-					if (!nextToken.HasValue) break;
-				}
-				if (nextToken.Value.IsSymbol(",")) continue;
+
+				e.TokenReader.Push(token.Value);
 				break;
-			}
-			if (nextToken.HasValue)
-			{
-				e.TokenReader.Push(nextToken.Value);
 			}
 		}
 	}
