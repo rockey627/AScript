@@ -23,6 +23,9 @@ namespace AScript.Nodes
 
 		private readonly QueryTreeNodeVisitor _Visitor;
 
+		public ITreeNode Source => _Source;
+		public string CurrentVarName => _CurrentVarName;
+
 		public QueryNode()
 		{
 			_Visitor = new QueryTreeNodeVisitor(this);

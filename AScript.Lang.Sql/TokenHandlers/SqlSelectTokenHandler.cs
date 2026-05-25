@@ -98,7 +98,45 @@ namespace AScript.Lang.Sql.TokenHandlers
 				_QueryNode = queryNode;
 			}
 
+			public override ITreeNode VisitOperatorNode(OperatorNode operatorNode)
+			{
+				if (operatorNode.Name == ".")
+				{
+					if (_QueryNode.Source is CallFuncNode sourceCallFuncNode && sourceCallFuncNode.Name == "GroupBy")
+					{
+						var keyOpNode = new OperatorNode(".", 0, 2)
+						{
+							Left = new VariableNode(_QueryNode.CurrentVarName),
+							Right = new VariableNode("Key")
+						};
+						if (operatorNode.Parent != null)
+						{
+							return keyOpNode;
+						}
+						operatorNode = new OperatorNode("=", 0, 2)
+						{
+							Left = operatorNode.Right,
+							Right = keyOpNode
+						};
+					}
+					return operatorNode;
+				}
+				return base.VisitOperatorNode(operatorNode);
+			}
 
+			public override ITreeNode VisitCallFuncNode(CallFuncNode callFuncNode)
+			{
+				if ("count".Equals(callFuncNode.Name, StringComparison.OrdinalIgnoreCase))
+				{
+					callFuncNode.Name = "Count";
+					callFuncNode.Args = new ITreeNode[]
+					{
+						new VariableNode(_QueryNode.CurrentVarName)
+					};
+					return callFuncNode;
+				}
+				return base.VisitCallFuncNode(callFuncNode);
+			}
 		}
 	}
 }
