@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Xml.Linq;
 
 namespace AScript.Nodes
 {
@@ -19,6 +20,13 @@ namespace AScript.Nodes
 		private string _CurrentVarName;
 		// 当前数据源
 		private ITreeNode _Source;
+
+		private readonly QueryTreeNodeVisitor _Visitor;
+
+		public QueryNode()
+		{
+			_Visitor = new QueryTreeNodeVisitor(this);
+		}
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
@@ -55,7 +63,7 @@ namespace AScript.Nodes
 					new DefineFuncNode
 					{
 						Args = new[] { new DefineVarNode(_CurrentVarName) },
-						Body = TryVisitAndReplace(source)
+						Body = _Visitor.Visit(source)
 					},
 					// (_CurrentVarName, varName) => new { _CurrentVarName, varName }
 					new DefineFuncNode
@@ -108,7 +116,7 @@ namespace AScript.Nodes
 					new DefineFuncNode
 					{
 						Args = new[] { new DefineVarNode(_CurrentVarName) },
-						Body = TryVisitAndReplace(condition)
+						Body = _Visitor.Visit(condition)
 					}
 				}
 			};
@@ -136,7 +144,7 @@ namespace AScript.Nodes
 					new DefineFuncNode
 					{
 						Args = new[] { new DefineVarNode(_CurrentVarName) },
-						Body = TryVisitAndReplace(selector)
+						Body = _Visitor.Visit(selector)
 					}
 				}
 			};
@@ -225,13 +233,13 @@ namespace AScript.Nodes
 						new DefineFuncNode
 						{
 							Args = new[] { new DefineVarNode(_CurrentVarName) },
-							Body = TryVisitAndReplace(key)
+							Body = _Visitor.Visit(key)
 						},
 						// element: a => a.Name
 						new DefineFuncNode
 						{
 							Args = new[] { new DefineVarNode(_CurrentVarName) },
-							Body = TryVisitAndReplace(element)
+							Body = _Visitor.Visit(element)
 						},
 					}
 				};
@@ -248,7 +256,7 @@ namespace AScript.Nodes
 						new DefineFuncNode
 						{
 							Args = new[] { new DefineVarNode(_CurrentVarName) },
-							Body = TryVisitAndReplace(key)
+							Body = _Visitor.Visit(key)
 						}
 					}
 				};
@@ -284,7 +292,7 @@ namespace AScript.Nodes
 					new DefineFuncNode
 					{
 						Args = new[] { new DefineVarNode(_CurrentVarName) },
-						Body = TryVisitAndReplace(key)
+						Body = _Visitor.Visit(key)
 					}
 				}
 			};
@@ -309,7 +317,7 @@ namespace AScript.Nodes
 					new DefineFuncNode
 					{
 						Args = new[] { new DefineVarNode(_CurrentVarName) },
-						Body = TryVisitAndReplace(key)
+						Body = _Visitor.Visit(key)
 					}
 				}
 			};
@@ -334,18 +342,18 @@ namespace AScript.Nodes
 				Args = new ITreeNode[]
 				{
 					_Source,
-					TryVisitAndReplace(source),
+					_Visitor.Visit(source),
 					// key1: a => a.Age
 					new DefineFuncNode
 					{
 						Args = new[] { new DefineVarNode(_CurrentVarName) },
-						Body = TryVisitAndReplace(key1)
+						Body = _Visitor.Visit(key1)
 					},
 					// key2: varName => varName.Age
 					new DefineFuncNode
 					{
 						Args = new[] { new DefineVarNode(varName) },
-						Body = TryVisitAndReplace(key2)
+						Body = _Visitor.Visit(key2)
 					},
 					// (a, varName) => new { a, varName })
 					new DefineFuncNode
@@ -392,18 +400,18 @@ namespace AScript.Nodes
 				Args = new ITreeNode[]
 				{
 					_Source,
-					TryVisitAndReplace(source),
+					_Visitor.Visit(source),
 					// key1: a => a.Age
 					new DefineFuncNode
 					{
 						Args = new[] { new DefineVarNode(_CurrentVarName) },
-						Body = TryVisitAndReplace(key1)
+						Body = _Visitor.Visit(key1)
 					},
 					// key2: varName => varName.Age
 					new DefineFuncNode
 					{
 						Args = new[] { new DefineVarNode(varName) },
-						Body = TryVisitAndReplace(key2)
+						Body = _Visitor.Visit(key2)
 					},
 					// (a, intoName) => new { a, intoName })
 					new DefineFuncNode
@@ -433,87 +441,6 @@ namespace AScript.Nodes
 			_VarParentDict[intoName] = _CurrentVarName;
 		}
 
-		private ITreeNode TryVisitAndReplace(ITreeNode node)
-		{
-			if (_VarParentDict.Count == 0) return node;
-			return VisitAndReplace(node);
-		}
-
-		private ITreeNode VisitAndReplace(ITreeNode node)
-		{
-			if (node == null) return null;
-			if (node is DefineVarNode)
-			{
-
-			}
-			else if (node is VariableNode varNode)
-			{
-				string varName = varNode.Name;
-				OperatorNode root = null;
-				while (_VarParentDict.TryGetValue(varName, out var parentName))
-				{
-					var left = new OperatorNode(".", DefaultSyntaxAnalyzer.OperatorPriorities["."], 2);
-					left.Left = new VariableNode(parentName);
-					left.Right = root?.Left ?? new VariableNode(varName);
-					if (root == null) root = left;
-					else root.Left = left;
-					varName = parentName;
-				}
-				return root ?? node;
-			}
-			else if (node is OperatorNode opNode)
-			{
-				if (opNode.Name == "." || opNode.Name == "?.")
-				{
-					opNode.Left = VisitAndReplace(opNode.Left);
-					if (!(opNode.Right is VariableNode))
-					{
-						VisitAndReplace(opNode.Right);
-					}
-				}
-				else if (opNode.Name == "=")
-				{
-					if (!(opNode.Left is VariableNode))
-					{
-						VisitAndReplace(opNode.Left);
-					}
-					opNode.Right = VisitAndReplace(opNode.Right);
-				}
-				else
-				{
-					VisitAndReplace(opNode.Left);
-					VisitAndReplace(opNode.Right);
-				}
-			}
-			else if (node is NewNode newNode)
-			{
-				if (newNode.InitProperties != null)
-				{
-					for (int i = 0; i < newNode.InitProperties.Count; i++)
-					{
-						var item = newNode.InitProperties[i];
-						newNode.InitProperties[i] = VisitAndReplace(item);
-					}
-				}
-			}
-			else if (node is CallFuncNode callNode)
-			{
-				if (callNode.Args != null)
-				{
-					for (int i = 0; i < callNode.Args.Length; i++)
-					{
-						var item = callNode.Args[i];
-						callNode.Args[i] = VisitAndReplace(item);
-					}
-				}
-				if (callNode.Target is ITreeNode targetNode)
-				{
-					callNode.Target = VisitAndReplace(targetNode);
-				}
-			}
-			return node;
-		}
-
 		public override void Clear()
 		{
 			base.Clear();
@@ -523,6 +450,63 @@ namespace AScript.Nodes
 			_CurrentVarName = null;
 			PoolManage.Return(_Source);
 			_Source = null;
+		}
+
+		private class QueryTreeNodeVisitor : TreeNodeVisitor
+		{
+			private readonly QueryNode _QueryNode;
+
+			public QueryTreeNodeVisitor(QueryNode queryNode)
+			{
+				this._QueryNode = queryNode;
+			}
+
+			public override ITreeNode Visit(ITreeNode node)
+			{
+				return _QueryNode._VarParentDict.Count == 0 ? node : base.Visit(node);
+			}
+
+			public override ITreeNode VisitVariableNode(VariableNode variableNode)
+			{
+				string varName = variableNode.Name;
+				OperatorNode root = null;
+				while (_QueryNode._VarParentDict.TryGetValue(varName, out var parentName))
+				{
+					var left = new OperatorNode(".", DefaultSyntaxAnalyzer.OperatorPriorities["."], 2);
+					left.Left = new VariableNode(parentName);
+					left.Right = root?.Left ?? new VariableNode(varName);
+					if (root == null) root = left;
+					else root.Left = left;
+					varName = parentName;
+				}
+				return root ?? (ITreeNode)variableNode;
+			}
+
+			public override ITreeNode VisitOperatorNode(OperatorNode operatorNode)
+			{
+				if (operatorNode.Name == "." || operatorNode.Name == "?.")
+				{
+					operatorNode.Left = Visit(operatorNode.Left);
+					if (!(operatorNode.Right is VariableNode))
+					{
+						Visit(operatorNode.Right);
+					}
+				}
+				else if (operatorNode.Name == "=")
+				{
+					if (!(operatorNode.Left is VariableNode))
+					{
+						Visit(operatorNode.Left);
+					}
+					operatorNode.Right = Visit(operatorNode.Right);
+				}
+				else
+				{
+					Visit(operatorNode.Left);
+					Visit(operatorNode.Right);
+				}
+				return operatorNode;
+			}
 		}
 	}
 }

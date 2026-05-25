@@ -249,11 +249,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 			if (queryNode != null)
 			{
 				var key = list.Count == 1 ? list[0] : new NewNode { InitProperties = list };
-				string intoName = null;
-				//if (nextToken.Value.Type == ETokenType.Word && _GroupByEndTokens.Contains(nextToken.Value.Value))
-				//{
-				//	intoName = 
-				//}
+				string intoName = "__group__";
 				queryNode.AddGroup(key, null, intoName);
 			}
 		}

@@ -69,6 +69,13 @@ namespace AScript.Lang.Sql.TokenHandlers
 				if (!e.Ignore)
 				{
 					var queryNode = (QueryNode)((fromBuilder is TreeBuilder treeBuilder) ? treeBuilder.Root : fromBuilder);
+					// 字段替换
+					var visitor = new SelectTreeNodeVistor(queryNode);
+					for (int i = 0; i < list.Count; i++)
+					{
+						list[i] = visitor.Visit(list[i]);
+					}
+					// 
 					if (list.Count == 1)
 					{
 						queryNode.AddSelect(list[0]);
@@ -80,6 +87,18 @@ namespace AScript.Lang.Sql.TokenHandlers
 					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, queryNode);
 				}
 			}
+		}
+
+		private class SelectTreeNodeVistor : TreeNodeVisitor
+		{
+			private readonly QueryNode _QueryNode;
+
+			public SelectTreeNodeVistor(QueryNode queryNode)
+			{
+				_QueryNode = queryNode;
+			}
+
+
 		}
 	}
 }
