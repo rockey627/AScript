@@ -15,6 +15,7 @@ namespace AScript.Lang.Sql
 		public SqlLang() : base(ignoreCase : true)
 		{
 			AddFunc(".", DotOperator.Instance);
+			AddFunc("?.", new DotOperator(true));
 			AddFunc("!", BoolNotOperator.Instance);
 			AddFunc("<", LessThanOperator.Instance);
 			AddFunc(">", GreaterThanOperator.Instance);

@@ -201,7 +201,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 			}
 			var left = opNode.Left;
 			var right = opNode.Right;
-			if (opNode.Name == "=")
+			if (opNode.Name == "==")
 			{
 				if (IsMatchKey(left, key2Name))
 				{

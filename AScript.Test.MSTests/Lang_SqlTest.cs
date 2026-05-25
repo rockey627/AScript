@@ -22,6 +22,194 @@ namespace AScript.Test.MSTests
 			Script.Langs.TryRemove("sql");
 		}
 
+//		[TestMethod]
+//		public void Test15_group_2()
+//		{
+//			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 25) }.AsQueryable();
+//			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") }.AsQueryable();
+			
+//			string s = @"
+//			set q = select a.Age, count(1) as Count
+//					from q1 as a
+//					group by a.Age;
+//";
+//			var script = new Script();
+//			script.Options.CompileMode = ECompileMode.All;
+//			script.Context.Langs = new[] { "sql" };
+//			script.Context.SetVar("q1", q1);
+//			var r = script.Eval(s);
+//			Console.WriteLine(r.ToString());
+//			var list = script.Eval<IList>("q.ToList()");
+//			Assert.AreEqual(3, list.Count);
+//			dynamic d0 = list[0];
+//			Assert.AreEqual(20, d0.Key);
+//			Assert.AreEqual(1, d0.Count);
+//			dynamic d1 = list[1];
+//			Assert.AreEqual(25, d1.Key);
+//			Assert.AreEqual(2, d1.Count);
+//			dynamic d2 = list[2];
+//			Assert.AreEqual(18, d2.Key);
+//			Assert.AreEqual(1, d2.Count);
+//		}
+
+		[TestMethod]
+		public void Test14_rightjoin_2()
+		{
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 30) };
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") };
+			string s = @"
+			set q = select b.Name, b.Age, a?.Address
+					from q2 as a
+					right join q1 as b on a.UserName = b.Name;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("q1", q1);
+			script.Context.SetVar("q2", q2);
+			var r = script.Eval(s);
+			Console.WriteLine(r.ToString());
+			var list = script.Eval<IList>("q.ToList()");
+			Assert.AreEqual(4, list.Count);
+			var type = Script.AnonymousTypes.CreateType(new[] { "Name", "Age", "Address" }, new[] { typeof(string), typeof(int), typeof(string) });
+			var listType = typeof(List<>).MakeGenericType(type);
+			Assert.IsInstanceOfType(list, listType);
+			dynamic d0 = list[0];
+			Assert.AreEqual("tom", d0.Name);
+			Assert.AreEqual(20, d0.Age);
+			Assert.AreEqual("c", d0.Address);
+			dynamic d1 = list[1];
+			Assert.AreEqual("jim", d1.Name);
+			Assert.AreEqual(25, d1.Age);
+			Assert.AreEqual("a", d1.Address);
+			dynamic d2 = list[2];
+			Assert.AreEqual("san", d2.Name);
+			Assert.AreEqual(18, d2.Age);
+			Assert.IsNull(d2.Address);
+			dynamic d3 = list[3];
+			Assert.AreEqual("kit", d3.Name);
+			Assert.AreEqual(30, d3.Age);
+			Assert.IsNull(d3.Address);
+		}
+
+		[TestMethod]
+		public void Test14_rightjoin()
+		{
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 30) };
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") };
+			string s = @"
+			set q = select b.Name, b.Age, a?.Address
+					from q2 as a
+					right join q1 as b on a.UserName = b.Name;
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("q1", q1);
+			script.Context.SetVar("q2", q2);
+			var r = script.Eval(s);
+			Console.WriteLine(r.ToString());
+			var list = script.Eval<IList>("q.ToList()");
+			Assert.AreEqual(4, list.Count);
+			var type = Script.AnonymousTypes.CreateType(new[] { "Name", "Age", "Address" }, new[] { typeof(string), typeof(int), typeof(string) });
+			var listType = typeof(List<>).MakeGenericType(type);
+			Assert.IsInstanceOfType(list, listType);
+			dynamic d0 = list[0];
+			Assert.AreEqual("tom", d0.Name);
+			Assert.AreEqual(20, d0.Age);
+			Assert.AreEqual("c", d0.Address);
+			dynamic d1 = list[1];
+			Assert.AreEqual("jim", d1.Name);
+			Assert.AreEqual(25, d1.Age);
+			Assert.AreEqual("a", d1.Address);
+			dynamic d2 = list[2];
+			Assert.AreEqual("san", d2.Name);
+			Assert.AreEqual(18, d2.Age);
+			Assert.IsNull(d2.Address);
+			dynamic d3 = list[3];
+			Assert.AreEqual("kit", d3.Name);
+			Assert.AreEqual(30, d3.Age);
+			Assert.IsNull(d3.Address);
+		}
+
+		[TestMethod]
+		public void Test13_leftjoin_2()
+		{
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 30) };
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") };
+			string s = @"
+			set q = select a.Name, a.Age, b?.Address
+					from q1 as a
+					left join q2 as b on a.Name = b.UserName;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("q1", q1);
+			script.Context.SetVar("q2", q2);
+			var r = script.Eval(s);
+			Console.WriteLine(r.ToString());
+			var list = script.Eval<IList>("q.ToList()");
+			Assert.AreEqual(4, list.Count);
+			var type = Script.AnonymousTypes.CreateType(new[] { "Name", "Age", "Address" }, new[] { typeof(string), typeof(int), typeof(string) });
+			var listType = typeof(List<>).MakeGenericType(type);
+			Assert.IsInstanceOfType(list, listType);
+			dynamic d0 = list[0];
+			Assert.AreEqual("tom", d0.Name);
+			Assert.AreEqual(20, d0.Age);
+			Assert.AreEqual("c", d0.Address);
+			dynamic d1 = list[1];
+			Assert.AreEqual("jim", d1.Name);
+			Assert.AreEqual(25, d1.Age);
+			Assert.AreEqual("a", d1.Address);
+			dynamic d2 = list[2];
+			Assert.AreEqual("san", d2.Name);
+			Assert.AreEqual(18, d2.Age);
+			Assert.IsNull(d2.Address);
+			dynamic d3 = list[3];
+			Assert.AreEqual("kit", d3.Name);
+			Assert.AreEqual(30, d3.Age);
+			Assert.IsNull(d3.Address);
+		}
+
+		[TestMethod]
+		public void Test13_leftjoin()
+		{
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 30) };
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") };
+			string s = @"
+			set q = select a.Name, a.Age, b?.Address
+					from q1 as a
+					left join q2 as b on a.Name = b.UserName;
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("q1", q1);
+			script.Context.SetVar("q2", q2);
+			var r = script.Eval(s);
+			Console.WriteLine(r.ToString());
+			var list = script.Eval<IList>("q.ToList()");
+			Assert.AreEqual(4, list.Count);
+			var type = Script.AnonymousTypes.CreateType(new[] { "Name", "Age", "Address" }, new[] { typeof(string), typeof(int), typeof(string) });
+			var listType = typeof(List<>).MakeGenericType(type);
+			Assert.IsInstanceOfType(list, listType);
+			dynamic d0 = list[0];
+			Assert.AreEqual("tom", d0.Name);
+			Assert.AreEqual(20, d0.Age);
+			Assert.AreEqual("c", d0.Address);
+			dynamic d1 = list[1];
+			Assert.AreEqual("jim", d1.Name);
+			Assert.AreEqual(25, d1.Age);
+			Assert.AreEqual("a", d1.Address);
+			dynamic d2 = list[2];
+			Assert.AreEqual("san", d2.Name);
+			Assert.AreEqual(18, d2.Age);
+			Assert.IsNull(d2.Address);
+			dynamic d3 = list[3];
+			Assert.AreEqual("kit", d3.Name);
+			Assert.AreEqual(30, d3.Age);
+			Assert.IsNull(d3.Address);
+		}
+
 		[TestMethod]
 		public void Test12_thenby_2()
 		{

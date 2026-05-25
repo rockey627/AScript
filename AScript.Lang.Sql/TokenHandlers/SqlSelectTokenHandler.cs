@@ -22,6 +22,11 @@ namespace AScript.Lang.Sql.TokenHandlers
 			{
 				var node = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _EndTokens);
 
+				//if (node is OperatorNode opNode && opNode.Name == ".")
+				//{
+				//	opNode.Name = "?.";
+				//}
+
 				nextToken = e.TokenReader.Read();
 				if (!nextToken.HasValue)
 				{
