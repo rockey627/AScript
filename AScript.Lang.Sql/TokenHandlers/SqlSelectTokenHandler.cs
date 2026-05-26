@@ -1,4 +1,5 @@
-﻿using AScript.Nodes;
+﻿using AScript.Lang.Sql.Nodes;
+using AScript.Nodes;
 using AScript.Syntaxs;
 using System;
 using System.Collections.Generic;
@@ -70,11 +71,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 				{
 					var queryNode = (QueryNode)((fromBuilder is TreeBuilder treeBuilder) ? treeBuilder.Root : fromBuilder);
 					// 字段替换
-					var visitor = new SelectTreeNodeVistor(queryNode);
-					for (int i = 0; i < list.Count; i++)
-					{
-						list[i] = visitor.Visit(list[i]);
-					}
+					new SqlTreeNodeVisitor(e.BuildContext, e.ScriptContext, queryNode).Visit(list);
 					// 
 					if (list.Count == 1)
 					{
@@ -89,54 +86,5 @@ namespace AScript.Lang.Sql.TokenHandlers
 			}
 		}
 
-		private class SelectTreeNodeVistor : TreeNodeVisitor
-		{
-			private readonly QueryNode _QueryNode;
-
-			public SelectTreeNodeVistor(QueryNode queryNode)
-			{
-				_QueryNode = queryNode;
-			}
-
-			public override ITreeNode VisitOperatorNode(OperatorNode operatorNode)
-			{
-				if (operatorNode.Name == ".")
-				{
-					if (_QueryNode.Source is CallFuncNode sourceCallFuncNode && sourceCallFuncNode.Name == "GroupBy")
-					{
-						var keyOpNode = new OperatorNode(".", 0, 2)
-						{
-							Left = new VariableNode(_QueryNode.CurrentVarName),
-							Right = new VariableNode("Key")
-						};
-						if (operatorNode.Parent != null)
-						{
-							return keyOpNode;
-						}
-						operatorNode = new OperatorNode("=", 0, 2)
-						{
-							Left = operatorNode.Right,
-							Right = keyOpNode
-						};
-					}
-					return operatorNode;
-				}
-				return base.VisitOperatorNode(operatorNode);
-			}
-
-			public override ITreeNode VisitCallFuncNode(CallFuncNode callFuncNode)
-			{
-				if ("count".Equals(callFuncNode.Name, StringComparison.OrdinalIgnoreCase))
-				{
-					callFuncNode.Name = "Count";
-					callFuncNode.Args = new ITreeNode[]
-					{
-						new VariableNode(_QueryNode.CurrentVarName)
-					};
-					return callFuncNode;
-				}
-				return base.VisitCallFuncNode(callFuncNode);
-			}
-		}
 	}
 }

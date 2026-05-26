@@ -5,10 +5,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AScript.Test.MSTests
+namespace AScript.Test.MSTests.Sql
 {
 	[TestClass]
-	public class Lang_SqlTest
+	public class SqlCommonTest
 	{
 		[ClassInitialize]
 		public static void Init(TestContext context)
@@ -20,6 +20,154 @@ namespace AScript.Test.MSTests
 		public static void Cleanup()
 		{
 			Script.Langs.TryRemove("sql");
+		}
+
+		[TestMethod]
+		public void Test18_select_2()
+		{
+			var s = @"from list where age=10";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s);
+			Console.WriteLine(result.GetType());
+			int i = 0;
+			foreach (var item in result)
+			{
+				if (i == 0)
+				{
+					Assert.AreEqual("jim", item.Name);
+				}
+				else if (i == 1)
+				{
+					Assert.AreEqual("qin", item.Name);
+				}
+				else
+				{
+					throw new Exception();
+				}
+				i++;
+			}
+		}
+
+		[TestMethod]
+		public void Test18_select()
+		{
+			var s = @"from list where age=10";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s);
+			Console.WriteLine(result.GetType());
+			int i = 0;
+			foreach (var item in result)
+			{
+				if (i == 0)
+				{
+					Assert.AreEqual("jim", item.Name);
+				}
+				else if (i == 1)
+				{
+					Assert.AreEqual("qin", item.Name);
+				}
+				else
+				{
+					throw new Exception();
+				}
+				i++;
+			}
+		}
+
+		[TestMethod]
+		public void Test17_select_2()
+		{
+			var s = @"select Name, Age from list where age=10";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable>(s);
+			var itemType = Script.AnonymousTypes.CreateType(new[] { "Name", "Age" }, new[] { typeof(string), typeof(int) });
+			var listType = typeof(IEnumerable<>).MakeGenericType(itemType);
+			Assert.IsTrue(listType.IsAssignableFrom(result.GetType()));
+			Console.WriteLine(result.GetType());
+			int i = 0;
+			foreach (var item in result)
+			{
+				if (i == 0)
+				{
+					Assert.AreEqual("jim", ((dynamic)item).Name);
+				}
+				else if (i == 1)
+				{
+					Assert.AreEqual("qin", ((dynamic)item).Name);
+				}
+				else
+				{
+					throw new Exception();
+				}
+				i++;
+			}
+		}
+
+		[TestMethod]
+		public void Test17_select()
+		{
+			var s = @"select Name, Age from list where age=10";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable>(s);
+			var itemType = Script.AnonymousTypes.CreateType(new[] { "Name", "Age" }, new[] { typeof(string), typeof(int) });
+			var listType = typeof(IEnumerable<>).MakeGenericType(itemType);
+			Assert.IsTrue(listType.IsAssignableFrom(result.GetType()));
+			Console.WriteLine(result.GetType());
+			int i = 0;
+			foreach (var item in result)
+			{
+				if (i == 0)
+				{
+					Assert.AreEqual("jim", ((dynamic)item).Name);
+				}
+				else if (i == 1)
+				{
+					Assert.AreEqual("qin", ((dynamic)item).Name);
+				}
+				else
+				{
+					throw new Exception();
+				}
+				i++;
+			}
 		}
 
 		[TestMethod]

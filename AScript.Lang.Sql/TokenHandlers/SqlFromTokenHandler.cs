@@ -101,6 +101,10 @@ namespace AScript.Lang.Sql.TokenHandlers
 				}
 				if (tables != null)
 				{
+					if (string.IsNullOrEmpty(itemName))
+					{
+						itemName = $"__table__";
+					}
 #if NETSTANDARD
 					tables.Add((table, itemName));
 #else
@@ -128,7 +132,11 @@ namespace AScript.Lang.Sql.TokenHandlers
 		private void BuildWhere(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
 		{
 			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
-			queryNode?.AddWhere(condition);
+			if (queryNode != null)
+			{
+				condition = new SqlTreeNodeVisitor(e.BuildContext, e.ScriptContext, queryNode).Visit(condition);
+				queryNode.AddWhere(condition);
+			}
 		}
 
 		private void BuildInnerJoin(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
@@ -248,6 +256,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 			}
 			if (queryNode != null)
 			{
+				new SqlTreeNodeVisitor(e.BuildContext, e.ScriptContext, queryNode).Visit(list);
 				var key = list.Count == 1 ? list[0] : new NewNode { InitProperties = list };
 				string intoName = "__group__";
 				queryNode.AddGroup(key, null, intoName);
