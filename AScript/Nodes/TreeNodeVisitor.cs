@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AScript.Nodes
 {
-	public class TreeNodeVisitor
+	public abstract class TreeNodeVisitor
 	{
 		public virtual void Visit(IList<ITreeNode> nodes)
 		{
