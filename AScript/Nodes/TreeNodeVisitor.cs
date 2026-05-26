@@ -1,9 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace AScript.Nodes
 {
 	public class TreeNodeVisitor
 	{
+		public virtual void Visit(IList<ITreeNode> nodes)
+		{
+			if (nodes == null || nodes.Count == 0) return;
+			for (int i = 0; i < nodes.Count; i++)
+			{
+				nodes[i] = Visit(nodes[i]);
+			}
+		}
+
 		public virtual ITreeNode Visit(ITreeNode node)
 		{
 			if (node == null) return null;

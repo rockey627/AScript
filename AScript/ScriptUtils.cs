@@ -532,5 +532,20 @@ namespace AScript
 				list[i] = values[i - start];
 			}
 		}
+
+		public static bool IsVariableExists(BuildContext buildContext, ScriptContext scriptContext, string varName)
+		{
+			if (buildContext != null 
+				&& buildContext.TryGetVariableOrParameter(varName, out _))
+			{
+				return true;
+			}
+			if (scriptContext != null 
+				&& scriptContext.GetOwnerContext(varName, out _, out _, searchType: false) != null)
+			{
+				return true;
+			}
+			return false;
+		}
 	}
 }
