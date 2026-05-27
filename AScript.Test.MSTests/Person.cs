@@ -49,12 +49,17 @@ namespace AScript.Test.MSTests
 	public class AddressInfo
 	{
 		public string UserName { get; set; }
+		public int Age { get; set; }
 		public string Address { get; set; }
 
 		public AddressInfo(string userName, string address)
 		{
 			this.UserName = userName;
 			this.Address = address;
+		}
+		public AddressInfo(string userName, int age, string address) : this(userName, address)
+		{
+			this.Age = age;
 		}
 	}
 }

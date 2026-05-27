@@ -12,6 +12,7 @@
 * [AScript之匿名类型与动态类型](https://mp.weixin.qq.com/s/6PzH9JxRsNlLMi5eISd7kg)
 * [AScript如何实现LINQ语法](https://mp.weixin.qq.com/s/ZEz2BPE5kayvXRQom73khw)
 * [AScript异步执行与await关键字](https://mp.weixin.qq.com/s/LPjcCugmJK6o-ONhle2Hkw)
+* [AScript定制left/right join查询语法](https://mp.weixin.qq.com/s/IPKrsDlFc32bupVKLxOKug)
 
 ## 介绍
 
@@ -35,7 +36,7 @@ C#动态脚本解析编译执行引擎
 * 支持continue/break/return
 * 支持自定义语法解析（自定义关键字）
 * 支持流式读取表达式
-* 支持自定义语言环境，默认已实现CSharpLang
+* 支持自定义脚本语言，已实现CSharp和Python3两种语言
 * 支持2种执行模式：
 1. 解析执行：解析过程中计算结果，对于非循环语句有较高的性能及低内存，有循环语句则建议使用第2种编译执行方式
 ```C#
@@ -77,8 +78,10 @@ int result = sum(10, 20);
 ## 使用说明
 
 * 命名空间：`using AScript;`
-* 已内置C#常用数据类型，如：`int/bool/string/long/double/DateTime`等
-* 已内置Convert数据转换方法，使用示例：`'12'.ToInt32()`等同于`ToInt32('12')`或者`Convert.ToInt32('12')`
+* 已内置C#常用数据类型：`int/bool/string/long/double/DateTime`等
+* 已内置Convert数据转换方法：`'12'.ToInt32()`等同于`ToInt32('12')`或者`Convert.ToInt32('12')`
+* 已内置Enumerable扩展方法：`list.Where(a=>xxx).Select(a=>new { xxx })`
+* 已内置Queryable扩展方法：`query.Where(a=>xxx).Select(a=>new { xxx })`
 
 #### 注入类型及类型中的方法
 ```C#
