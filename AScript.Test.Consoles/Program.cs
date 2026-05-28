@@ -32,7 +32,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			//Test01_Benchmark();
+			Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -56,8 +56,8 @@ namespace AScript.Test.Consoles
 			//Test22();
 			//Test23();
 			//Test24_Sqlite();
-			var p = Expression.Constant(new Person());
-			Console.WriteLine(Expression.PropertyOrField(p, "name"));
+			//var p = Expression.Constant(new Person());
+			//Console.WriteLine(Expression.PropertyOrField(p, "name"));
 			Console.WriteLine("end");
 			Console.ReadLine();
 		}

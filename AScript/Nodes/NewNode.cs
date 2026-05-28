@@ -270,10 +270,10 @@ namespace AScript.Nodes
 							if (opNode.Left is VariableNode propNameNode)
 							{
 								var property = type.GetProperty(propNameNode.Name, flags);
-								//if (propValue.Type != property.PropertyType)
-								//{
-								//	propValue = Expression.Convert(propValue, property.PropertyType);
-								//}
+								if (propValue.Type != property.PropertyType)
+								{
+									propValue = ExpressionUtils.Convert(propValue, property.PropertyType);
+								}
 								initBindings.Add(Expression.Bind(property, propValue));
 							}
 						}
