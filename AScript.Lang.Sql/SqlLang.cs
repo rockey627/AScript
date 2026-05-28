@@ -41,6 +41,7 @@ namespace AScript.Lang.Sql
 			AddTokenHandler("select", SqlSelectTokenHandler.Instance);
 			AddTokenHandler("from", SqlFromTokenHandler.Instance);
 			AddTokenHandler("insert", SqlInsertTokenHandler.Instance);
+			AddTokenHandler("update", SqlUpdateTokenHandler.Instance);
 		}
 	}
 }
