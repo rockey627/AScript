@@ -22,12 +22,12 @@ namespace AScript.Lang.Sql.TokenHandlers
 
 			analyzer.ValidateNextToken(e.TokenReader, "into", StringComparison.OrdinalIgnoreCase);
 			var table = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, _TableEndTokens);
-			var columns = new List<VariableNode>();
+			var columns = new List<string>();
 			analyzer.ValidateNextToken(e.TokenReader, "(");
 			while (true)
 			{
 				var token = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
-				columns.Add(new VariableNode(token.Value.Value));
+				columns.Add(token.Value.Value);
 				token = e.TokenReader.Read();
 				if (!token.HasValue)
 				{

@@ -11,12 +11,93 @@ namespace AScript.Lang.Sql.Nodes
 	public class SqlInsertNode : TreeNode
 	{
 		public ITreeNode Source { get; set; }
-		public IList<VariableNode> Columns { get; set; }
+		public IList<string> Columns { get; set; }
 		public IList<IList<ITreeNode>> Values { get; set; }
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
-			throw new NotImplementedException();
+			var sourceExpr = this.Source.Build(buildContext, scriptContext, options);
+
+			Type elementType = null;
+			MethodInfo addRangeMethod = null;
+			MethodInfo addMethod = null;
+
+			if (sourceExpr.Type.IsGenericType)
+			{
+				var genericType = sourceExpr.Type.GetGenericTypeDefinition();
+				if (genericType == typeof(IList<>) || genericType == typeof(List<>))
+				{
+					elementType = sourceExpr.Type.GenericTypeArguments[0];
+				}
+			}
+
+			addRangeMethod = sourceExpr.Type.GetMethods()
+				.FirstOrDefault(m =>
+				{
+					if (m.Name != "AddRange") return false;
+					var p0 = m.GetParameters()[0];
+					if (!p0.ParameterType.IsGenericType) return false;
+					return p0.ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>);
+				});
+			if (addRangeMethod != null)
+			{
+				if (elementType == null)
+				{
+					elementType = addRangeMethod.GetParameters()[0].ParameterType.GetGenericArguments()[0];
+				}
+			}
+			else
+			{
+				addMethod = sourceExpr.Type.GetMethod("Add");
+				if (addMethod == null) throw new Exceptions.ScriptAnalyzingException("insert target must have AddRange or Add method");
+				if (elementType == null)
+				{
+					elementType = addMethod.GetParameters()[0].ParameterType;
+				}
+			}
+
+			if (elementType == null)
+			{
+				throw new Exceptions.ScriptAnalyzingException("insert target must have AddRange or Add method");
+			}
+
+			// 创建数组存储新元素表达式
+			var newItemExprs = new Expression[this.Values.Count];
+			for (int i = 0; i < this.Values.Count; i++)
+			{
+				var rowValues = this.Values[i];
+				var properties = new ITreeNode[rowValues.Count];
+				for (int j = 0; j < rowValues.Count; j++)
+				{
+					//var valueExpr = rowValues[j].Build(buildContext, scriptContext, options);
+					var assign = new OperatorNode("=", 0, 2)
+					{
+						Left = new VariableNode(this.Columns[j]),
+						//Right = new ObjectNode(valueExpr, valueExpr.Type)
+						Right = rowValues[j]
+					};
+					properties[j] = assign;
+				}
+				var newNode = new NewNode { SystemType = elementType, InitProperties = properties };
+				newItemExprs[i] = newNode.Build(buildContext, scriptContext, options);
+			}
+
+			// 生成添加元素的表达式
+			if (addRangeMethod != null)
+			{
+				// 创建数组变量
+				var arrayCreate = Expression.NewArrayInit(elementType, newItemExprs);
+				return Expression.Call(sourceExpr, addRangeMethod, arrayCreate);
+			}
+
+			// 使用 Add 方法逐个添加
+			var statements = new Expression[newItemExprs.Length];
+			for (int i = 0; i < newItemExprs.Length; i++)
+			{
+				var itemExpr = newItemExprs[i];
+				statements[i] = Expression.Call(sourceExpr, addMethod, itemExpr);
+			}
+			return Expression.Block(statements);
 		}
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
@@ -67,33 +148,27 @@ namespace AScript.Lang.Sql.Nodes
 				throw new Exceptions.ScriptRuntimeException("insert target must have AddRange or Add method");
 			}
 
-			var columnNames = new string[this.Columns.Count];
-			for (int i = 0; i < this.Columns.Count; i++)
-			{
-				columnNames[i] = this.Columns[i].Name;
-			}
-
 			var newItems = Array.CreateInstance(elementType, this.Values.Count);
 			for (int i = 0; i < this.Values.Count; i++)
 			{
 				var rowValues = this.Values[i];
-				var properties = new List<ITreeNode>();
+				var properties = new ITreeNode[rowValues.Count];
 				for (int j = 0; j < rowValues.Count; j++)
 				{
-					var value = rowValues[j].Eval(context, options, control, out var valueType);
+					//var value = rowValues[j].Eval(context, options, control, out var valueType);
 					var assign = new OperatorNode("=", 0, 2)
 					{
-						Left = new VariableNode(columnNames[j]),
-						Right = new ObjectNode(value, valueType)
+						Left = new VariableNode(this.Columns[j]),
+						//Right = new ObjectNode(value, valueType)
+						Right = rowValues[j]
 					};
-					properties.Add(assign);
+					properties[j] = assign;
 				}
 				var newNode = new NewNode { SystemType = elementType, InitProperties = properties };
 				var newItem = newNode.Eval(context, options, control, out _);
-				//newItems[i] = newItem;
 				newItems.SetValue(newItem, i);
 			}
-			
+
 
 			if (addRangeMethod != null)
 			{
