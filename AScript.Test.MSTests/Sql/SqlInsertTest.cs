@@ -20,6 +20,35 @@ namespace AScript.Test.MSTests.Sql
 		}
 
 		[TestMethod]
+		public void Test_insert_autoconvert_2()
+		{
+			var s = @"insert into list (name, age) values ('tom', '20')";
+			var list = new List<Person>();
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			script.Eval(s);
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual("tom", list[0].Name);
+			Assert.AreEqual(20, list[0].Age);
+		}
+
+		[TestMethod]
+		public void Test_insert_autoconvert()
+		{
+			var s = @"insert into list (name, age) values ('tom', '20')";
+			var list = new List<Person>();
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			script.Eval(s);
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual("tom", list[0].Name);
+			Assert.AreEqual(20, list[0].Age);
+		}
+
+		[TestMethod]
 		public void Test_insert_lowercase_2()
 		{
 			var s = @"insert into list (name, age) values ('tom', 20)";

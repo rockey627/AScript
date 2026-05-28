@@ -37,7 +37,7 @@ namespace AScript.Operators
 				return;
 			}
 			var fieldName = ((VariableNode)e.Args[1]).Name;
-			var value = ScriptUtils.GetValue(arg0, fieldName, out var type, e.Context.IsIgnoreCase() ?? false);
+			var value = ScriptUtils.GetValue(arg0, fieldName, out var type);
 			e.SetResult(value, type);
 		}
 	}

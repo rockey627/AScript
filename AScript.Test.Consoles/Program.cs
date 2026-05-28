@@ -55,7 +55,9 @@ namespace AScript.Test.Consoles
 			//Test21_ExpandoObject();
 			//Test22();
 			//Test23();
-			Test24_Sqlite();
+			//Test24_Sqlite();
+			var p = Expression.Constant(new Person());
+			Console.WriteLine(Expression.PropertyOrField(p, "name"));
 			Console.WriteLine("end");
 			Console.ReadLine();
 		}

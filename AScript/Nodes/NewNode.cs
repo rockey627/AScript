@@ -270,6 +270,10 @@ namespace AScript.Nodes
 							if (opNode.Left is VariableNode propNameNode)
 							{
 								var property = type.GetProperty(propNameNode.Name, flags);
+								//if (propValue.Type != property.PropertyType)
+								//{
+								//	propValue = Expression.Convert(propValue, property.PropertyType);
+								//}
 								initBindings.Add(Expression.Bind(property, propValue));
 							}
 						}
@@ -645,7 +649,6 @@ namespace AScript.Nodes
 
 			var con = type.GetConstructor(argTypes);
 			var instance = con.Invoke(argValues);
-			bool ignoreCase = context.IsIgnoreCase() ?? false;
 
 			// 初始化属性列表
 			if (this.InitProperties != null)
@@ -661,7 +664,7 @@ namespace AScript.Nodes
 							// 属性访问: obj.propName
 							if (opNode.Left is VariableNode propNameNode)
 							{
-								ScriptUtils.SetValue(instance, propNameNode.Name, propValue, ignoreCase);
+								ScriptUtils.SetValue(instance, propNameNode.Name, propValue);
 							}
 						}
 						else if (opNode.Name == "[]")

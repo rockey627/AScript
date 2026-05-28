@@ -79,7 +79,7 @@ namespace AScript.Operators
 							e.SetResult(d--);
 						}
 						return d;
-					}, e.Context.IsIgnoreCase() ?? false);
+					});
 					return;
 				}
 

@@ -57,6 +57,8 @@ namespace AScript
 
 		public static readonly MethodInfo Method_IDictionary_string_object_Add = typeof(IDictionary<string, object>).GetMethod("Add", new[] { typeof(string), typeof(object) });
 
+		public static readonly MethodInfo Method_Convert_ToBoolean = typeof(Convert).GetMethod("ToBoolean", new[] { typeof(object) });
+
 		public static readonly PropertyInfo Property_TypeWrapper_Type = typeof(TypeWrapper).GetProperty("Type");
 
 		// 相等==
@@ -446,6 +448,53 @@ namespace AScript
 
 			// 变量的属性或字段
 			return Expression.Assign(Expression.PropertyOrField(instance, propertyOrFieldName), value);
+		}
+
+		public static Expression Convert(Expression v, Type type)
+		{
+			if (v.Type == type || type.IsAssignableFrom(v.Type)) return v;
+			switch (Type.GetTypeCode(type))
+			{
+				case TypeCode.Boolean:
+					var method = v.Type == typeof(object) ? Method_Convert_ToBoolean : (typeof(Convert).GetMethod("ToBoolean", new[] { v.Type }) ?? Method_Convert_ToBoolean);
+					return Expression.Call(method, v);
+				case TypeCode.Byte:
+					//return System.Convert.ToByte(v);
+				case TypeCode.Char:
+					//return System.Convert.ToChar(v);
+				case TypeCode.DateTime:
+					//return System.Convert.ToDateTime(v);
+				case TypeCode.DBNull:
+					//return System.Convert.DBNull;
+				case TypeCode.Decimal:
+					//return System.Convert.ToDecimal(v);
+				case TypeCode.Double:
+					//return System.Convert.ChangeType(v, typeof(double));
+				case TypeCode.Empty:
+					return v;
+				case TypeCode.Int16:
+					//return System.Convert.ToInt16(v);
+				case TypeCode.Int32:
+					//return System.Convert.ToInt32(v);
+				case TypeCode.Int64:
+					//return System.Convert.ToInt64(v);
+				case TypeCode.Object:
+					return v;
+				case TypeCode.SByte:
+					//return System.Convert.ToSByte(v);
+				case TypeCode.Single:
+					//return System.Convert.ToSingle(v);
+				case TypeCode.String:
+					//return System.Convert.ToString(v);
+				case TypeCode.UInt16:
+					//return System.Convert.ToUInt16(v);
+				case TypeCode.UInt32:
+					//return System.Convert.ToUInt32(v);
+				case TypeCode.UInt64:
+					//return System.Convert.ToUInt64(v);
+				default:
+					return v;
+			}
 		}
 
 		public static Expression ConsoleWriteLine(string value)

@@ -221,7 +221,7 @@ namespace AScript.Operators
 					// 属性赋值
 					var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
 					var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
-					ScriptUtils.SetValue(opLeftValue, opRightNode.Name, value, e.Context.IsIgnoreCase() ?? false);
+					ScriptUtils.SetValue(opLeftValue, opRightNode.Name, value);
 					e.SetResult(value, type);
 					return;
 				}

@@ -177,12 +177,11 @@ namespace AScript
 			throw new Exceptions.ScriptRuntimeException($"{collectionType} is not a enumerable type");
 		}
 
-		public static object GetValue(object instance, string propertyOrFieldName, out Type type, bool ignoreCase = false)
+		public static object GetValue(object instance, string propertyOrFieldName, out Type type)
 		{
 			object target;
 			Type targetType;
-			var flags = BindingFlags.Public;
-			if (ignoreCase) flags |= BindingFlags.IgnoreCase;
+			var flags = BindingFlags.Public | BindingFlags.IgnoreCase;
 			if (instance is TypeWrapper w)
 			{
 				// 静态属性赋值
@@ -224,12 +223,11 @@ namespace AScript
 			throw new Exceptions.ScriptRuntimeException($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
 		}
 
-		public static void SetValue(object instance, string propertyOrFieldName, object value, bool ignoreCase = false)
+		public static void SetValue(object instance, string propertyOrFieldName, object value)
 		{
 			object target;
 			Type targetType;
-			var flags = BindingFlags.Public;
-			if (ignoreCase) flags |= BindingFlags.IgnoreCase;
+			var flags = BindingFlags.Public | BindingFlags.IgnoreCase;
 			if (instance is TypeWrapper w)
 			{
 				// 静态属性赋值
@@ -254,6 +252,10 @@ namespace AScript
 			var p = targetType.GetProperty(propertyOrFieldName, flags);
 			if (p != null)
 			{
+				if (value != null && value.GetType() != p.PropertyType)
+				{
+					value = Convert(value, p.PropertyType);
+				}
 				p.SetValue(target, value);
 				return;
 			}
@@ -261,6 +263,10 @@ namespace AScript
 			var f = targetType.GetField(propertyOrFieldName, flags);
 			if (f != null)
 			{
+				if (value != null && value.GetType() != f.FieldType)
+				{
+					value = Convert(value, f.FieldType);
+				}
 				f.SetValue(target, value);
 				return;
 			}
@@ -268,12 +274,11 @@ namespace AScript
 			throw new Exceptions.ScriptRuntimeException($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
 		}
 
-		public static object GetAndSetValue(object instance, string propertyOrFieldName, out Type type, Func<MemberInfo, Type, object, object> valueFac, bool ignoreCase = false)
+		public static object GetAndSetValue(object instance, string propertyOrFieldName, out Type type, Func<MemberInfo, Type, object, object> valueFac)
 		{
 			object target;
 			Type targetType;
-			var flags = BindingFlags.Public;
-			if (ignoreCase) flags |= BindingFlags.IgnoreCase;
+			var flags = BindingFlags.Public | BindingFlags.IgnoreCase;
 			if (instance is TypeWrapper w)
 			{
 				// 静态属性赋值
