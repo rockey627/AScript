@@ -100,7 +100,7 @@ namespace AScript.Operators
 							var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out type1);
 							return (dynamic)v - (dynamic)arg1;
 						}
-					});
+					}, e.Context.IsIgnoreCase() ?? false);
 					e.SetResult(value, type0 == typeof(object) ? type1 : type0);
 					return;
 				}

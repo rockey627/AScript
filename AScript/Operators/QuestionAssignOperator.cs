@@ -47,7 +47,7 @@ namespace AScript.Operators
 				//var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type1);
 				Type type1 = null;
 				var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
-				var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) => v ?? e.Args[1].Eval(e.Context, e.Options, e.Control, out type1));
+				var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) => v ?? e.Args[1].Eval(e.Context, e.Options, e.Control, out type1), e.Context.IsIgnoreCase() ?? false);
 				e.SetResult(value, type0 == typeof(object) ? type1 : type0);
 			}
 		}

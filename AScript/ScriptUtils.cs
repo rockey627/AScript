@@ -177,21 +177,25 @@ namespace AScript
 			throw new Exceptions.ScriptRuntimeException($"{collectionType} is not a enumerable type");
 		}
 
-		public static object GetValue(object instance, string propertyOrFieldName, out Type type)
+		public static object GetValue(object instance, string propertyOrFieldName, out Type type, bool ignoreCase = false)
 		{
 			object target;
 			Type targetType;
+			var flags = BindingFlags.Public;
+			if (ignoreCase) flags |= BindingFlags.IgnoreCase;
 			if (instance is TypeWrapper w)
 			{
 				// 静态属性赋值
 				target = null;
 				targetType = w.Type;
+				flags |= BindingFlags.Static;
 			}
 			else
 			{
 				// 实例属性赋值
 				target = instance;
 				targetType = instance.GetType();
+				flags |= BindingFlags.Instance;
 			}
 
 			if (instance is ExpandoObject)
@@ -203,14 +207,14 @@ namespace AScript
 				return value;
 			}
 
-			var p = targetType.GetProperty(propertyOrFieldName);
+			var p = targetType.GetProperty(propertyOrFieldName, flags);
 			if (p != null)
 			{
 				type = p.PropertyType;
 				return p.GetValue(target);
 			}
 
-			var f = targetType.GetField(propertyOrFieldName);
+			var f = targetType.GetField(propertyOrFieldName, flags);
 			if (f != null)
 			{
 				type = f.FieldType;
@@ -220,21 +224,25 @@ namespace AScript
 			throw new Exceptions.ScriptRuntimeException($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
 		}
 
-		public static void SetValue(object instance, string propertyOrFieldName, object value)
+		public static void SetValue(object instance, string propertyOrFieldName, object value, bool ignoreCase = false)
 		{
 			object target;
 			Type targetType;
+			var flags = BindingFlags.Public;
+			if (ignoreCase) flags |= BindingFlags.IgnoreCase;
 			if (instance is TypeWrapper w)
 			{
 				// 静态属性赋值
 				target = null;
 				targetType = w.Type;
+				flags |= BindingFlags.Static;
 			}
 			else
 			{
 				// 实例属性赋值
 				target = instance;
 				targetType = instance.GetType();
+				flags |= BindingFlags.Instance;
 			}
 
 			if (instance is ExpandoObject)
@@ -243,14 +251,14 @@ namespace AScript
 				return;
 			}
 
-			var p = targetType.GetProperty(propertyOrFieldName);
+			var p = targetType.GetProperty(propertyOrFieldName, flags);
 			if (p != null)
 			{
 				p.SetValue(target, value);
 				return;
 			}
 
-			var f = targetType.GetField(propertyOrFieldName);
+			var f = targetType.GetField(propertyOrFieldName, flags);
 			if (f != null)
 			{
 				f.SetValue(target, value);
@@ -260,21 +268,25 @@ namespace AScript
 			throw new Exceptions.ScriptRuntimeException($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
 		}
 
-		public static object GetAndSetValue(object instance, string propertyOrFieldName, out Type type, Func<MemberInfo, Type, object, object> valueFac)
+		public static object GetAndSetValue(object instance, string propertyOrFieldName, out Type type, Func<MemberInfo, Type, object, object> valueFac, bool ignoreCase = false)
 		{
 			object target;
 			Type targetType;
+			var flags = BindingFlags.Public;
+			if (ignoreCase) flags |= BindingFlags.IgnoreCase;
 			if (instance is TypeWrapper w)
 			{
 				// 静态属性赋值
 				target = null;
 				targetType = w.Type;
+				flags |= BindingFlags.Static;
 			}
 			else
 			{
 				// 实例属性赋值
 				target = instance;
 				targetType = instance.GetType();
+				flags |= BindingFlags.Instance;
 			}
 
 			if (instance is ExpandoObject)
@@ -287,7 +299,7 @@ namespace AScript
 				return value;
 			}
 
-			var p = targetType.GetProperty(propertyOrFieldName);
+			var p = targetType.GetProperty(propertyOrFieldName, flags);
 			if (p != null)
 			{
 				type = p.PropertyType;
@@ -297,7 +309,7 @@ namespace AScript
 				return value;
 			}
 
-			var f = targetType.GetField(propertyOrFieldName);
+			var f = targetType.GetField(propertyOrFieldName, flags);
 			if (f != null)
 			{
 				type = f.FieldType;
@@ -307,7 +319,7 @@ namespace AScript
 				return value;
 			}
 
-			var e = targetType.GetEvent(propertyOrFieldName);
+			var e = targetType.GetEvent(propertyOrFieldName, flags);
 			if (e != null)
 			{
 				type = typeof(void);

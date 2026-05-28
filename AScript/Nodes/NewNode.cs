@@ -253,6 +253,11 @@ namespace AScript.Nodes
 				var isCollection = typeof(System.Collections.IEnumerable).IsAssignableFrom(type)
 					&& type != typeof(string);
 
+				var flags = BindingFlags.Public | BindingFlags.Instance;
+				if (scriptContext.IsIgnoreCase() ?? false)
+				{
+					flags |= BindingFlags.IgnoreCase;
+				}
 				foreach (var propInit in this.InitProperties)
 				{
 					if (propInit is OperatorNode opNode)
@@ -264,14 +269,14 @@ namespace AScript.Nodes
 							// 属性访问: obj.propName
 							if (opNode.Left is VariableNode propNameNode)
 							{
-								var property = type.GetProperty(propNameNode.Name, BindingFlags.Public | BindingFlags.Instance);
+								var property = type.GetProperty(propNameNode.Name, flags);
 								initBindings.Add(Expression.Bind(property, propValue));
 							}
 						}
 						else if (opNode.Name == "." || opNode.Name == "?.")
 						{
 							var propValue = opNode.Build(buildContext, scriptContext, options);
-							var property = type.GetProperty((opNode.Right as VariableNode).Name, BindingFlags.Public | BindingFlags.Instance);
+							var property = type.GetProperty((opNode.Right as VariableNode).Name, flags);
 							initBindings.Add(Expression.Bind(property, propValue));
 						}
 						else if (opNode.Name == "[]")
@@ -304,7 +309,7 @@ namespace AScript.Nodes
 					else if (propInit is VariableNode varNode)
 					{
 						var propValue = varNode.Build(buildContext, scriptContext, options);
-						var property = type.GetProperty(varNode.Name, BindingFlags.Public | BindingFlags.Instance);
+						var property = type.GetProperty(varNode.Name, flags);
 						initBindings.Add(Expression.Bind(property, propValue));
 					}
 				}
@@ -640,6 +645,7 @@ namespace AScript.Nodes
 
 			var con = type.GetConstructor(argTypes);
 			var instance = con.Invoke(argValues);
+			bool ignoreCase = context.IsIgnoreCase() ?? false;
 
 			// 初始化属性列表
 			if (this.InitProperties != null)
@@ -655,7 +661,7 @@ namespace AScript.Nodes
 							// 属性访问: obj.propName
 							if (opNode.Left is VariableNode propNameNode)
 							{
-								ScriptUtils.SetValue(instance, propNameNode.Name, propValue);
+								ScriptUtils.SetValue(instance, propNameNode.Name, propValue, ignoreCase);
 							}
 						}
 						else if (opNode.Name == "[]")

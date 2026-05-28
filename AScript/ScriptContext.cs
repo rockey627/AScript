@@ -496,6 +496,36 @@ namespace AScript
 			return null;
 		}
 
+		/// <summary>
+		/// 当前语言是否忽略属性大小写
+		/// </summary>
+		/// <returns></returns>
+		public bool? IsIgnoreCase()
+		{
+			var langs = this.Langs;
+			if (langs == null || langs.Length == 0)
+			{
+				foreach (var item in Script.Langs.GetDefaults())
+				{
+					if (Script.Langs.TryGetValue(item, out var lang))
+					{
+						return lang.IgnoreCase;
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < langs.Length; i++)
+				{
+					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					{
+						return lang.IgnoreCase;
+					}
+				}
+			}
+			return null;
+		}
+
 		public bool IsKeywords(string word)
 		{
 			if (string.IsNullOrEmpty(word)) return false;

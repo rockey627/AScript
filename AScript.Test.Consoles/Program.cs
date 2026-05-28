@@ -71,7 +71,10 @@ namespace AScript.Test.Consoles
 				context.Persons.ExecuteDelete();
 				context.AddressInfos.ExecuteDelete();
 				context.SaveChanges();
+			}
 
+			using (var context = new TestSqliteContext())
+			{
 				//context.Persons.AddRange(new[]
 				//{
 				//	new Person{ Id = "1001", Name = "tom", Age = 20 },
@@ -86,17 +89,20 @@ namespace AScript.Test.Consoles
 					new AddressInfo{UserId = "1005", Address = "c" },
 				});
 
-				string s2 = @"
+				string s = @"
 insert into context.Persons (Id,Name,Age) 
 values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)";
-				var script2 = new Script();
-				//script2.Options.CompileMode = ECompileMode.All;
-				script2.Context.Langs = new[] { "sql" };
-				script2.Context.SetVar("context", context);
-				script2.Eval(s2);
+				var script = new Script();
+				script.Options.CompileMode = ECompileMode.All;
+				script.Context.Langs = new[] { "sql" };
+				script.Context.SetVar("context", context);
+				script.Eval(s);
 
 				context.SaveChanges();
+			}
 
+			using (var context = new TestSqliteContext())
+			{
 				//string s = @"
 				//var persons = context.Persons;
 				//var q = from a in persons
