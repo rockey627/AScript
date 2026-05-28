@@ -57,7 +57,8 @@ namespace AScript
 
 		public static readonly MethodInfo Method_IDictionary_string_object_Add = typeof(IDictionary<string, object>).GetMethod("Add", new[] { typeof(string), typeof(object) });
 
-		public static readonly MethodInfo Method_Convert_ToBoolean = typeof(Convert).GetMethod("ToBoolean", new[] { typeof(object) });
+		public static readonly MethodInfo Method_Convert_ToBoolean_object = typeof(Convert).GetMethod("ToBoolean", new[] { typeof(object) });
+		public static readonly MethodInfo Method_Convert_ToByte_object = typeof(Convert).GetMethod("ToByte", new[] { typeof(object) });
 
 		public static readonly PropertyInfo Property_TypeWrapper_Type = typeof(TypeWrapper).GetProperty("Type");
 
@@ -453,47 +454,79 @@ namespace AScript
 		public static Expression Convert(Expression v, Type type)
 		{
 			if (v.Type == type || type.IsAssignableFrom(v.Type)) return v;
+
 			switch (Type.GetTypeCode(type))
 			{
 				case TypeCode.Boolean:
-					var method = v.Type == typeof(object) ? Method_Convert_ToBoolean : (typeof(Convert).GetMethod("ToBoolean", new[] { v.Type }) ?? Method_Convert_ToBoolean);
-					return Expression.Call(method, v);
+					{
+						MethodInfo method;
+						if (v.Type == typeof(object))
+						{
+							method = Method_Convert_ToBoolean_object;
+						}
+						else
+						{
+							method = typeof(Convert).GetMethod("ToBoolean", new[] { v.Type });
+							if (method == null)
+							{
+								method = Method_Convert_ToBoolean_object;
+								v = Expression.Convert(v, typeof(object));
+							}
+						}
+						return Expression.Call(method, v);
+					}
 				case TypeCode.Byte:
-					//return System.Convert.ToByte(v);
+					{
+						MethodInfo method;
+						if (v.Type == typeof(object))
+						{
+							method = Method_Convert_ToByte_object;
+						}
+						else
+						{
+							method = typeof(Convert).GetMethod("ToByte", new[] { v.Type });
+							if (method == null)
+							{
+								method = Method_Convert_ToByte_object;
+								v = Expression.Convert(v, typeof(object));
+							}
+						}
+						return Expression.Call(method, v);
+					}
 				case TypeCode.Char:
-					//return System.Convert.ToChar(v);
+					//return Expression.Call(typeof(Convert).GetMethod("ToChar", new[] { typeof(object) }), Expression.Convert(v, typeof(object)));
 				case TypeCode.DateTime:
-					//return System.Convert.ToDateTime(v);
+					//return Expression.Call(typeof(Convert).GetMethod("ToDateTime", new[] { typeof(object) }), Expression.Convert(v, typeof(object)));
 				case TypeCode.DBNull:
-					//return System.Convert.DBNull;
+					//return Expression.Constant(DBNull.Value);
 				case TypeCode.Decimal:
-					//return System.Convert.ToDecimal(v);
+					//return Expression.Call(typeof(Convert).GetMethod("ToDecimal", new[] { typeof(object) }), Expression.Convert(v, typeof(object)));
 				case TypeCode.Double:
-					//return System.Convert.ChangeType(v, typeof(double));
+					//return Expression.Call(typeof(Convert).GetMethod("ToDouble", new[] { typeof(object) }), Expression.Convert(v, typeof(object)));
 				case TypeCode.Empty:
 					return v;
 				case TypeCode.Int16:
-					//return System.Convert.ToInt16(v);
+					//return Expression.Call(typeof(Convert).GetMethod("ToInt16", new[] { typeof(object) }), Expression.Convert(v, typeof(object)));
 				case TypeCode.Int32:
-					//return System.Convert.ToInt32(v);
+					//return Expression.Call(typeof(Convert).GetMethod("ToInt32", new[] { typeof(object) }), Expression.Convert(v, typeof(object)));
 				case TypeCode.Int64:
-					//return System.Convert.ToInt64(v);
+					//return Expression.Call(typeof(Convert).GetMethod("ToInt64", new[] { typeof(object) }), Expression.Convert(v, typeof(object)));
 				case TypeCode.Object:
-					return v;
+					return Expression.Convert(v, type);
 				case TypeCode.SByte:
-					//return System.Convert.ToSByte(v);
+					//return Expression.Call(typeof(Convert).GetMethod("ToSByte", new[] { typeof(object) }), Expression.Convert(v, typeof(object)));
 				case TypeCode.Single:
-					//return System.Convert.ToSingle(v);
+					//return Expression.Call(typeof(Convert).GetMethod("ToSingle", new[] { typeof(object) }), Expression.Convert(v, typeof(object)));
 				case TypeCode.String:
-					//return System.Convert.ToString(v);
+					return Expression.Call(v, Method_Object_ToString);
 				case TypeCode.UInt16:
-					//return System.Convert.ToUInt16(v);
+					//return Expression.Call(typeof(Convert).GetMethod("ToUInt16", new[] { typeof(object) }), Expression.Convert(v, typeof(object)));
 				case TypeCode.UInt32:
-					//return System.Convert.ToUInt32(v);
+					//return Expression.Call(typeof(Convert).GetMethod("ToUInt32", new[] { typeof(object) }), Expression.Convert(v, typeof(object)));
 				case TypeCode.UInt64:
-					//return System.Convert.ToUInt64(v);
+					//return Expression.Call(typeof(Convert).GetMethod("ToUInt64", new[] { typeof(object) }), Expression.Convert(v, typeof(object)));
 				default:
-					return v;
+					return Expression.Convert(v, type);
 			}
 		}
 
