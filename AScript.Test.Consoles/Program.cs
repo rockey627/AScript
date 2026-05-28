@@ -1,4 +1,5 @@
-﻿using BenchmarkDotNet.Configs;
+﻿using AScript.Lang.Sql;
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using IronPython.Hosting;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -61,6 +62,8 @@ namespace AScript.Test.Consoles
 
 		static void Test24_Sqlite()
 		{
+			Script.Langs.Set("sql", SqlLang.Instance);
+
 			using (var context = new TestSqliteContext())
 			{
 				context.Database.Migrate();
@@ -69,19 +72,26 @@ namespace AScript.Test.Consoles
 				context.AddressInfos.ExecuteDelete();
 				context.SaveChanges();
 
-				context.Persons.AddRange(new[]
-				{
-					new Person{ Id = "1001", Name = "tom", Age = 20 },
-					new Person{ Id = "1002", Name = "san", Age = 25 },
-					new Person{ Id = "1003", Name = "tony", Age = 18 },
-					new Person{ Id = "1004", Name = "tim", Age = 25 }
-				});
+				//context.Persons.AddRange(new[]
+				//{
+				//	new Person{ Id = "1001", Name = "tom", Age = 20 },
+				//	new Person{ Id = "1002", Name = "san", Age = 25 },
+				//	new Person{ Id = "1003", Name = "tony", Age = 18 },
+				//	new Person{ Id = "1004", Name = "tim", Age = 25 }
+				//});
 				context.AddressInfos.AddRange(new[]
 				{
 					new AddressInfo{UserId = "1002", Address = "a" },
 					new AddressInfo{UserId = "1004", Address = "b" },
 					new AddressInfo{UserId = "1005", Address = "c" },
 				});
+
+				string s2 = "insert into context.Persons (Id,Name,Age) values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)";
+				var script2 = new Script();
+				script2.Context.Langs = new[] { "sql" };
+				script2.Context.SetVar("context", context);
+				script2.Eval(s2);
+
 				context.SaveChanges();
 
 				//string s = @"

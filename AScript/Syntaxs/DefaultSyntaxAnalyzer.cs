@@ -1096,7 +1096,7 @@ namespace AScript.Syntaxs
 
 			// 标识符处理：变量、函数调用、类型定义
 			var nextToken = e.TokenReader.Read();
-			if (nextToken.HasValue && nextToken.Value.Value == "(")
+			if (nextToken.HasValue && nextToken.Value.Value == "(" && !ScriptUtils.Contains(endTokens, nextToken.Value.Value))
 			{
 				// 函数调用
 				ParseFuncCall(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.TreeBuilder, e.CurrentToken.Value, e.Ignore);

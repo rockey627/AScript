@@ -43,7 +43,13 @@ namespace AScript.Lang.Sql.Nodes
 			if (elementType == null)
 			{
 				addRangeMethod = source.GetType().GetMethods()
-					.FirstOrDefault(m => m.Name == "AddRange" && m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+					.FirstOrDefault(m =>
+					{
+						if (m.Name != "AddRange") return false;
+						var p0 = m.GetParameters()[0];
+						if (!p0.ParameterType.IsGenericType) return false;
+						return p0.ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>);
+					});
 				if (addRangeMethod != null)
 				{
 					elementType = addRangeMethod.GetParameters()[0].ParameterType.GetGenericArguments()[0];
@@ -67,28 +73,31 @@ namespace AScript.Lang.Sql.Nodes
 				columnNames[i] = this.Columns[i].Name;
 			}
 
-			var newItems = new List<object>();
-			foreach (var rowValues in this.Values)
+			var newItems = Array.CreateInstance(elementType, this.Values.Count);
+			for (int i = 0; i < this.Values.Count; i++)
 			{
+				var rowValues = this.Values[i];
 				var properties = new List<ITreeNode>();
-				for (int i = 0; i < rowValues.Count; i++)
+				for (int j = 0; j < rowValues.Count; j++)
 				{
-					var value = rowValues[i].Eval(context, options, control, out var valueType);
+					var value = rowValues[j].Eval(context, options, control, out var valueType);
 					var assign = new OperatorNode("=", 0, 2)
 					{
-						Left = new VariableNode(columnNames[i]),
+						Left = new VariableNode(columnNames[j]),
 						Right = new ObjectNode(value, valueType)
 					};
 					properties.Add(assign);
 				}
 				var newNode = new NewNode { SystemType = elementType, InitProperties = properties };
 				var newItem = newNode.Eval(context, options, control, out _);
-				newItems.Add(newItem);
+				//newItems[i] = newItem;
+				newItems.SetValue(newItem, i);
 			}
+			
 
 			if (addRangeMethod != null)
 			{
-				addRangeMethod.Invoke(source, new[] { newItems });
+				addRangeMethod.Invoke(source, new object[] { newItems });
 			}
 			else if (source is IList list2)
 			{

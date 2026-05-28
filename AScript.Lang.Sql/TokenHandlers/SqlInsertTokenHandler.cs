@@ -13,13 +13,15 @@ namespace AScript.Lang.Sql.TokenHandlers
 	{
 		public static readonly SqlInsertTokenHandler Instance = new SqlInsertTokenHandler();
 
+		private static readonly HashSet<string> _TableEndTokens = new HashSet<string> { "(" };
+
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;
 			e.End = true;
 
 			analyzer.ValidateNextToken(e.TokenReader, "into", StringComparison.OrdinalIgnoreCase);
-			var table = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+			var table = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, _TableEndTokens);
 			var columns = new List<VariableNode>();
 			analyzer.ValidateNextToken(e.TokenReader, "(");
 			while (true)
