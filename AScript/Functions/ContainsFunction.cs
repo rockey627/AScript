@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Nodes;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,24 +24,24 @@ namespace AScript.Functions
 		{
 			if ((e.Args == null || e.Args.Count < 2) && (e.ArgExprs == null || e.ArgExprs.Count < 2)) return;
 
-			Expression arg0Expr, arg1Expr;
+			Expression listExpr, itemExpr;
 			if (e.ArgExprs != null)
 			{
-				arg0Expr = e.ArgExprs[0];
-				arg1Expr = e.ArgExprs[1];
+				listExpr = e.ArgExprs[0];
+				itemExpr = e.ArgExprs[1];
 			}
 			else
 			{
-				arg0Expr = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
-				arg1Expr = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+				listExpr = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
+				itemExpr = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 			}
 			if (_reverse)
 			{
-				var tmpExpr = arg0Expr;
-				arg0Expr = arg1Expr;
-				arg1Expr = tmpExpr;
+				var tmpExpr = listExpr;
+				listExpr = itemExpr;
+				itemExpr = tmpExpr;
 			}
-			var type0 = arg0Expr.Type;
+			var type0 = listExpr.Type;
 			MethodInfo containsMethod;
 
 			// Dictionary<,> 类型，调用 ContainsKey 方法
@@ -49,7 +50,7 @@ namespace AScript.Functions
 				containsMethod = type0.GetMethod("ContainsKey", BindingFlags.Public | BindingFlags.Instance);
 				if (containsMethod != null)
 				{
-					e.Result = Expression.Call(arg0Expr, containsMethod, arg1Expr);
+					e.Result = Expression.Call(listExpr, containsMethod, itemExpr);
 					return;
 				}
 			}
@@ -60,7 +61,7 @@ namespace AScript.Functions
 				containsMethod = type0.GetMethod("Contains", BindingFlags.Public | BindingFlags.Instance);
 				if (containsMethod != null)
 				{
-					e.Result = Expression.Call(arg0Expr, containsMethod, arg1Expr);
+					e.Result = Expression.Call(listExpr, containsMethod, itemExpr);
 					return;
 				}
 			}
@@ -71,7 +72,7 @@ namespace AScript.Functions
 				containsMethod = type0.GetMethod("Contains", BindingFlags.Public | BindingFlags.Instance);
 				if (containsMethod != null)
 				{
-					e.Result = Expression.Call(arg0Expr, containsMethod, arg1Expr);
+					e.Result = Expression.Call(listExpr, containsMethod, itemExpr);
 					return;
 				}
 			}
@@ -80,14 +81,15 @@ namespace AScript.Functions
 			if (typeof(IDictionary).IsAssignableFrom(type0))
 			{
 				var idictContainsMethod = typeof(IDictionary).GetMethod("Contains");
-				e.Result = Expression.Call(arg0Expr, idictContainsMethod, arg1Expr);
+				e.Result = Expression.Call(listExpr, idictContainsMethod, itemExpr);
 				return;
 			}
 
-			var elementType = type0.HasElementType ? type0.GetElementType() : type0.GetGenericArguments()[0];
-			var containsMethodGeneric = typeof(Enumerable).GetMethod("Contains");
-			var containsMethodSpecific = containsMethodGeneric.MakeGenericMethod(elementType);
-			e.Result = Expression.Call(containsMethodSpecific, arg0Expr, arg1Expr);
+			//var elementType = type0.HasElementType ? type0.GetElementType() : type0.GetGenericArguments()[0];
+			//var containsMethodGeneric = typeof(Enumerable).GetMethod("Contains", new Type[] { type0, elementType });
+			//var containsMethodSpecific = containsMethodGeneric.MakeGenericMethod(elementType);
+			//e.Result = Expression.Call(containsMethodSpecific, arg0Expr, arg1Expr);
+			e.Result = e.ScriptContext.BuildFunc(e.BuildContext, e.Options, e.Control, "Contains", false, new ITreeNode[] { new ExpressionNode(listExpr), new ExpressionNode(itemExpr) });
 		}
 
 		public void Eval(FunctionEvalArgs e)
@@ -104,15 +106,19 @@ namespace AScript.Functions
 				arg1 = tmp;
 			}
 
-			bool result = Contains(arg0, arg1);
+			bool result = Contains(e, arg0, arg1);
 			e.SetResult(result);
 		}
 
-		private static bool Contains(object collection, object item)
+		private static bool Contains(FunctionEvalArgs e, object collection, object item)
 		{
 			if (collection is IDictionary dict)
 			{
 				return dict.Contains(item);
+			}
+			if (collection is IList list)
+			{
+				return list.Contains(item);
 			}
 
 			var type = collection.GetType();
@@ -122,16 +128,7 @@ namespace AScript.Functions
 				return (bool)containsMethod.Invoke(collection, new[] { item });
 			}
 
-			if (collection is IEnumerable enumerable)
-			{
-				foreach (var i in enumerable)
-				{
-					if (object.Equals(i, item))
-						return true;
-				}
-			}
-
-			return false;
+			return (bool)e.Context.EvalFunc(e.Options, e.Control, "Contains", new ITreeNode[] { new ObjectNode(collection), new ObjectNode(item) });
 		}
 	}
 }
