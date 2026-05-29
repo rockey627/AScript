@@ -23,6 +23,92 @@ namespace AScript.Test.MSTests.Sql
 		}
 
 		[TestMethod]
+		public void Test21_where_in_select_2()
+		{
+			var s = @"from list where Name in (select Name from nameList)";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var nameList = new[] { new { Name = "jim" }, new { Name = "tom" } };
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			script.Context.SetVar("nameList", nameList);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("tom", result[0].Name);
+			Assert.AreEqual("jim", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test21_where_in_select()
+		{
+			var s = @"from list where Name in (select Name from nameList)";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var nameList = new[] { new { Name = "jim" }, new { Name = "tom" } };
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			script.Context.SetVar("nameList", nameList);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("tom", result[0].Name);
+			Assert.AreEqual("jim", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test20_where_in_2()
+		{
+			var s = @"from list where Name in ('jim', 'tom')";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("tom", result[0].Name);
+			Assert.AreEqual("jim", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test20_where_in()
+		{
+			var s = @"FROM list WHERE Name IN ('jim', 'tom')";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("tom", result[0].Name);
+			Assert.AreEqual("jim", result[1].Name);
+		}
+
+		[TestMethod]
 		public void Test19_groupby_2()
 		{
 			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 25) }.AsQueryable();
@@ -1245,47 +1331,6 @@ matchedList;
 			p.Name = "jim";
 			p.Age = 30;
 			Assert.AreEqual(true, script.Eval(s));
-		}
-
-		[TestMethod]
-		public void Test20_where_in_2()
-		{
-			var s = @"from list where Name in ('jim', 'tom')";
-			var list = new[]
-			{
-				new Person("tom", 15),
-				new Person("jim", 10),
-				new Person("san", 20),
-				new Person("qin", 10)
-			};
-			var script = new Script();
-			script.Options.CompileMode = ECompileMode.All;
-			script.Context.Langs = new[] { "sql" };
-			script.Context.SetVar("list", list);
-			var result = script.Eval<IEnumerable<Person>>(s).ToList();
-			Assert.AreEqual(2, result.Count);
-			Assert.AreEqual("tom", result[0].Name);
-			Assert.AreEqual("jim", result[1].Name);
-		}
-
-		[TestMethod]
-		public void Test20_where_in()
-		{
-			var s = @"FROM list WHERE Name IN ('jim', 'tom')";
-			var list = new[]
-			{
-				new Person("tom", 15),
-				new Person("jim", 10),
-				new Person("san", 20),
-				new Person("qin", 10)
-			};
-			var script = new Script();
-			script.Context.Langs = new[] { "sql" };
-			script.Context.SetVar("list", list);
-			var result = script.Eval<IEnumerable<Person>>(s).ToList();
-			Assert.AreEqual(2, result.Count);
-			Assert.AreEqual("tom", result[0].Name);
-			Assert.AreEqual("jim", result[1].Name);
 		}
 
 		[TestMethod]
