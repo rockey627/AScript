@@ -23,7 +23,7 @@ namespace AScript.Lang.Sql.Nodes
 			{
 				var queryNode = new QueryNode();
 				queryNode.AddFrom("__query__", sourceNode);
-				var condition = new SqlTreeNodeVisitor(null, scriptContext, queryNode).Visit(this.Condition);
+				var condition = new SqlTreeNodeVisitor(buildContext, scriptContext, queryNode).Visit(this.Condition);
 				queryNode.AddWhere(condition);
 				sourceNode = queryNode;
 			}

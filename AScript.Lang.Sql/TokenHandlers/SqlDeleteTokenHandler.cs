@@ -25,7 +25,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 			var table = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, _TableEndTokens);
 			ITreeNode condition = null;
 			var token = e.TokenReader.Read();
-			if (!token.HasValue)
+			if (token.HasValue)
 			{
 				if (token.Value.IsSymbol("where", StringComparison.OrdinalIgnoreCase))
 				{
