@@ -1248,6 +1248,47 @@ matchedList;
 		}
 
 		[TestMethod]
+		public void Test20_where_in_2()
+		{
+			var s = @"from list where Name in ('jim', 'tom')";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("tom", result[0].Name);
+			Assert.AreEqual("jim", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test20_where_in()
+		{
+			var s = @"FROM list WHERE Name IN ('jim', 'tom')";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("tom", result[0].Name);
+			Assert.AreEqual("jim", result[1].Name);
+		}
+
+		[TestMethod]
 		public void Test01()
 		{
 			string s = "p.Age>20 and p.Age<50 or p.Name like 'to%' or p.Name='san'";
