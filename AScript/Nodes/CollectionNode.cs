@@ -88,7 +88,11 @@ namespace AScript.Nodes
 
 				// Handle List<T>
 				Type listType;
-				if (CollectionType.IsGenericType && CollectionType.GetGenericTypeDefinition() == typeof(List<>))
+				if (CollectionType.IsGenericTypeDefinition)
+				{
+					listType = CollectionType.MakeGenericType(elementType);
+				}
+				else if (CollectionType.IsGenericType && CollectionType.GetGenericTypeDefinition() == typeof(List<>))
 				{
 					listType = CollectionType;
 					elementType = CollectionType.GetGenericArguments()[0];
@@ -280,7 +284,11 @@ namespace AScript.Nodes
 
 			// Handle List<T> - determine the actual list type to create
 			Type listType;
-			if (CollectionType.IsGenericType && CollectionType.GetGenericTypeDefinition() == typeof(List<>))
+			if (CollectionType.IsGenericTypeDefinition)
+			{
+				listType = CollectionType.MakeGenericType(elementType);
+			}
+			else if (CollectionType.IsGenericType && CollectionType.GetGenericTypeDefinition() == typeof(List<>))
 			{
 				listType = CollectionType;
 				elementType = CollectionType.GetGenericArguments()[0];
