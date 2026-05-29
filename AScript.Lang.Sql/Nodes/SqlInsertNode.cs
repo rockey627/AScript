@@ -155,11 +155,9 @@ namespace AScript.Lang.Sql.Nodes
 				var properties = new ITreeNode[rowValues.Count];
 				for (int j = 0; j < rowValues.Count; j++)
 				{
-					//var value = rowValues[j].Eval(context, options, control, out var valueType);
 					var assign = new OperatorNode("=", 0, 2)
 					{
 						Left = new VariableNode(this.Columns[j]),
-						//Right = new ObjectNode(value, valueType)
 						Right = rowValues[j]
 					};
 					properties[j] = assign;
@@ -168,7 +166,6 @@ namespace AScript.Lang.Sql.Nodes
 				var newItem = newNode.Eval(context, options, control, out _);
 				newItems.SetValue(newItem, i);
 			}
-
 
 			if (addRangeMethod != null)
 			{
