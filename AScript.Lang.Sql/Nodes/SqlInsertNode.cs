@@ -87,16 +87,17 @@ namespace AScript.Lang.Sql.Nodes
 			{
 				// 创建数组变量
 				var arrayCreate = Expression.NewArrayInit(elementType, newItemExprs);
-				return Expression.Call(sourceExpr, addRangeMethod, arrayCreate);
+				return Expression.Block(Expression.Call(sourceExpr, addRangeMethod, arrayCreate), Expression.Constant(this.Values.Count));
 			}
 
 			// 使用 Add 方法逐个添加
-			var statements = new Expression[newItemExprs.Length];
+			var statements = new Expression[newItemExprs.Length + 1];
 			for (int i = 0; i < newItemExprs.Length; i++)
 			{
 				var itemExpr = newItemExprs[i];
 				statements[i] = Expression.Call(sourceExpr, addMethod, itemExpr);
 			}
+			statements[newItemExprs.Length] = Expression.Constant(this.Values.Count);
 			return Expression.Block(statements);
 		}
 
@@ -185,8 +186,8 @@ namespace AScript.Lang.Sql.Nodes
 					addMethod.Invoke(source, new[] { item });
 				}
 			}
-			returnType = typeof(void);
-			return null;
+			returnType = typeof(int);
+			return this.Values.Count;
 		}
 	}
 }

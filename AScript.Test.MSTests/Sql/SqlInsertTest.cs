@@ -28,7 +28,7 @@ namespace AScript.Test.MSTests.Sql
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "sql" };
 			script.Context.SetVar("list", list);
-			script.Eval(s);
+			Assert.AreEqual(1, script.Eval(s));
 			Assert.AreEqual(1, list.Count);
 			Assert.AreEqual("tom", list[0].Name);
 			Assert.AreEqual(20, list[0].Age);
@@ -42,7 +42,7 @@ namespace AScript.Test.MSTests.Sql
 			var script = new Script();
 			script.Context.Langs = new[] { "sql" };
 			script.Context.SetVar("list", list);
-			script.Eval(s);
+			Assert.AreEqual(1, script.Eval(s));
 			Assert.AreEqual(1, list.Count);
 			Assert.AreEqual("tom", list[0].Name);
 			Assert.AreEqual(20, list[0].Age);
@@ -57,7 +57,7 @@ namespace AScript.Test.MSTests.Sql
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "sql" };
 			script.Context.SetVar("list", list);
-			script.Eval(s);
+			Assert.AreEqual(1, script.Eval(s));
 			Assert.AreEqual(1, list.Count);
 			Assert.AreEqual("tom", list[0].Name);
 			Assert.AreEqual(20, list[0].Age);
@@ -71,7 +71,7 @@ namespace AScript.Test.MSTests.Sql
 			var script = new Script();
 			script.Context.Langs = new[] { "sql" };
 			script.Context.SetVar("list", list);
-			script.Eval(s);
+			Assert.AreEqual(1, script.Eval(s));
 			Assert.AreEqual(1, list.Count);
 			Assert.AreEqual("tom", list[0].Name);
 			Assert.AreEqual(20, list[0].Age);
@@ -86,7 +86,7 @@ namespace AScript.Test.MSTests.Sql
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "sql" };
 			script.Context.SetVar("list", list);
-			script.Eval(s);
+			Assert.AreEqual(1, script.Eval(s));
 			Assert.AreEqual(1, list.Count);
 			Assert.AreEqual("tom", list[0].Name);
 			Assert.AreEqual(20, list[0].Age);
@@ -100,7 +100,7 @@ namespace AScript.Test.MSTests.Sql
 			var script = new Script();
 			script.Context.Langs = new[] { "sql" };
 			script.Context.SetVar("list", list);
-			script.Eval(s);
+			Assert.AreEqual(1, script.Eval(s));
 			Assert.AreEqual(1, list.Count);
 			Assert.AreEqual("tom", list[0].Name);
 			Assert.AreEqual(20, list[0].Age);
@@ -115,7 +115,7 @@ namespace AScript.Test.MSTests.Sql
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "sql" };
 			script.Context.SetVar("list", list);
-			script.Eval(s);
+			Assert.AreEqual(2, script.Eval(s));
 			Assert.AreEqual(2, list.Count);
 			Assert.AreEqual("tom", list[0].Name);
 			Assert.AreEqual(20, list[0].Age);
@@ -131,7 +131,7 @@ namespace AScript.Test.MSTests.Sql
 			var script = new Script();
 			script.Context.Langs = new[] { "sql" };
 			script.Context.SetVar("list", list);
-			script.Eval(s);
+			Assert.AreEqual(2, script.Eval(s));
 			Assert.AreEqual(2, list.Count);
 			Assert.AreEqual("tom", list[0].Name);
 			Assert.AreEqual(20, list[0].Age);
@@ -151,7 +151,7 @@ namespace AScript.Test.MSTests.Sql
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "sql" };
 			script.Context.SetVar("list", list);
-			script.Eval(s);
+			Assert.AreEqual(1, script.Eval(s));
 			Assert.AreEqual(2, list.Count);
 			Assert.AreEqual("jim", list[0].Name);
 			Assert.AreEqual(18, list[0].Age);
@@ -170,7 +170,7 @@ namespace AScript.Test.MSTests.Sql
 			var script = new Script();
 			script.Context.Langs = new[] { "sql" };
 			script.Context.SetVar("list", list);
-			script.Eval(s);
+			Assert.AreEqual(1, script.Eval(s));
 			Assert.AreEqual(2, list.Count);
 			Assert.AreEqual("jim", list[0].Name);
 			Assert.AreEqual(18, list[0].Age);
