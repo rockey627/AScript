@@ -76,6 +76,24 @@ namespace AScript.Lang.Sql.Nodes
 				Expression.Assign(enumeratorVar, getEnumerator),
 				loop);
 
+			// 更新数据源
+			var updateRangeMethod = source.GetType().GetMethods()
+				.FirstOrDefault(m =>
+				{
+					if (m.Name != "UpdateRange") return false;
+					var p0 = m.GetParameters()[0];
+					if (!p0.ParameterType.IsGenericType) return false;
+					return p0.ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>);
+				});
+			if (updateRangeMethod != null)
+			{
+				return Expression.Block(new[] { listVar },
+					assignList,
+					foreachBlock,
+					Expression.Call(source, updateRangeMethod, listVar),
+					Expression.Property(listVar, "Count"));
+			}
+
 			return Expression.Block(new[] { listVar },
 				assignList,
 				foreachBlock,

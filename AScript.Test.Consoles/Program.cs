@@ -107,6 +107,17 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 
 			using (var context = new TestSqliteContext())
 			{
+				string s = @"update context.Persons set name='sany',age=age+10 where id='1002'";
+				var script = new Script();
+				script.Options.CompileMode = ECompileMode.All;
+				script.Context.Langs = new[] { "sql" };
+				script.Context.SetVar("context", context);
+				script.Eval(s);
+				context.SaveChanges();
+			}
+
+			using (var context = new TestSqliteContext())
+			{
 				//string s = @"
 				//var persons = context.Persons;
 				//var q = from a in persons
