@@ -24,6 +24,8 @@ namespace AScript.TokenHandlers
 		/// </summary>
 		public string TargetOperator { get; private set; }
 
+		public bool? Prefix { get; set; }
+
 		public OperatorTokenHandler(string priorityOperator)
 		{
 			this.PriorityOperator = priorityOperator;
@@ -39,7 +41,10 @@ namespace AScript.TokenHandlers
 			e.IsHandled = true;
 			if (!e.Ignore)
 			{
-				var op = new OperatorNode(string.IsNullOrEmpty(this.TargetOperator) ? e.CurrentToken.Value : this.TargetOperator, DefaultSyntaxAnalyzer.OperatorPriorities[this.PriorityOperator], this.DataCount);
+				var op = new OperatorNode(string.IsNullOrEmpty(this.TargetOperator) ? e.CurrentToken.Value : this.TargetOperator, DefaultSyntaxAnalyzer.OperatorPriorities[this.PriorityOperator], this.DataCount)
+				{
+					Prefix = this.Prefix
+				};
 				e.TreeBuilder.AddOperator(e.BuildContext, e.ScriptContext, e.Options, e.Control, op);
 			}
 		}
@@ -49,7 +54,10 @@ namespace AScript.TokenHandlers
 			e.IsHandled = true;
 			if (!e.Ignore)
 			{
-				var op = new OperatorNode(string.IsNullOrEmpty(this.TargetOperator) ? e.CurrentToken.Value : this.TargetOperator, DefaultSyntaxAnalyzer.OperatorPriorities[this.PriorityOperator], this.DataCount);
+				var op = new OperatorNode(string.IsNullOrEmpty(this.TargetOperator) ? e.CurrentToken.Value : this.TargetOperator, DefaultSyntaxAnalyzer.OperatorPriorities[this.PriorityOperator], this.DataCount)
+				{
+					Prefix = this.Prefix
+				};
 				await e.TreeBuilder.AddOperatorAsync(e.BuildContext, e.ScriptContext, e.Options, e.Control, op, cancellationToken).ConfigureAwait(false);
 			}
 		}

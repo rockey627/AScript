@@ -18,6 +18,7 @@ namespace AScript.Nodes
 		public string Name { get; set; }
 		public int Priority { get; set; }
 		public int DataCount { get; set; }
+		public bool? Prefix { get; set; }
 
 		public ITreeNode Left
 		{
@@ -218,6 +219,7 @@ namespace AScript.Nodes
 			PoolManage.Return(_Right);
 			_Left = null;
 			_Right = null;
+			Prefix = null;
 		}
 
 		private static ITreeNode[] CreateArray(int count)

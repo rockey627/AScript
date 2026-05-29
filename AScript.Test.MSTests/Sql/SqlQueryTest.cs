@@ -23,6 +23,301 @@ namespace AScript.Test.MSTests.Sql
 		}
 
 		[TestMethod]
+		public void Test25_where_notlike_4()
+		{
+			var s = @"from list where not Name like '%m'";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("san", result[0].Name);
+			Assert.AreEqual("qin", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test25_where_notlike_3()
+		{
+			var s = @"from list where not Name like '%m'";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("san", result[0].Name);
+			Assert.AreEqual("qin", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test25_where_notlike_2()
+		{
+			var s = @"from list where Name not like '%m'";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("san", result[0].Name);
+			Assert.AreEqual("qin", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test25_where_notlike()
+		{
+			var s = @"from list where Name not like '%m'";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("san", result[0].Name);
+			Assert.AreEqual("qin", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test24_where_like_2()
+		{
+			var s = @"from list where Name like '%m'";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("tom", result[0].Name);
+			Assert.AreEqual("jim", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test24_where_like()
+		{
+			var s = @"from list where Name like '%m'";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("tom", result[0].Name);
+			Assert.AreEqual("jim", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test23_where_notin_select_4()
+		{
+			var s = @"from list where not Name in (select Name from nameList)";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var nameList = new[] { new { Name = "jim" }, new { Name = "tom" } };
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			script.Context.SetVar("nameList", nameList);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("san", result[0].Name);
+			Assert.AreEqual("qin", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test23_where_notin_select_3()
+		{
+			var s = @"from list where not Name in (select Name from nameList)";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var nameList = new[] { new { Name = "jim" }, new { Name = "tom" } };
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			script.Context.SetVar("nameList", nameList);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("san", result[0].Name);
+			Assert.AreEqual("qin", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test23_where_notin_select_2()
+		{
+			var s = @"from list where Name not in (select Name from nameList)";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var nameList = new[] { new { Name = "jim" }, new { Name = "tom" } };
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			script.Context.SetVar("nameList", nameList);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("san", result[0].Name);
+			Assert.AreEqual("qin", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test23_where_notin_select()
+		{
+			var s = @"from list where Name not in (select Name from nameList)";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var nameList = new[] { new { Name = "jim" }, new { Name = "tom" } };
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			script.Context.SetVar("nameList", nameList);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("san", result[0].Name);
+			Assert.AreEqual("qin", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test22_where_notin_4()
+		{
+			var s = @"from list where not Name in ('jim', 'tom')";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("san", result[0].Name);
+			Assert.AreEqual("qin", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test22_where_notin_3()
+		{
+			var s = @"from list where not Name in ('jim', 'tom')";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("san", result[0].Name);
+			Assert.AreEqual("qin", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test22_where_notin_2()
+		{
+			var s = @"from list where Name not in ('jim', 'tom')";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("san", result[0].Name);
+			Assert.AreEqual("qin", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test22_where_notin()
+		{
+			var s = @"from list where Name not in ('jim', 'tom')";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("san", result[0].Name);
+			Assert.AreEqual("qin", result[1].Name);
+		}
+
+		[TestMethod]
 		public void Test21_where_in_select_2()
 		{
 			var s = @"from list where Name in (select Name from nameList)";
@@ -1241,7 +1536,7 @@ matchedList;
 		}
 
 		[TestMethod]
-		public void Test01_6()
+		public void Test01_like_6()
 		{
 			string s = "p.Age>20 AND p.Age<50 Or p.Name like 'to%' OR p.Name='san'";
 			var p = new Person("tom", 60);
@@ -1260,7 +1555,7 @@ matchedList;
 		}
 
 		[TestMethod]
-		public void Test01_5()
+		public void Test01_like_5()
 		{
 			string s = "p.Age>20 AND p.Age<50 Or p.Name like 'to%' OR p.Name='san'";
 			var p = new Person("tom", 60);
@@ -1278,7 +1573,7 @@ matchedList;
 		}
 
 		[TestMethod]
-		public void Test01_4()
+		public void Test01_like_4()
 		{
 			string s = "p.Age>20 AND p.Age<50 OR p.Name like 'to%' OR p.Name='san'";
 			var p = new Person("tom", 60);
@@ -1297,7 +1592,7 @@ matchedList;
 		}
 
 		[TestMethod]
-		public void Test01_3()
+		public void Test01_like_3()
 		{
 			string s = "p.Age>20 AND p.Age<50 OR p.Name like 'to%' OR p.Name='san'";
 			var p = new Person("tom", 60);
@@ -1315,7 +1610,7 @@ matchedList;
 		}
 
 		[TestMethod]
-		public void Test01_2()
+		public void Test01_like_2()
 		{
 			string s = "p.Age>20 and p.Age<50 or p.Name like 'to%' or p.Name='san'";
 			var p = new Person("tom", 60);
@@ -1334,7 +1629,7 @@ matchedList;
 		}
 
 		[TestMethod]
-		public void Test01()
+		public void Test01_like()
 		{
 			string s = "p.Age>20 and p.Age<50 or p.Name like 'to%' or p.Name='san'";
 			var p = new Person("tom", 60);

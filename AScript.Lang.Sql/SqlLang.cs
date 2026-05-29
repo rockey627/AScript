@@ -13,7 +13,7 @@ namespace AScript.Lang.Sql
 	{
 		public static readonly SqlLang Instance = new SqlLang();
 
-		public SqlLang() : base(ignoreCase : true)
+		public SqlLang() : base(ignoreCase: true)
 		{
 			AddFunc("+", PlusOperator.Instance);
 			AddFunc("-", SubtractOperator.Instance);
@@ -44,6 +44,7 @@ namespace AScript.Lang.Sql
 			AddTokenHandler("<>", new OperatorTokenHandler("!=", "!="));
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);
 			AddTokenHandler("or", OrElseTokenHandler.Instance);
+			AddTokenHandler("not", new OperatorTokenHandler("!", "!") { DataCount = 1, Prefix = true });
 			AddTokenHandler("in", SqlInTokenHandler.Instance);
 			AddTokenHandler("like", SqlLikeTokenHandler.Instance);
 			AddTokenHandler("set", SqlSetTokenHandler.Instance);

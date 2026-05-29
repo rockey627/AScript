@@ -314,7 +314,14 @@ namespace AScript.Nodes
 				if ((options.CreateFullTreeNode ?? false) || !(current is OperatorNode) || operatorNode.Priority == DefaultSyntaxAnalyzer.ASSIGN
 					|| operatorNode.Name == "++" || operatorNode.Name == "--")
 				{
-					operatorNode.Left = current;
+					if (operatorNode.Prefix ?? false)
+					{
+						operatorNode.Right = current;
+					}
+					else
+					{
+						operatorNode.Left = current;
+					}
 				}
 				else
 				{
@@ -326,17 +333,38 @@ namespace AScript.Nodes
 					}
 					else if ((current is OperatorNode currentOp) && currentOp.Name == "." && operatorNode.Name != ".")
 					{
-						operatorNode.Left = current;
+						if (operatorNode.Prefix ?? false)
+						{
+							operatorNode.Right = current;
+						}
+						else
+						{
+							operatorNode.Left = current;
+						}
 					}
 					else
 					{
 						// 计算节点
 						var currentResult = current.Eval(scriptContext, options, control, out var currentType);
 						PoolManage.Return(current);
-						operatorNode.Left = PoolManage.CreateObjectNode(currentResult, currentType);
+						if (operatorNode.Prefix ?? false)
+						{
+							operatorNode.Right = PoolManage.CreateObjectNode(currentResult, currentType);
+						}
+						else
+						{
+							operatorNode.Left = PoolManage.CreateObjectNode(currentResult, currentType);
+						}
 					}
 				}
-				_Current = operatorNode;
+				if (operatorNode.Prefix ?? false)
+				{
+					_Current = operatorNode.Right;
+				}
+				else
+				{
+					_Current = operatorNode;
+				}
 				if (pp == null)
 				{
 					_Root = operatorNode;
