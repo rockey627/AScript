@@ -92,6 +92,43 @@ namespace AScript.Test.MSTests.Sql
 		}
 
 		[TestMethod]
+		public void Test_update_ignorecase_reference_2()
+		{
+			var s = @"update list set age=age+10 where name='tom'";
+			var list = new List<Person>
+			{
+				new Person("jim", 18),
+				new Person("tom", 20)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var count = (int)script.Eval(s);
+			Assert.AreEqual(1, count);
+			Assert.AreEqual(18, list[0].Age);
+			Assert.AreEqual(30, list[1].Age);
+		}
+
+		[TestMethod]
+		public void Test_update_ignorecase_reference()
+		{
+			var s = @"update list set age=age+10 where name='tom'";
+			var list = new List<Person>
+			{
+				new Person("jim", 18),
+				new Person("tom", 20)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var count = (int)script.Eval(s);
+			Assert.AreEqual(1, count);
+			Assert.AreEqual(18, list[0].Age);
+			Assert.AreEqual(30, list[1].Age);
+		}
+
+		[TestMethod]
 		public void Test_update_with_value_reference_2()
 		{
 			var s = @"update list set Age=Age+10 where Name='tom'";

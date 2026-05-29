@@ -49,15 +49,17 @@ namespace AScript.Lang.Sql.Nodes
 			// 循环体：更新字段
 			var updateStatements = new List<Expression>();
 			var properties = itemType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+			var visitor = new ValueBuildTreeNodeVisitor(itemVar);
 			for (int i = 0; i < this.Fields.Count; i++)
 			{
 				var prop = Expression.PropertyOrField(itemVar, this.Fields[i]);
-				var valueExpr = this.Values[i].Build(buildContext, scriptContext, options);
-				if (valueExpr.Type != prop.Type)
+				var valueNode = visitor.Visit(this.Values[i]);
+				var value = valueNode.Build(buildContext, scriptContext, options);
+				if (value.Type != prop.Type)
 				{
-					valueExpr = ExpressionUtils.Convert(valueExpr, prop.Type);
+					value = ExpressionUtils.Convert(value, prop.Type);
 				}
-				updateStatements.Add(Expression.Assign(prop, valueExpr));
+				updateStatements.Add(Expression.Assign(prop, value));
 			}
 
 			var loopBody = Expression.Block(new[] { itemVar },
@@ -65,8 +67,7 @@ namespace AScript.Lang.Sql.Nodes
 					Expression.Call(enumeratorVar, moveNextMethod),
 					Expression.Block(
 						Expression.Assign(itemVar, Expression.Property(enumeratorVar, currentProperty)),
-						updateStatements.Count > 0 ? Expression.Block(updateStatements) : (Expression)Expression.Empty()//,
-						//Expression.Label(continueLabel)
+						updateStatements.Count > 0 ? Expression.Block(updateStatements) : (Expression)Expression.Empty()
 					),
 					Expression.Break(breakLabel)
 				));
@@ -102,20 +103,15 @@ namespace AScript.Lang.Sql.Nodes
 			// 
 			foreach (var item in list)
 			{
-				var tmpContext = new ScriptContext(context);
 				var properties = item.GetType().GetProperties();
-				foreach (var p in properties)
-				{
-					if (!p.CanRead) continue;
-					tmpContext.SetVar(p.Name, p.GetValue(item), p.PropertyType);
-				}
-				var dict = properties.ToDictionary(a => a.Name);
+				var dict = properties.Where(p => p.CanWrite).ToDictionary(a => a.Name, StringComparer.OrdinalIgnoreCase);
+				var visitor = new ValueEvalTreeNodeVisitor(item);
 				for (int i = 0; i < this.Fields.Count; i++)
 				{
 					string field = this.Fields[i];
 					if (dict.TryGetValue(field, out var p))
 					{
-						var value = this.Values[i].Eval(tmpContext, options, control, out var valueType);
+						var value = visitor.Visit(this.Values[i]).Eval(context, options, control, out var valueType);
 						p.SetValue(item, value);
 					}
 				}
@@ -145,6 +141,58 @@ namespace AScript.Lang.Sql.Nodes
 				return type.GenericTypeArguments[0];
 			}
 			return null;
+		}
+
+		private class ValueBuildTreeNodeVisitor : TreeNodeVisitor
+		{
+			private readonly ParameterExpression _VarExpr;
+			private readonly Dictionary<string, PropertyInfo> _PropertyDict;
+
+			public ValueBuildTreeNodeVisitor(ParameterExpression varExpr)
+			{
+				_VarExpr = varExpr;
+				_PropertyDict = varExpr.Type.GetProperties().Where(a => a.CanRead).ToDictionary(a => a.Name, StringComparer.OrdinalIgnoreCase);
+			}
+
+			public override ITreeNode VisitVariableNode(VariableNode variableNode)
+			{
+				if (variableNode.Parent is OperatorNode operatorNode
+					&& (operatorNode.Name == "." || operatorNode.Name == "?."))
+				{
+					return base.VisitVariableNode(variableNode);
+				}
+				if (_PropertyDict.TryGetValue(variableNode.Name, out var p))
+				{
+					return new ExpressionNode(Expression.Property(_VarExpr, p));
+				}
+				return base.VisitVariableNode(variableNode);
+			}
+		}
+
+		private class ValueEvalTreeNodeVisitor : TreeNodeVisitor
+		{
+			private readonly object _Item;
+			private readonly Dictionary<string, PropertyInfo> _PropertyDict;
+
+			public ValueEvalTreeNodeVisitor(object item)
+			{
+				_Item = item;
+				_PropertyDict = item.GetType().GetProperties().Where(a => a.CanRead).ToDictionary(a => a.Name, StringComparer.OrdinalIgnoreCase);
+			}
+
+			public override ITreeNode VisitVariableNode(VariableNode variableNode)
+			{
+				if (variableNode.Parent is OperatorNode operatorNode
+					&& (operatorNode.Name == "." || operatorNode.Name == "?."))
+				{
+					return base.VisitVariableNode(variableNode);
+				}
+				if (_PropertyDict.TryGetValue(variableNode.Name, out var p))
+				{
+					return new ObjectNode(p.GetValue(_Item));
+				}
+				return base.VisitVariableNode(variableNode);
+			}
 		}
 	}
 }
