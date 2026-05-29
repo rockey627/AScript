@@ -1,4 +1,5 @@
-﻿using AScript.Lang.Sql.TokenHandlers;
+﻿using AScript.Functions;
+using AScript.Lang.Sql.TokenHandlers;
 using AScript.Operators;
 using AScript.TokenHandlers;
 using System;
@@ -32,6 +33,7 @@ namespace AScript.Lang.Sql
 			AddFunc("!=", NotEqualOperator.Instance);
 			AddFunc("and", AndAlsoOperator.Instance);
 			AddFunc("or", OrElseOperator.Instance);
+			AddFunc("in", new ContainsFunction(reverse: true));
 
 			// IEnumerable<T>扩展方法
 			AddFunc(typeof(System.Linq.Enumerable));
@@ -42,6 +44,7 @@ namespace AScript.Lang.Sql
 			AddTokenHandler("<>", new OperatorTokenHandler("!=", "!="));
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);
 			AddTokenHandler("or", OrElseTokenHandler.Instance);
+			AddTokenHandler("in", InTokenHandler.Instance);
 			AddTokenHandler("like", SqlLikeTokenHandler.Instance);
 			AddTokenHandler("set", SqlSetTokenHandler.Instance);
 			AddTokenHandler("select", SqlSelectTokenHandler.Instance);

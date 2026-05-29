@@ -131,7 +131,7 @@ namespace AScript.Lang.Python3
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			AddTokenHandler("break", BreakTokenHandler.Instance);
 			AddTokenHandler("continue", ContinueTokenHandler.Instance);
-			AddTokenHandler("in", Python3InTokenHandler.Instance);
+			AddTokenHandler("in", InTokenHandler.Instance);
 			AddTokenHandler("lambda", Python3LambdaTokenHandler.Instance);
 			// 字符串内插值：f'{m},{n}'
 			AddTokenHandler("f", StringInterpolationTokenHandler.Instance);

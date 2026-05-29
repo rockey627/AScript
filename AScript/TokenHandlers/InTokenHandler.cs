@@ -2,11 +2,11 @@
 using AScript.Nodes;
 using AScript.Syntaxs;
 
-namespace AScript.Lang.Python3.TokenHandlers
+namespace AScript.TokenHandlers
 {
-	public class Python3InTokenHandler : ITokenHandler
+	public class InTokenHandler : ITokenHandler
 	{
-		public static readonly Python3InTokenHandler Instance = new Python3InTokenHandler();
+		public static readonly InTokenHandler Instance = new InTokenHandler();
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
