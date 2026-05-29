@@ -14,6 +14,12 @@ namespace AScript.Lang.Sql
 
 		public SqlLang() : base(ignoreCase : true)
 		{
+			AddFunc("+", PlusOperator.Instance);
+			AddFunc("-", SubtractOperator.Instance);
+			AddFunc("*", MultiplyOperator.Instance);
+			//AddFunc("**", PowerOperator.Instance);
+			AddFunc("/", DivideOperator.Instance);
+			AddFunc("%", ModuloOperator.Instance);
 			AddFunc(".", DotOperator.Instance);
 			AddFunc("?.", new DotOperator(true));
 			AddFunc("!", BoolNotOperator.Instance);

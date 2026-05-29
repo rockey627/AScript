@@ -38,13 +38,13 @@ namespace AScript.Lang.Sql.Nodes
 
 			// foreach 循环
 			var enumeratorVar = Expression.Variable(typeof(IEnumerator<>).MakeGenericType(itemType), "enumerator");
-			var getEnumerator = Expression.Call(listVar, list.Type.GetMethod("GetEnumerator"));
+			var getEnumerator = Expression.Call(listVar, typeof(IEnumerable<>).MakeGenericType(itemType).GetMethod("GetEnumerator"));
 			var moveNextMethod = typeof(IEnumerator).GetMethod("MoveNext");
 			var currentProperty = typeof(IEnumerator<>).MakeGenericType(itemType).GetProperty("Current");
 			var itemVar = Expression.Variable(itemType, "item");
 
-			var breakLabel = Expression.Label();
-			var continueLabel = Expression.Label();
+			var breakLabel = Expression.Label("break");
+			var continueLabel = Expression.Label("continue");
 
 			// 循环体：更新字段
 			var updateStatements = new List<Expression>();
@@ -60,13 +60,13 @@ namespace AScript.Lang.Sql.Nodes
 				updateStatements.Add(Expression.Assign(prop, valueExpr));
 			}
 
-			var loopBody = Expression.Block(
+			var loopBody = Expression.Block(new[] { itemVar },
 				Expression.IfThenElse(
 					Expression.Call(enumeratorVar, moveNextMethod),
 					Expression.Block(
 						Expression.Assign(itemVar, Expression.Property(enumeratorVar, currentProperty)),
-						updateStatements.Count > 0 ? Expression.Block(updateStatements) : (Expression)Expression.Empty(),
-						Expression.Label(continueLabel)
+						updateStatements.Count > 0 ? Expression.Block(updateStatements) : (Expression)Expression.Empty()//,
+						//Expression.Label(continueLabel)
 					),
 					Expression.Break(breakLabel)
 				));
@@ -106,6 +106,7 @@ namespace AScript.Lang.Sql.Nodes
 				var properties = item.GetType().GetProperties();
 				foreach (var p in properties)
 				{
+					if (!p.CanRead) continue;
 					tmpContext.SetVar(p.Name, p.GetValue(item), p.PropertyType);
 				}
 				var dict = properties.ToDictionary(a => a.Name);

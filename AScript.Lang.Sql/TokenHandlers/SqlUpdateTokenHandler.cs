@@ -13,6 +13,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 	{
 		public static readonly SqlUpdateTokenHandler Instance = new SqlUpdateTokenHandler();
 
+		private static readonly HashSet<string> _TableEndTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "set" };
 		private static readonly HashSet<string> _SetEndTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "where" };
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
@@ -20,7 +21,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 			e.IsHandled = true;
 			e.End = true;
 
-			var tableNode = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, _SetEndTokens);
+			var tableNode = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, _TableEndTokens);
 			analyzer.ValidateNextToken(e.TokenReader, "set", StringComparison.OrdinalIgnoreCase);
 
 			var fields = e.Ignore ? null : new List<string>();
@@ -35,7 +36,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 
 				analyzer.ValidateNextToken(e.TokenReader, "=");
 
-				var valueNode = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
+				var valueNode = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _SetEndTokens);
 				values?.Add(valueNode);
 
 				var token = e.TokenReader.Read();
@@ -46,7 +47,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 				}
 				if (token.Value.IsSymbol("where", StringComparison.OrdinalIgnoreCase))
 				{
-					condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+					condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
 					break;
 				}
 				e.TokenReader.Push(token.Value);
