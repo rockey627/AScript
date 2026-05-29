@@ -91,8 +91,6 @@ namespace AScript.Test.Consoles
 					new AddressInfo{UserId = "1005", Address = "c" },
 				});
 
-				//context.Persons.ExecuteUpdate(a => a.SetProperty(p => p.Name, p => "hello"));
-
 				string s = @"
 insert into context.Persons (Id,Name,Age) 
 values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)";
@@ -107,6 +105,9 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 
 			using (var context = new TestSqliteContext())
 			{
+				//context.Persons.ExecuteUpdate(a => a.SetProperty(p => p.Name, p => "hello"));
+				//context.Persons.RemoveRange
+
 				string s = @"update context.Persons set name='sany',age=age+10 where id='1002'";
 				var script = new Script();
 				script.Options.CompileMode = ECompileMode.All;

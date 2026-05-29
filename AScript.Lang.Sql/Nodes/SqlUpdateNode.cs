@@ -118,7 +118,8 @@ namespace AScript.Lang.Sql.Nodes
 
 			// ToList
 			var list = (IList)context.EvalFunc(options, control, "ToList", new ITreeNode[] { sourceNode });
-			// 
+			if (list.Count == 0) return 0;
+
 			foreach (var item in list)
 			{
 				var properties = item.GetType().GetProperties();
