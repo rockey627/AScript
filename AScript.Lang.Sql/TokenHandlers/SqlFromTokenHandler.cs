@@ -113,7 +113,8 @@ namespace AScript.Lang.Sql.TokenHandlers
 				}
 				if (nextToken.Value.IsSymbol(",")) continue;
 				if (nextToken.Value.Type == ETokenType.Word && _Keywords.Contains(nextToken.Value.Value)) break;
-				throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
+				break;
+				//throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
 			}
 			if (nextToken.HasValue)
 			{
