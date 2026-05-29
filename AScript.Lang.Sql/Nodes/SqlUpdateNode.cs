@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace AScript.Lang.Sql.Nodes
 {
@@ -16,7 +17,68 @@ namespace AScript.Lang.Sql.Nodes
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
-			throw new NotImplementedException();
+			var source = this.Source.Build(buildContext, scriptContext, options);
+			var itemType = GetItemType(source.Type);
+			if (itemType == null) throw new Exceptions.ScriptAnalyzingException("unkown item type of source");
+
+			ITreeNode sourceNode = new ExpressionNode(source);
+			if (this.Condition != null)
+			{
+				var queryNode = new QueryNode();
+				queryNode.AddFrom("__query__", sourceNode);
+				var condition = new SqlTreeNodeVisitor(null, scriptContext, queryNode).Visit(this.Condition);
+				queryNode.AddWhere(condition);
+				sourceNode = queryNode;
+			}
+
+			// ToList()
+			var list = scriptContext.BuildFunc(buildContext, options, null, "ToList", false, new ITreeNode[] { sourceNode });
+			var listVar = Expression.Variable(list.Type);
+			var assignList = Expression.Assign(listVar, list);
+
+			// foreach 循环
+			var enumeratorVar = Expression.Variable(typeof(IEnumerator<>).MakeGenericType(itemType), "enumerator");
+			var getEnumerator = Expression.Call(listVar, list.Type.GetMethod("GetEnumerator"));
+			var moveNextMethod = typeof(IEnumerator).GetMethod("MoveNext");
+			var currentProperty = typeof(IEnumerator<>).MakeGenericType(itemType).GetProperty("Current");
+			var itemVar = Expression.Variable(itemType, "item");
+
+			var breakLabel = Expression.Label();
+			var continueLabel = Expression.Label();
+
+			// 循环体：更新字段
+			var updateStatements = new List<Expression>();
+			var properties = itemType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+			for (int i = 0; i < this.Fields.Count; i++)
+			{
+				var prop = Expression.PropertyOrField(itemVar, this.Fields[i]);
+				var valueExpr = this.Values[i].Build(buildContext, scriptContext, options);
+				if (valueExpr.Type != prop.Type)
+				{
+					valueExpr = ExpressionUtils.Convert(valueExpr, prop.Type);
+				}
+				updateStatements.Add(Expression.Assign(prop, valueExpr));
+			}
+
+			var loopBody = Expression.Block(
+				Expression.IfThenElse(
+					Expression.Call(enumeratorVar, moveNextMethod),
+					Expression.Block(
+						Expression.Assign(itemVar, Expression.Property(enumeratorVar, currentProperty)),
+						updateStatements.Count > 0 ? Expression.Block(updateStatements) : (Expression)Expression.Empty(),
+						Expression.Label(continueLabel)
+					),
+					Expression.Break(breakLabel)
+				));
+			var loop = Expression.Loop(loopBody, breakLabel, continueLabel);
+			var foreachBlock = Expression.Block(new[] { enumeratorVar },
+				Expression.Assign(enumeratorVar, getEnumerator),
+				loop);
+
+			return Expression.Block(new[] { listVar },
+				assignList,
+				foreachBlock,
+				Expression.Property(listVar, "Count"));
 		}
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
@@ -36,12 +98,10 @@ namespace AScript.Lang.Sql.Nodes
 			}
 
 			// ToList
-			var list = (IEnumerable)context.EvalFunc(options, control, "ToList", new ITreeNode[] { sourceNode });
+			var list = (IList)context.EvalFunc(options, control, "ToList", new ITreeNode[] { sourceNode });
 			// 
-			int count = 0;
 			foreach (var item in list)
 			{
-				count++;
 				var tmpContext = new ScriptContext(context);
 				var properties = item.GetType().GetProperties();
 				foreach (var p in properties)
@@ -74,18 +134,14 @@ namespace AScript.Lang.Sql.Nodes
 				updateRangeMethod.Invoke(source, new object[] { list });
 			}
 
-			return count;
+			return list.Count;
 		}
 
 		private Type GetItemType(Type type)
 		{
 			if (type.IsGenericType)
 			{
-				var genericType = type.GetGenericTypeDefinition();
-				if (genericType == typeof(IList<>) || genericType == typeof(List<>))
-				{
-					return type.GenericTypeArguments[0];
-				}
+				return type.GenericTypeArguments[0];
 			}
 			return null;
 		}

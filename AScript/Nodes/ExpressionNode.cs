@@ -7,6 +7,12 @@ namespace AScript.Nodes
 	{
 		public Expression Expr { get; set; }
 
+		public ExpressionNode() { }
+		public ExpressionNode(Expression expr)
+		{
+			this.Expr = expr;
+		}
+
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
 			return this.Expr;
