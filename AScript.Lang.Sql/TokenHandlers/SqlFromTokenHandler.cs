@@ -135,7 +135,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _Keywords);
 			if (queryNode != null)
 			{
-				condition = new SqlTreeNodeVisitor(e.BuildContext, e.ScriptContext, queryNode).Visit(condition);
+				condition = new SqlQueryNodeVisitor(e.BuildContext, e.ScriptContext, queryNode).Visit(condition);
 				queryNode.AddWhere(condition);
 			}
 		}
@@ -257,7 +257,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 			}
 			if (queryNode != null)
 			{
-				new SqlTreeNodeVisitor(e.BuildContext, e.ScriptContext, queryNode).Visit(list);
+				new SqlQueryNodeVisitor(e.BuildContext, e.ScriptContext, queryNode).Visit(list);
 				var key = list.Count == 1 ? list[0] : new NewNode { InitProperties = list };
 				string intoName = "__group__";
 				queryNode.AddGroup(key, null, intoName);

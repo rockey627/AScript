@@ -71,7 +71,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 				{
 					var queryNode = (QueryNode)((fromBuilder is TreeBuilder treeBuilder) ? treeBuilder.Root : fromBuilder);
 					// 字段替换
-					new SqlTreeNodeVisitor(e.BuildContext, e.ScriptContext, queryNode).Visit(list);
+					new SqlQueryNodeVisitor(e.BuildContext, e.ScriptContext, queryNode).Visit(list);
 					// 
 					if (list.Count == 1)
 					{

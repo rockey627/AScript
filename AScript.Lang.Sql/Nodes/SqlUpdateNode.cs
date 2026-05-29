@@ -26,7 +26,7 @@ namespace AScript.Lang.Sql.Nodes
 			{
 				var queryNode = new QueryNode();
 				queryNode.AddFrom("__query__", sourceNode);
-				var condition = new SqlTreeNodeVisitor(buildContext, scriptContext, queryNode).Visit(this.Condition);
+				var condition = new SqlQueryNodeVisitor(buildContext, scriptContext, queryNode).Visit(this.Condition);
 				queryNode.AddWhere(condition);
 				sourceNode = queryNode;
 			}
@@ -111,7 +111,7 @@ namespace AScript.Lang.Sql.Nodes
 			{
 				var queryNode = new QueryNode();
 				queryNode.AddFrom("__query__", sourceNode);
-				var condition = new SqlTreeNodeVisitor(null, context, queryNode).Visit(this.Condition);
+				var condition = new SqlQueryNodeVisitor(null, context, queryNode).Visit(this.Condition);
 				queryNode.AddWhere(condition);
 				sourceNode = queryNode;
 			}
@@ -162,7 +162,7 @@ namespace AScript.Lang.Sql.Nodes
 			return null;
 		}
 
-		private class ValueBuildTreeNodeVisitor : TreeNodeVisitor
+		private class ValueBuildTreeNodeVisitor : SqlTreeNodeVisitor
 		{
 			private readonly ParameterExpression _VarExpr;
 			private readonly Dictionary<string, PropertyInfo> _PropertyDict;
@@ -188,7 +188,7 @@ namespace AScript.Lang.Sql.Nodes
 			}
 		}
 
-		private class ValueEvalTreeNodeVisitor : TreeNodeVisitor
+		private class ValueEvalTreeNodeVisitor : SqlTreeNodeVisitor
 		{
 			private readonly object _Item;
 			private readonly Dictionary<string, PropertyInfo> _PropertyDict;
