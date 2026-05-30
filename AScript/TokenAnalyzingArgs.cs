@@ -36,7 +36,7 @@ namespace AScript
 		/// <summary>
 		/// 
 		/// </summary>
-		public Token CurrentToken { get; internal set; }
+		public Token CurrentToken { get; set; }
 
 		public bool IsHandled { get; set; }
 

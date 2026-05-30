@@ -15,6 +15,23 @@ namespace AScript.Lang.Sql
 
 		public SqlLang() : base(ignoreCase: true)
 		{
+			AddType("tinyint", typeof(byte));
+			AddType("smallint", typeof(short));
+			AddType("int", typeof(int));
+			AddType("bigint", typeof(long));
+			AddType("decimal", typeof(decimal));
+			AddType("float", typeof(float));
+			AddType("real", typeof(double));
+			AddType("double", typeof(double));
+			AddType("bit", typeof(bool));
+			AddType("char", typeof(string));
+			AddType("nchar", typeof(string));
+			AddType("varchar", typeof(string));
+			AddType("nvarchar", typeof(string));
+			AddType("text", typeof(string));
+			AddType("datetime", typeof(DateTime));
+			AddType("datetime2", typeof(DateTime));
+
 			AddFunc("+", PlusOperator.Instance);
 			AddFunc("-", SubtractOperator.Instance);
 			AddFunc("*", MultiplyOperator.Instance);
@@ -53,6 +70,7 @@ namespace AScript.Lang.Sql
 			AddTokenHandler("insert", SqlInsertTokenHandler.Instance);
 			AddTokenHandler("update", SqlUpdateTokenHandler.Instance);
 			AddTokenHandler("delete", SqlDeleteTokenHandler.Instance);
+			AddTokenHandler("create", SqlCreateTokenHandler.Instance);
 		}
 	}
 }

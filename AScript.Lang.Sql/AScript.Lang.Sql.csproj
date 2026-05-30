@@ -14,21 +14,30 @@
 // 添加sql脚本语言
 Script.Langs.Set("sql", SqlLang.Instance);
 string s = @"
-#lang sql // 嵌入sql脚本
-from list as a where a.name like 'to%' and a.age=10
+@lang sql
+select name from list where name like 'to%' and age=10
 ";
 var script = new Script();
 script.Context.SetVar("list", new [] { new Person("tommy", 15), new Person("tony", 10) });
 var result = script.Eval(s);
-Assert.AreEqual(typeof(IEnumerable<Person>), result.GetType());
+Assert.AreEqual(typeof(IEnumerable<string>), result.GetType());
+Assert.AreEqual("tony", string.Join(",", (IEnumerable<string>)result));
 			]]>
 		</Description>
-		<Version>0.0.0.0</Version>
+		<Version>0.0.0.1</Version>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes></PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\AScript\AScript.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
 	</ItemGroup>
 
 </Project>
