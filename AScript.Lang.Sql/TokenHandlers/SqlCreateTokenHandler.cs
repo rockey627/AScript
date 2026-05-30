@@ -29,7 +29,6 @@ namespace AScript.Lang.Sql.TokenHandlers
 
 		/// <summary>
 		/// create procedure 存储过程名称(参数1 类型, 参数2 类型)
-		/// as
 		/// begin
 		/// 
 		/// end
