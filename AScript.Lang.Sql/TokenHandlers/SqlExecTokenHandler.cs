@@ -6,19 +6,17 @@ using System.Linq;
 namespace AScript.Lang.Sql.TokenHandlers
 {
 	/// <summary>
-	/// MySql调用存储过程或者外部方法：
-	/// call 存储过程名称(参数值1, 参数值2)
+	/// SqlServer执行存储过程：exec 存储过程名称 参数1,参数2
 	/// </summary>
-	public class SqlCallTokenHandler : ITokenHandler
+	public class SqlExecTokenHandler : ITokenHandler
 	{
-		public static readonly SqlCallTokenHandler Instance = new SqlCallTokenHandler();
+		public static readonly SqlExecTokenHandler Instance = new SqlExecTokenHandler();
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;
 			var nameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
-			analyzer.ValidateNextToken(e.TokenReader, "(");
-			var args = analyzer.BuildFuncParams(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+			var args = analyzer.BuildFuncParams2(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
 			if (!e.Ignore)
 			{
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new CallFuncNode { Name = nameToken.Value.Value, Args = args.ToArray() });

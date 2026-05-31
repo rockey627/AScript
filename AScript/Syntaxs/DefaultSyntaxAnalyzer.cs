@@ -938,6 +938,24 @@ namespace AScript.Syntaxs
 			tokenReader.Push(nextToken.Value);
 		}
 
+		public virtual void TrySkipNextToken(TokenReader tokenReader, string nextTokenForSkip, StringComparison comparisonType)
+		{
+			var nextToken = tokenReader.Read();
+			if (!nextToken.HasValue) return;
+			if (nextToken.Value.Type != ETokenType.String
+				&& nextTokenForSkip.Equals(nextToken.Value.Value, comparisonType)) return;
+			tokenReader.Push(nextToken.Value);
+		}
+
+		public virtual async Task TrySkipNextTokenAsync(TokenReader tokenReader, string nextTokenForSkip, StringComparison comparisonType, CancellationToken cancellationToken = default)
+		{
+			var nextToken = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+			if (!nextToken.HasValue) return;
+			if (nextToken.Value.Type != ETokenType.String
+				&& nextTokenForSkip.Equals(nextToken.Value.Value, comparisonType)) return;
+			tokenReader.Push(nextToken.Value);
+		}
+
 		/// <summary>
 		/// 构建函数参数列表
 		/// </summary>
@@ -1010,6 +1028,43 @@ namespace AScript.Syntaxs
 				if (nextToken.Value.IsSymbol(")")) break;
 				if (nextToken.Value.IsSymbol(",")) continue;
 				throw new Exceptions.ScriptAnalyzingException($"invalid expression {nextToken.Value.Value} at {nextToken.Value.Line},{nextToken.Value.Column} expect ')'");
+			}
+			return list;
+		}
+
+		/// <summary>
+		/// 构建函数参数列表，无括号
+		/// </summary>
+		/// <param name="buildContext"></param>
+		/// <param name="scriptContext"></param>
+		/// <param name="tokenReader"></param>
+		/// <param name="control"></param>
+		/// <param name="options"></param>
+		/// <returns></returns>
+		public virtual IList<ITreeNode> BuildFuncParams2(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false)
+		{
+			var nextToken = tokenReader.Read();
+			if (!nextToken.HasValue)
+			{
+				return null;
+			}
+			if (nextToken.Value.Type == ETokenType.None) return null;
+			tokenReader.Push(nextToken.Value);
+			var list = ignore ? null : new List<ITreeNode>();
+			while (true)
+			{
+				var s = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
+				if (!ignore)
+				{
+					list.Add(s);
+				}
+				nextToken = tokenReader.Read();
+				if (!nextToken.HasValue)
+				{
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression, expect ')' at ({tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn})");
+				}
+				if (nextToken.Value.IsSymbol(",")) continue;
+				break;
 			}
 			return list;
 		}

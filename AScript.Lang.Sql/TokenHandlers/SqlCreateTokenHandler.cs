@@ -58,6 +58,11 @@ namespace AScript.Lang.Sql.TokenHandlers
 					while (true)
 					{
 						var varToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+						if (varToken.Value.IsSymbol("in", StringComparison.OrdinalIgnoreCase)
+							|| varToken.Value.IsSymbol("out", StringComparison.OrdinalIgnoreCase))
+						{
+							varToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+						}
 						var typeToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
 						if (args != null)
 						{
@@ -101,6 +106,10 @@ namespace AScript.Lang.Sql.TokenHandlers
 							args.Add(PoolManage.CreateDefineVarNode(varToken.Value.Value, typeToken.Value.Value));
 						}
 						nextToken = e.TokenReader.Read();
+						if (nextToken.HasValue && nextToken.Value.IsSymbol("output", StringComparison.OrdinalIgnoreCase))
+						{
+							nextToken = e.TokenReader.Read();
+						}
 						if (!nextToken.HasValue)
 						{
 							throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");

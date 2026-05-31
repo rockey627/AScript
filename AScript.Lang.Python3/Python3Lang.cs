@@ -17,9 +17,9 @@ namespace AScript.Lang.Python3
 	{
 		public static readonly Python3Lang Instance = new Python3Lang();
 
-		public static readonly HashSet<string> EndTokens = new HashSet<string>() { ":", "\n" };
+		internal static readonly HashSet<string> EndTokens = new HashSet<string>() { ":", "\n" };
 
-		public Python3Lang()
+		protected Python3Lang()
 		{
 			AddType<long>("int");
 			AddType<double>("float");

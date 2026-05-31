@@ -13,7 +13,7 @@ namespace AScript.Lang.Sql
 	{
 		public static readonly SqlLang Instance = new SqlLang();
 
-		public SqlLang() : base(ignoreCase: true)
+		protected SqlLang() : base(ignoreCase: true)
 		{
 			AddType("tinyint", typeof(byte));
 			AddType("smallint", typeof(short));
@@ -72,6 +72,7 @@ namespace AScript.Lang.Sql
 			AddTokenHandler("delete", SqlDeleteTokenHandler.Instance);
 			AddTokenHandler("create", SqlCreateTokenHandler.Instance);
 			AddTokenHandler("call", SqlCallTokenHandler.Instance);
+			AddTokenHandler("exec", SqlExecTokenHandler.Instance);
 		}
 	}
 }

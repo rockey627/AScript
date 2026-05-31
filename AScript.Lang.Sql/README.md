@@ -13,6 +13,7 @@
 * 支持调用外部方法和变量
 * 已内置常用数据类型：`tinyint/smallint/int/bigint/decimal/float/real/double/bit/char/nchar/varchar/nvarchar/text/datetime`
 * 类型不支持长度、精度定义，比如：decimal(2,10)、varchar(50)这样是不支持的
+* 存储过程暂不支持OUT参数
 
 ## 安装
 ```
@@ -43,12 +44,35 @@ script.Context.Langs = new [] { "sql" };
 
 ```
 
-#### SqlServer语法定义存储过程
+#### SELECT
+
+#### FROM
+
+#### INSERT
+
+#### UPDATE
+
+#### DELETE
+
+#### SqlServer存储过程
+```
+CREATE PROCEDURE AddPerson
+	@name VARCHAR,
+	@age INT
+AS
+BEGIN
+	insert into list (name, age) values(@name, @age)
+END
+
+EXEC AddPerson 'tom', 20
 ```
 
+#### MySql存储过程
 ```
+CREATE PROCEDURE AddPerson(@name VARCHAR, @age INT)
+BEGIN
+	insert into list (name, age) values(@name, @age)
+END
 
-#### MySql语法定义存储过程
-```
-
+CALL AddPerson('tom', 20)
 ```
