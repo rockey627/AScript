@@ -73,6 +73,7 @@ namespace AScript.Lang.Sql
 			AddTokenHandler("create", SqlCreateTokenHandler.Instance);
 			AddTokenHandler("call", SqlCallTokenHandler.Instance);
 			AddTokenHandler("exec", SqlExecTokenHandler.Instance);
+			AddTokenHandler("execute", SqlExecTokenHandler.Instance);
 		}
 	}
 }

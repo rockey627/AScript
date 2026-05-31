@@ -6,7 +6,8 @@ using System.Linq;
 namespace AScript.Lang.Sql.TokenHandlers
 {
 	/// <summary>
-	/// SqlServer执行存储过程：exec 存储过程名称 参数1,参数2
+	/// SqlServer执行存储过程或者外部方法：
+	/// exec 存储过程名称 参数1,参数2
 	/// </summary>
 	public class SqlExecTokenHandler : ITokenHandler
 	{

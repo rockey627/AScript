@@ -6,7 +6,7 @@ using System.Linq;
 namespace AScript.Lang.Sql.TokenHandlers
 {
 	/// <summary>
-	/// MySql调用存储过程或者外部方法：
+	/// MySql执行存储过程或者外部方法：
 	/// call 存储过程名称(参数值1, 参数值2)
 	/// </summary>
 	public class SqlCallTokenHandler : ITokenHandler

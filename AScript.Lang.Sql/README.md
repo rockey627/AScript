@@ -56,23 +56,43 @@ script.Context.Langs = new [] { "sql" };
 
 #### SqlServer存储过程
 ```
+var s = @"
 CREATE PROCEDURE AddPerson
 	@name VARCHAR,
 	@age INT
 AS
 BEGIN
-	insert into list (name, age) values(@name, @age)
+	INSERT INTO list (name, age) VALUES(@name, @age)
 END
 
 EXEC AddPerson 'tom', 20
+";
+var list = new List<Person>();
+var script = new Script();
+script.Context.Langs = new[] { "sql" };
+script.Context.SetVar("list", list);
+Assert.AreEqual(1, script.Eval(s));
+Assert.AreEqual(1, list.Count);
+Assert.AreEqual("tom", list[0].Name);
+Assert.AreEqual(20, list[0].Age);
 ```
 
 #### MySql存储过程
 ```
-CREATE PROCEDURE AddPerson(@name VARCHAR, @age INT)
+var s = @"
+CREATE PROCEDURE AddPerson(IN @name VARCHAR, IN @age INT)
 BEGIN
-	insert into list (name, age) values(@name, @age)
+	INSERT INTO list (name, age) VALUES(@name, @age)
 END
 
 CALL AddPerson('tom', 20)
+";
+var list = new List<Person>();
+var script = new Script();
+script.Context.Langs = new[] { "sql" };
+script.Context.SetVar("list", list);
+Assert.AreEqual(1, script.Eval(s));
+Assert.AreEqual(1, list.Count);
+Assert.AreEqual("tom", list[0].Name);
+Assert.AreEqual(20, list[0].Age);
 ```

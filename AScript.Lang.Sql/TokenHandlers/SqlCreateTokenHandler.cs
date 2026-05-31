@@ -17,7 +17,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 			e.End = true;
 
 			var actionToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
-			if ("procedure".Equals(actionToken.Value.Value))
+			if ("procedure".Equals(actionToken.Value.Value, StringComparison.OrdinalIgnoreCase))
 			{
 				e.CurrentToken = actionToken.Value;
 				BuildProcedure(analyzer, e);
@@ -115,7 +115,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 							throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
 						}
 						if (nextToken.Value.IsSymbol(",")) continue;
-						if (nextToken.Value.IsSymbol("as"))
+						if (nextToken.Value.IsSymbol("as", StringComparison.OrdinalIgnoreCase))
 						{
 							nextToken = e.TokenReader.Read();
 							break;
@@ -124,16 +124,23 @@ namespace AScript.Lang.Sql.TokenHandlers
 					}
 				}
 			}
-			if (!nextToken.Value.IsSymbol("begin", StringComparison.OrdinalIgnoreCase))
-			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
-			}
+			// 
+			ITreeNode body;
 			var createFullOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _ProcedureEndTokens);
-			analyzer.ValidateNextToken(e.TokenReader, "end", StringComparison.OrdinalIgnoreCase);
+			if (nextToken.Value.IsSymbol("begin", StringComparison.OrdinalIgnoreCase))
+			{
+				body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _ProcedureEndTokens);
+				analyzer.ValidateNextToken(e.TokenReader, "end", StringComparison.OrdinalIgnoreCase);
+			}
+			else
+			{
+				e.TokenReader.Push(nextToken.Value);
+				body = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
+			}
+			// 
 			if (!e.Ignore)
 			{
-				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new DefineFuncNode { Args = args.ToArray(), Body = body });
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new DefineFuncNode { Name = nameToken.Value.Value, Args = args.ToArray(), Body = body });
 			}
 		}
 	}

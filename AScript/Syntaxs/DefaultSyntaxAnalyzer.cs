@@ -1061,7 +1061,7 @@ namespace AScript.Syntaxs
 				nextToken = tokenReader.Read();
 				if (!nextToken.HasValue)
 				{
-					throw new Exceptions.ScriptAnalyzingException($"invalid expression, expect ')' at ({tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn})");
+					break;
 				}
 				if (nextToken.Value.IsSymbol(",")) continue;
 				break;
