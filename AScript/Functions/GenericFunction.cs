@@ -16,11 +16,13 @@ namespace AScript.Functions
 		public object Target { get; private set; }
 		public MethodInfo Method { get; private set; }
 
-		public GenericFunction(MethodInfo method) : this(null, method) { }
-		public GenericFunction(object target, MethodInfo method)
+		public GenericFunction(MethodInfo method)
+		{
+			this.Method = method;
+		}
+		public GenericFunction(MethodInfo method, object target) : this(method)
 		{
 			this.Target = target;
-			this.Method = method;
 		}
 
 		public void Build(FunctionBuildArgs e)

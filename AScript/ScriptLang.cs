@@ -611,7 +611,7 @@ namespace AScript
 			if (method.IsGenericMethod)
 			{
 				// 泛型方法
-				AddFunc(name, new GenericFunction(target, method));
+				AddFunc(name, new GenericFunction(method, target));
 			}
 			else
 			{

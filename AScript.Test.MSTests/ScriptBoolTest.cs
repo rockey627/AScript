@@ -13,7 +13,10 @@ namespace AScript.Test.MSTests
 		[TestMethod]
 		public void Test03()
 		{
+			Assert.IsTrue(!true == false);
 			var script = new Script();
+			Assert.AreEqual(!true == false, script.Eval<bool>("!true == false"));
+			Assert.AreEqual(!true == false, script.Eval<bool>("!true == false", ECompileMode.All));
 			Assert.AreEqual(1 == 2 || 5 > 2, script.Eval<bool>("1==2||5>2"));
 			Assert.AreEqual(1 == 2 && 5 > 2, script.Eval<bool>("1==2&&5>2"));
 			Assert.AreEqual(1 <= 2 && 5 > 2, script.Eval<bool>("1<=2&&5>2"));
