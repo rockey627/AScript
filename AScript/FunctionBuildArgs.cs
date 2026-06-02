@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 using AScript.Nodes;
 
 namespace AScript
@@ -84,6 +85,19 @@ namespace AScript
 		{
 			if (this.ArgExprs != null) return this.ArgExprs[index];
 			return this.Args[index].Build(this.BuildContext, this.ScriptContext, this.Options);
+		}
+
+		public IList<Expression> BuildArgs()
+		{
+			if (this.ArgExprs == null && this.Args != null && this.Args.Count > 0)
+			{
+				this.ArgExprs = new Expression[this.Args.Count];
+				for (int i = 0; i < this.Args.Count; i++)
+				{
+					this.ArgExprs[i] = this.Args[i].Build(this.BuildContext, this.ScriptContext, this.Options);
+				}
+			}
+			return this.ArgExprs;
 		}
 
 		public static FunctionBuildArgs Create(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, string name, bool isPrefix, IList<ITreeNode> args)

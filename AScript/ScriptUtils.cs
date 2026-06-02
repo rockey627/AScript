@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace AScript
@@ -117,6 +118,171 @@ namespace AScript
 				if (!IsMatchArgType(inArgTypes[i], defineTypes[i + defineStartIndex])) return false;
 			}
 			return true;
+		}
+
+		public static bool IsMatchArgTypes(IList<Type> inArgTypes, MethodInfo method, out bool useScriptContext, out bool hasClosure)
+		{
+			int argTypesCount = inArgTypes == null ? 0 : inArgTypes.Count;
+			var methodParameters = method.GetParameters();
+			if (methodParameters.Length < argTypesCount)
+			{
+				useScriptContext = false;
+				hasClosure = false;
+				return false;
+			}
+			if (methodParameters.Length == argTypesCount && argTypesCount == 0)
+			{
+				useScriptContext = false;
+				hasClosure = false;
+				return true;
+			}
+			int index = 0;
+			hasClosure = false;
+			useScriptContext = false;
+			if (methodParameters[index].ParameterType.FullName == "System.Runtime.CompilerServices.Closure")
+			{
+				index++;
+				hasClosure = true;
+			}
+			if (methodParameters.Length > index && methodParameters[index].ParameterType == typeof(ScriptContext))
+			{
+				index++;
+				useScriptContext = true;
+			}
+			if (methodParameters.Length - argTypesCount > index)
+			{
+				return false;
+			}
+			bool matched = true;
+			for (int j = 0; j < argTypesCount; j++)
+			{
+				if (!IsMatchArgType(inArgTypes[j], methodParameters[j + index].ParameterType))
+				{
+					matched = false;
+					break;
+				}
+			}
+			return matched;
+		}
+
+		public static bool IsMatchArgTypes(IList<Type> inArgTypes, LambdaExpression lambda, out bool useScriptContext, out bool hasClosure)
+		{
+			int argTypesCount = inArgTypes == null ? 0 : inArgTypes.Count;
+			var methodParameters = lambda.Parameters;
+			if (methodParameters.Count < argTypesCount)
+			{
+				useScriptContext = false;
+				hasClosure = false;
+				return false;
+			}
+			if (methodParameters.Count == argTypesCount)
+			{
+				if (argTypesCount == 0)
+				{
+					useScriptContext = false;
+					hasClosure = false;
+					return true;
+				}
+			}
+			int index = 0;
+			hasClosure = false;
+			useScriptContext = false;
+			if (methodParameters[index].Type.FullName == "System.Runtime.CompilerServices.Closure")
+			{
+				index++;
+				hasClosure = true;
+			}
+			if (methodParameters[index].Type == typeof(ScriptContext))
+			{
+				index++;
+				useScriptContext = true;
+			}
+			if (methodParameters.Count - argTypesCount > index)
+			{
+				return false;
+			}
+			bool matched = true;
+			for (int j = 0; j < argTypesCount; j++)
+			{
+				if (!IsMatchArgType(inArgTypes[j], methodParameters[j + index].Type))
+				{
+					matched = false;
+					break;
+				}
+			}
+			return matched;
+		}
+
+		public static object DynamicInvoke(ScriptContext context, Delegate d, object[] argValues, IList<Type> argTypes, bool useScriptContext, bool hasClosure)
+		{
+			if (useScriptContext)
+			{
+				var datas2 = new object[(argValues?.Length ?? 0) + 1];
+				datas2[0] = context;
+				if (argValues != null && argValues.Length > 0)
+				{
+					Array.Copy(argValues, 0, datas2, 1, argValues.Length);
+				}
+				argValues = datas2;
+			}
+			if (argValues != null && argValues.Length > 0)
+			{
+				int startIndex = 0;
+				if (hasClosure) startIndex++;
+				if (useScriptContext) startIndex++;
+				var parameters = d.Method.GetParameters();
+				for (int i = 0; i < argValues.Length; i++)
+				{
+					if (i < startIndex) continue;
+					var paramType = parameters[i].ParameterType;
+					var dataType = argTypes[i - startIndex];
+					if (dataType != paramType)
+					{
+						var data = argValues[hasClosure ? i - 1 : i];
+						if (data is IConvertible && !paramType.IsInstanceOfType(data))
+						{
+							argValues[hasClosure ? i - 1 : i] = System.Convert.ChangeType(data, paramType);
+						}
+					}
+				}
+			}
+			return d.DynamicInvoke(argValues);
+		}
+
+		public static object DynamicInvoke(ScriptContext context, MethodInfo method, object target, object[] argValues, IList<Type> argTypes, bool useScriptContext, bool hasClosure)
+		{
+			if (useScriptContext)
+			{
+				var datas2 = new object[(argValues?.Length ?? 0) + 1];
+				datas2[0] = context;
+				if (argValues != null && argValues.Length > 0)
+				{
+					Array.Copy(argValues, 0, datas2, 1, argValues.Length);
+				}
+				argValues = datas2;
+			}
+			if (argValues != null && argValues.Length > 0)
+			{
+				int startIndex = 0;
+				if (hasClosure) startIndex++;
+				if (useScriptContext) startIndex++;
+				var parameters = method.GetParameters();
+				for (int i = 0; i < argValues.Length; i++)
+				{
+					if (i < startIndex) continue;
+					var paramType = parameters[i].ParameterType;
+					var dataType = argTypes[i - startIndex];
+					if (dataType != paramType)
+					{
+						var data = argValues[hasClosure ? i - 1 : i];
+						if (data is IConvertible && !paramType.IsInstanceOfType(data))
+						{
+							argValues[hasClosure ? i - 1 : i] = System.Convert.ChangeType(data, paramType);
+						}
+					}
+				}
+			}
+			return method.Invoke(target, argValues);
 		}
 
 		public static object GetDefaultValue(Type targetType)
@@ -366,7 +532,7 @@ namespace AScript
 				list[i] = value;
 				return value;
 			}
-			
+
 			{
 				// 其他类型使用动态调用
 				dynamic dObj = instance;
@@ -552,12 +718,12 @@ namespace AScript
 
 		public static bool IsVariableExists(BuildContext buildContext, ScriptContext scriptContext, string varName)
 		{
-			if (buildContext != null 
+			if (buildContext != null
 				&& buildContext.TryGetVariableOrParameter(varName, out _))
 			{
 				return true;
 			}
-			if (scriptContext != null 
+			if (scriptContext != null
 				&& scriptContext.GetOwnerContext(varName, out _, out _, searchType: false) != null)
 			{
 				return true;

@@ -1116,40 +1116,41 @@ namespace AScript
 			}
 
 			var returnType = d.Method.ReturnType ?? typeof(object);
-			var argValues = e.ArgValues;
-			var argTypes = e.ArgTypes;
-			if (useScriptContext)
-			{
-				var datas2 = new object[(argValues?.Length ?? 0) + 1];
-				datas2[0] = this;
-				if (argValues != null && argValues.Length > 0)
-				{
-					Array.Copy(argValues, 0, datas2, 1, argValues.Length);
-				}
-				argValues = datas2;
-			}
-			if (argValues != null && argValues.Length > 0)
-			{
-				int startIndex = 0;
-				if (hasClosure) startIndex++;
-				if (useScriptContext) startIndex++;
-				var parameters = d.Method.GetParameters();
-				for (int i = 0; i < argValues.Length; i++)
-				{
-					if (i < startIndex) continue;
-					var paramType = parameters[i].ParameterType;
-					var dataType = argTypes[i - startIndex];
-					if (dataType != paramType)
-					{
-						var data = argValues[hasClosure ? i - 1 : i];
-						if (data is IConvertible && !paramType.IsInstanceOfType(data))
-						{
-							argValues[hasClosure ? i - 1 : i] = Convert.ChangeType(data, paramType);
-						}
-					}
-				}
-			}
-			var result = d.DynamicInvoke(argValues);
+			//var argValues = e.ArgValues;
+			//var argTypes = e.ArgTypes;
+			//if (useScriptContext)
+			//{
+			//	var datas2 = new object[(argValues?.Length ?? 0) + 1];
+			//	datas2[0] = this;
+			//	if (argValues != null && argValues.Length > 0)
+			//	{
+			//		Array.Copy(argValues, 0, datas2, 1, argValues.Length);
+			//	}
+			//	argValues = datas2;
+			//}
+			//if (argValues != null && argValues.Length > 0)
+			//{
+			//	int startIndex = 0;
+			//	if (hasClosure) startIndex++;
+			//	if (useScriptContext) startIndex++;
+			//	var parameters = d.Method.GetParameters();
+			//	for (int i = 0; i < argValues.Length; i++)
+			//	{
+			//		if (i < startIndex) continue;
+			//		var paramType = parameters[i].ParameterType;
+			//		var dataType = argTypes[i - startIndex];
+			//		if (dataType != paramType)
+			//		{
+			//			var data = argValues[hasClosure ? i - 1 : i];
+			//			if (data is IConvertible && !paramType.IsInstanceOfType(data))
+			//			{
+			//				argValues[hasClosure ? i - 1 : i] = Convert.ChangeType(data, paramType);
+			//			}
+			//		}
+			//	}
+			//}
+			//var result = d.DynamicInvoke(argValues);
+			var result = ScriptUtils.DynamicInvoke(this, d, e.ArgValues, e.ArgTypes, useScriptContext, hasClosure);
 			e.SetResult(result, returnType);
 		}
 
@@ -1169,40 +1170,41 @@ namespace AScript
 			}
 
 			var returnType = d.Method.ReturnType ?? typeof(object);
-			var argValues = e.ArgValues;
-			var argTypes = e.ArgTypes;
-			if (useScriptContext)
-			{
-				var datas2 = new object[(argValues?.Length ?? 0) + 1];
-				datas2[0] = this;
-				if (argValues != null && argValues.Length > 0)
-				{
-					Array.Copy(argValues, 0, datas2, 1, argValues.Length);
-				}
-				argValues = datas2;
-			}
-			if (argValues != null && argValues.Length > 0)
-			{
-				int startIndex = 0;
-				if (hasClosure) startIndex++;
-				if (useScriptContext) startIndex++;
-				var parameters = d.Method.GetParameters();
-				for (int i = 0; i < argValues.Length; i++)
-				{
-					if (i < startIndex) continue;
-					var paramType = parameters[i].ParameterType;
-					var dataType = argTypes[i - startIndex];
-					if (dataType != paramType)
-					{
-						var data = argValues[hasClosure ? i - 1 : i];
-						if (data is IConvertible && !paramType.IsInstanceOfType(data))
-						{
-							argValues[hasClosure ? i - 1 : i] = Convert.ChangeType(data, paramType);
-						}
-					}
-				}
-			}
-			var result = d.DynamicInvoke(argValues);
+			//var argValues = e.ArgValues;
+			//var argTypes = e.ArgTypes;
+			//if (useScriptContext)
+			//{
+			//	var datas2 = new object[(argValues?.Length ?? 0) + 1];
+			//	datas2[0] = this;
+			//	if (argValues != null && argValues.Length > 0)
+			//	{
+			//		Array.Copy(argValues, 0, datas2, 1, argValues.Length);
+			//	}
+			//	argValues = datas2;
+			//}
+			//if (argValues != null && argValues.Length > 0)
+			//{
+			//	int startIndex = 0;
+			//	if (hasClosure) startIndex++;
+			//	if (useScriptContext) startIndex++;
+			//	var parameters = d.Method.GetParameters();
+			//	for (int i = 0; i < argValues.Length; i++)
+			//	{
+			//		if (i < startIndex) continue;
+			//		var paramType = parameters[i].ParameterType;
+			//		var dataType = argTypes[i - startIndex];
+			//		if (dataType != paramType)
+			//		{
+			//			var data = argValues[hasClosure ? i - 1 : i];
+			//			if (data is IConvertible && !paramType.IsInstanceOfType(data))
+			//			{
+			//				argValues[hasClosure ? i - 1 : i] = Convert.ChangeType(data, paramType);
+			//			}
+			//		}
+			//	}
+			//}
+			//var result = d.DynamicInvoke(argValues);
+			var result = ScriptUtils.DynamicInvoke(this, d, e.ArgValues, e.ArgTypes, useScriptContext, hasClosure);
 			e.SetResult(result, returnType);
 		}
 
@@ -1738,69 +1740,55 @@ namespace AScript
 
 		private static Delegate GetFunc(IList<Delegate> list, IList<Type> argTypes, out bool useScriptContext, out bool hasClosure)
 		{
-			int argTypesCount = argTypes == null ? 0 : argTypes.Count;
+			//int argTypesCount = argTypes == null ? 0 : argTypes.Count;
 			for (int i = list.Count - 1; i >= 0; i--)
 			{
 				var d = list[i];
-				var methodParameters = d.Method.GetParameters();
-				//var defineArgTypes = methodParameters
-				//	.Where(a => a.ParameterType.FullName != "System.Runtime.CompilerServices.Closure")
-				//	.Select(a => a.ParameterType).ToArray();
-				//hasClosure = defineArgTypes.Length < methodParameters.Length;
-				//if (ScriptUtils.IsMatchArgTypes(argTypes, defineArgTypes))
-				//{
-				//	useScriptContext = false;
-				//	return d;
-				//}
-				//if (defineArgTypes.Length > 0
-				//	&& (argTypes == null ? 0 : argTypes.Count) == defineArgTypes.Length - 1
-				//	&& ScriptUtils.IsMatchArgType(defineArgTypes[0], typeof(ScriptContext))
-				//	&& ScriptUtils.IsMatchArgTypes(argTypes, defineArgTypes, 1))
-				//{
-				//	// ScriptContext开头的参数匹配
-				//	useScriptContext = true;
-				//	return d;
-				//}
-				if (methodParameters.Length < argTypesCount) continue;
-				if (methodParameters.Length == argTypesCount)
-				{
-					if (argTypesCount == 0)
-					{
-						useScriptContext = false;
-						hasClosure = false;
-						return d;
-					}
-				}
-				int index = 0;
-				hasClosure = false;
-				useScriptContext = false;
-				if (methodParameters[index].ParameterType.FullName == "System.Runtime.CompilerServices.Closure")
-				{
-					index++;
-					hasClosure = true;
-				}
-				if (methodParameters.Length > index && methodParameters[index].ParameterType == typeof(ScriptContext))
-				{
-					index++;
-					useScriptContext = true;
-				}
-				if (methodParameters.Length - argTypesCount > index)
-				{
-					continue;
-				}
-				bool matched = true;
-				for (int j = 0; j < argTypesCount; j++)
-				{
-					if (!ScriptUtils.IsMatchArgType(argTypes[j], methodParameters[j + index].ParameterType))
-					{
-						matched = false;
-						break;
-					}
-				}
-				if (matched)
+				if (ScriptUtils.IsMatchArgTypes(argTypes, d.Method, out useScriptContext, out hasClosure))
 				{
 					return d;
 				}
+				//var methodParameters = d.Method.GetParameters();
+				//if (methodParameters.Length < argTypesCount) continue;
+				//if (methodParameters.Length == argTypesCount)
+				//{
+				//	if (argTypesCount == 0)
+				//	{
+				//		useScriptContext = false;
+				//		hasClosure = false;
+				//		return d;
+				//	}
+				//}
+				//int index = 0;
+				//hasClosure = false;
+				//useScriptContext = false;
+				//if (methodParameters[index].ParameterType.FullName == "System.Runtime.CompilerServices.Closure")
+				//{
+				//	index++;
+				//	hasClosure = true;
+				//}
+				//if (methodParameters.Length > index && methodParameters[index].ParameterType == typeof(ScriptContext))
+				//{
+				//	index++;
+				//	useScriptContext = true;
+				//}
+				//if (methodParameters.Length - argTypesCount > index)
+				//{
+				//	continue;
+				//}
+				//bool matched = true;
+				//for (int j = 0; j < argTypesCount; j++)
+				//{
+				//	if (!ScriptUtils.IsMatchArgType(argTypes[j], methodParameters[j + index].ParameterType))
+				//	{
+				//		matched = false;
+				//		break;
+				//	}
+				//}
+				//if (matched)
+				//{
+				//	return d;
+				//}
 			}
 			hasClosure = false;
 			useScriptContext = false;
@@ -1813,65 +1801,51 @@ namespace AScript
 			for (int i = list.Count - 1; i >= 0; i--)
 			{
 				var d = list[i];
-				var methodParameters = d.Parameters;
-				//var defineArgTypes = methodParameters
-				//	.Where(a => a.Type.FullName != "System.Runtime.CompilerServices.Closure")
-				//	.Select(a => a.Type).ToArray();
-				//hasClosure = defineArgTypes.Length < methodParameters.Count;
-				//if (ScriptUtils.IsMatchArgTypes(argTypes, defineArgTypes))
-				//{
-				//	useScriptContext = false;
-				//	return d;
-				//}
-				//if (defineArgTypes.Length > 0
-				//	&& argTypesCount == defineArgTypes.Length - 1
-				//	&& ScriptUtils.IsMatchArgType(defineArgTypes[0], typeof(ScriptContext))
-				//	&& ScriptUtils.IsMatchArgTypes(argTypes, defineArgTypes, 1))
-				//{
-				//	// ScriptContext开头的参数匹配
-				//	useScriptContext = true;
-				//	return d;
-				//}
-				if (methodParameters.Count < argTypesCount) continue;
-				if (methodParameters.Count == argTypesCount)
-				{
-					if (argTypesCount == 0)
-					{
-						useScriptContext = false;
-						hasClosure = false;
-						return d;
-					}
-				}
-				int index = 0;
-				hasClosure = false;
-				useScriptContext = false;
-				if (methodParameters[index].Type.FullName == "System.Runtime.CompilerServices.Closure")
-				{
-					index++;
-					hasClosure = true;
-				}
-				if (methodParameters[index].Type == typeof(ScriptContext))
-				{
-					index++;
-					useScriptContext = true;
-				}
-				if (methodParameters.Count - argTypesCount > index)
-				{
-					continue;
-				}
-				bool matched = true;
-				for (int j = 0; j < argTypesCount; j++)
-				{
-					if (!ScriptUtils.IsMatchArgType(argTypes[j], methodParameters[j + index].Type))
-					{
-						matched = false;
-						break;
-					}
-				}
-				if (matched)
+				if (ScriptUtils.IsMatchArgTypes(argTypes, list[i], out useScriptContext, out hasClosure))
 				{
 					return d;
 				}
+				//var methodParameters = d.Parameters;
+				//if (methodParameters.Count < argTypesCount) continue;
+				//if (methodParameters.Count == argTypesCount)
+				//{
+				//	if (argTypesCount == 0)
+				//	{
+				//		useScriptContext = false;
+				//		hasClosure = false;
+				//		return d;
+				//	}
+				//}
+				//int index = 0;
+				//hasClosure = false;
+				//useScriptContext = false;
+				//if (methodParameters[index].Type.FullName == "System.Runtime.CompilerServices.Closure")
+				//{
+				//	index++;
+				//	hasClosure = true;
+				//}
+				//if (methodParameters[index].Type == typeof(ScriptContext))
+				//{
+				//	index++;
+				//	useScriptContext = true;
+				//}
+				//if (methodParameters.Count - argTypesCount > index)
+				//{
+				//	continue;
+				//}
+				//bool matched = true;
+				//for (int j = 0; j < argTypesCount; j++)
+				//{
+				//	if (!ScriptUtils.IsMatchArgType(argTypes[j], methodParameters[j + index].Type))
+				//	{
+				//		matched = false;
+				//		break;
+				//	}
+				//}
+				//if (matched)
+				//{
+				//	return d;
+				//}
 			}
 			hasClosure = false;
 			useScriptContext = false;
@@ -2287,44 +2261,44 @@ namespace AScript
 			}
 		}
 
-		/// <summary>
-		/// 如果target为null，则添加类型中的公开静态方法，否则添加实例公开方法
-		/// </summary>
-		/// <param name="type"></param>
-		/// <param name="target">实例对象</param>
-		public void AddTempFunc(Type type, object target = null)
-		{
-			var methods = target == null ? type.GetMethods(BindingFlags.Public | BindingFlags.Static) : type.GetMethods(BindingFlags.Public | BindingFlags.Instance);
-			foreach (var method in methods)
-			{
-				// 跳过属性访问器等特殊方法
-				if (method.IsSpecialName) continue;
-				// 
-				var del = ScriptUtils.CreateDelegate(method, target);
-				if (del != null)
-				{
-					AddTempFunc(method.Name, del);
-				}
-			}
-		}
+		///// <summary>
+		///// 如果target为null，则添加类型中的公开静态方法，否则添加实例公开方法
+		///// </summary>
+		///// <param name="type"></param>
+		///// <param name="target">实例对象</param>
+		//public void AddTempFunc(Type type, object target = null)
+		//{
+		//	var methods = target == null ? type.GetMethods(BindingFlags.Public | BindingFlags.Static) : type.GetMethods(BindingFlags.Public | BindingFlags.Instance);
+		//	foreach (var method in methods)
+		//	{
+		//		// 跳过属性访问器等特殊方法
+		//		if (method.IsSpecialName) continue;
+		//		// 
+		//		var del = ScriptUtils.CreateDelegate(method, target);
+		//		if (del != null)
+		//		{
+		//			AddTempFunc(method.Name, del);
+		//		}
+		//	}
+		//}
 
-		public void AddTempFunc(MethodInfo method, object target = null)
-		{
-			var del = ScriptUtils.CreateDelegate(method, target);
-			if (del != null)
-			{
-				AddTempFunc(method.Name, del);
-			}
-		}
+		//public void AddTempFunc(MethodInfo method, object target = null)
+		//{
+		//	var del = ScriptUtils.CreateDelegate(method, target);
+		//	if (del != null)
+		//	{
+		//		AddTempFunc(method.Name, del);
+		//	}
+		//}
 
-		public void AddTempFunc(string name, MethodInfo method, object target = null)
-		{
-			var del = ScriptUtils.CreateDelegate(method, target);
-			if (del != null)
-			{
-				AddTempFunc(string.IsNullOrEmpty(name) ? method.Name : name, del);
-			}
-		}
+		//public void AddTempFunc(string name, MethodInfo method, object target = null)
+		//{
+		//	var del = ScriptUtils.CreateDelegate(method, target);
+		//	if (del != null)
+		//	{
+		//		AddTempFunc(string.IsNullOrEmpty(name) ? method.Name : name, del);
+		//	}
+		//}
 
 		public void AddFunc(string name, CustomFunction customFunction)
 		{
@@ -2432,17 +2406,6 @@ namespace AScript
 					if (string.IsNullOrEmpty(name)) continue;
 				}
 				AddFunc(name, method, target);
-				//if (method.IsGenericMethod)
-				//{
-				//	// 泛型方法
-				//	AddFunc(name, new GenericFunction(target, method));
-				//}
-				//else
-				//{
-				//	// 创建方法委托
-				//	var del = ScriptUtils.CreateDelegate(method, target);
-				//	if (del != null) AddFunc(name, del);
-				//}
 			}
 		}
 
@@ -2493,11 +2456,6 @@ namespace AScript
 		/// <param name="target"></param>
 		public void AddFunc(MethodInfo method, object target = null)
 		{
-			//var del = ScriptUtils.CreateDelegate(method, target);
-			//if (del != null)
-			//{
-			//	AddFunc(method.Name, del);
-			//}
 			AddFunc(method.Name, method, target);
 		}
 
@@ -2517,14 +2475,10 @@ namespace AScript
 			}
 			else
 			{
-				var del = ScriptUtils.CreateDelegate(method, target);
-				if (del != null) AddFunc(name, del);
+				//var del = ScriptUtils.CreateDelegate(method, target);
+				//if (del != null) AddFunc(name, del);
+				AddFunc(name, new NonGenericFunction(method, target));
 			}
-			//var del = ScriptUtils.CreateDelegate(method, target);
-			//if (del != null)
-			//{
-			//	AddFunc(string.IsNullOrEmpty(name) ? method.Name : name, del);
-			//}
 		}
 
 		public void AddFunc(string name, Delegate d)

@@ -319,7 +319,9 @@ namespace AScript.Nodes
 						{
 							throw;
 						}
-						catch { }
+						catch (Exception ex)
+						{
+						}
 					}
 					if (methodInfo == null)
 					{

@@ -284,32 +284,36 @@ namespace AScript
 			return null;
 		}
 
-		protected static Delegate GetFunc(List<Delegate> list, IList<Type> argTypes, out bool useScriptContext)
-		{
-			for (int i = list.Count - 1; i >= 0; i--)
-			{
-				var d = list[i];
-				var defineArgTypes = d.Method.GetParameters()
-					.Where(a => a.ParameterType.FullName != "System.Runtime.CompilerServices.Closure")
-					.Select(a => a.ParameterType).ToArray();
-				if (ScriptUtils.IsMatchArgTypes(argTypes, defineArgTypes))
-				{
-					useScriptContext = false;
-					return d;
-				}
-				if (defineArgTypes.Length > 0
-					&& argTypes.Count == defineArgTypes.Length - 1
-					&& ScriptUtils.IsMatchArgType(defineArgTypes[0], typeof(ScriptContext))
-					&& ScriptUtils.IsMatchArgTypes(argTypes, defineArgTypes, 1))
-				{
-					// ScriptContext开头的参数匹配
-					useScriptContext = true;
-					return d;
-				}
-			}
-			useScriptContext = false;
-			return null;
-		}
+		//protected static Delegate GetFunc(List<Delegate> list, IList<Type> argTypes, out bool useScriptContext)
+		//{
+		//	for (int i = list.Count - 1; i >= 0; i--)
+		//	{
+		//		var d = list[i];
+		//		if (ScriptUtils.IsMatchArgTypes(argTypes, d.Method, out useScriptContext, out _))
+		//		{
+		//			return d;
+		//		}
+		//		//var defineArgTypes = d.Method.GetParameters()
+		//		//	.Where(a => a.ParameterType.FullName != "System.Runtime.CompilerServices.Closure")
+		//		//	.Select(a => a.ParameterType).ToArray();
+		//		//if (ScriptUtils.IsMatchArgTypes(argTypes, defineArgTypes))
+		//		//{
+		//		//	useScriptContext = false;
+		//		//	return d;
+		//		//}
+		//		//if (defineArgTypes.Length > 0
+		//		//	&& argTypes.Count == defineArgTypes.Length - 1
+		//		//	&& ScriptUtils.IsMatchArgType(defineArgTypes[0], typeof(ScriptContext))
+		//		//	&& ScriptUtils.IsMatchArgTypes(argTypes, defineArgTypes, 1))
+		//		//{
+		//		//	// ScriptContext开头的参数匹配
+		//		//	useScriptContext = true;
+		//		//	return d;
+		//		//}
+		//	}
+		//	useScriptContext = false;
+		//	return null;
+		//}
 
 		//public Delegate GetFunc(string name, IList<Type> argTypes, out bool useScriptContext)
 		//{
@@ -597,11 +601,6 @@ namespace AScript
 
 		public void AddFunc(MethodInfo method, object target = null)
 		{
-			//var del = ScriptUtils.CreateDelegate(method, target);
-			//if (del != null)
-			//{
-			//	AddFunc(method.Name, del);
-			//}
 			AddFunc(method.Name, method, target);
 		}
 
@@ -615,14 +614,10 @@ namespace AScript
 			}
 			else
 			{
-				var del = ScriptUtils.CreateDelegate(method, target);
-				if (del != null) AddFunc(name, del);
+				//var del = ScriptUtils.CreateDelegate(method, target);
+				//if (del != null) AddFunc(name, del);
+				AddFunc(name, new NonGenericFunction(method, target));
 			}
-			//var del = ScriptUtils.CreateDelegate(method, target);
-			//if (del != null)
-			//{
-			//	AddFunc(string.IsNullOrEmpty(name) ? method.Name : name, del);
-			//}
 		}
 
 		public void AddFunc(string name, Delegate d)
