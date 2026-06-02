@@ -52,10 +52,21 @@ namespace AScript.Lang.Sql
 			AddFunc("or", OrElseOperator.Instance);
 			AddFunc("in", new ContainsFunction(reverse: true));
 
+			// MySql获取当前时间
+			AddFunc("now", NowFunction.Instance);
+			// SqlServer获取当前时间
+			AddFunc("getdate", NowFunction.Instance);
+
 			// IEnumerable<T>扩展方法
 			AddFunc(typeof(System.Linq.Enumerable));
 			// IQueryable<T>扩展方法
 			AddFunc(typeof(System.Linq.Queryable), method => !method.IsGenericMethod && method.Name == "AsQueryable" ? null : method.Name);
+			// CONCAT函数
+			AddFunc(typeof(string), method =>
+			{
+				if (method.Name == "Concat") return method.Name;
+				return null;
+			});
 
 			AddTokenHandler("=", new OperatorTokenHandler("==", "=="));
 			AddTokenHandler("<>", new OperatorTokenHandler("!=", "!="));
