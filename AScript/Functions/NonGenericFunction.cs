@@ -38,12 +38,12 @@ namespace AScript.Functions
 				{
 					if (argExprs == null || argExprs.Length == 0)
 					{
-						argExprs = new Expression[] { Expression.Constant(this) };
+						argExprs = new Expression[] { Expression.Constant(e.ScriptContext) };
 					}
 					else
 					{
 						var argExprs2 = new Expression[argExprs.Length + 1];
-						argExprs2[0] = Expression.Constant(this);
+						argExprs2[0] = Expression.Constant(e.ScriptContext);
 						Array.Copy(argExprs, 0, argExprs2, 1, argExprs.Length);
 						argExprs = argExprs2;
 					}
