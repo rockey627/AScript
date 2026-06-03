@@ -111,10 +111,10 @@ INSERT INTO person (name, age) VALUES ('jim', 25)
 SELECT * FROM person WHERE age > 22";
 			var script = new Script();
 			script.Context.Langs = new[] { "sql" };
-			var result = script.Eval<IEnumerable<SqlTable>>(s).First();
-			Assert.AreEqual(1, result.Rows.Count);
-			Assert.AreEqual("jim", result.Rows[0]["name"]);
-			Assert.AreEqual(25, result.Rows[0]["age"]);
+			var result = script.Eval<IEnumerable<DataRow>>(s).ToList();
+			Assert.AreEqual(1, result.Count);
+			Assert.AreEqual("jim", result[0]["name"]);
+			Assert.AreEqual(25, result[0]["age"]);
 		}
 
 		[TestMethod]
@@ -234,6 +234,60 @@ INSERT INTO person (name, age) VALUES ('tom', 20), ('jim', 25), ('lily', 30)";
 			script.Eval(s);
 			var table = (SqlTable)script.Context.EvalVar("person");
 			Assert.AreEqual(3, table.Rows.Count);
+		}
+
+		[TestMethod]
+		public void Test_create_table_and_insert_null_value()
+		{
+			var s = @"
+CREATE TABLE person (name varchar, age int)
+INSERT INTO person (name, age) VALUES ('tom', null)";
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Eval(s);
+			var table = (SqlTable)script.Context.EvalVar("person");
+			Assert.AreEqual(1, table.Rows.Count);
+			Assert.AreEqual("tom", table.Rows[0]["name"]);
+			Assert.AreEqual(DBNull.Value, table.Rows[0]["age"]);
+		}
+
+		[TestMethod]
+		public void Test_create_table_and_insert_null_value_2()
+		{
+			var s = @"
+CREATE TABLE person (name varchar, age int)
+INSERT INTO person (name, age) VALUES ('tom', null)";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Eval(s);
+			var table = (SqlTable)script.Context.EvalVar("person");
+			Assert.AreEqual(1, table.Rows.Count);
+			Assert.AreEqual("tom", table.Rows[0]["name"]);
+			Assert.AreEqual(DBNull.Value, table.Rows[0]["age"]);
+		}
+
+		[TestMethod]
+		public void Test_create_table_and_insert_null_value_3()
+		{
+			var s = @"
+CREATE TABLE person (name varchar, age int not null)
+INSERT INTO person (name, age) VALUES ('tom', null)";
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			Assert.ThrowsException<System.Data.NoNullAllowedException>(() => script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test_create_table_and_insert_null_value_4()
+		{
+			var s = @"
+CREATE TABLE person (name varchar, age int not null)
+INSERT INTO person (name, age) VALUES ('tom', null)";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			Assert.ThrowsException<System.Data.NoNullAllowedException>(() => script.Eval(s));
 		}
 	}
 }

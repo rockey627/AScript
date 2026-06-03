@@ -47,7 +47,30 @@ namespace AScript.Lang.Sql.Nodes
 						var columnName = Expression.Constant(this.Columns[j]);
 						var valueExpr = rowValues[j].Build(buildContext, scriptContext, options);
 						var rowAccess = Expression.MakeIndex(rowVar, Property_DataRow_Item_String, new[] { columnName });
-						sqlStatements.Add(Expression.Assign(rowAccess, Expression.Convert(valueExpr, typeof(object))));
+						if (valueExpr.Type.IsValueType)
+						{
+							if (valueExpr.Type.IsGenericType && valueExpr.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
+							{
+								var valueOrDbNull = Expression.Condition(
+									Expression.Property(valueExpr, "HasValue"),
+									Expression.Convert(Expression.Property(valueExpr, "Value"), typeof(object)),
+									Expression.Constant(DBNull.Value, typeof(object)));
+								sqlStatements.Add(Expression.Assign(rowAccess, valueOrDbNull));
+							}
+							else
+							{
+								sqlStatements.Add(Expression.Assign(rowAccess, Expression.Convert(valueExpr, typeof(object))));
+							}
+						}
+						else
+						{
+							var valueOrDbNull = Expression.Condition(
+								Expression.Equal(valueExpr, Expression.Constant(null)),
+								Expression.Constant(DBNull.Value, typeof(object)),
+								Expression.Convert(valueExpr, typeof(object)));
+							sqlStatements.Add(Expression.Assign(rowAccess, valueOrDbNull));
+						}
+						//sqlStatements.Add(Expression.Assign(rowAccess, Expression.Convert(valueExpr, typeof(object))));
 					}
 
 					sqlStatements.Add(Expression.Call(
