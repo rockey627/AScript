@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -10,6 +11,11 @@ namespace AScript.Lang.Sql.Nodes
 {
 	public class SqlInsertNode : TreeNode
 	{
+		private static readonly MethodInfo Method_DataTable_NewRow = typeof(DataTable).GetMethod("NewRow", Type.EmptyTypes);
+		private static readonly MethodInfo Method_DataRowCollection_Add = typeof(DataRowCollection).GetMethod("Add", new[] { typeof(DataRow) });
+
+		private static readonly PropertyInfo Property_DataRow_Item_String = typeof(DataRow).GetProperty("Item", new[] { typeof(string) });
+
 		public ITreeNode Source { get; set; }
 		public IList<string> Columns { get; set; }
 		public IList<IList<ITreeNode>> Values { get; set; }
@@ -17,6 +23,42 @@ namespace AScript.Lang.Sql.Nodes
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
 			var sourceExpr = this.Source.Build(buildContext, scriptContext, options);
+
+			// Check if source is SqlTable
+			if (typeof(SqlTable).IsAssignableFrom(sourceExpr.Type))
+			{
+				var tableVar = Expression.Variable(typeof(SqlTable), "table");
+				var assignTable = Expression.Assign(tableVar, Expression.Convert(sourceExpr, typeof(SqlTable)));
+
+				var sqlStatements = new List<Expression> { assignTable };
+
+				var rowVar = Expression.Variable(typeof(DataRow), "row");
+				for (int i = 0; i < this.Values.Count; i++)
+				{
+					var rowValues = this.Values[i];
+					var newRowExpr = Expression.Call(
+						Expression.Property(tableVar, nameof(SqlTable.Table)),
+						Method_DataTable_NewRow);
+
+					sqlStatements.Add(Expression.Assign(rowVar, newRowExpr));
+
+					for (int j = 0; j < rowValues.Count; j++)
+					{
+						var columnName = Expression.Constant(this.Columns[j]);
+						var valueExpr = rowValues[j].Build(buildContext, scriptContext, options);
+						var rowAccess = Expression.MakeIndex(rowVar, Property_DataRow_Item_String, new[] { columnName });
+						sqlStatements.Add(Expression.Assign(rowAccess, Expression.Convert(valueExpr, typeof(object))));
+					}
+
+					sqlStatements.Add(Expression.Call(
+						Expression.Property(tableVar, nameof(SqlTable.Rows)),
+						Method_DataRowCollection_Add,
+						rowVar));
+				}
+
+				sqlStatements.Add(Expression.Constant(this.Values.Count));
+				return Expression.Block(new[] { tableVar, rowVar }, sqlStatements);
+			}
 
 			Type elementType = null;
 			MethodInfo addRangeMethod = null;
@@ -114,7 +156,7 @@ namespace AScript.Lang.Sql.Nodes
 					var row = table.Table.NewRow();
 					for (int j = 0; j < rowValues.Count; j++)
 					{
-						row[this.Columns[j]] = rowValues[j].Eval(context, options, control, out _);
+						row[this.Columns[j]] = rowValues[j].Eval(context, options, control, out _) ?? DBNull.Value;
 					}
 					table.Table.Rows.Add(row);
 				}
