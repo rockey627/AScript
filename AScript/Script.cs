@@ -1837,7 +1837,14 @@ namespace AScript
 			{
 				var func = CompileGlobal(buildContext, scriptContext, options, expression, cacheTime, cacheKey, cacheVersion);
 				returnType = func.Method.ReturnType;
-				return func.DynamicInvoke(scriptContext);
+				try
+				{
+					return func.DynamicInvoke(scriptContext);
+				}
+				catch (System.Reflection.TargetInvocationException ex)
+				{
+					throw ex.InnerException;
+				}
 			}
 			return Eval(scriptContext, options, expression, out returnType);
 		}
