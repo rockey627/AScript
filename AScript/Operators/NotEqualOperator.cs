@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Nodes;
+using System;
 using System.Linq.Expressions;
 
 namespace AScript.Operators
@@ -9,8 +10,26 @@ namespace AScript.Operators
 
 		public void Build(FunctionBuildArgs e)
 		{
-			var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
-			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+			var leftNode = e.Args[0];
+			var rightNode = e.Args[1];
+			Expression left = null, right = null;
+			if (leftNode is ObjectNode objNode0 && objNode0.Data == null)
+			{
+				if (rightNode is ObjectNode objNode1 && objNode1.Data == null)
+				{
+					e.Result = Expression.Constant(false);
+					return;
+				}
+				right = rightNode.Build(e.BuildContext, e.ScriptContext, e.Options);
+				left = Expression.Constant(null, right.Type);
+			}
+			else if (rightNode is ObjectNode objNode1 && objNode1.Data == null)
+			{
+				left = leftNode.Build(e.BuildContext, e.ScriptContext, e.Options);
+				right = Expression.Constant(null, left.Type);
+			}
+			if (left == null) left = leftNode.Build(e.BuildContext, e.ScriptContext, e.Options);
+			if (right == null) right = rightNode.Build(e.BuildContext, e.ScriptContext, e.Options);
 			if (left.Type == typeof(object) || right.Type == typeof(object)
 				|| left.Type != right.Type && !ExpressionUtils.ConvertMaxType(ref left, ref right))
 			{
