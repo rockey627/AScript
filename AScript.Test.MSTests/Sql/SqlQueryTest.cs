@@ -23,6 +23,202 @@ namespace AScript.Test.MSTests.Sql
 		}
 
 		[TestMethod]
+		public void Test27_isnotnull_6()
+		{
+			Assert.AreEqual((Person)null, (AddressInfo)null);
+
+			var s = @"from list where NOT Name IS NULL";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person(null, 10),
+				new Person("san", 20),
+				new Person(null, 18)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("tom", result[0].Name);
+			Assert.AreEqual("san", result[1].Name);
+			Assert.AreEqual(15, result[0].Age);
+			Assert.AreEqual(20, result[1].Age);
+		}
+
+		[TestMethod]
+		public void Test27_isnotnull_5()
+		{
+			Assert.AreEqual((Person)null, (AddressInfo)null);
+
+			var s = @"from list where NOT Name IS NULL";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person(null, 10),
+				new Person("san", 20),
+				new Person(null, 18)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("tom", result[0].Name);
+			Assert.AreEqual("san", result[1].Name);
+			Assert.AreEqual(15, result[0].Age);
+			Assert.AreEqual(20, result[1].Age);
+		}
+
+		[TestMethod]
+		public void Test27_isnotnull_4()
+		{
+			Assert.AreEqual((Person)null, (AddressInfo)null);
+
+			var s = @"from list where Name NOT IS NULL";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person(null, 10),
+				new Person("san", 20),
+				new Person(null, 18)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("tom", result[0].Name);
+			Assert.AreEqual("san", result[1].Name);
+			Assert.AreEqual(15, result[0].Age);
+			Assert.AreEqual(20, result[1].Age);
+		}
+
+		[TestMethod]
+		public void Test27_isnotnull_3()
+		{
+			Assert.AreEqual((Person)null, (AddressInfo)null);
+
+			var s = @"from list where Name NOT IS NULL";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person(null, 10),
+				new Person("san", 20),
+				new Person(null, 18)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("tom", result[0].Name);
+			Assert.AreEqual("san", result[1].Name);
+			Assert.AreEqual(15, result[0].Age);
+			Assert.AreEqual(20, result[1].Age);
+		}
+
+		[TestMethod]
+		public void Test27_isnotnull_2()
+		{
+			Assert.AreEqual((Person)null, (AddressInfo)null);
+
+			var s = @"from list where Name IS NOT NULL";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person(null, 10),
+				new Person("san", 20),
+				new Person(null, 18)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("tom", result[0].Name);
+			Assert.AreEqual("san", result[1].Name);
+			Assert.AreEqual(15, result[0].Age);
+			Assert.AreEqual(20, result[1].Age);
+		}
+
+		[TestMethod]
+		public void Test27_isnotnull()
+		{
+			Assert.AreEqual((Person)null, (AddressInfo)null);
+
+			var s = @"from list where Name IS NOT NULL";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person(null, 10),
+				new Person("san", 20),
+				new Person(null, 18)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("tom", result[0].Name);
+			Assert.AreEqual("san", result[1].Name);
+			Assert.AreEqual(15, result[0].Age);
+			Assert.AreEqual(20, result[1].Age);
+		}
+
+		[TestMethod]
+		public void Test26_isnull_2()
+		{
+			Assert.AreEqual((Person)null, (AddressInfo)null);
+
+			var s = @"from list where Name IS NULL";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person(null, 10),
+				new Person("san", 20),
+				new Person(null, 18)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.IsNull(result[0].Name);
+			Assert.IsNull(result[1].Name);
+			Assert.AreEqual(10, result[0].Age);
+			Assert.AreEqual(18, result[1].Age);
+		}
+
+		[TestMethod]
+		public void Test26_isnull()
+		{
+			Assert.AreEqual((Person)null, (AddressInfo)null);
+
+			var s = @"from list where Name IS NULL";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person(null, 10),
+				new Person("san", 20),
+				new Person(null, 18)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<Person>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.IsNull(result[0].Name);
+			Assert.IsNull(result[1].Name);
+			Assert.AreEqual(10, result[0].Age);
+			Assert.AreEqual(18, result[1].Age);
+		}
+
+		[TestMethod]
 		public void Test25_where_notlike_4()
 		{
 			var s = @"from list where not Name like '%m'";

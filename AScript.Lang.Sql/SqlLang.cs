@@ -72,7 +72,9 @@ namespace AScript.Lang.Sql
 			AddTokenHandler("<>", new OperatorTokenHandler("!=", "!="));
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);
 			AddTokenHandler("or", OrElseTokenHandler.Instance);
+			AddTokenHandler("null", NullTokenHandler.Instance);
 			AddTokenHandler("not", new OperatorTokenHandler("!", "!") { DataCount = 1, Prefix = true });
+			AddTokenHandler("is", SqlIsNullTokenHandler.Instance);
 			AddTokenHandler("in", SqlInTokenHandler.Instance);
 			AddTokenHandler("like", SqlLikeTokenHandler.Instance);
 			AddTokenHandler("set", SqlSetTokenHandler.Instance);
