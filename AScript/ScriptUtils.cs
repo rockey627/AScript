@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -363,6 +364,12 @@ namespace AScript
 				flags |= BindingFlags.Instance;
 			}
 
+			if (instance is DataRow dataRow)
+			{
+				type = dataRow.Table.Columns[propertyOrFieldName].DataType;
+				return dataRow[propertyOrFieldName];
+			}
+
 			if (instance is ExpandoObject)
 			{
 				var dict = (IDictionary<string, object>)instance;
@@ -407,6 +414,12 @@ namespace AScript
 				target = instance;
 				targetType = instance.GetType();
 				flags |= BindingFlags.Instance;
+			}
+
+			if (instance is DataRow dataRow)
+			{
+				dataRow[propertyOrFieldName] = value;
+				return;
 			}
 
 			if (instance is ExpandoObject)
@@ -460,6 +473,15 @@ namespace AScript
 				flags |= BindingFlags.Instance;
 			}
 
+			if (instance is DataRow dataRow)
+			{
+				var value = dataRow[propertyOrFieldName];
+				type = dataRow.Table.Columns[propertyOrFieldName].DataType;
+				value = valueFac(null, type, value);
+				dataRow[propertyOrFieldName] = value;
+				return value;
+			}
+
 			if (instance is ExpandoObject)
 			{
 				var dict = (IDictionary<string, object>)instance;
@@ -510,6 +532,22 @@ namespace AScript
 		/// <returns></returns>
 		public static object GetAndSetValue(object instance, object idx, Func<object, object> valueFac)
 		{
+			if (instance is DataRow dataRow)
+			{
+				if (idx is int n)
+				{
+					var value = valueFac( dataRow[n]);
+					dataRow[n] = value;
+					return value;
+				}
+				else
+				{
+					string name = (string)idx;
+					var value = valueFac(dataRow[name]);
+					dataRow[name] = value;
+					return value;
+				}
+			}
 			if (instance is Array array)
 			{
 				// 数组赋值

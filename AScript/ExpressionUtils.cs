@@ -8,6 +8,7 @@ using AScript.Nodes;
 using System.Linq;
 using System.Collections;
 using System.Dynamic;
+using System.Data;
 
 namespace AScript
 {
@@ -73,6 +74,10 @@ namespace AScript
 		public static readonly MethodInfo Method_Convert_ToUInt64_object = typeof(Convert).GetMethod("ToUInt64", new[] { typeof(object) });
 
 		public static readonly PropertyInfo Property_TypeWrapper_Type = typeof(TypeWrapper).GetProperty("Type");
+
+		public static readonly PropertyInfo Property_IDictionary_String_Object_Item = typeof(IDictionary<string, object>).GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
+
+		public static readonly PropertyInfo Property_DataRow_Item_String = typeof(DataRow).GetProperty("Item", new[] { typeof(string) });
 
 		// 相等==
 		public static readonly CallSiteBinder Binder_Equal = Microsoft.CSharp.RuntimeBinder.Binder.BinaryOperation(
@@ -419,11 +424,15 @@ namespace AScript
 				return Expression.Field(null, field);
 			}
 
+			if (typeof(DataRow).IsAssignableFrom(instance.Type))
+			{
+				return Expression.Property(instance, Property_DataRow_Item_String, Expression.Constant(propertyOrFieldName));
+			}
+
 			if (typeof(ExpandoObject).IsAssignableFrom(instance.Type))
 			{
-				var pi = typeof(IDictionary<string, object>).GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
 				var d = Expression.Convert(instance, typeof(IDictionary<string, object>));
-				return Expression.Property(d, pi, Expression.Constant(propertyOrFieldName));
+				return Expression.Property(d, Property_IDictionary_String_Object_Item, Expression.Constant(propertyOrFieldName));
 			}
 
 			// 变量的属性或字段
@@ -457,6 +466,12 @@ namespace AScript
 
 				var field = targetType.GetField(propertyOrFieldName, BindingFlags.Static | BindingFlags.Public);
 				return Expression.Assign(Expression.Field(null, field), value);
+			}
+
+			if (typeof(DataRow).IsAssignableFrom(instance.Type))
+			{
+				var pi = Expression.Property(instance, Property_DataRow_Item_String, Expression.Constant(propertyOrFieldName));
+				return Expression.Assign(pi, value);
 			}
 
 			// 变量的属性或字段

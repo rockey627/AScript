@@ -14,8 +14,6 @@ namespace AScript.Lang.Sql.Nodes
 		private static readonly MethodInfo Method_DataTable_NewRow = typeof(DataTable).GetMethod("NewRow", Type.EmptyTypes);
 		private static readonly MethodInfo Method_DataRowCollection_Add = typeof(DataRowCollection).GetMethod("Add", new[] { typeof(DataRow) });
 
-		private static readonly PropertyInfo Property_DataRow_Item_String = typeof(DataRow).GetProperty("Item", new[] { typeof(string) });
-
 		public ITreeNode Source { get; set; }
 		public IList<string> Columns { get; set; }
 		public IList<IList<ITreeNode>> Values { get; set; }
@@ -46,7 +44,7 @@ namespace AScript.Lang.Sql.Nodes
 					{
 						var columnName = Expression.Constant(this.Columns[j]);
 						var valueExpr = rowValues[j].Build(buildContext, scriptContext, options);
-						var rowAccess = Expression.MakeIndex(rowVar, Property_DataRow_Item_String, new[] { columnName });
+						var rowAccess = Expression.MakeIndex(rowVar, ExpressionUtils.Property_DataRow_Item_String, new[] { columnName });
 						if (valueExpr.Type.IsValueType)
 						{
 							if (valueExpr.Type.IsGenericType && valueExpr.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
