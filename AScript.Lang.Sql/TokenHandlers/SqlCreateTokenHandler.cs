@@ -23,6 +23,12 @@ namespace AScript.Lang.Sql.TokenHandlers
 				BuildProcedure(analyzer, e);
 				return;
 			}
+			if ("table".Equals(actionToken.Value.Value, StringComparison.OrdinalIgnoreCase))
+			{
+				e.CurrentToken = actionToken.Value;
+				BuildTable(analyzer, e);
+				return;
+			}
 
 			throw new Exceptions.ScriptAnalyzingException($"invalid expression '{actionToken.Value.Value}' at ({actionToken.Value.Line},{actionToken.Value.Column})");
 		}
@@ -141,6 +147,60 @@ namespace AScript.Lang.Sql.TokenHandlers
 			if (!e.Ignore)
 			{
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new DefineFuncNode { Name = nameToken.Value.Value, Args = args.ToArray(), Body = body });
+			}
+		}
+
+		/// <summary>
+		/// CREATE TABLE IF NOT EXISTS 表名 (字段1 数据类型，字段2 数据类型)
+		/// </summary>
+		/// <param name="analyzer"></param>
+		/// <param name="e"></param>
+		private void BuildTable(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
+		{
+			bool checkNotExists = false;
+			var tableToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+			if ("if".Equals(tableToken.Value.Value, StringComparison.OrdinalIgnoreCase))
+			{
+				analyzer.ValidateNextToken(e.TokenReader, "not", StringComparison.OrdinalIgnoreCase);
+				analyzer.ValidateNextToken(e.TokenReader, "exists", StringComparison.OrdinalIgnoreCase);
+				tableToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+				checkNotExists = true;
+			}
+
+			analyzer.ValidateNextToken(e.TokenReader, "(");
+			var columnNames = e.Ignore ? null : new List<string>();
+			var columnTypes = e.Ignore ? null : new List<Type>();
+			while (true)
+			{
+				var nameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+				var typeToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+				var type = e.ScriptContext.EvalType(typeToken.Value.Value) ?? throw new Exceptions.ScriptAnalyzingException($"unkown type '{typeToken.Value.Value}'");
+				columnNames?.Add(nameToken.Value.Value);
+				columnTypes?.Add(type);
+				var nextToken = e.TokenReader.Read();
+				if (!nextToken.HasValue)
+				{
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+				}
+				if (nextToken.Value.IsSymbol(",")) continue;
+				if (nextToken.Value.IsSymbol(")")) break;
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
+			}
+
+			if (!e.Ignore)
+			{
+				var callFuncNode = new CallFuncNode
+				{
+					Name = "_CreateTable_",
+					Args = new ITreeNode[]
+					{
+						PoolManage.CreateObjectNode(tableToken.Value.Value),
+						PoolManage.CreateObjectNode(columnNames),
+						PoolManage.CreateObjectNode(columnTypes),
+						PoolManage.CreateObjectNode(checkNotExists)
+					}
+				};
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, callFuncNode);
 			}
 		}
 	}

@@ -8,6 +8,7 @@ using Microsoft.Scripting.Hosting;
 using Microsoft.Scripting.Utils;
 using Newtonsoft.Json;
 using System.Collections;
+using System.Data;
 using System.Dynamic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -377,6 +378,11 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 
 			p.OnHandled(EventArgs.Empty); // 触发事件，输出 "handled"
 		}
+
+		//static void Test16_DataTable()
+		//{
+		//	DataTable table;
+		//}
 
 		static void Test15()
 		{

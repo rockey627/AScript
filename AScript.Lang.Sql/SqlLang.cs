@@ -3,6 +3,7 @@ using AScript.Lang.Sql.TokenHandlers;
 using AScript.Operators;
 using AScript.TokenHandlers;
 using System;
+using System.Collections.Generic;
 
 namespace AScript.Lang.Sql
 {
@@ -67,6 +68,7 @@ namespace AScript.Lang.Sql
 				if (method.Name == "Concat") return method.Name;
 				return null;
 			});
+			AddFunc("_CreateTable_", typeof(SqlLang).GetMethod("CreateTable"));
 
 			AddTokenHandler("=", new OperatorTokenHandler("==", "=="));
 			AddTokenHandler("<>", new OperatorTokenHandler("!=", "!="));
@@ -87,6 +89,23 @@ namespace AScript.Lang.Sql
 			AddTokenHandler("call", SqlCallTokenHandler.Instance);
 			AddTokenHandler("exec", SqlExecTokenHandler.Instance);
 			AddTokenHandler("execute", SqlExecTokenHandler.Instance);
+		}
+
+		public static object CreateTable(ScriptContext context, string name, IList<string> columnNames, IList<Type> columnTypes, bool checkNotExists)
+		{
+			var t = context.EvalVar(name);
+			if (t != null)
+			{
+				if (checkNotExists) return t;
+				throw new Exceptions.ScriptRuntimeException($"table[{name}] is exists");
+			}
+			var table = new SqlTable(name);
+			for (int i = 0; i < columnNames.Count; i++)
+			{
+				table.Columns.Add(columnNames[i], columnTypes[i]);
+			}
+			context.SetTempVar(name, table, false);
+			return table;
 		}
 	}
 }
