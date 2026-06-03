@@ -6,23 +6,37 @@ using System.Linq;
 
 namespace AScript.Lang.Sql
 {
-	public class SqlTable : DataTable, IEnumerable<DataRow>
+	public class SqlTable : IEnumerable<DataRow>
 	{
+		private readonly DataTable _Table;
+
+		public DataTable Table => _Table;
+
+		public string TableName => _Table.TableName;
+		public DataRowCollection Rows => _Table.Rows;
+		public DataColumnCollection Columns => _Table.Columns;
+
 		public SqlTable()
 		{
+			_Table = new DataTable();
 		}
-		public SqlTable(string tableName) : base(tableName)
+		public SqlTable(string tableName)
 		{
+			_Table = new DataTable(tableName);
+		}
+		public SqlTable(DataTable table)
+		{
+			_Table = table;
 		}
 
 		IEnumerator<DataRow> IEnumerable<DataRow>.GetEnumerator()
 		{
-			return this.Rows.Cast<DataRow>().GetEnumerator();
+			return _Table.Rows.Cast<DataRow>().GetEnumerator();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
 		{
-			return this.Rows.Cast<DataRow>().GetEnumerator();
+			return _Table.Rows.Cast<DataRow>().GetEnumerator();
 		}
 	}
 }

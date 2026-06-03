@@ -106,6 +106,22 @@ namespace AScript.Lang.Sql.Nodes
 			var source = this.Source.Eval(context, options, control, out returnType);
 			if (source == null) throw new Exceptions.ScriptRuntimeException("insert target is null");
 
+			if (source is SqlTable table)
+			{
+				for (int i = 0; i < this.Values.Count; i++)
+				{
+					var rowValues = this.Values[i];
+					var row = table.Table.NewRow();
+					for (int j = 0; j < rowValues.Count; j++)
+					{
+						row[this.Columns[j]] = rowValues[j].Eval(context, options, control, out _);
+					}
+					table.Table.Rows.Add(row);
+				}
+				returnType = typeof(int);
+				return this.Values.Count;
+			}
+
 			Type elementType = null;
 			MethodInfo addRangeMethod = null;
 			MethodInfo addMethod = null;

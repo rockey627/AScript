@@ -1,7 +1,9 @@
-﻿using AScript.Nodes;
+﻿using AScript.Lang.Sql.Nodes;
+using AScript.Nodes;
 using AScript.Syntaxs;
 using System;
 using System.Collections.Generic;
+using System.Data;
 
 namespace AScript.Lang.Sql.TokenHandlers
 {
@@ -168,20 +170,37 @@ namespace AScript.Lang.Sql.TokenHandlers
 			}
 
 			analyzer.ValidateNextToken(e.TokenReader, "(");
-			var columnNames = e.Ignore ? null : new List<string>();
-			var columnTypes = e.Ignore ? null : new List<Type>();
+			var columns = e.Ignore ? null : new List<DataColumn>();
 			while (true)
 			{
 				var nameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
 				var typeToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
 				var type = e.ScriptContext.EvalType(typeToken.Value.Value) ?? throw new Exceptions.ScriptAnalyzingException($"unkown type '{typeToken.Value.Value}'");
-				columnNames?.Add(nameToken.Value.Value);
-				columnTypes?.Add(type);
 				var nextToken = e.TokenReader.Read();
 				if (!nextToken.HasValue)
 				{
 					throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
 				}
+				bool nullable = true;
+				if (nextToken.Value.IsSymbol("not"))
+				{
+					analyzer.ValidateNextToken(e.TokenReader, "null", StringComparison.OrdinalIgnoreCase);
+					nextToken = e.TokenReader.Read();
+					if (!nextToken.HasValue)
+					{
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+					}
+					nullable = false;
+				}
+				else if (nextToken.Value.IsSymbol("null"))
+				{
+					nextToken = e.TokenReader.Read();
+					if (!nextToken.HasValue)
+					{
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+					}
+				}
+				columns?.Add(new DataColumn(nameToken.Value.Value, type) { AllowDBNull = nullable });
 				if (nextToken.Value.IsSymbol(",")) continue;
 				if (nextToken.Value.IsSymbol(")")) break;
 				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
@@ -189,18 +208,8 @@ namespace AScript.Lang.Sql.TokenHandlers
 
 			if (!e.Ignore)
 			{
-				var callFuncNode = new CallFuncNode
-				{
-					Name = "_CreateTable_",
-					Args = new ITreeNode[]
-					{
-						PoolManage.CreateObjectNode(tableToken.Value.Value),
-						PoolManage.CreateObjectNode(columnNames),
-						PoolManage.CreateObjectNode(columnTypes),
-						PoolManage.CreateObjectNode(checkNotExists)
-					}
-				};
-				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, callFuncNode);
+				var createTableNode = new SqlCreateTableNode { Name = tableToken.Value.Value, CheckNotExists = checkNotExists, Columns = columns };
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, createTableNode);
 			}
 		}
 	}
