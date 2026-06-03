@@ -177,8 +177,8 @@ namespace AScript.Nodes
 						//}
 					}
 				}
-				var tmpContext = ScriptContext.Create(context);
-				return tmpContext.EvalFunc(options, control, this.Name, args, out returnType);
+				//var tmpContext = ScriptContext.Create(context);
+				return context.EvalFunc(options, control, this.Name, args, out returnType);
 			}
 			returnType = null;
 			return null;
@@ -510,8 +510,8 @@ namespace AScript.Nodes
 						args[i] = this.Args[i];
 					}
 				}
-				var tmpContext = ScriptContext.Create(context);
-				return await tmpContext.EvalFuncAsync(options, control, this.Name, args, cancellationToken).ConfigureAwait(false);
+				//var tmpContext = ScriptContext.Create(context);
+				return await context.EvalFuncAsync(options, control, this.Name, args, cancellationToken).ConfigureAwait(false);
 			}
 			return default;
 		}

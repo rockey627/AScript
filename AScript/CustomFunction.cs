@@ -44,7 +44,7 @@ namespace AScript
 		public void Eval(FunctionEvalArgs e)
 		{
 			e.EvalArgs();
-			var tempContext = e.Context;
+			var tempContext = new ScriptContext(e.Context);
 			// 填充参数
 			if (this.ArgNames != null)
 			{
@@ -65,7 +65,7 @@ namespace AScript
 		public async Task EvalAsync(FunctionEvalArgs e, CancellationToken cancellationToken = default)
 		{
 			await e.EvalArgsAsync(cancellationToken: cancellationToken);
-			var tempContext = e.Context;
+			var tempContext = new ScriptContext(e.Context);
 			// 填充参数
 			if (this.ArgNames != null)
 			{
