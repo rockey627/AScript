@@ -444,6 +444,44 @@ namespace AScript.Nodes
 			_VarParentDict[intoName] = _CurrentVarName;
 		}
 
+		public void AddSkip(ITreeNode skip)
+		{
+			if (_Source == null)
+			{
+				throw new Exceptions.ScriptAnalyzingException("invalid expression orderby");
+			}
+			var skipNode = new CallFuncNode
+			{
+				Name = "Skip",
+				Args = new ITreeNode[]
+				{
+					_Source,
+					skip
+				}
+			};
+			// 更新当前数据源
+			_Source = skipNode;
+		}
+
+		public void AddTake(ITreeNode take)
+		{
+			if (_Source == null)
+			{
+				throw new Exceptions.ScriptAnalyzingException("invalid expression orderby");
+			}
+			var takeNode = new CallFuncNode
+			{
+				Name = "Skip",
+				Args = new ITreeNode[]
+				{
+					_Source,
+					take
+				}
+			};
+			// 更新当前数据源
+			_Source = takeNode;
+		}
+
 		public override void Clear()
 		{
 			base.Clear();
