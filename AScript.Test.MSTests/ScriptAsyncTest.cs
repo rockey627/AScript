@@ -16,7 +16,7 @@ namespace AScript.Test.MSTests
 		{
 			Func<int, int, Task<int>> sum = async (a, b) =>
 			{
-				await Task.Delay(1000);
+				await Task.Delay(200);
 				return a + b;
 			};
 			var script = new Script();
@@ -47,7 +47,7 @@ namespace AScript.Test.MSTests
 		{
 			Func<int, int, Task<int>> sum = async (a, b) =>
 			{
-				await Task.Delay(1000);
+				await Task.Delay(200);
 				return a + b;
 			};
 			var script = new Script();
@@ -157,7 +157,7 @@ sum(3, 5);
 			var cts = new CancellationTokenSource();
 
 			// Create a script that waits long enough that we can cancel it
-			var resultTask = script.EvalAsync("await Task.Delay(1000)", cancellationToken: cts.Token);
+			var resultTask = script.EvalAsync("await Task.Delay(200)", cancellationToken: cts.Token);
 
 			// Cancel after a short delay
 			await Task.Delay(100);
@@ -236,7 +236,7 @@ sum(10, 20);
 			var script = new Script();
 			var cts = new CancellationTokenSource();
 
-			var stream = new MemoryStream(Encoding.UTF8.GetBytes("await Task.Delay(1000)"));
+			var stream = new MemoryStream(Encoding.UTF8.GetBytes("await Task.Delay(200)"));
 
 			var resultTask = script.EvalAsync(stream, cancellationToken: cts.Token);
 
@@ -283,7 +283,7 @@ sum(10, 20);
 			var script = new Script();
 			var cts = new CancellationTokenSource();
 
-			var resultTask = script.EvalAsync("await Task.Delay(1000)", ECompileMode.All, cancellationToken: cts.Token);
+			var resultTask = script.EvalAsync("await Task.Delay(200)", ECompileMode.All, cancellationToken: cts.Token);
 
 			await Task.Delay(100);
 			cts.Cancel();
@@ -326,9 +326,9 @@ sum(10, 20);
 			// Start multiple long-running tasks
 			var tasks = new List<Task>
 			{
-				script.EvalAsync("await Task.Delay(1000)", cancellationToken: cts.Token),
-				script.EvalAsync("await Task.Delay(1000)", cancellationToken: cts.Token),
-				script.EvalAsync("await Task.Delay(1000)", cancellationToken: cts.Token),
+				script.EvalAsync("await Task.Delay(200)", cancellationToken: cts.Token),
+				script.EvalAsync("await Task.Delay(200)", cancellationToken: cts.Token),
+				script.EvalAsync("await Task.Delay(200)", cancellationToken: cts.Token),
 			};
 
 			await Task.Delay(100);
@@ -504,7 +504,7 @@ sum(5);
 			var cts = new CancellationTokenSource();
 
 			var resultTask = script.EvalAsync(@"
-await Task.Delay(1000);
+await Task.Delay(200);
 42
 ", cancellationToken: cts.Token);
 			Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff"));
@@ -517,7 +517,7 @@ await Task.Delay(1000);
 		public async Task EvalAsync_AwaitTaskDelay_Cancellation_4()
 		{
 			string s = @"
-await Task.Delay(1000, @@CancellationToken);
+await Task.Delay(200, @@CancellationToken);
 42
 ";
 			var script = new Script();
@@ -535,7 +535,7 @@ await Task.Delay(1000, @@CancellationToken);
 		public async Task EvalAsync_AwaitTaskDelay_Cancellation_3()
 		{
 			string s = @"
-await Task.Delay(1000, @@CancellationToken);
+await Task.Delay(200, @@CancellationToken);
 42
 ";
 			var cts = new CancellationTokenSource();
@@ -563,7 +563,7 @@ await Task.Delay(1000, @@CancellationToken);
 			var script = new Script();
 			script.Context.SetVar("token", cts.Token);
 			var resultTask = script.EvalAsync(@"
-await Task.Delay(1000, token);
+await Task.Delay(200, token);
 42
 ", cancellationToken: cts.Token);
 
@@ -583,7 +583,7 @@ await Task.Delay(1000, token);
 
 			var script = new Script();
 			var resultTask = script.EvalAsync(@"
-await Task.Delay(1000);
+await Task.Delay(200);
 42
 ", cancellationToken: cts.Token);
 
@@ -641,7 +641,7 @@ sum(10, 20);
 			var script = new Script();
 			var cts = new CancellationTokenSource();
 
-			var resultTask = script.EvalAsync<int>("await Task.Delay(1000)", cancellationToken: cts.Token);
+			var resultTask = script.EvalAsync<int>("await Task.Delay(200)", cancellationToken: cts.Token);
 
 			await Task.Delay(100);
 			cts.Cancel();
