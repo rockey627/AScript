@@ -17,9 +17,10 @@ namespace AScript.Lang.Sql.TokenHandlers
 		public static readonly SqlFromTokenHandler Instance = new SqlFromTokenHandler();
 
 		private static readonly HashSet<string> _GroupByEndTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "having" };
-		private static readonly HashSet<string> _Keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "from", "where", "left", "right", "inner", "join", "order", "group" };
-		private static readonly HashSet<string> _OrderbyEndTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "from", "where", "left", "right", "inner", "join", "order", "group", "asc", "desc" };
-		private static readonly HashSet<string> _TableEndTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "from", "where", "left", "right", "inner", "join", "order", "group", "as" };
+		private static readonly HashSet<string> _Keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "from", "where", "left", "right", "inner", "join", "order", "group", "limit" };
+		private static readonly HashSet<string> _OrderbyEndTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "from", "where", "left", "right", "inner", "join", "order", "group", "limit", "asc", "desc" };
+		private static readonly HashSet<string> _TableEndTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "from", "where", "left", "right", "inner", "join", "order", "group", "limit", "as" };
+		private static readonly HashSet<string> _LimitEndTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "from", "where", "left", "right", "inner", "join", "order", "group", "offset" };
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
@@ -66,6 +67,10 @@ namespace AScript.Lang.Sql.TokenHandlers
 				else if (token.Value.IsSymbol("order", StringComparison.OrdinalIgnoreCase))
 				{
 					BuildOrder(analyzer, e, createFullOptions, queryNode);
+				}
+				else if (token.Value.IsSymbol("limit", StringComparison.OrdinalIgnoreCase))
+				{
+					BuildLimit(analyzer, e, createFullOptions, queryNode);
 				}
 				else
 				{
@@ -308,6 +313,34 @@ namespace AScript.Lang.Sql.TokenHandlers
 
 				e.TokenReader.Push(token.Value);
 				break;
+			}
+		}
+
+		private void BuildLimit(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
+		{
+			var take = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, _LimitEndTokens);
+			ITreeNode skip = null;
+			var nextToken = e.TokenReader.Read();
+			if (nextToken.HasValue)
+			{
+				if (nextToken.Value.IsSymbol(","))
+				{
+					skip = take;
+					take = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, _LimitEndTokens);
+				}
+				else if (nextToken.Value.IsSymbol("offset", StringComparison.OrdinalIgnoreCase))
+				{
+					skip = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, _LimitEndTokens);
+				}
+				else
+				{
+					e.TokenReader.Push(nextToken.Value);
+				}
+			}
+			if (queryNode != null)
+			{
+				if (skip != null) queryNode.AddSkip(skip);
+				if (take != null) queryNode.AddTake(take);
 			}
 		}
 	}
