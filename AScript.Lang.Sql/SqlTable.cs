@@ -29,6 +29,17 @@ namespace AScript.Lang.Sql
 			_Table = table;
 		}
 
+		public void RemoveRange(IEnumerable<DataRow> rows)
+		{
+			if (rows != null)
+			{
+				foreach (var row in rows)
+				{
+					_Table.Rows.Remove(row);
+				}
+			}
+		}
+
 		IEnumerator<DataRow> IEnumerable<DataRow>.GetEnumerator()
 		{
 			return _Table.Rows.Cast<DataRow>().GetEnumerator();

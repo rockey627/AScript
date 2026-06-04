@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -140,6 +141,10 @@ namespace AScript.Lang.Sql.Nodes
 
 		private Type GetItemType(Type type)
 		{
+			if (typeof(SqlTable).IsAssignableFrom(type))
+			{
+				return typeof(DataRow);
+			}
 			if (type.IsGenericType)
 			{
 				return type.GenericTypeArguments[0];

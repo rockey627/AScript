@@ -120,11 +120,12 @@ namespace AScript.Lang.Sql.Nodes
 			var list = (IList)context.EvalFunc(options, control, "ToList", new ITreeNode[] { sourceNode });
 			if (list.Count == 0) return 0;
 
+			var visitor = new ValueEvalTreeNodeVisitor(list[0].GetType());
 			foreach (var item in list)
 			{
 				var properties = item.GetType().GetProperties();
 				var dict = properties.Where(p => p.CanWrite).ToDictionary(a => a.Name, StringComparer.OrdinalIgnoreCase);
-				var visitor = new ValueEvalTreeNodeVisitor(item);
+				visitor.Item = item;
 				for (int i = 0; i < this.Fields.Count; i++)
 				{
 					string field = this.Fields[i];
@@ -190,13 +191,17 @@ namespace AScript.Lang.Sql.Nodes
 
 		private class ValueEvalTreeNodeVisitor : SqlTreeNodeVisitor
 		{
-			private readonly object _Item;
 			private readonly Dictionary<string, PropertyInfo> _PropertyDict;
 
-			public ValueEvalTreeNodeVisitor(object item)
+			public object Item { get; set; }
+
+			public ValueEvalTreeNodeVisitor(object item) : this(item.GetType())
 			{
-				_Item = item;
-				_PropertyDict = item.GetType().GetProperties().Where(a => a.CanRead).ToDictionary(a => a.Name, StringComparer.OrdinalIgnoreCase);
+				Item = item;
+			}
+			public ValueEvalTreeNodeVisitor(Type itemType)
+			{
+				_PropertyDict = itemType.GetProperties().Where(a => a.CanRead).ToDictionary(a => a.Name, StringComparer.OrdinalIgnoreCase);
 			}
 
 			public override ITreeNode VisitVariableNode(VariableNode variableNode)
@@ -208,7 +213,7 @@ namespace AScript.Lang.Sql.Nodes
 				}
 				if (_PropertyDict.TryGetValue(variableNode.Name, out var p))
 				{
-					return new ObjectNode(p.GetValue(_Item));
+					return new ObjectNode(p.GetValue(Item));
 				}
 				return base.VisitVariableNode(variableNode);
 			}
