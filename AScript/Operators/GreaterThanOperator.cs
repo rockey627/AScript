@@ -14,7 +14,7 @@ namespace AScript.Operators
 			if (left.Type == typeof(object) || right.Type == typeof(object)
 				|| !ExpressionUtils.ConvertMaxType(ref left, ref right))
 			{
-				e.Result = Expression.Dynamic(ExpressionUtils.Binder_GreaterThan, typeof(object), left, right);
+				e.Result = Expression.Convert(Expression.Dynamic(ExpressionUtils.Binder_GreaterThan, typeof(object), left, right), typeof(bool));
 			}
 			else
 			{
