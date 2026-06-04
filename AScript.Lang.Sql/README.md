@@ -1,7 +1,6 @@
 # AScript.Lang.Sql
 
 ## 介绍
-
 支持SqlServer/MySql基础语法和数据类型：
 * 支持SELECT查询语法
 * 支持INSERT插入语法
@@ -131,21 +130,25 @@ Assert.AreEqual(20, list[0].Age);
 #### MySql存储过程
 ```C#
 var s = @"
-CREATE PROCEDURE AddPerson(IN @name VARCHAR, IN @age INT)
+CREATE PROCEDURE AddPerson(@name VARCHAR, @age INT)
 BEGIN
-	INSERT INTO list (name, age) VALUES(@name, @age)
+	DECLARE @name2 VARCHAR
+	DECLARE @age2 INT
+	SET @name2 = @name + '2'
+	SET @age2 = @age + 10
+	INSERT INTO list (name, age) VALUES(@name, @age),(@name2, @age2)
 END
-
-CALL AddPerson('tom', 20)
-";
+CALL AddPerson('tom', 20)";
 var list = new List<Person>();
 var script = new Script();
 script.Context.Langs = new[] { "sql" };
 script.Context.SetVar("list", list);
-Assert.AreEqual(1, script.Eval(s));
-Assert.AreEqual(1, list.Count);
+Assert.AreEqual(2, script.Eval(s));
+Assert.AreEqual(2, list.Count);
 Assert.AreEqual("tom", list[0].Name);
 Assert.AreEqual(20, list[0].Age);
+Assert.AreEqual("tom2", list[1].Name);
+Assert.AreEqual(30, list[1].Age);
 ```
 
 #### 创建表
