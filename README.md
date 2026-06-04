@@ -13,6 +13,7 @@
 * [AScript如何实现LINQ语法](https://mp.weixin.qq.com/s/ZEz2BPE5kayvXRQom73khw)
 * [AScript异步执行与await关键字](https://mp.weixin.qq.com/s/LPjcCugmJK6o-ONhle2Hkw)
 * [AScript定制left/right join查询语法](https://mp.weixin.qq.com/s/IPKrsDlFc32bupVKLxOKug)
+* [AScript之事件处理脚本](https://mp.weixin.qq.com/s/0F6vRWp4KxsXlCB9CdDH7A)
 
 ## 介绍
 
