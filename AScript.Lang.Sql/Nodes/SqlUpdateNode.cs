@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -48,18 +49,12 @@ namespace AScript.Lang.Sql.Nodes
 
 			// 循环体：更新字段
 			var updateStatements = new List<Expression>();
-			var properties = itemType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 			var visitor = new ValueBuildTreeNodeVisitor(itemVar);
 			for (int i = 0; i < this.Fields.Count; i++)
 			{
-				var prop = Expression.PropertyOrField(itemVar, this.Fields[i]);
-				var valueNode = visitor.Visit(this.Values[i]);
-				var value = valueNode.Build(buildContext, scriptContext, options);
-				if (value.Type != prop.Type)
-				{
-					value = ExpressionUtils.Convert(value, prop.Type);
-				}
-				updateStatements.Add(Expression.Assign(prop, value));
+				var value = visitor.Visit(this.Values[i]).Build(buildContext, scriptContext, options);
+				var expr = visitor.SetValue(this.Fields[i], value);
+				if (expr != null) updateStatements.Add(expr);
 			}
 
 			var loopBody = Expression.Block(new[] { itemVar },
@@ -120,20 +115,14 @@ namespace AScript.Lang.Sql.Nodes
 			var list = (IList)context.EvalFunc(options, control, "ToList", new ITreeNode[] { sourceNode });
 			if (list.Count == 0) return 0;
 
-			var visitor = new ValueEvalTreeNodeVisitor(list[0].GetType());
+			var visitor = new ValueEvalTreeNodeVisitor();
 			foreach (var item in list)
 			{
-				var properties = item.GetType().GetProperties();
-				var dict = properties.Where(p => p.CanWrite).ToDictionary(a => a.Name, StringComparer.OrdinalIgnoreCase);
 				visitor.Item = item;
 				for (int i = 0; i < this.Fields.Count; i++)
 				{
-					string field = this.Fields[i];
-					if (dict.TryGetValue(field, out var p))
-					{
-						var value = visitor.Visit(this.Values[i]).Eval(context, options, control, out var valueType);
-						p.SetValue(item, value);
-					}
+					var value = visitor.Visit(this.Values[i]).Eval(context, options, control, out var valueType);
+					visitor.TrySetValue(this.Fields[i], value);
 				}
 			}
 
@@ -156,6 +145,10 @@ namespace AScript.Lang.Sql.Nodes
 
 		private Type GetItemType(Type type)
 		{
+			if (typeof(SqlTable).IsAssignableFrom(type))
+			{
+				return typeof(DataRow);
+			}
 			if (type.IsGenericType)
 			{
 				return type.GenericTypeArguments[0];
@@ -166,12 +159,11 @@ namespace AScript.Lang.Sql.Nodes
 		private class ValueBuildTreeNodeVisitor : SqlTreeNodeVisitor
 		{
 			private readonly ParameterExpression _VarExpr;
-			private readonly Dictionary<string, PropertyInfo> _PropertyDict;
+			private readonly Dictionary<string, PropertyInfo> _PropertyDict = new Dictionary<string, PropertyInfo>(StringComparer.OrdinalIgnoreCase);
 
 			public ValueBuildTreeNodeVisitor(ParameterExpression varExpr)
 			{
 				_VarExpr = varExpr;
-				_PropertyDict = varExpr.Type.GetProperties().Where(a => a.CanRead).ToDictionary(a => a.Name, StringComparer.OrdinalIgnoreCase);
 			}
 
 			public override ITreeNode VisitVariableNode(VariableNode variableNode)
@@ -181,27 +173,70 @@ namespace AScript.Lang.Sql.Nodes
 				{
 					return base.VisitVariableNode(variableNode);
 				}
-				if (_PropertyDict.TryGetValue(variableNode.Name, out var p))
+				if (TryGetValue(variableNode.Name, out var v))
 				{
-					return new ExpressionNode(Expression.Property(_VarExpr, p));
+					return new ExpressionNode(v);
 				}
 				return base.VisitVariableNode(variableNode);
+			}
+
+			public bool TryGetValue(string name, out Expression value)
+			{
+				if (typeof(DataRow).IsAssignableFrom(_VarExpr.Type))
+				{
+					value = Expression.Property(_VarExpr, ExpressionUtils.Property_DataRow_Item_String, Expression.Constant(name));
+					return true;
+				}
+				if (TryGetProperty(name, out var p))
+				{
+					value = Expression.Property(_VarExpr, p);
+					return true;
+				}
+				value = null;
+				return false;
+			}
+
+			public Expression SetValue(string name, Expression value)
+			{
+				if (typeof(DataRow).IsAssignableFrom(_VarExpr.Type))
+				{
+					var rowColumn = Expression.Property(_VarExpr, ExpressionUtils.Property_DataRow_Item_String, Expression.Constant(name));
+					if (value.Type != typeof(object))
+					{
+						value = Expression.Convert(value, typeof(object));
+					}
+					return Expression.Assign(rowColumn, value);
+				}
+				if (TryGetProperty(name, out var p))
+				{
+					var propExpr = Expression.Property(_VarExpr, p);
+					return Expression.Assign(propExpr, value);
+				}
+				return null;
+			}
+
+			private bool TryGetProperty(string name, out PropertyInfo property)
+			{
+				if (_PropertyDict.TryGetValue(name, out property))
+				{
+					return property != null;
+				}
+				property = _VarExpr.Type.GetProperty(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+				_PropertyDict[name] = property;
+				return property != null;
 			}
 		}
 
 		private class ValueEvalTreeNodeVisitor : SqlTreeNodeVisitor
 		{
-			private readonly Dictionary<string, PropertyInfo> _PropertyDict;
+			private readonly Dictionary<string, PropertyInfo> _PropertyDict = new Dictionary<string, PropertyInfo>(StringComparer.OrdinalIgnoreCase);
 
 			public object Item { get; set; }
 
-			public ValueEvalTreeNodeVisitor(object item) : this(item.GetType())
+			public ValueEvalTreeNodeVisitor() { }
+			public ValueEvalTreeNodeVisitor(object item)
 			{
 				Item = item;
-			}
-			public ValueEvalTreeNodeVisitor(Type itemType)
-			{
-				_PropertyDict = itemType.GetProperties().Where(a => a.CanRead).ToDictionary(a => a.Name, StringComparer.OrdinalIgnoreCase);
 			}
 
 			public override ITreeNode VisitVariableNode(VariableNode variableNode)
@@ -211,11 +246,62 @@ namespace AScript.Lang.Sql.Nodes
 				{
 					return base.VisitVariableNode(variableNode);
 				}
-				if (_PropertyDict.TryGetValue(variableNode.Name, out var p))
+				if (TryGetValue(variableNode.Name, out var v))
 				{
-					return new ObjectNode(p.GetValue(Item));
+					return new ObjectNode(v);
 				}
 				return base.VisitVariableNode(variableNode);
+			}
+
+			public bool TryGetValue(string name, out object value)
+			{
+				if (this.Item is DataRow dataRow)
+				{
+					if (dataRow.Table.Columns.Contains(name))
+					{
+						value = dataRow[name];
+						return true;
+					}
+					value = null;
+					return false;
+				}
+				if (TryGetProperty(name, out var p))
+				{
+					value = p.GetValue(this.Item);
+					return true;
+				}
+				value = null;
+				return false;
+			}
+
+			public bool TrySetValue(string name, object value)
+			{
+				if (this.Item is DataRow dataRow)
+				{
+					if (dataRow.Table.Columns.Contains(name))
+					{
+						dataRow[name] = value;
+						return true;
+					}
+					return false;
+				}
+				if (TryGetProperty(name, out var p))
+				{
+					p.SetValue(this.Item, value);
+					return true;
+				}
+				return false;
+			}
+
+			private bool TryGetProperty(string name, out PropertyInfo property)
+			{
+				if (_PropertyDict.TryGetValue(name, out property))
+				{
+					return property != null;
+				}
+				property = this.Item.GetType().GetProperty(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+				_PropertyDict[name] = property;
+				return property != null;
 			}
 		}
 	}
