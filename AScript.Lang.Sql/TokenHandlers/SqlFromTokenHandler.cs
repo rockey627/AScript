@@ -24,6 +24,12 @@ namespace AScript.Lang.Sql.TokenHandlers
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;
+			if (e.TreeBuilder.IsFullStatement())
+			{
+				e.End = true;
+				e.TokenReader.Push(e.CurrentToken);
+				return;
+			}
 
 			var queryNode = e.Ignore ? null : new QueryNode();
 			var createFullOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };

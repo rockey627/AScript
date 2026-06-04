@@ -10,6 +10,7 @@
 * 支持创建存储过程
 * 支持创建表
 * 支持定义变量
+* 字段名、关键字不区分大小写
 * 支持调用外部方法和变量
 * 已内置常用数据类型：`tinyint/smallint/int/bigint/decimal/float/real/double/bit/char/nchar/varchar/nvarchar/text/datetime`
 
@@ -149,7 +150,19 @@ Assert.AreEqual(20, list[0].Age);
 
 #### 创建表
 ```C#
-
+var s = @"
+CREATE TABLE person (name varchar, age int)
+INSERT INTO person (name, age) VALUES ('tom', 20),('jim', 25),('san', 18)
+UPDATE person SET age = 30 WHERE name = 'tom'
+DELETE FROM person WHERE Name = 'jim'
+SELECT Name,age FROM person WHERE age > 22
+";
+var script = new Script();
+script.Context.Langs = new[] { "sql" };
+var list = script.Eval<IEnumerable<dynamic>>(s).ToList();
+Assert.AreEqual(1, list.Count);
+Assert.AreEqual("tom", list[0].Name);
+Assert.AreEqual(30, list[0].age);
 ```
 
 #### SQL to LINQ to SQL

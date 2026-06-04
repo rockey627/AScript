@@ -1,6 +1,7 @@
 using AScript.Lang.Sql;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -74,8 +75,8 @@ namespace AScript.Test.MSTests.Sql
 		public void Test_create_table_and_insert()
 		{
 			var s = @"
-CREATE TABLE person (name varchar, age int)
-INSERT INTO person (name, age) VALUES ('tom', 20)";
+CREATE TABLE person (name varchar, Age int)
+INSERT INTO person (Name, age) VALUES ('tom', 20)";
 			var script = new Script();
 			script.Context.Langs = new[] { "sql" };
 			script.Eval(s);
@@ -89,8 +90,8 @@ INSERT INTO person (name, age) VALUES ('tom', 20)";
 		public void Test_create_table_and_insert_2()
 		{
 			var s = @"
-CREATE TABLE person (name varchar, age int)
-INSERT INTO person (name, age) VALUES ('tom', 20)";
+CREATE TABLE person (name varchar, Age int)
+INSERT INTO person (Name, age) VALUES ('tom', 20)";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "sql" };
@@ -105,33 +106,33 @@ INSERT INTO person (name, age) VALUES ('tom', 20)";
 		public void Test_create_table_and_select()
 		{
 			var s = @"
-CREATE TABLE person (name varchar, age int)
+CREATE TABLE person (name varchar, Age int)
 INSERT INTO person (name, age) VALUES ('tom', 20)
 INSERT INTO person (name, age) VALUES ('jim', 25)
-SELECT * FROM person WHERE age > 22";
+SELECT Name,age FROM person WHERE age > 22";
 			var script = new Script();
 			script.Context.Langs = new[] { "sql" };
-			var result = script.Eval<IEnumerable<DataRow>>(s).ToList();
+			var result = script.Eval<IEnumerable<dynamic>>(s).ToList();
 			Assert.AreEqual(1, result.Count);
-			Assert.AreEqual("jim", result[0]["name"]);
-			Assert.AreEqual(25, result[0]["age"]);
+			Assert.AreEqual("jim", result[0].Name);
+			Assert.AreEqual(25, result[0].age);
 		}
 
 		[TestMethod]
 		public void Test_create_table_and_select_2()
 		{
 			var s = @"
-CREATE TABLE person (name varchar, age int)
+CREATE TABLE person (name varchar, Age int)
 INSERT INTO person (name, age) VALUES ('tom', 20)
 INSERT INTO person (name, age) VALUES ('jim', 25)
-SELECT * FROM person WHERE age > 22";
+SELECT Name,age FROM person WHERE age > 22";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "sql" };
-			var result = script.Eval<IEnumerable<DataRow>>(s).ToList();
+			var result = script.Eval<IEnumerable<dynamic>>(s).ToList();
 			Assert.AreEqual(1, result.Count);
-			Assert.AreEqual("jim", result[0]["name"]);
-			Assert.AreEqual(25, result[0]["age"]);
+			Assert.AreEqual("jim", result[0].Name);
+			Assert.AreEqual(25, result[0].age);
 		}
 
 		[TestMethod]
@@ -141,7 +142,7 @@ SELECT * FROM person WHERE age > 22";
 CREATE TABLE person (name varchar, age int)
 INSERT INTO person (name, age) VALUES ('tom', 20)
 INSERT INTO person (name, age) VALUES ('jim', 25)
-UPDATE person SET age = 30 WHERE name = 'tom'";
+UPDATE person SET Age = 30 WHERE Name = 'tom'";
 			var script = new Script();
 			script.Context.Langs = new[] { "sql" };
 			script.Eval(s);
@@ -174,13 +175,50 @@ UPDATE person SET age = 30 WHERE name = 'tom'";
 		}
 
 		[TestMethod]
+		public void Test_create_table_and_update_delete_select_2()
+		{
+			var s = @"
+CREATE TABLE person (name varchar, age int)
+INSERT INTO person (name, age) VALUES ('tom', 20),('jim', 25),('san', 18)
+UPDATE person SET age = 30 WHERE name = 'tom'
+DELETE FROM person WHERE Name = 'jim'
+SELECT Name,age FROM person WHERE age > 22
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			var list = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual("tom", list[0].Name);
+			Assert.AreEqual(30, list[0].age);
+		}
+
+		[TestMethod]
+		public void Test_create_table_and_update_delete_select()
+		{
+			var s = @"
+CREATE TABLE person (name varchar, age int)
+INSERT INTO person (name, age) VALUES ('tom', 20),('jim', 25),('san', 18)
+UPDATE person SET age = 30 WHERE name = 'tom'
+DELETE FROM person WHERE Name = 'jim'
+SELECT Name,age FROM person WHERE age > 22
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			var list = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(1, list.Count);
+			Assert.AreEqual("tom", list[0].Name);
+			Assert.AreEqual(30, list[0].age);
+		}
+
+		[TestMethod]
 		public void Test_create_table_and_delete()
 		{
 			var s = @"
 CREATE TABLE person (name varchar, age int)
 INSERT INTO person (name, age) VALUES ('tom', 20)
 INSERT INTO person (name, age) VALUES ('jim', 25)
-DELETE FROM person WHERE name = 'tom'";
+DELETE FROM person WHERE Name = 'tom'";
 			var script = new Script();
 			script.Context.Langs = new[] { "sql" };
 			script.Eval(s);

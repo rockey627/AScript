@@ -1004,6 +1004,59 @@ namespace AScript.Test.MSTests.Sql
 		}
 
 		[TestMethod]
+		public void Test13_leftjoin_4()
+		{
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 30) };
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") };
+			string s = @"
+@lang sql
+select a.Name, a.Age, b?.Address
+from q1 as a
+left join q2 as b on a.Name = b.UserName
+where a.age > 22
+order by a.age desc
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("q1", q1);
+			script.Context.SetVar("q2", q2);
+			var list = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(2, list.Count);
+			Assert.AreEqual("kit", list[0].Name);
+			Assert.AreEqual(30, list[0].Age);
+			Assert.IsNull(list[0].Address);
+			Assert.AreEqual("jim", list[1].Name);
+			Assert.AreEqual(25, list[1].Age);
+			Assert.AreEqual("a", list[1].Address);
+		}
+
+		[TestMethod]
+		public void Test13_leftjoin_3()
+		{
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 30) };
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") };
+			string s = @"
+@lang sql
+select a.Name, a.Age, b?.Address
+from q1 as a
+left join q2 as b on a.Name = b.UserName
+where a.age > 22
+order by a.age desc
+";
+			var script = new Script();
+			script.Context.SetVar("q1", q1);
+			script.Context.SetVar("q2", q2);
+			var list = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(2, list.Count);
+			Assert.AreEqual("kit", list[0].Name);
+			Assert.AreEqual(30, list[0].Age);
+			Assert.IsNull(list[0].Address);
+			Assert.AreEqual("jim", list[1].Name);
+			Assert.AreEqual(25, list[1].Age);
+			Assert.AreEqual("a", list[1].Address);
+		}
+
+		[TestMethod]
 		public void Test13_leftjoin_2()
 		{
 			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 30) };
@@ -1049,9 +1102,9 @@ namespace AScript.Test.MSTests.Sql
 			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 30) };
 			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") };
 			string s = @"
-			set q = select a.Name, a.Age, b?.Address
-					from q1 as a
-					left join q2 as b on a.Name = b.UserName;
+set q = select a.Name, a.Age, b?.Address
+		from q1 as a
+		left join q2 as b on a.Name = b.UserName;
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "sql" };
@@ -1291,6 +1344,51 @@ set q = from q1 as a
 				}
 				i++;
 			}
+		}
+
+		[TestMethod]
+		public void Test09_select_4()
+		{
+			var s = @"select Name, Age from list where age=10";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("jim", result[0].Name);
+			Assert.AreEqual(10, result[0].Age);
+			Assert.AreEqual("qin", result[1].Name);
+			Assert.AreEqual(10, result[1].Age);
+		}
+
+		[TestMethod]
+		public void Test09_select_3()
+		{
+			var s = @"select Name, Age from list where age=10";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("jim", result[0].Name);
+			Assert.AreEqual(10, result[0].Age);
+			Assert.AreEqual("qin", result[1].Name);
+			Assert.AreEqual(10, result[1].Age);
 		}
 
 		[TestMethod]

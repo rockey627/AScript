@@ -19,6 +19,11 @@ namespace AScript.Lang.Sql.TokenHandlers
 		{
 			e.IsHandled = true;
 			e.End = true;
+			if (e.TreeBuilder.IsFullStatement())
+			{
+				e.TokenReader.Push(e.CurrentToken);
+				return;
+			}
 
 			analyzer.ValidateNextToken(e.TokenReader, "into", StringComparison.OrdinalIgnoreCase);
 			var table = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, _TableEndTokens);

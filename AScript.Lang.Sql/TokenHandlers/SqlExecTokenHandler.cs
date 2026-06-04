@@ -16,6 +16,12 @@ namespace AScript.Lang.Sql.TokenHandlers
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;
+			if (e.TreeBuilder.IsFullStatement())
+			{
+				e.End = true;
+				e.TokenReader.Push(e.CurrentToken);
+				return;
+			}
 			var nameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
 			var args = analyzer.BuildFuncParams2(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
 			if (!e.Ignore)

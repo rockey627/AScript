@@ -17,6 +17,11 @@ namespace AScript.Lang.Sql.TokenHandlers
 		{
 			e.IsHandled = true;
 			e.End = true;
+			if (e.TreeBuilder.IsFullStatement())
+			{
+				e.TokenReader.Push(e.CurrentToken);
+				return;
+			}
 
 			var actionToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
 			if ("procedure".Equals(actionToken.Value.Value, StringComparison.OrdinalIgnoreCase))
