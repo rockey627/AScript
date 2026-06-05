@@ -56,6 +56,8 @@ namespace AScript.Lang.Sql
 			AddFunc("now", NowFunction.Instance);
 			// SqlServer获取当前时间
 			AddFunc("getdate", NowFunction.Instance);
+			AddFunc("len", LengthFunction.Instance);
+			AddFunc("length", LengthFunction.Instance);
 
 			// IEnumerable<T>扩展方法
 			AddFunc(typeof(System.Linq.Enumerable));
@@ -67,6 +69,8 @@ namespace AScript.Lang.Sql
 				if (method.Name == "Concat") return method.Name;
 				return null;
 			});
+			//// Math函数
+			//AddFunc(typeof(Math));
 
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			AddTokenHandler("=", new OperatorTokenHandler("==", "=="));

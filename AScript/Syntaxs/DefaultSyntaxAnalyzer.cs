@@ -1169,26 +1169,34 @@ namespace AScript.Syntaxs
 				var definedType = e.ScriptContext.EvalType(definedTypeName);
 				if (definedType == null)
 				{
-					throw new Exceptions.ScriptAnalyzingException($"unknown type '{definedTypeName}' at {currentToken.Line},{currentToken.Column}");
-				}
-				currentToken = nextToken.Value;
-				nextToken = e.TokenReader.Read();
-
-				if (nextToken.HasValue && nextToken.Value.Value == "(")
-				{
-					// 函数定义
-					ParseFuncDefine(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.TreeBuilder, currentToken.Value, definedTypeName, definedType, e.Ignore);
-					nextToken = e.TokenReader.Read();
-					e.End = true;
+					//throw new Exceptions.ScriptAnalyzingException($"unknown type '{definedTypeName}' at {currentToken.Line},{currentToken.Column}");
+					// 变量引用
+					if (!e.Ignore)
+					{
+						e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateVariableNode(e.CurrentToken.Value));
+					}
 				}
 				else
 				{
-					// 变量定义
-					if (!e.Ignore)
+					currentToken = nextToken.Value;
+					nextToken = e.TokenReader.Read();
+
+					if (nextToken.HasValue && nextToken.Value.Value == "(")
 					{
-						e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateDefineVarNode(currentToken.Value, definedTypeName, definedType));
+						// 函数定义
+						ParseFuncDefine(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.TreeBuilder, currentToken.Value, definedTypeName, definedType, e.Ignore);
+						nextToken = e.TokenReader.Read();
+						e.End = true;
 					}
-					e.End = !nextToken.HasValue || nextToken.Value.Value != "=";
+					else
+					{
+						// 变量定义
+						if (!e.Ignore)
+						{
+							e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateDefineVarNode(currentToken.Value, definedTypeName, definedType));
+						}
+						e.End = !nextToken.HasValue || nextToken.Value.Value != "=";
+					}
 				}
 			}
 			else

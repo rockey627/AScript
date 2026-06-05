@@ -103,6 +103,16 @@ namespace AScript
 			return new FunctionEvalArgs(context, options, control, name, isPrefix, args);
 		}
 
+		public object EvalArgs(int i, out Type type)
+		{
+			if (this.ArgValues != null)
+			{
+				type = this.ArgTypes[i];
+				return this.ArgValues[i];
+			}
+			return this.Args[i].Eval(this.Context, this.Options, this.Control, out type);
+		}
+
 		public void EvalArgs(bool evalDefineFuncNode = true)
 		{
 			if (this.ArgValues != null) return;
