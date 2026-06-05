@@ -91,17 +91,55 @@ Assert.AreEqual("a", list[1].Address);
 
 #### INSERT
 ```C#
-
+var s = @"insert into list (Name, Age) values ('tom', 20), ('jim', 25)";
+var list = new List<Person>();
+var script = new Script();
+script.Context.Langs = new[] { "sql" };
+script.Context.SetVar("list", list);
+Assert.AreEqual(2, script.Eval(s));
+Assert.AreEqual(2, list.Count);
+Assert.AreEqual("tom", list[0].Name);
+Assert.AreEqual(20, list[0].Age);
+Assert.AreEqual("jim", list[1].Name);
+Assert.AreEqual(25, list[1].Age);
 ```
 
 #### UPDATE
 ```C#
-
+var s = @"update list set Age=28 where Age<25";
+var list = new List<Person>
+{
+	new Person("jim", 18),
+	new Person("tom", 20),
+	new Person("lily", 30)
+};
+var script = new Script();
+script.Context.Langs = new[] { "sql" };
+script.Context.SetVar("list", list);
+var count = (int)script.Eval(s);
+Assert.AreEqual(2, count);
+Assert.AreEqual(28, list[0].Age);
+Assert.AreEqual(28, list[1].Age);
+Assert.AreEqual(30, list[2].Age);
 ```
 
 #### DELETE
 ```C#
-
+var s = @"delete from list where Age<25";
+var list = new List<Person>
+{
+	new Person("jim", 18),
+	new Person("tom", 20),
+	new Person("lily", 30)
+};
+var script = new Script();
+script.Options.CompileMode = ECompileMode.All;
+script.Context.Langs = new[] { "sql" };
+script.Context.SetVar("list", list);
+var count = (int)script.Eval(s);
+Assert.AreEqual(2, count);
+Assert.AreEqual(1, list.Count);
+Assert.AreEqual("lily", list[0].Name);
 ```
 
 #### SqlServer存储过程
@@ -151,6 +189,24 @@ Assert.AreEqual("tom2", list[1].Name);
 Assert.AreEqual(30, list[1].Age);
 ```
 
+#### 创建函数
+```C#
+var s = @"
+CREATE FUNCTION Calc(@a INT, @b INT)
+RETURNS INT
+BEGIN
+	DECLARE @sum INT
+	SET @sum = @a * @b + @a + @b
+	RETURN @sum
+END
+SELECT Calc(2, 3)
+";
+var script = new Script();
+script.Context.Langs = new[] { "sql" };
+var result = script.Eval(s);
+Assert.AreEqual(11, result);
+```
+
 #### 创建表
 ```C#
 var s = @"
@@ -169,6 +225,26 @@ Assert.AreEqual(30, list[0].age);
 ```
 
 #### SQL to LINQ to SQL
+操作DbContext，将SQL语句转为LINQ查询，实现SQL to LINQ to SQL闭环：
 ```C#
-
+using (var context = new TestSqliteContext())
+{
+	var s = @"
+select p.Id, p.Name, p.Age, a.Address as MyAddress
+from context.Persons as p
+left join context.AddressInfos as a on p.Id = a.UserId
+";
+	var script = new Script();
+	script.Context.Langs = new[] { "sql" };
+	script.Context.SetVar("context", context);
+	var list = script.Eval<IEnumerable<dynamic>>(s).ToList();
+	Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
+}
+```
+生成的SQL语句：
+```
+SELECT "p"."Id", "p"."Name", "p"."Age", "a"."Address" AS "MyAddress"
+FROM "Persons" AS "p"
+LEFT JOIN "AddressInfos" AS "a" ON "p"."Id" = "a"."UserId"
+ORDER BY "p"."Age" DESC
 ```

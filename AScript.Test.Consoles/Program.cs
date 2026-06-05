@@ -156,15 +156,27 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 				//var list = script.Eval<IList>(s);
 				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
 
+				//string s = @"
+				//var q = from p in context.Persons
+				//		left join a in context.AddressInfos on p.Id equals a.UserId
+				//		select new { p.Id, p.Name, p.Age, MyAddress = a.Address };
+				//q.ToList();
+				//";
+				//var script = new Script();
+				//script.Context.SetVar("context", context);
+				//var list = script.Eval<IList>(s);
+				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
+
 				string s = @"
-				var q = from p in context.Persons
-						left join a in context.AddressInfos on p.Id equals a.UserId
-						select new { p.Id, p.Name, p.Age, MyAddress = a.Address };
-				q.ToList();
+select p.Id, p.Name, p.Age, a.Address as MyAddress
+from context.Persons as p
+left join context.AddressInfos as a on p.Id = a.UserId
+order by p.age desc
 				";
 				var script = new Script();
+				script.Context.Langs = new[] { "sql" };
 				script.Context.SetVar("context", context);
-				var list = script.Eval<IList>(s);
+				var list = script.Eval<IEnumerable<dynamic>>(s).ToList();
 				Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
 
 				//string s = @"
