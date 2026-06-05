@@ -69,8 +69,8 @@ namespace AScript.Lang.Sql
 				if (method.Name == "Concat") return method.Name;
 				return null;
 			});
-			//// Math函数
-			//AddFunc(typeof(Math));
+			// Math函数
+			AddFunc(typeof(Math));
 
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			AddTokenHandler("=", new OperatorTokenHandler("==", "=="));
