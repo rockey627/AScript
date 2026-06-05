@@ -30,6 +30,12 @@ namespace AScript.Lang.Sql.TokenHandlers
 				BuildProcedure(analyzer, e);
 				return;
 			}
+			if ("function".Equals(actionToken.Value.Value, StringComparison.OrdinalIgnoreCase))
+			{
+				e.CurrentToken = actionToken.Value;
+				BuildFunction(analyzer, e);
+				return;
+			}
 			if ("table".Equals(actionToken.Value.Value, StringComparison.OrdinalIgnoreCase))
 			{
 				e.CurrentToken = actionToken.Value;
@@ -77,10 +83,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 							varToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
 						}
 						var typeToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
-						if (args != null)
-						{
-							args.Add(PoolManage.CreateDefineVarNode(varToken.Value.Value, typeToken.Value.Value));
-						}
+						args?.Add(PoolManage.CreateDefineVarNode(varToken.Value.Value, typeToken.Value.Value));
 						nextToken = e.TokenReader.Read();
 						if (!nextToken.HasValue)
 						{
@@ -90,6 +93,10 @@ namespace AScript.Lang.Sql.TokenHandlers
 						if (nextToken.Value.IsSymbol(")"))
 						{
 							nextToken = e.TokenReader.Read();
+							if (!nextToken.HasValue)
+							{
+								throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+							}
 							break;
 						}
 						throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
@@ -154,6 +161,92 @@ namespace AScript.Lang.Sql.TokenHandlers
 			if (!e.Ignore)
 			{
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new DefineFuncNode { Name = nameToken.Value.Value, Args = args.ToArray(), Body = body });
+			}
+		}
+
+		/// <summary>
+		/// create function 函数名称(参数1 类型, 参数2 类型)
+		/// returns 返回类型
+		/// begin
+		/// 
+		/// end
+		/// </summary>
+		/// <param name="analyzer"></param>
+		/// <param name="e"></param>
+		private void BuildFunction(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
+		{
+			var nameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+			analyzer.ValidateNextToken(e.TokenReader, "(");
+			var args = e.Ignore ? null : new List<DefineVarNode>();
+			// 解析参数
+			var nextToken = e.TokenReader.Read();
+			if (nextToken.HasValue && nextToken.Value.IsSymbol(")"))
+			{
+				//nextToken = e.TokenReader.Read();
+			}
+			else
+			{
+				e.TokenReader.Push(nextToken.Value);
+				while (true)
+				{
+					var varToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+					//if (varToken.Value.IsSymbol("in", StringComparison.OrdinalIgnoreCase))
+					//{
+					//	varToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+					//}
+					var typeToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+					args?.Add(PoolManage.CreateDefineVarNode(varToken.Value.Value, typeToken.Value.Value));
+					nextToken = e.TokenReader.Read();
+					if (!nextToken.HasValue)
+					{
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+					}
+					if (nextToken.Value.IsSymbol(",")) continue;
+					if (nextToken.Value.IsSymbol(")"))
+					{
+						//nextToken = e.TokenReader.Read();
+						//if (!nextToken.HasValue)
+						//{
+						//	throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+						//}
+						break;
+					}
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
+				}
+			}
+			// 
+
+			ITreeNode body;
+			analyzer.ValidateNextToken(e.TokenReader, "returns", StringComparison.OrdinalIgnoreCase);
+			var returnTypeToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+			nextToken = e.TokenReader.Read();
+			if (!nextToken.HasValue)
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+			}
+			if (nextToken.Value.IsSymbol("as", StringComparison.OrdinalIgnoreCase))
+			{
+				nextToken = e.TokenReader.Read();
+				if (!nextToken.HasValue)
+				{
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+				}
+			}
+			var createFullOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
+			if (nextToken.Value.IsSymbol("begin", StringComparison.OrdinalIgnoreCase))
+			{
+				body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _ProcedureEndTokens);
+				analyzer.ValidateNextToken(e.TokenReader, "end", StringComparison.OrdinalIgnoreCase);
+			}
+			else
+			{
+				e.TokenReader.Push(nextToken.Value);
+				body = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
+			}
+			// 
+			if (!e.Ignore)
+			{
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new DefineFuncNode { Name = nameToken.Value.Value, ReturnType = returnTypeToken.Value.Value, Args = args.ToArray(), Body = body });
 			}
 		}
 

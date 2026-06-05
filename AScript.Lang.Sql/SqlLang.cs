@@ -68,6 +68,7 @@ namespace AScript.Lang.Sql
 				return null;
 			});
 
+			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			AddTokenHandler("=", new OperatorTokenHandler("==", "=="));
 			AddTokenHandler("<>", new OperatorTokenHandler("!=", "!="));
 			AddTokenHandler("and", AndAlsoTokenHandler.Instance);

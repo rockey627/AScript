@@ -471,7 +471,7 @@ namespace AScript.Nodes
 			}
 			var takeNode = new CallFuncNode
 			{
-				Name = "Skip",
+				Name = "Take",
 				Args = new ITreeNode[]
 				{
 					_Source,

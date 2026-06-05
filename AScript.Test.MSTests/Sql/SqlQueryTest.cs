@@ -23,6 +23,126 @@ namespace AScript.Test.MSTests.Sql
 		}
 
 		[TestMethod]
+		public void Test29_select_limit_offset_2()
+		{
+			var s = @"select Name, Age from list limit 2 offset 1";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("jim", result[0].Name);
+			Assert.AreEqual("san", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test29_select_limit_offset()
+		{
+			var s = @"select Name, Age from list limit 2 offset 1";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("jim", result[0].Name);
+			Assert.AreEqual("san", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test28_select_limit_4()
+		{
+			var s = @"select Name, Age from list limit 1,2";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("jim", result[0].Name);
+			Assert.AreEqual("san", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test28_select_limit_3()
+		{
+			var s = @"select Name, Age from list limit 1,2";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual("jim", result[0].Name);
+			Assert.AreEqual("san", result[1].Name);
+		}
+
+		[TestMethod]
+		public void Test28_select_limit_2()
+		{
+			var s = @"select Name, Age from list limit 3";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(3, result.Count);
+		}
+
+		[TestMethod]
+		public void Test28_select_limit()
+		{
+			var s = @"select Name, Age from list limit 3";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(3, result.Count);
+		}
+
+		[TestMethod]
 		public void Test27_isnotnull_6()
 		{
 			Assert.AreEqual((Person)null, (AddressInfo)null);

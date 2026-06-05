@@ -2,11 +2,11 @@
 
 ## 介绍
 支持SqlServer/MySql基础语法和数据类型：
-* 支持SELECT查询语法
+* 支持SELECT查询语法：`FROM/WHERE/LEFT JOIN/RIGHT JOIN/INNER JOIN/GROUP BY/ORDER BY/LIMIT`
 * 支持INSERT插入语法
 * 支持UPDATE修改语法
 * 支持DELETE删除语法
-* 支持创建存储过程
+* 支持创建存储过程：Sqlserver/MySql语法都支持
 * 支持创建表
 * 支持定义变量
 * 字段名、关键字不区分大小写
