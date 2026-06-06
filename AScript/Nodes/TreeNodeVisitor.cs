@@ -261,11 +261,11 @@ namespace AScript.Nodes
 				for (int i = 0; i < switchNode.Cases.Count; i++)
 				{
 					var t = switchNode.Cases[i];
-					var test = Visit(t.Item1);
+					Visit(t.Item1);
 					var body = Visit(t.Item2);
-					if (test != t.Item1 || body != t.Item2)
+					if (body != t.Item2)
 					{
-						switchNode.Cases[i] = Tuple.Create(test, body);
+						switchNode.Cases[i] = Tuple.Create(t.Item1, body);
 					}
 				}
 			}
