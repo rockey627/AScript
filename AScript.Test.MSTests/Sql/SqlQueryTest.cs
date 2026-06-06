@@ -23,6 +23,59 @@ namespace AScript.Test.MSTests.Sql
 		}
 
 		[TestMethod]
+		public void Test30_select_if_2()
+		{
+			var s = @"select Name, Age, if(Age>12,2,1) as Level from list";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(4, result.Count);
+			Assert.AreEqual("tom", result[0].Name);
+			Assert.AreEqual("jim", result[1].Name);
+			Assert.AreEqual("san", result[2].Name);
+			Assert.AreEqual("qin", result[3].Name);
+			Assert.AreEqual(2, result[0].Level);
+			Assert.AreEqual(1, result[1].Level);
+			Assert.AreEqual(2, result[2].Level);
+			Assert.AreEqual(1, result[3].Level);
+		}
+
+		[TestMethod]
+		public void Test30_select_if()
+		{
+			var s = @"select Name, Age, if(Age>12,2,1) as Level from list";
+			var list = new[]
+			{
+				new Person("tom", 15),
+				new Person("jim", 10),
+				new Person("san", 20),
+				new Person("qin", 10)
+			};
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			script.Context.SetVar("list", list);
+			var result = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(4, result.Count);
+			Assert.AreEqual("tom", result[0].Name);
+			Assert.AreEqual("jim", result[1].Name);
+			Assert.AreEqual("san", result[2].Name);
+			Assert.AreEqual("qin", result[3].Name);
+			Assert.AreEqual(2, result[0].Level);
+			Assert.AreEqual(1, result[1].Level);
+			Assert.AreEqual(2, result[2].Level);
+			Assert.AreEqual(1, result[3].Level);
+		}
+
+		[TestMethod]
 		public void Test29_select_limit_offset_2()
 		{
 			var s = @"select Name, Age from list limit 2 offset 1";

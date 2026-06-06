@@ -22,9 +22,10 @@ namespace AScript.Lang.Sql.TokenHandlers
 			var trueValue = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
 			analyzer.ValidateNextToken(e.TokenReader, ",");
 			var falseValue = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
+			analyzer.ValidateNextToken(e.TokenReader, ")");
 			if (!e.Ignore)
 			{
-				var ifNode = new IfNode { Condition = condition, Body = trueValue, Else = falseValue };
+				var ifNode = new IfNode { ReturnValue = true, Condition = condition, Body = trueValue, Else = falseValue };
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, ifNode);
 			}
 		}

@@ -101,14 +101,13 @@ namespace AScript.Lang.Sql.TokenHandlers
 				var table = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: _TableEndTokens);
 				string itemName = null;
 				nextToken = e.TokenReader.Read();
-				if (!nextToken.HasValue) break;
 
-				if (nextToken.Value.IsSymbol("as", StringComparison.OrdinalIgnoreCase))
+				if (nextToken.HasValue
+					&& nextToken.Value.IsSymbol("as", StringComparison.OrdinalIgnoreCase))
 				{
 					nextToken = e.TokenReader.Read();
 					itemName = nextToken.Value.Value;
 					nextToken = e.TokenReader.Read();
-					if (!nextToken.HasValue) break;
 				}
 				if (tables != null)
 				{
@@ -122,6 +121,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 					tables.Add(Tuple.Create(table, itemName));
 #endif
 				}
+				if (!nextToken.HasValue) break;
 				if (nextToken.Value.IsSymbol(",")) continue;
 				if (nextToken.Value.Type == ETokenType.Word && _Keywords.Contains(nextToken.Value.Value)) break;
 				break;

@@ -8,6 +8,7 @@ namespace AScript.Nodes
 {
     public class IfNode : TreeNode
 	{
+		public bool ReturnValue { get; set; }
 		public ITreeNode Condition { get; set; }
 		public ITreeNode Body { get; set; }
 		public ITreeNode Else { get; set; }
@@ -77,9 +78,24 @@ namespace AScript.Nodes
 			var ifTrueExpr = this.Body.Build(buildContext, scriptContext, options);
 			if (this.Else == null)
 			{
+				if (this.ReturnValue)
+				{
+					var v = Expression.Variable(ifTrueExpr.Type);
+					var assign = Expression.Assign(v, ifTrueExpr);
+					var ifExpr = Expression.IfThen(testExpr, assign);
+					return Expression.Block(new[] { v }, ifExpr, v);
+				}
 				return Expression.IfThen(testExpr, ifTrueExpr);
 			}
 			var elseExpr = this.Else.Build(buildContext, scriptContext, options);
+			if (this.ReturnValue)
+			{
+				var v = Expression.Variable(ifTrueExpr.Type);
+				var ifTrueAssign = Expression.Assign(v, ifTrueExpr);
+				var elseAssign = Expression.Assign(v, elseExpr);
+				var ifExpr = Expression.IfThenElse(testExpr, ifTrueAssign, elseAssign);
+				return Expression.Block(new[] { v }, ifExpr, v);
+			}
 			return Expression.IfThenElse(testExpr, ifTrueExpr, elseExpr);
 		}
 
