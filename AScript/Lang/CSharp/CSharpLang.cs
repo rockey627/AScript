@@ -133,6 +133,7 @@ namespace AScript.Lang.CSharp
 			AddTokenHandler("new", NewTokenHandler.Instance);
 			AddTokenHandler("if", IfTokenHandler.Instance);
 			AddTokenHandler("else", IfTokenHandler.Instance);
+			AddTokenHandler("switch", SwitchTokenHandler.Instance);
 			AddTokenHandler("for", ForTokenHandler.Instance);
 			AddTokenHandler("while", WhileTokenHandler.Instance);
 			AddTokenHandler("foreach", ForeachTokenHandler.Instance);

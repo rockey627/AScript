@@ -89,6 +89,10 @@ namespace AScript.Nodes
 			{
 				return VisitExpressionNode(expressionNode);
 			}
+			if (node is SwitchNode switchNode)
+			{
+				return VisitSwitchNode(switchNode);
+			}
 			return node;
 		}
 
@@ -246,6 +250,26 @@ namespace AScript.Nodes
 		public virtual ITreeNode VisitExpressionNode(ExpressionNode expressionNode)
 		{
 			return expressionNode;
+		}
+
+		public virtual ITreeNode VisitSwitchNode(SwitchNode switchNode)
+		{
+			switchNode.SwitchValue = Visit(switchNode.SwitchValue);
+			switchNode.DefaultBody = Visit(switchNode.DefaultBody);
+			if (switchNode.Cases != null && switchNode.Cases.Count > 0)
+			{
+				for (int i = 0; i < switchNode.Cases.Count; i++)
+				{
+					var t = switchNode.Cases[i];
+					var test = Visit(t.Item1);
+					var body = Visit(t.Item2);
+					if (test != t.Item1 || body != t.Item2)
+					{
+						switchNode.Cases[i] = Tuple.Create(test, body);
+					}
+				}
+			}
+			return switchNode;
 		}
 	}
 }
