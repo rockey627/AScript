@@ -115,13 +115,17 @@ namespace AScript.Lang.Sql.Nodes
 			var list = (IList)context.EvalFunc(options, control, "ToList", new ITreeNode[] { sourceNode });
 			if (list.Count == 0) return 0;
 
-			var visitor = new ValueEvalTreeNodeVisitor();
+			var visitor = new ValueEvalTreeNodeVisitor(list[0]);
+			for (int i = 0; i < this.Values.Count; i++)
+			{
+				visitor.Visit(this.Values[i]);
+			}
 			foreach (var item in list)
 			{
 				visitor.Item = item;
 				for (int i = 0; i < this.Fields.Count; i++)
 				{
-					var value = visitor.Visit(this.Values[i]).Eval(context, options, control, out var valueType);
+					var value = this.Values[i].Eval(context, options, control, out var valueType);
 					visitor.TrySetValue(this.Fields[i], value);
 				}
 			}
@@ -236,7 +240,7 @@ namespace AScript.Lang.Sql.Nodes
 			public ValueEvalTreeNodeVisitor() { }
 			public ValueEvalTreeNodeVisitor(object item)
 			{
-				Item = item;
+				this.Item = item;
 			}
 
 			public override ITreeNode VisitVariableNode(VariableNode variableNode)
@@ -246,32 +250,38 @@ namespace AScript.Lang.Sql.Nodes
 				{
 					return base.VisitVariableNode(variableNode);
 				}
-				if (TryGetValue(variableNode.Name, out var v))
+				var f = TryGetValue(variableNode.Name);
+				//if (TryGetValue(variableNode.Name, out var v))
+				if (f != null)
 				{
-					return new ObjectNode(v);
+					return new FuncObjectNode(f);
 				}
 				return base.VisitVariableNode(variableNode);
 			}
 
-			public bool TryGetValue(string name, out object value)
+			public Func<object> TryGetValue(string name)
 			{
 				if (this.Item is DataRow dataRow)
 				{
 					if (dataRow.Table.Columns.Contains(name))
 					{
-						value = dataRow[name];
-						return true;
+						//value = dataRow[name];
+						//return true;
+						return () => (this.Item as DataRow)[name];
 					}
-					value = null;
-					return false;
+					//value = null;
+					//return false;
+					return null;
 				}
 				if (TryGetProperty(name, out var p))
 				{
-					value = p.GetValue(this.Item);
-					return true;
+					//value = p.GetValue(this.Item);
+					//return true;
+					return ()=> p.GetValue(this.Item);
 				}
-				value = null;
-				return false;
+				//value = null;
+				//return false;
+				return null;
 			}
 
 			public bool TrySetValue(string name, object value)
