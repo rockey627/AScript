@@ -35,9 +35,10 @@ C#动态脚本解析编译执行引擎
 * 支持if/else语句
 * 支持for/while/foreach语句
 * 支持continue/break/return
+* 支持switch语句：case语句块不需要break
 * 支持自定义语法解析（自定义关键字）
 * 支持流式读取表达式
-* 支持自定义脚本语言，已实现CSharp和Python3两种语言
+* 支持自定义脚本语言，已实现CSharp/Python3/SQL三种语言
 * 支持2种执行模式：
 1. 解析执行：解析过程中计算结果，对于非循环语句有较高的性能及低内存，有循环语句则建议使用第2种编译执行方式
 ```C#
@@ -364,6 +365,24 @@ var script = new Script();
 Assert.AreEqual(55, script.Eval(s));
 ```
 
+#### switch
+```C#
+var s = @"
+n=1;
+switch(n) {
+case 1:
+	n=10;
+case 2:
+	n=20;
+default:
+	n=30;
+}
+n
+";
+var script = new Script();
+Assert.AreEqual(10, script.Eval(s));
+```
+
 #### LINQ
 * group
 ```C#
@@ -504,8 +523,9 @@ int n=10;
 def sum(a,b):
 	return a+b
 @end
-@lang 中文
-整型 m=20;
+@lang sql
+declare m int;
+set m=20;
 @end
 sum(m, n)";
 var script = new Script();
