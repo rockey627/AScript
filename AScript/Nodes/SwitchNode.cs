@@ -23,7 +23,14 @@ namespace AScript.Nodes
 			//	BreakLabel = Expression.Label()
 			//};
 			var switchValue = this.SwitchValue.Build(buildContext, scriptContext, options);
-			var defaultBody = this.DefaultBody?.Build(buildContext, scriptContext, options);
+			var blockNode = new BlockNode();
+			Expression defaultBody;
+			if (this.DefaultBody == null) defaultBody = null;
+			else
+			{
+				blockNode.Block = this.DefaultBody;
+				defaultBody = blockNode.Build(buildContext, scriptContext, options);
+			}
 			SwitchCase[] cases = null;
 			if (this.Cases != null)
 			{
@@ -32,7 +39,8 @@ namespace AScript.Nodes
 				{
 					var c = this.Cases[i];
 					var test = c.Item1.Select(a => a.Build(buildContext, scriptContext, options)).ToList();
-					var body = c.Item2.Build(buildContext, scriptContext, options);
+					blockNode.Block = c.Item2;
+					var body = blockNode.Build(buildContext, scriptContext, options);
 					cases[i] = Expression.SwitchCase(body, test);
 				}
 			}
@@ -105,7 +113,7 @@ namespace AScript.Nodes
 					}
 					if (set.Contains(switchValue))
 					{
-						return c.Item2.Eval(context, options, control, out returnType);
+						return new BlockNode(c.Item2).Eval(context, options, control, out returnType);
 						//var v = c.Item2.Eval(context, options, control, out returnType);
 						//if ((this.AutoBreak || tempController.Break || tempController.Terminal))
 						//{
@@ -116,7 +124,7 @@ namespace AScript.Nodes
 			}
 			if (this.DefaultBody != null)
 			{
-				return this.DefaultBody.Eval(context, options, control, out returnType);
+				return new BlockNode(this.DefaultBody).Eval(context, options, control, out returnType);
 			}
 			returnType = null;
 			return null;

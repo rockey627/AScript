@@ -63,6 +63,56 @@ n=20;
 		}
 
 		[TestMethod]
+		public void TestBasicSwitch_Int_3()
+		{
+			string s = @"
+n=1;
+switch(n) {
+case 1:
+	int m=6;
+	n=m+4;
+case 2:
+	int m=8;
+	n=m+12;
+}
+n;
+";
+			var script = new Script();
+			Assert.AreEqual(10, script.Eval(s));
+			Assert.AreEqual(false, ScriptUtils.IsVariableExists(null, script.Context, "m"));
+
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(10, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void TestBasicSwitch_Int_2()
+		{
+			string s = @"
+n=1;
+switch(n) {
+case 1:
+{
+	int m=6;
+	n=m+4;
+}
+case 2:
+{
+	int m=8;
+	n=m+12;
+}
+}
+n;
+";
+			var script = new Script();
+			Assert.AreEqual(10, script.Eval(s));
+			Assert.AreEqual(false, ScriptUtils.IsVariableExists(null, script.Context, "m"));
+
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(10, script.Eval(s));
+		}
+
+		[TestMethod]
 		public void TestBasicSwitch_Int()
 		{
 			string s = @"

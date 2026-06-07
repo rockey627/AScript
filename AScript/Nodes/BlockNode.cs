@@ -9,6 +9,12 @@ namespace AScript.Nodes
 	{
 		public ITreeNode Block { get; set; }
 
+		public BlockNode() { }
+		public BlockNode(ITreeNode block)
+		{
+			this.Block = block;
+		}
+
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
 			if (this.Block != null)
