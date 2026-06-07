@@ -17,6 +17,11 @@ namespace AScript.Nodes
 		public ITreeNode Root => _Root;
 		public ITreeNode Current => _Current;
 
+		public bool IsEmpty()
+		{
+			return _Root == null && _LastResult == null && (_Expressions == null || _Expressions.Count == 0);
+		}
+
 		public ITreeNode Pop()
 		{
 			var c = _Current;
