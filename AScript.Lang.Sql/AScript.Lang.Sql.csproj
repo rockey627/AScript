@@ -15,16 +15,17 @@
 Script.Langs.Set("sql", SqlLang.Instance);
 string s = @"
 @lang sql
-select name from list where name like 'to%' and age=10
+select name,age from list where name like 'to%' and age=10
 ";
 var script = new Script();
 script.Context.SetVar("list", new [] { new Person("tommy", 15), new Person("tony", 10) });
-var result = script.Eval(s);
-Assert.AreEqual(typeof(IEnumerable<string>), result.GetType());
-Assert.AreEqual("tony", string.Join(",", (IEnumerable<string>)result));
+var list = script.Eval<IEnumerable<dynamic>>(s).ToList();
+Assert.AreEqual(1, list.Count);
+Assert.AreEqual("tony", list[0].name);
+Assert.AreEqual(10, list[0].age);
 			]]>
 		</Description>
-		<Version>0.0.0.1</Version>
+		<Version>0.0.1.0</Version>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes></PackageReleaseNotes>
 	</PropertyGroup>
