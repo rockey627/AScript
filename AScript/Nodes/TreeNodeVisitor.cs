@@ -93,6 +93,10 @@ namespace AScript.Nodes
 			{
 				return VisitSwitchNode(switchNode);
 			}
+			if (node is FuncObjectNode funcObjectNode)
+			{
+				return VisitFuncObjectNode(funcObjectNode);
+			}
 			return node;
 		}
 
@@ -270,6 +274,11 @@ namespace AScript.Nodes
 				}
 			}
 			return switchNode;
+		}
+
+		public virtual ITreeNode VisitFuncObjectNode(FuncObjectNode funcObjectNode)
+		{
+			return funcObjectNode;
 		}
 	}
 }
