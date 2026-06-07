@@ -20,11 +20,12 @@ namespace AScript.Lang.Sql.TokenHandlers
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
+			e.IsHandled = true;
 			var createFullOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
 			var switchValue = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, _CaseEndTokens);
 			bool isSwitchValueEmpty = switchValue == null || (switchValue is TreeBuilder switchTreeBuilder) && switchTreeBuilder.IsEmpty();
-			var whenList = e.Ignore || isSwitchValueEmpty ? null : new List<Tuple<ITreeNode, ITreeNode>>();
-			var caseList = e.Ignore || !isSwitchValueEmpty ? null : new List<Tuple<IList<ITreeNode>, ITreeNode>>();
+			var whenList = e.Ignore || !isSwitchValueEmpty ? null : new List<Tuple<ITreeNode, ITreeNode>>();
+			var caseList = e.Ignore || isSwitchValueEmpty ? null : new List<Tuple<IList<ITreeNode>, ITreeNode>>();
 			ITreeNode defaultBody = null;
 			bool hasWhen = false;
 			bool hasElse = false;
@@ -65,11 +66,11 @@ namespace AScript.Lang.Sql.TokenHandlers
 				{
 					if (ifNode == null)
 					{
-						ifNode = new IfNode { Condition = item.Item1, Body = item.Item2 };
+						ifNode = new IfNode { Condition = item.Item1, Body = item.Item2, ReturnValue = true };
 					}
 					else
 					{
-						var elseNode = new IfNode { Condition = item.Item1, Body = item.Item2 };
+						var elseNode = new IfNode { Condition = item.Item1, Body = item.Item2, ReturnValue = true };
 						ifNode.Else = elseNode;
 						ifNode = elseNode;
 					}
