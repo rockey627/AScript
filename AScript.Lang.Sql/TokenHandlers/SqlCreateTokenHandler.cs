@@ -274,31 +274,123 @@ namespace AScript.Lang.Sql.TokenHandlers
 				var nameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
 				var typeToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
 				var type = e.ScriptContext.EvalType(typeToken.Value.Value) ?? throw new Exceptions.ScriptAnalyzingException($"unkown type '{typeToken.Value.Value}'");
+				int? length = null;
+				bool autoIncrement = false;
+				long? autoIncrementSeed = null;
+				long? autoIncrementStep = null;
+				bool? unique = null;
+				object defaultValue = null;
+				bool nullable = true;
 				var nextToken = e.TokenReader.Read();
 				if (!nextToken.HasValue)
 				{
 					throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
 				}
-				bool nullable = true;
-				if (nextToken.Value.IsSymbol("not"))
+				if (nextToken.Value.IsSymbol("("))
 				{
-					analyzer.ValidateNextToken(e.TokenReader, "null", StringComparison.OrdinalIgnoreCase);
-					nextToken = e.TokenReader.Read();
-					if (!nextToken.HasValue)
-					{
-						throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
-					}
-					nullable = false;
-				}
-				else if (nextToken.Value.IsSymbol("null"))
-				{
+					// 长度
+					length = int.Parse(analyzer.ValidateNextToken(e.TokenReader, ETokenType.Number).Value.Value);
+					analyzer.ValidateNextToken(e.TokenReader, ")");
 					nextToken = e.TokenReader.Read();
 					if (!nextToken.HasValue)
 					{
 						throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
 					}
 				}
-				columns?.Add(new DataColumn(nameToken.Value.Value, type) { AllowDBNull = nullable });
+				while (true)
+				{
+					if (nextToken.Value.IsSymbol("not", StringComparison.OrdinalIgnoreCase))
+					{
+						analyzer.ValidateNextToken(e.TokenReader, "null", StringComparison.OrdinalIgnoreCase);
+						nextToken = e.TokenReader.Read();
+						if (!nextToken.HasValue)
+						{
+							throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+						}
+						nullable = false;
+					}
+					else if (nextToken.Value.IsSymbol("null", StringComparison.OrdinalIgnoreCase))
+					{
+						nextToken = e.TokenReader.Read();
+						if (!nextToken.HasValue)
+						{
+							throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+						}
+					}
+					else if (nextToken.Value.IsSymbol("AUTO_INCREMENT", StringComparison.OrdinalIgnoreCase))
+					{
+						// MySql自增
+						autoIncrement = true;
+						nextToken = e.TokenReader.Read();
+						if (!nextToken.HasValue)
+						{
+							throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+						}
+					}
+					else if (nextToken.Value.IsSymbol("IDENTITY", StringComparison.OrdinalIgnoreCase))
+					{
+						autoIncrement = true;
+						nextToken = e.TokenReader.Read();
+						if (!nextToken.HasValue)
+						{
+							throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+						}
+						if (nextToken.Value.IsSymbol("("))
+						{
+							autoIncrementSeed = long.Parse(analyzer.ValidateNextToken(e.TokenReader, ETokenType.Number).Value.Value);
+							analyzer.ValidateNextToken(e.TokenReader, ",");
+							autoIncrementStep = long.Parse(analyzer.ValidateNextToken(e.TokenReader, ETokenType.Number).Value.Value);
+							analyzer.ValidateNextToken(e.TokenReader, ")");
+							nextToken = e.TokenReader.Read();
+							if (!nextToken.HasValue)
+							{
+								throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+							}
+						}
+					}
+					else if (nextToken.Value.IsSymbol("PRIMARY", StringComparison.OrdinalIgnoreCase))
+					{
+						analyzer.ValidateNextToken(e.TokenReader, "key", StringComparison.OrdinalIgnoreCase);
+						nextToken = e.TokenReader.Read();
+						if (!nextToken.HasValue)
+						{
+							throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+						}
+						unique = true;
+					}
+					else if (nextToken.Value.IsSymbol("default", StringComparison.OrdinalIgnoreCase))
+					{
+						var defaultNode = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+						if (defaultNode != null)
+						{
+							defaultValue = defaultNode.Eval(e.ScriptContext, e.Options, e.Control, out _);
+						}
+						nextToken = e.TokenReader.Read();
+						if (!nextToken.HasValue)
+						{
+							throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn})");
+						}
+					}
+					else if (nextToken.Value.IsSymbol(",")) break;
+					else if (nextToken.Value.IsSymbol(")")) break;
+					else throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
+				}
+				// 
+				if (columns != null)
+				{
+					var column = new DataColumn(nameToken.Value.Value, type) { AllowDBNull = nullable };
+					if (length.HasValue) column.MaxLength = length.Value;
+					if (autoIncrement)
+					{
+						column.AutoIncrement = autoIncrement;
+						if (!autoIncrementSeed.HasValue) autoIncrementSeed = 1;
+					}
+					if (autoIncrementSeed.HasValue) column.AutoIncrementSeed = autoIncrementSeed.Value;
+					if (autoIncrementStep.HasValue) column.AutoIncrementStep = autoIncrementStep.Value;
+					if (unique.HasValue) column.Unique = unique.Value;
+					if (defaultValue != null) column.DefaultValue = defaultValue;
+					columns.Add(column);
+				}
 				if (nextToken.Value.IsSymbol(",")) continue;
 				if (nextToken.Value.IsSymbol(")")) break;
 				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");

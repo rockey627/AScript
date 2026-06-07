@@ -61,12 +61,14 @@ namespace AScript.Lang.Sql.TokenHandlers
 			if (whenList != null)
 			{
 				// if语句
+				IfNode root = null;
 				IfNode ifNode = null;
 				foreach (var item in whenList)
 				{
 					if (ifNode == null)
 					{
 						ifNode = new IfNode { Condition = item.Item1, Body = item.Item2, ReturnValue = true };
+						root = ifNode;
 					}
 					else
 					{
@@ -76,7 +78,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 					}
 				}
 				ifNode.Else = defaultBody;
-				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, ifNode);
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, root);
 			}
 			else if (caseList != null)
 			{
