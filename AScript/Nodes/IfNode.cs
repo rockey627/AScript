@@ -80,21 +80,24 @@ namespace AScript.Nodes
 			{
 				if (this.ReturnValue)
 				{
-					var v = Expression.Variable(ifTrueExpr.Type);
-					var assign = Expression.Assign(v, ifTrueExpr);
-					var ifExpr = Expression.IfThen(testExpr, assign);
-					return Expression.Block(new[] { v }, ifExpr, v);
+					//var v = Expression.Variable(ifTrueExpr.Type);
+					//var assign = Expression.Assign(v, ifTrueExpr);
+					//var ifExpr = Expression.IfThen(testExpr, assign);
+					//return Expression.Block(new[] { v }, ifExpr, v);
+					var elseValue = Expression.Constant(ScriptUtils.GetDefaultValue(ifTrueExpr.Type));
+					return Expression.Condition(testExpr, ifTrueExpr, elseValue);
 				}
 				return Expression.IfThen(testExpr, ifTrueExpr);
 			}
 			var elseExpr = this.Else.Build(buildContext, scriptContext, options);
 			if (this.ReturnValue)
 			{
-				var v = Expression.Variable(ifTrueExpr.Type);
-				var ifTrueAssign = Expression.Assign(v, ifTrueExpr);
-				var elseAssign = Expression.Assign(v, elseExpr);
-				var ifExpr = Expression.IfThenElse(testExpr, ifTrueAssign, elseAssign);
-				return Expression.Block(new[] { v }, ifExpr, v);
+				//var v = Expression.Variable(ifTrueExpr.Type);
+				//var ifTrueAssign = Expression.Assign(v, ifTrueExpr);
+				//var elseAssign = Expression.Assign(v, elseExpr);
+				//var ifExpr = Expression.IfThenElse(testExpr, ifTrueAssign, elseAssign);
+				//return Expression.Block(new[] { v }, ifExpr, v);
+				return Expression.Condition(testExpr, ifTrueExpr, elseExpr);
 			}
 			return Expression.IfThenElse(testExpr, ifTrueExpr, elseExpr);
 		}
