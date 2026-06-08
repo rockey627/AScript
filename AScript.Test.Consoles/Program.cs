@@ -169,7 +169,7 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 				
 				// , case p.Age when 20 then 1 else 2 end as Level
 				string s = @"
-				select p.Id, p.Name, p.Age, a.Address as MyAddress, case p.Age when 20 then 1 else 2 end as Level
+				select p.Id, p.Name, p.Age, a.Address as MyAddress, case p.Age when 20 then 1 when 22 then 2 else 3 end as Level
 				from context.Persons as p
 				left join context.AddressInfos as a on p.Id = a.UserId
 				order by p.age desc

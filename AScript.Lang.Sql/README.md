@@ -292,7 +292,7 @@ Assert.AreEqual("需加强", list[3].advanced_grade);
 using (var context = new TestSqliteContext())
 {
 	var s = @"
-select p.Id, p.Name, p.Age, a.Address as MyAddress
+select p.Id, p.Name, p.Age, a.Address as MyAddress, case p.Age when 20 then 1 when 22 then 2 else 3 end as Level
 from context.Persons as p
 left join context.AddressInfos as a on p.Id = a.UserId
 ";
@@ -305,7 +305,11 @@ left join context.AddressInfos as a on p.Id = a.UserId
 ```
 生成的SQL语句：
 ```
-SELECT "p"."Id", "p"."Name", "p"."Age", "a"."Address" AS "MyAddress"
+SELECT "p"."Id", "p"."Name", "p"."Age", "a"."Address" AS "MyAddress", CASE
+    WHEN "p"."Age" = 20 THEN 1
+    WHEN "p"."Age" = 22 THEN 2
+    ELSE 3
+END AS "Level"
 FROM "Persons" AS "p"
 LEFT JOIN "AddressInfos" AS "a" ON "p"."Id" = "a"."UserId"
 ORDER BY "p"."Age" DESC

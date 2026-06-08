@@ -366,6 +366,7 @@ Assert.AreEqual(55, script.Eval(s));
 ```
 
 #### switch
+与C#中的switch语法不同，语句块中不需要break。
 ```C#
 var s = @"
 n=1;
