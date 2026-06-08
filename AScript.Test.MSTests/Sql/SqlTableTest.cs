@@ -463,6 +463,41 @@ SELECT Name,age FROM person WHERE age > 22";
 		}
 
 		[TestMethod]
+		public void Test_create_table_and_select_3()
+		{
+			var s = @"
+CREATE TABLE person (name varchar, Age int)
+INSERT INTO person (name, age) VALUES ('tom', 20)
+INSERT INTO person (name, age) VALUES ('jim', 25)
+SELECT Name, age, case age when 20 then 1 else 2 end as level FROM person WHERE age > 22";
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			var result = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(1, result.Count);
+			Assert.AreEqual("jim", result[0].Name);
+			Assert.AreEqual(25, result[0].age);
+			Assert.AreEqual(2, result[0].level);
+		}
+
+		[TestMethod]
+		public void Test_create_table_and_select_4()
+		{
+			var s = @"
+CREATE TABLE person (name varchar, Age int)
+INSERT INTO person (name, age) VALUES ('tom', 20)
+INSERT INTO person (name, age) VALUES ('jim', 25)
+SELECT Name, age, case age when 20 then 1 else 2 end as level FROM person WHERE age > 22";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			var result = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(1, result.Count);
+			Assert.AreEqual("jim", result[0].Name);
+			Assert.AreEqual(25, result[0].age);
+			Assert.AreEqual(2, result[0].level);
+		}
+
+		[TestMethod]
 		public void Test_create_table_and_update()
 		{
 			var s = @"

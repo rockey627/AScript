@@ -33,7 +33,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			Test01_Benchmark();
+			//Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -56,7 +56,7 @@ namespace AScript.Test.Consoles
 			//Test21_ExpandoObject();
 			//Test22();
 			//Test23();
-			//Test24_Sqlite();
+			Test24_Sqlite();
 			//var p = Expression.Constant(new Person());
 			//Console.WriteLine(Expression.PropertyOrField(p, "name"));
 			Console.WriteLine("end");
@@ -166,12 +166,13 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 				//script.Context.SetVar("context", context);
 				//var list = script.Eval<IList>(s);
 				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
-
+				
+				// , case p.Age when 20 then 1 else 2 end as Level
 				string s = @"
-select p.Id, p.Name, p.Age, a.Address as MyAddress
-from context.Persons as p
-left join context.AddressInfos as a on p.Id = a.UserId
-order by p.age desc
+				select p.Id, p.Name, p.Age, a.Address as MyAddress, case p.Age when 20 then 1 else 2 end as Level
+				from context.Persons as p
+				left join context.AddressInfos as a on p.Id = a.UserId
+				order by p.age desc
 				";
 				var script = new Script();
 				script.Context.Langs = new[] { "sql" };

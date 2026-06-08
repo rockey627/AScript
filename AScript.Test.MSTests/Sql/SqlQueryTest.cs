@@ -1283,6 +1283,63 @@ namespace AScript.Test.MSTests.Sql
 		}
 
 		[TestMethod]
+		public void Test13_leftjoin_6()
+		{
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 30) }.AsQueryable();
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") }.AsQueryable();
+			string s = @"
+@lang sql
+select a.Name, a.Age, b?.Address, case a.Age when 25 then 1 else 2 end as Level
+from q1 as a
+left join q2 as b on a.Name = b.UserName
+where a.age > 22
+order by a.age desc
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("q1", q1);
+			script.Context.SetVar("q2", q2);
+			var list = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(2, list.Count);
+			Assert.AreEqual("kit", list[0].Name);
+			Assert.AreEqual(30, list[0].Age);
+			Assert.AreEqual(2, list[0].Level);
+			Assert.IsNull(list[0].Address);
+			Assert.AreEqual("jim", list[1].Name);
+			Assert.AreEqual(25, list[1].Age);
+			Assert.AreEqual("a", list[1].Address);
+			Assert.AreEqual(1, list[1].Level);
+		}
+
+		[TestMethod]
+		public void Test13_leftjoin_5()
+		{
+			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 30) }.AsQueryable();
+			var q2 = new[] { new AddressInfo("jim", "a"), new AddressInfo("cc", "b"), new AddressInfo("tom", "c"), new AddressInfo("ee", "d") }.AsQueryable();
+			string s = @"
+@lang sql
+select a.Name, a.Age, b?.Address, case a.Age when 25 then 1 else 2 end as Level
+from q1 as a
+left join q2 as b on a.Name = b.UserName
+where a.age > 22
+order by a.age desc
+";
+			var script = new Script();
+			script.Context.SetVar("q1", q1);
+			script.Context.SetVar("q2", q2);
+			var list = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(2, list.Count);
+			Assert.AreEqual("kit", list[0].Name);
+			Assert.AreEqual(30, list[0].Age);
+			Assert.AreEqual(2, list[0].Level);
+			Assert.IsNull(list[0].Address);
+			Assert.AreEqual("jim", list[1].Name);
+			Assert.AreEqual(25, list[1].Age);
+			Assert.AreEqual("a", list[1].Address);
+			Assert.AreEqual(1, list[1].Level);
+		}
+
+		[TestMethod]
 		public void Test13_leftjoin_4()
 		{
 			var q1 = new[] { new Person("tom", 20), new Person("jim", 25), new Person("san", 18), new Person("kit", 30) };

@@ -58,6 +58,7 @@ namespace AScript
 
 		public static readonly MethodInfo Method_IDictionary_string_object_Add = typeof(IDictionary<string, object>).GetMethod("Add", new[] { typeof(string), typeof(object) });
 
+		public static readonly MethodInfo Method_Convert_ChangeType = typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) });
 		public static readonly MethodInfo Method_Convert_ToBoolean_object = typeof(Convert).GetMethod("ToBoolean", new[] { typeof(object) });
 		public static readonly MethodInfo Method_Convert_ToByte_object = typeof(Convert).GetMethod("ToByte", new[] { typeof(object) });
 		public static readonly MethodInfo Method_Convert_ToChar_object = typeof(Convert).GetMethod("ToChar", new[] { typeof(object) });
@@ -426,6 +427,12 @@ namespace AScript
 
 			if (typeof(DataRow).IsAssignableFrom(instance.Type))
 			{
+				//var table = Expression.Property(instance, "Table");
+				//var cols = Expression.Property(table, "Columns");
+				//var col = Expression.Property(cols, "Item", Expression.Constant(propertyOrFieldName));
+				//var type = Expression.Property(col, "DataType");
+				//var item = Expression.Property(instance, Property_DataRow_Item_String, Expression.Constant(propertyOrFieldName));
+				//return Expression.Call(Method_Convert_ChangeType, item, type);
 				return Expression.Property(instance, Property_DataRow_Item_String, Expression.Constant(propertyOrFieldName));
 			}
 
