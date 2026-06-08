@@ -7,3 +7,4 @@
 */bin
 /.claude
 *.user
+*.db

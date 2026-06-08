@@ -44,7 +44,7 @@ namespace AScript.Nodes
 				Expression condition;
 				if (testExpressions.Count == 1)
 				{
-					condition = Expression.Equal(switchValue, testExpressions[0]);
+					condition = MakeEqualExpression(switchValue, testExpressions[0]);
 				}
 				else
 				{
@@ -52,7 +52,7 @@ namespace AScript.Nodes
 					condition = null;
 					foreach (var testExpr in testExpressions)
 					{
-						var eq = Expression.Equal(switchValue, testExpr);
+						var eq = MakeEqualExpression(switchValue, testExpr);
 						condition = condition == null ? eq : Expression.OrElse(condition, eq);
 					}
 				}
@@ -65,6 +65,27 @@ namespace AScript.Nodes
 				result = Expression.Condition(condition, body, result);
 			}
 			return result;
+		}
+
+		///<summary>
+		/// 创建相等比较表达式，自动处理类型不匹配的情况
+		/// </summary>
+		private static Expression MakeEqualExpression(Expression left, Expression right)
+		{
+			if (left.Type == right.Type)
+			{
+				return Expression.Equal(left, right);
+			}
+			// 类型不匹配时，尝试转换为共同类型
+			if (left.Type == typeof(object))
+			{
+				left = Expression.Convert(left, right.Type);
+			}
+			else if (right.Type == typeof(object))
+			{
+				right = Expression.Convert(right, left.Type);
+			}
+			return Expression.Equal(left, right);
 		}
 
 		//public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
