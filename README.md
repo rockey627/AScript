@@ -371,12 +371,16 @@ Assert.AreEqual(55, script.Eval(s));
 var s = @"
 n=1;
 switch(n) {
+case 0:
 case 1:
-	n=10;
+	int m=6;
+	n=m+4;
 case 2:
-	n=20;
+	int m=8
+	n=m+12;
 default:
-	n=30;
+	int m=9
+	n=m+21;
 }
 n
 ";
