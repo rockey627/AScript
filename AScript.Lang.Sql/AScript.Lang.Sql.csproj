@@ -25,9 +25,9 @@ Assert.AreEqual("tony", list[0].name);
 Assert.AreEqual(10, list[0].age);
 			]]>
 		</Description>
-		<Version>0.0.1.0</Version>
+		<Version>0.0.2.0</Version>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes></PackageReleaseNotes>
+		<PackageReleaseNotes>修复SqlUpdateNode问题</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
