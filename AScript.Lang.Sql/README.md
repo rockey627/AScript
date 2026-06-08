@@ -232,7 +232,7 @@ CREATE TABLE student_scores (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(50),
     subject VARCHAR(20),
-    score INT,
+    score INT NOT NULL DEFAULT 0,
     class_level VARCHAR(10)
 );
 

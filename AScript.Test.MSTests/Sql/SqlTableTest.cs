@@ -24,6 +24,117 @@ namespace AScript.Test.MSTests.Sql
 		}
 
 		[TestMethod]
+		public void Test03_student_scores_4()
+		{
+			var s = @"
+CREATE TABLE student_scores (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50),
+    subject VARCHAR(20),
+    score INT NOT NULL DEFAULT 0,
+    class_level VARCHAR(10)
+);
+
+INSERT INTO student_scores (name,subject,score,class_level) VALUES
+('张三','数学',85,'A'),
+('李四','数学',92,'B'),
+('王五','数学',78,'A'),
+('赵六','数学',45,'C');
+
+UPDATE student_scores
+SET class_level = 
+    CASE 
+        WHEN score >= 90 THEN 
+            CASE WHEN class_level='A' THEN 'A+' ELSE 'A' END
+        WHEN score >= 80 THEN 'B'
+        ELSE 'C'
+    END;
+
+SELECT id,name,subject,score,class_level FROM student_scores;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "sql" };
+			var list = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(4, list.Count);
+			Assert.AreEqual(1, list[0].id);
+			Assert.AreEqual("张三", list[0].name);
+			Assert.AreEqual(85, list[0].score);
+			Assert.AreEqual("数学", list[0].subject);
+			Assert.AreEqual("B", list[0].class_level);
+			Assert.AreEqual(2, list[1].id);
+			Assert.AreEqual("李四", list[1].name);
+			Assert.AreEqual(92, list[1].score);
+			Assert.AreEqual("数学", list[1].subject);
+			Assert.AreEqual("A", list[1].class_level);
+			Assert.AreEqual(3, list[2].id);
+			Assert.AreEqual("王五", list[2].name);
+			Assert.AreEqual(78, list[2].score);
+			Assert.AreEqual("数学", list[2].subject);
+			Assert.AreEqual("C", list[2].class_level);
+			Assert.AreEqual(4, list[3].id);
+			Assert.AreEqual("赵六", list[3].name);
+			Assert.AreEqual(45, list[3].score);
+			Assert.AreEqual("数学", list[3].subject);
+			Assert.AreEqual("C", list[3].class_level);
+		}
+
+		[TestMethod]
+		public void Test03_student_scores_3()
+		{
+			var s = @"
+CREATE TABLE student_scores (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50),
+    subject VARCHAR(20),
+    score INT NOT NULL DEFAULT 0,
+    class_level VARCHAR(10)
+);
+
+INSERT INTO student_scores (name,subject,score,class_level) VALUES
+('张三','数学',85,'A'),
+('李四','数学',92,'B'),
+('王五','数学',78,'A'),
+('赵六','数学',45,'C');
+
+UPDATE student_scores
+SET class_level = 
+    CASE 
+        WHEN score >= 90 THEN 
+            CASE WHEN class_level='A' THEN 'A+' ELSE 'A' END
+        WHEN score >= 80 THEN 'B'
+        ELSE 'C'
+    END;
+
+SELECT id,name,subject,score,class_level FROM student_scores;
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "sql" };
+			var list = script.Eval<IEnumerable<dynamic>>(s).ToList();
+			Assert.AreEqual(4, list.Count);
+			Assert.AreEqual(1, list[0].id);
+			Assert.AreEqual("张三", list[0].name);
+			Assert.AreEqual(85, list[0].score);
+			Assert.AreEqual("数学", list[0].subject);
+			Assert.AreEqual("B", list[0].class_level);
+			Assert.AreEqual(2, list[1].id);
+			Assert.AreEqual("李四", list[1].name);
+			Assert.AreEqual(92, list[1].score);
+			Assert.AreEqual("数学", list[1].subject);
+			Assert.AreEqual("A", list[1].class_level);
+			Assert.AreEqual(3, list[2].id);
+			Assert.AreEqual("王五", list[2].name);
+			Assert.AreEqual(78, list[2].score);
+			Assert.AreEqual("数学", list[2].subject);
+			Assert.AreEqual("C", list[2].class_level);
+			Assert.AreEqual(4, list[3].id);
+			Assert.AreEqual("赵六", list[3].name);
+			Assert.AreEqual(45, list[3].score);
+			Assert.AreEqual("数学", list[3].subject);
+			Assert.AreEqual("C", list[3].class_level);
+		}
+
+		[TestMethod]
 		public void Test03_student_scores_2()
 		{
 			var s = @"

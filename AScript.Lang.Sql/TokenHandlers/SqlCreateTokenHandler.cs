@@ -360,7 +360,8 @@ namespace AScript.Lang.Sql.TokenHandlers
 					}
 					else if (nextToken.Value.IsSymbol("default", StringComparison.OrdinalIgnoreCase))
 					{
-						var defaultNode = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+						var createFullOptions = (e.Options.CompileMode ?? ECompileMode.None) == ECompileMode.None || (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
+						var defaultNode = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
 						if (defaultNode != null)
 						{
 							defaultValue = defaultNode.Eval(e.ScriptContext, e.Options, e.Control, out _);
