@@ -62,7 +62,7 @@ namespace AScript.Lang.JavaScript.TokenHandlers
 			//
 			if (!e.Ignore)
 			{
-				var defineNode = new DefineFuncNode { Name = funcName, Args = args.ToArray(), Body = body };
+				var defineNode = new DefineFuncNode { Name = funcName, Args = args?.ToArray(), Body = body };
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, defineNode);
 			}
 		}

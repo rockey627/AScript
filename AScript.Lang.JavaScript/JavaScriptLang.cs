@@ -77,6 +77,9 @@ namespace AScript.Lang.JavaScript
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			AddTokenHandler("break", BreakTokenHandler.Instance);
 			AddTokenHandler("continue", ContinueTokenHandler.Instance);
+			AddTokenHandler("if", IfTokenHandler.Instance);
+			AddTokenHandler("else", IfTokenHandler.Instance);
+			AddTokenHandler("while", WhileTokenHandler.Instance);
 			AddTokenHandler("function", JavaScriptFunctionTokenHandler.Instance);
 		}
 
