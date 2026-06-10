@@ -20,6 +20,8 @@ namespace AScript.Lang.JavaScript
 			AddType("let", typeof(object));
 			AddType("const", typeof(object));
 			AddType("Array", typeof(Array));
+			AddType("Set", typeof(HashSet<object>));
+			AddType("Map", typeof(Dictionary<object, object>));
 
 			AddFunc("=", AssignOperator.Instance);
 			AddFunc("+=", PlusAssignOperator.Instance);
