@@ -739,6 +739,101 @@ fn(5);
 		}
 
 		[TestMethod]
+		public void TestObject_Basic_8()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var person = { 'name 2': 'Bob', age: 25 };
+person['name 2'] + person.age;
+";
+			Assert.AreEqual("Bob25", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestObject_Basic_7()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var person = { 'name 2': 'Bob', age: 25 };
+person['name 2'] + person.age;
+";
+			Assert.AreEqual("Bob25", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestObject_Basic_6()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var person = { 'name+2': 'Bob', age: 25 };
+person['name+2'] + person.age;
+";
+			Assert.AreEqual("Bob25", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestObject_Basic_5()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var person = { 'name+2': 'Bob', age: 25 };
+person['name+2'] + person.age;
+";
+			Assert.AreEqual("Bob25", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestObject_Basic_4()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var person = { 'name': 'Bob', age: 25 };
+person['name'] + person.age;
+";
+			Assert.AreEqual("Bob25", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestObject_Basic_3()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var person = { 'name': 'Bob', age: 25 };
+person['name'] + person.age;
+";
+			Assert.AreEqual("Bob25", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestObject_Basic_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var person = { name: 'Bob', age: 25 };
+person.name;
+";
+			Assert.AreEqual("Bob", script.Eval(code));
+		}
+
+		[TestMethod]
 		public void TestObject_Basic()
 		{
 			var script = new Script();
@@ -749,6 +844,64 @@ var person = { name: 'Bob', age: 25 };
 person.name;
 ";
 			Assert.AreEqual("Bob", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestObject_PropertyAccess_8()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var obj = { x: 10, y: 20 };
+obj.z=30;
+obj.x + obj['y'] + obj['z'];
+";
+			Assert.AreEqual(60L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestObject_PropertyAccess_7()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var obj = { x: 10, y: 20 };
+obj.z=30;
+obj.x + obj['y'] + obj['z'];
+";
+			Assert.AreEqual(60L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestObject_PropertyAccess_6()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var obj = { x: 10, y: 20 };
+obj['z']=30;
+obj.x + obj['y'] + obj.z;
+";
+			Assert.AreEqual(60L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestObject_PropertyAccess_5()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var obj = { x: 10, y: 20 };
+obj['z']=30;
+obj.x + obj['y'] + obj.z;
+";
+			Assert.AreEqual(60L, script.Eval(code));
 		}
 
 		[TestMethod]

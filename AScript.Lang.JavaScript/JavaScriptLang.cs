@@ -81,6 +81,7 @@ namespace AScript.Lang.JavaScript
 			AddTokenHandler("if", IfTokenHandler.Instance);
 			AddTokenHandler("else", IfTokenHandler.Instance);
 			AddTokenHandler("while", WhileTokenHandler.Instance);
+			AddTokenHandler("for", JavaScriptForTokenHandler.Instance);
 			AddTokenHandler("function", JavaScriptFunctionTokenHandler.Instance);
 		}
 
