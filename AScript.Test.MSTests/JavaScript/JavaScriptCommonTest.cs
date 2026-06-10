@@ -739,6 +739,111 @@ fn(5);
 		}
 
 		[TestMethod]
+		public void Test_for_of_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var list = ['tom', 'jim', 'john'];
+var s = '';
+for(var item of list) {
+	s += item + ',';
+}
+s
+";
+			Assert.AreEqual("tom,jim,john,", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test_for_of()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var list = ['tom', 'jim', 'john'];
+var s = '';
+for(var item of list) {
+	s += item + ',';
+}
+s
+";
+			Assert.AreEqual("tom,jim,john,", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test_for_in_4()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var list = ['tom', 'jim', 'john'];
+var s = '';
+for(var i in list) {
+	s += list[i] + ',';
+}
+s
+";
+			Assert.AreEqual("tom,jim,john,", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test_for_in_3()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var list = ['tom', 'jim', 'john'];
+var s = '';
+for(var i in list) {
+	s += list[i] + ',';
+}
+s
+";
+			Assert.AreEqual("tom,jim,john,", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test_for_in_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var person = { 'name': 'Bob', age: 25 };
+var s = '';
+for(var key in person) {
+	s += key + ':' + person[key] + ',';
+}
+s
+";
+			Assert.AreEqual("name:Bob,age:25,", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test_for_in()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var person = { 'name': 'Bob', age: 25 };
+var s = '';
+for(var key in person) {
+	s += key + ':' + person[key] + ',';
+}
+s
+";
+			Assert.AreEqual("name:Bob,age:25,", script.Eval(code));
+		}
+
+		[TestMethod]
 		public void TestObject_Basic_8()
 		{
 			var script = new Script();

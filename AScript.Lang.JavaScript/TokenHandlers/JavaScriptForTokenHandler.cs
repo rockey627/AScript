@@ -1,8 +1,6 @@
 ﻿using AScript.Nodes;
 using AScript.Syntaxs;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace AScript.Lang.JavaScript.TokenHandlers
 {
