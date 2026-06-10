@@ -8,6 +8,7 @@ using AScript.Nodes;
 using System.Collections;
 using System.Linq;
 using AScript.Exceptions;
+using System.Dynamic;
 
 namespace AScript.Operators
 {
@@ -60,8 +61,9 @@ namespace AScript.Operators
 				}
 				else
 				{
+					var objType = obj.Type == typeof(ExpandoObject) ? typeof(IDictionary<string, object>) : obj.Type;
 					// 尝试使用索引器（Item属性）赋值
-					var indexer = obj.Type.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
+					var indexer = objType.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
 					if (indexer != null)
 					{
 						var p0 = indexer.SetMethod.GetParameters()[0];
@@ -79,7 +81,7 @@ namespace AScript.Operators
 					else
 					{
 						// 尝试使用set_Item方法
-						var setItemMethod = obj.Type.GetMethod("set_Item");
+						var setItemMethod = objType.GetMethod("set_Item");
 						if (setItemMethod != null)
 						{
 							var p0 = setItemMethod.GetParameters()[0];
@@ -247,6 +249,10 @@ namespace AScript.Operators
 					else if (obj is IList list)
 					{
 						list[Convert.ToInt32(idx)] = value;
+					}
+					else if (obj is ExpandoObject expandoObj)
+					{
+						(expandoObj as IDictionary<string, object>)[idx.ToString()] = value;
 					}
 					else if (obj != null)
 					{
