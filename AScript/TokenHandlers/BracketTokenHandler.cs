@@ -15,6 +15,14 @@ namespace AScript.TokenHandlers
 		private static readonly HashSet<string> _EndTokens = new HashSet<string> { ":" };
 		private static readonly HashSet<string> _EndTokens2 = new HashSet<string> { "for", "foreach" };
 
+		private readonly Type _CollectionType = typeof(Array);
+
+		public BracketTokenHandler() { }
+		public BracketTokenHandler(Type collectionType)
+		{
+			_CollectionType = collectionType;
+		}
+
 		public virtual void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;
@@ -225,7 +233,7 @@ namespace AScript.TokenHandlers
 		/// <returns></returns>
 		protected virtual CollectionNode CreateCollection(IList<ITreeNode> items, ForeachNode foreachNode)
 		{
-			return new CollectionNode { Items = items, ForeachNode = foreachNode, CollectionType = typeof(Array) };
+			return new CollectionNode { Items = items, ForeachNode = foreachNode, CollectionType = _CollectionType };
 		}
 
 		protected virtual bool TryBuildNext(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, ITreeNode statement0, Token nextToken)
