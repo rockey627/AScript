@@ -582,6 +582,11 @@ namespace AScript
 
 		public static object EvalNumber(string number)
 		{
+			return EvalNumber(number, false);
+		}
+
+		public static object EvalNumber(string number, bool int2long)
+		{
 			var lastChar = number[number.Length - 1];
 			if (lastChar == 'm' || lastChar == 'M')
 			{
@@ -611,10 +616,11 @@ namespace AScript
 				var c1 = number[1];
 				if (c0 == '0' && (c1 == 'x' || c1 == 'X'))
 				{
-					if (number.Length <= 10) return System.Convert.ToInt32(number, 16);
+					if (number.Length <= 10 && !int2long) return System.Convert.ToInt32(number, 16);
 					return System.Convert.ToInt64(number, 16);
 				}
 			}
+			if (int2long) return long.Parse(number);
 			return int.Parse(number);
 		}
 
