@@ -58,7 +58,19 @@ namespace AScript.Nodes
 					this.VarDefine.Eval(tempContext, options, null, out _);
 				}
 				// 循环
-				if (this.ForeachKey && listResult is IDictionary dict)
+				if (this.ForeachKey && listResult is IDictionary<string, object> dict2)
+				{
+					// ForeachKey 为 true 且是 IDictionary，遍历 Keys
+					foreach (var key in dict2.Keys)
+					{
+						this.VarDefine.Eval(tempContext, options, null, out var varType);
+						tempContext.SetVar(this.VarDefine.Name, key, key == null ? varType : null);
+						bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempController, out bodyType);
+						if (tempController.Terminal || tempController.Break) break;
+						tempController.Continue = false;
+					}
+				}
+				else if (this.ForeachKey && listResult is IDictionary dict)
 				{
 					// ForeachKey 为 true 且是 IDictionary，遍历 Keys
 					foreach (var key in dict.Keys)
@@ -192,7 +204,20 @@ namespace AScript.Nodes
 					await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 				}
 				// 循环
-				if (this.ForeachKey && listResult is IDictionary dict)
+				if (this.ForeachKey && listResult is IDictionary<string, object> dict2)
+				{
+					// ForeachKey 为 true 且是 IDictionary，遍历 Keys
+					foreach (var key in dict2.Keys)
+					{
+						cancellationToken.ThrowIfCancellationRequested();
+						var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+						tempContext.SetVar(this.VarDefine.Name, key, key == null ? varDefineResult.Type : null);
+						bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
+						if (tempController.Terminal || tempController.Break) break;
+						tempController.Continue = false;
+					}
+				}
+				else if (this.ForeachKey && listResult is IDictionary dict)
 				{
 					// ForeachKey 为 true 且是 IDictionary，遍历 Keys
 					foreach (var key in dict.Keys)
@@ -415,78 +440,82 @@ namespace AScript.Nodes
 		{
 			var breakLabel = Expression.Label();
 			var continueLabel = Expression.Label();
-			// 创建变量表达式
-			this.VarDefine.SystemType = typeof(object);
-			var itemVar = this.VarDefine.Build(tempBuildContext, scriptContext, options);
 
-			var bodyBuildContext = new BuildContext(tempBuildContext)
+			// 根据 listExpression.Type 静态类型判断是 IDictionary 还是 IList
+			var listType = listExpression.Type;
+			var isDictionary = typeof(IDictionary).IsAssignableFrom(listType);
+			var isDictionary2 = typeof(IDictionary<string, object>).IsAssignableFrom(listType);
+			var isList = typeof(IList).IsAssignableFrom(listType);
+
+			if (isDictionary || isDictionary2)
 			{
-				ContinueLabel = continueLabel,
-				BreakLabel = breakLabel
-			};
-			var body = this.Body.Build(bodyBuildContext, scriptContext, options);
+				// IDictionary 分支：遍历 Keys
+				var dictType = isDictionary2 ? typeof(IDictionary<string, object>) : typeof(IDictionary);
+				var enumerableType = isDictionary2 ? typeof(IEnumerable<string>) : typeof(IEnumerable);
+				var enumeratorType = isDictionary2 ? typeof(IEnumerator<string>) : typeof(IEnumerator);
+				var keysProperty = dictType.GetProperty("Keys");
+				var getEnumeratorMethod = enumerableType.GetMethod("GetEnumerator");
 
-			// 判断是 IDictionary 还是 IList
-			var listTypeExpr = Expression.Constant(listExpression.Type);
-			var isDictionaryTest = Expression.TypeIs(listExpression, typeof(IDictionary));
-			var isListTest = Expression.TypeIs(listExpression, typeof(IList));
+				var dictKeysExpr = Expression.Property(listExpression, keysProperty);
+				var dictEnumeratorVar = Expression.Variable(enumeratorType);
+				var getDictEnumerator = Expression.Call(dictKeysExpr, getEnumeratorMethod);
+				var dictCurrentProperty = enumeratorType.GetProperty("Current");
+				var moveNextMethod = typeof(IEnumerator).GetMethod("MoveNext");
 
-			// 创建索引变量（用于 IList）
-			var indexVar = Expression.Variable(typeof(int), "_index");
-			var countProperty = typeof(IList).GetProperty("Count");
-			var getItemMethod = typeof(IList).GetProperty("Item");
-			var keysProperty = typeof(IDictionary).GetProperty("Keys");
-			var getEnumeratorMethod = typeof(IEnumerable).GetMethod("GetEnumerator");
+				// 创建变量表达式
+				this.VarDefine.SystemType = isDictionary2 ? typeof(string) : typeof(object);
+				var itemVar = (ParameterExpression)this.VarDefine.Build(tempBuildContext, scriptContext, options);
+				var bodyBuildContext = new BuildContext(tempBuildContext)
+				{
+					ContinueLabel = continueLabel,
+					BreakLabel = breakLabel
+				};
+				var body = this.Body.Build(bodyBuildContext, scriptContext, options);
+				var dictLoopBody = Expression.Block(
+					Expression.IfThenElse(
+						Expression.Call(dictEnumeratorVar, moveNextMethod),
+						bodyBuildContext.BuildBlock(scriptContext, options,
+							Expression.Assign(itemVar, Expression.Property(dictEnumeratorVar, dictCurrentProperty)),
+							body,
+							Expression.Label(continueLabel)),
+						Expression.Break(breakLabel)
+					));
+				var dictLoop = Expression.Loop(dictLoopBody, breakLabel);
+				return Expression.Block(new[] { itemVar, dictEnumeratorVar },
+					Expression.Assign(dictEnumeratorVar, getDictEnumerator),
+					Expression.Block(dictLoop));
+			}
+			else if (isList)
+			{
+				// IList 分支：使用 for 遍历索引
+				var countProperty = typeof(ICollection).GetProperty("Count");
+				var listCount = Expression.Property(listExpression, countProperty);
 
-			// IDictionary 分支：遍历 Keys
-			var dictKeysExpr = Expression.Property(Expression.Convert(listExpression, typeof(IDictionary)), keysProperty);
-			var dictEnumeratorVar = Expression.Variable(typeof(IEnumerator));
-			var getDictEnumerator = Expression.Call(dictKeysExpr, getEnumeratorMethod);
-			var dictCurrentProperty = typeof(IEnumerator).GetProperty("Current");
-			var moveNextMethod = typeof(IEnumerator).GetMethod("MoveNext");
+				// 创建变量表达式
+				this.VarDefine.SystemType = typeof(int);
+				var itemVar = (ParameterExpression)this.VarDefine.Build(tempBuildContext, scriptContext, options);
+				var bodyBuildContext = new BuildContext(tempBuildContext)
+				{
+					ContinueLabel = continueLabel,
+					BreakLabel = breakLabel
+				};
+				var body = this.Body.Build(bodyBuildContext, scriptContext, options);
+				var listLoopBody = Expression.Block(
+					Expression.IfThenElse(
+						Expression.LessThan(itemVar, listCount),
+						bodyBuildContext.BuildBlock(scriptContext, options,
+							body,
+							Expression.Label(continueLabel),
+							Expression.PostIncrementAssign(itemVar)),
+						Expression.Break(breakLabel)
+					));
+				var listLoop = Expression.Loop(listLoopBody, breakLabel);
+				return Expression.Block(new[] { itemVar },
+					Expression.Assign(itemVar, Expression.Constant(0)),
+					Expression.Block(listLoop));
+			}
 
-			var dictLoopBody = Expression.Block(
-				Expression.IfThenElse(
-					Expression.Call(dictEnumeratorVar, moveNextMethod),
-					bodyBuildContext.BuildBlock(scriptContext, options,
-						Expression.Assign(itemVar, Expression.Property(dictEnumeratorVar, dictCurrentProperty)),
-						body,
-						Expression.Label(continueLabel)),
-					Expression.Break(breakLabel)
-				));
-			var dictLoop = Expression.Loop(dictLoopBody, breakLabel);
-			var dictBranch = Expression.Block(new[] { dictEnumeratorVar },
-				Expression.Assign(dictEnumeratorVar, getDictEnumerator),
-				Expression.Block(dictLoop));
-
-			// IList 分支：使用 for 遍历索引
-			var listCount = Expression.Property(Expression.Convert(listExpression, typeof(IList)), countProperty);
-			var listItem = Expression.Property(Expression.Convert(listExpression, typeof(IList)), getItemMethod, indexVar);
-
-			var listLoopBody = Expression.Block(
-				Expression.IfThenElse(
-					Expression.LessThan(indexVar, listCount),
-					bodyBuildContext.BuildBlock(scriptContext, options,
-						Expression.Assign(itemVar, indexVar),
-						body,
-						Expression.Label(continueLabel),
-						Expression.PostIncrementAssign(indexVar)),
-					Expression.Break(breakLabel)
-				));
-			var listLoop = Expression.Loop(listLoopBody, breakLabel);
-			var listBranch = Expression.Block(new[] { indexVar },
-				Expression.Assign(indexVar, Expression.Constant(0)),
-				Expression.Block(listLoop));
-
-			// 根据类型选择分支
-			return Expression.Condition(
-				isDictionaryTest,
-				dictBranch,
-				Expression.Condition(
-					isListTest,
-					listBranch,
-					Expression.Throw(Expression.New(typeof(NotSupportedException).GetConstructor(new[] { typeof(string) }), Expression.Constant("ForeachKey is only supported for IDictionary and IList")))
-			));
+			throw new NotSupportedException("ForeachKey is only supported for IDictionary and IList");
 		}
 
 		public override void Clear()
