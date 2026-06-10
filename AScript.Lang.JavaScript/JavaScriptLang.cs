@@ -3,6 +3,7 @@ using AScript.Lang.JavaScript.TokenHandlers;
 using AScript.Operators;
 using AScript.TokenHandlers;
 using System;
+using System.Collections.Generic;
 
 namespace AScript.Lang.JavaScript
 {
@@ -25,7 +26,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc("-=", SubtractAssignOperator.Instance);
 			AddFunc("*=", MultiplyAssignOperator.Instance);
 			AddFunc("**=", PowerAssignOperator.Instance);
-			AddFunc("/=", DivideAssignOperator.Instance);
+			AddFunc("/=", new DivideAssignOperator(true));
 			AddFunc("%=", ModuloAssignOperator.Instance);
 			AddFunc("^=", XOrAssignOperator.Instance);
 			AddFunc("&=", AndAssignOperator.Instance);
@@ -39,7 +40,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc("-", SubtractOperator.Instance);
 			AddFunc("*", MultiplyOperator.Instance);
 			AddFunc("**", PowerOperator.Instance);
-			AddFunc("/", DivideOperator.Instance);
+			AddFunc("/", new DivideOperator(true));
 			AddFunc("%", ModuloOperator.Instance);
 			AddFunc("&", AndOperator.Instance);
 			AddFunc("|", OrOperator.Instance);
@@ -69,7 +70,7 @@ namespace AScript.Lang.JavaScript
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);
 			AddTokenHandler("?", QuestionIIFTokenHandler.Instance);
-			AddTokenHandler("[", BracketTokenHandler.Instance);
+			AddTokenHandler("[", new BracketTokenHandler(typeof(List<object>)));
 			AddTokenHandler("null", NullTokenHandler.Instance);
 			AddTokenHandler("true", BoolTokenHandler.Instance);
 			AddTokenHandler("false", BoolTokenHandler.Instance);
@@ -86,6 +87,11 @@ namespace AScript.Lang.JavaScript
 		public override bool IsDynamic()
 		{
 			return true;
+		}
+
+		public override ISyntaxAnalyzer GetSyntaxAnalyzer()
+		{
+			return JavaScriptSyntaxAnalyzer.Instance;
 		}
 	}
 }

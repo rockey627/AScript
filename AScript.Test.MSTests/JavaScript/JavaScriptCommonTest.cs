@@ -199,7 +199,7 @@ isAdult(20);
 			Assert.AreEqual(5L, script.Eval("10 - 5"));
 			Assert.AreEqual(50L, script.Eval("10 * 5"));
 			Assert.AreEqual(2.0, script.Eval("10 / 5"));
-			Assert.AreEqual(0L, script.Eval("17 % 5"));
+			Assert.AreEqual(2L, script.Eval("17 % 5"));
 			Assert.AreEqual(1024L, script.Eval("2 ** 10"));
 		}
 
@@ -277,7 +277,7 @@ isAdult(20);
 
 			Assert.AreEqual(2L, script.Eval("[1, 2, 3][1]"));
 			Assert.AreEqual(3L, script.Eval("[1, 2, 3][2]"));
-			Assert.AreEqual(1L, script.Eval("[1, 2, 3][-1]"));
+			Assert.AreEqual(3L, script.Eval("[1, 2, 3][-1]"));
 		}
 
 		[TestMethod]
@@ -749,6 +749,47 @@ var person = { name: 'Bob', age: 25 };
 person.name;
 ";
 			Assert.AreEqual("Bob", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestObject_PropertyAccess_4()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var obj = { x: 10, y: 20 };
+obj.x + obj['y'];
+";
+			Assert.AreEqual(30L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestObject_PropertyAccess_3()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var obj = { x: 10, y: 20 };
+obj.x + obj['y'];
+";
+			Assert.AreEqual(30L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestObject_PropertyAccess_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var obj = { x: 10, y: 20 };
+obj.x + obj.y;
+";
+			Assert.AreEqual(30L, script.Eval(code));
 		}
 
 		[TestMethod]
