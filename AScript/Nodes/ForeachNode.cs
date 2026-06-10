@@ -11,6 +11,7 @@ namespace AScript.Nodes
 {
 	public class ForeachNode : TreeNode
 	{
+		public bool ForeachKey { get; set; }
 		public DefineVarNode VarDefine { get; set; }
 		public IList<DefineVarNode> VarDefines { get; set; }
 		public ITreeNode Collection { get; set; }
@@ -57,65 +58,93 @@ namespace AScript.Nodes
 					this.VarDefine.Eval(tempContext, options, null, out _);
 				}
 				// 循环
-				foreach (var item in en)
+				if (this.ForeachKey && listResult is IDictionary dict)
 				{
-					if (this.VarDefines != null)
+					// ForeachKey 为 true 且是 IDictionary，遍历 Keys
+					foreach (var key in dict.Keys)
 					{
-						// 解构列表项赋值到各个变量
-						var itemList = new List<object>();
-						if (item is IList list)
+						this.VarDefine.Eval(tempContext, options, null, out var varType);
+						tempContext.SetVar(this.VarDefine.Name, key, key == null ? varType : null);
+						bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempController, out bodyType);
+						if (tempController.Terminal || tempController.Break) break;
+						tempController.Continue = false;
+					}
+				}
+				else if (this.ForeachKey && listResult is IList list1)
+				{
+					// ForeachKey 为 true 且是 IList，使用 for 遍历索引
+					for (int i = 0; i < list1.Count; i++)
+					{
+						this.VarDefine.Eval(tempContext, options, null, out var varType);
+						tempContext.SetVar(this.VarDefine.Name, i, typeof(int));
+						bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempController, out bodyType);
+						if (tempController.Terminal || tempController.Break) break;
+						tempController.Continue = false;
+					}
+				}
+				else
+				{
+					// 默认遍历模式（遍历值）
+					foreach (var item in en)
+					{
+						if (this.VarDefines != null)
 						{
-							foreach (var i in list)
+							// 解构列表项赋值到各个变量
+							var itemList = new List<object>();
+							if (item is IList list)
 							{
-								itemList.Add(i);
+								foreach (var i in list)
+								{
+									itemList.Add(i);
+								}
+							}
+							else
+							{
+								// 支持 Tuple/ValueTuple 解构
+								var itemType = item.GetType();
+								if (itemType.IsGenericType)
+								{
+									var genericType = itemType.GetGenericTypeDefinition();
+									if (genericType.Name.StartsWith("Tuple`"))
+									{
+										foreach (var prop in itemType.GetProperties())
+										{
+											itemList.Add(prop.GetValue(item));
+										}
+									}
+#if NETSTANDARD
+									else if (genericType.Name.StartsWith("ValueTuple`"))
+									{
+										foreach (var field in itemType.GetFields())
+										{
+											itemList.Add(field.GetValue(item));
+										}
+									}
+#endif
+								}
+							}
+							if (itemList == null)
+							{
+								throw new ScriptAnalyzingException($"cannot unpack item of type {item?.GetType()} into {this.VarDefines.Count} variables");
+							}
+							if (itemList.Count < this.VarDefines.Count)
+							{
+								throw new ScriptAnalyzingException($"not enough values to unpack (expected {this.VarDefines.Count}, got {itemList.Count})");
+							}
+							for (int i = 0; i < this.VarDefines.Count; i++)
+							{
+								tempContext.SetVar(this.VarDefines[i].Name, itemList[i], null);
 							}
 						}
 						else
 						{
-							// 支持 Tuple/ValueTuple 解构
-							var itemType = item.GetType();
-							if (itemType.IsGenericType)
-							{
-								var genericType = itemType.GetGenericTypeDefinition();
-								if (genericType.Name.StartsWith("Tuple`"))
-								{
-									foreach (var prop in itemType.GetProperties())
-									{
-										itemList.Add(prop.GetValue(item));
-									}
-								}
-#if NETSTANDARD
-								else if (genericType.Name.StartsWith("ValueTuple`"))
-								{
-									foreach (var field in itemType.GetFields())
-									{
-										itemList.Add(field.GetValue(item));
-									}
-								}
-#endif
-							}
+							this.VarDefine.Eval(tempContext, options, null, out var varType);
+							tempContext.SetVar(this.VarDefine.Name, item, item == null ? varType : null);
 						}
-						if (itemList == null)
-						{
-							throw new ScriptAnalyzingException($"cannot unpack item of type {item?.GetType()} into {this.VarDefines.Count} variables");
-						}
-						if (itemList.Count < this.VarDefines.Count)
-						{
-							throw new ScriptAnalyzingException($"not enough values to unpack (expected {this.VarDefines.Count}, got {itemList.Count})");
-						}
-						for (int i = 0; i < this.VarDefines.Count; i++)
-						{
-							tempContext.SetVar(this.VarDefines[i].Name, itemList[i], null);
-						}
+						bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempController, out bodyType);
+						if (tempController.Terminal || tempController.Break) break;
+						tempController.Continue = false;
 					}
-					else
-					{
-						this.VarDefine.Eval(tempContext, options, null, out var varType);
-						tempContext.SetVar(this.VarDefine.Name, item, item == null ? varType : null);
-					}
-					bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempController, out bodyType);
-					if (tempController.Terminal || tempController.Break) break;
-					tempController.Continue = false;
 				}
 			}
 			returnType = bodyType;
@@ -163,66 +192,96 @@ namespace AScript.Nodes
 					await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 				}
 				// 循环
-				foreach (var item in en)
+				if (this.ForeachKey && listResult is IDictionary dict)
 				{
-					cancellationToken.ThrowIfCancellationRequested();
-					if (this.VarDefines != null)
+					// ForeachKey 为 true 且是 IDictionary，遍历 Keys
+					foreach (var key in dict.Keys)
 					{
-						// 解构列表项赋值到各个变量
-						var itemList = new List<object>();
-						if (item is IList list)
+						cancellationToken.ThrowIfCancellationRequested();
+						var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+						tempContext.SetVar(this.VarDefine.Name, key, key == null ? varDefineResult.Type : null);
+						bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
+						if (tempController.Terminal || tempController.Break) break;
+						tempController.Continue = false;
+					}
+				}
+				else if (this.ForeachKey && listResult is IList list1)
+				{
+					// ForeachKey 为 true 且是 IList，使用 for 遍历索引
+					for (int i = 0; i < list1.Count; i++)
+					{
+						cancellationToken.ThrowIfCancellationRequested();
+						var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+						tempContext.SetVar(this.VarDefine.Name, i, typeof(int));
+						bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
+						if (tempController.Terminal || tempController.Break) break;
+						tempController.Continue = false;
+					}
+				}
+				else
+				{
+					// 默认遍历模式（遍历值）
+					foreach (var item in en)
+					{
+						cancellationToken.ThrowIfCancellationRequested();
+						if (this.VarDefines != null)
 						{
-							foreach (var i in list)
+							// 解构列表项赋值到各个变量
+							var itemList = new List<object>();
+							if (item is IList list)
 							{
-								itemList.Add(i);
+								foreach (var i in list)
+								{
+									itemList.Add(i);
+								}
+							}
+							else
+							{
+								// 支持 Tuple/ValueTuple 解构
+								var itemType = item.GetType();
+								if (itemType.IsGenericType)
+								{
+									var genericType = itemType.GetGenericTypeDefinition();
+									if (genericType.Name.StartsWith("Tuple`"))
+									{
+										foreach (var prop in itemType.GetProperties())
+										{
+											itemList.Add(prop.GetValue(item));
+										}
+									}
+#if NETSTANDARD
+									else if (genericType.Name.StartsWith("ValueTuple`"))
+									{
+										foreach (var field in itemType.GetFields())
+										{
+											itemList.Add(field.GetValue(item));
+										}
+									}
+#endif
+								}
+							}
+							if (itemList == null)
+							{
+								throw new ScriptAnalyzingException($"cannot unpack item of type {item?.GetType()} into {this.VarDefines.Count} variables");
+							}
+							if (itemList.Count < this.VarDefines.Count)
+							{
+								throw new ScriptAnalyzingException($"not enough values to unpack (expected {this.VarDefines.Count}, got {itemList.Count})");
+							}
+							for (int i = 0; i < this.VarDefines.Count; i++)
+							{
+								tempContext.SetVar(this.VarDefines[i].Name, itemList[i], null);
 							}
 						}
 						else
 						{
-							// 支持 Tuple/ValueTuple 解构
-							var itemType = item.GetType();
-							if (itemType.IsGenericType)
-							{
-								var genericType = itemType.GetGenericTypeDefinition();
-								if (genericType.Name.StartsWith("Tuple`"))
-								{
-									foreach (var prop in itemType.GetProperties())
-									{
-										itemList.Add(prop.GetValue(item));
-									}
-								}
-#if NETSTANDARD
-								else if (genericType.Name.StartsWith("ValueTuple`"))
-								{
-									foreach (var field in itemType.GetFields())
-									{
-										itemList.Add(field.GetValue(item));
-									}
-								}
-#endif
-							}
+							var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+							tempContext.SetVar(this.VarDefine.Name, item, item == null ? varDefineResult.Type : null);
 						}
-						if (itemList == null)
-						{
-							throw new ScriptAnalyzingException($"cannot unpack item of type {item?.GetType()} into {this.VarDefines.Count} variables");
-						}
-						if (itemList.Count < this.VarDefines.Count)
-						{
-							throw new ScriptAnalyzingException($"not enough values to unpack (expected {this.VarDefines.Count}, got {itemList.Count})");
-						}
-						for (int i = 0; i < this.VarDefines.Count; i++)
-						{
-							tempContext.SetVar(this.VarDefines[i].Name, itemList[i], null);
-						}
+						bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
+						if (tempController.Terminal || tempController.Break) break;
+						tempController.Continue = false;
 					}
-					else
-					{
-						var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
-						tempContext.SetVar(this.VarDefine.Name, item, item == null ? varDefineResult.Type : null);
-					}
-					bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
-					if (tempController.Terminal || tempController.Break) break;
-					tempController.Continue = false;
 				}
 			}
 			return bodyResult;
@@ -234,6 +293,12 @@ namespace AScript.Nodes
 			var breakLabel = Expression.Label();
 			var continueLabel = Expression.Label();
 			var listExpression = this.Collection.Build(tempBuildContext, scriptContext, options);
+
+			// ForeachKey 模式：IDictionary 遍历 Keys，IList 使用 for 遍历索引
+			if (this.ForeachKey)
+			{
+				return BuildForeachKey(tempBuildContext, scriptContext, options, listExpression);
+			}
 
 			var getEnumeratorMethod = typeof(IEnumerable<>).MakeGenericType(ScriptUtils.GetElementType(listExpression.Type)).GetMethod("GetEnumerator");
 			var getEnumerator = Expression.Call(listExpression, getEnumeratorMethod);
@@ -346,6 +411,84 @@ namespace AScript.Nodes
 			}
 		}
 
+		private Expression BuildForeachKey(BuildContext tempBuildContext, ScriptContext scriptContext, BuildOptions options, Expression listExpression)
+		{
+			var breakLabel = Expression.Label();
+			var continueLabel = Expression.Label();
+			// 创建变量表达式
+			this.VarDefine.SystemType = typeof(object);
+			var itemVar = this.VarDefine.Build(tempBuildContext, scriptContext, options);
+
+			var bodyBuildContext = new BuildContext(tempBuildContext)
+			{
+				ContinueLabel = continueLabel,
+				BreakLabel = breakLabel
+			};
+			var body = this.Body.Build(bodyBuildContext, scriptContext, options);
+
+			// 判断是 IDictionary 还是 IList
+			var listTypeExpr = Expression.Constant(listExpression.Type);
+			var isDictionaryTest = Expression.TypeIs(listExpression, typeof(IDictionary));
+			var isListTest = Expression.TypeIs(listExpression, typeof(IList));
+
+			// 创建索引变量（用于 IList）
+			var indexVar = Expression.Variable(typeof(int), "_index");
+			var countProperty = typeof(IList).GetProperty("Count");
+			var getItemMethod = typeof(IList).GetProperty("Item");
+			var keysProperty = typeof(IDictionary).GetProperty("Keys");
+			var getEnumeratorMethod = typeof(IEnumerable).GetMethod("GetEnumerator");
+
+			// IDictionary 分支：遍历 Keys
+			var dictKeysExpr = Expression.Property(Expression.Convert(listExpression, typeof(IDictionary)), keysProperty);
+			var dictEnumeratorVar = Expression.Variable(typeof(IEnumerator));
+			var getDictEnumerator = Expression.Call(dictKeysExpr, getEnumeratorMethod);
+			var dictCurrentProperty = typeof(IEnumerator).GetProperty("Current");
+			var moveNextMethod = typeof(IEnumerator).GetMethod("MoveNext");
+
+			var dictLoopBody = Expression.Block(
+				Expression.IfThenElse(
+					Expression.Call(dictEnumeratorVar, moveNextMethod),
+					bodyBuildContext.BuildBlock(scriptContext, options,
+						Expression.Assign(itemVar, Expression.Property(dictEnumeratorVar, dictCurrentProperty)),
+						body,
+						Expression.Label(continueLabel)),
+					Expression.Break(breakLabel)
+				));
+			var dictLoop = Expression.Loop(dictLoopBody, breakLabel);
+			var dictBranch = Expression.Block(new[] { dictEnumeratorVar },
+				Expression.Assign(dictEnumeratorVar, getDictEnumerator),
+				Expression.Block(dictLoop));
+
+			// IList 分支：使用 for 遍历索引
+			var listCount = Expression.Property(Expression.Convert(listExpression, typeof(IList)), countProperty);
+			var listItem = Expression.Property(Expression.Convert(listExpression, typeof(IList)), getItemMethod, indexVar);
+
+			var listLoopBody = Expression.Block(
+				Expression.IfThenElse(
+					Expression.LessThan(indexVar, listCount),
+					bodyBuildContext.BuildBlock(scriptContext, options,
+						Expression.Assign(itemVar, indexVar),
+						body,
+						Expression.Label(continueLabel),
+						Expression.PostIncrementAssign(indexVar)),
+					Expression.Break(breakLabel)
+				));
+			var listLoop = Expression.Loop(listLoopBody, breakLabel);
+			var listBranch = Expression.Block(new[] { indexVar },
+				Expression.Assign(indexVar, Expression.Constant(0)),
+				Expression.Block(listLoop));
+
+			// 根据类型选择分支
+			return Expression.Condition(
+				isDictionaryTest,
+				dictBranch,
+				Expression.Condition(
+					isListTest,
+					listBranch,
+					Expression.Throw(Expression.New(typeof(NotSupportedException).GetConstructor(new[] { typeof(string) }), Expression.Constant("ForeachKey is only supported for IDictionary and IList")))
+			));
+		}
+
 		public override void Clear()
 		{
 			base.Clear();
@@ -365,6 +508,7 @@ namespace AScript.Nodes
 			this.VarDefines = null;
 			this.Collection = null;
 			this.Body = null;
+			this.ForeachKey = false;
 		}
 	}
 }

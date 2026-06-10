@@ -18,38 +18,24 @@ namespace AScript.TokenHandlers
 				return;
 			}
 			// 
-			var createTreeNodeOnlyOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			if (e.Ignore)
-			{
-				analyzer.ValidateNextToken(e.TokenReader, "(");
-				// init
-				analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, null, ignore: true);
-				analyzer.TrySkipNextToken(e.TokenReader, ";");
-				// condition
-				analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, null, ignore: true);
-				analyzer.TrySkipNextToken(e.TokenReader, ";");
-				// post
-				analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, null, ignore: true);
-				analyzer.ValidateNextToken(e.TokenReader, ")");
-				// body
-				analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, null, ignore: true);
-				return;
-			}
-
+			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
 			analyzer.ValidateNextToken(e.TokenReader, "(");
 			// 执行初始化语句
-			var initBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, e.Control, e.Ignore);
+			var initBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
 			analyzer.TrySkipNextToken(e.TokenReader, ";");
 			// 获取条件语句
-			var conditionBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, e.Control, e.Ignore);
+			var conditionBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
 			analyzer.TrySkipNextToken(e.TokenReader, ";");
 			// 获取后置语句
-			var postBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, e.Control, e.Ignore);
+			var postBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
 			analyzer.ValidateNextToken(e.TokenReader, ")");
 			// 获取循环体语句
-			var bodyBuilder = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, e.Control, e.Ignore, noblock: true);
-			var forNode = new ForNode { Init = initBuilder, Condition = conditionBuilder, Body = bodyBuilder, Post = postBuilder };
-			e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, forNode);
+			var bodyBuilder = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, noblock: true);
+			if (!e.Ignore)
+			{
+				var forNode = new ForNode { Init = initBuilder, Condition = conditionBuilder, Body = bodyBuilder, Post = postBuilder };
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, forNode);
+			}
 		}
 	}
 }
