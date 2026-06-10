@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -250,6 +251,10 @@ namespace AScript.Operators
 					index = s.Length + index;
 				}
 				return s[index];
+			}
+			if (arg0 is ExpandoObject expandoObj)
+			{
+				return (expandoObj as IDictionary<string, object>)[arg1.ToString()];
 			}
 			dynamic obj = arg0;
 			dynamic key = arg1;
