@@ -11,7 +11,9 @@ namespace AScript.Lang.Python3.Operators
 		{
 			var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-			e.Result = Expression.Divide(Expression.Convert(left, typeof(double)), Expression.Convert(right, typeof(double)));
+			if (left.Type != typeof(double)) left = Expression.Convert(left, typeof(double));
+			if (right.Type != typeof(double)) right = Expression.Convert(right, typeof(double));
+			e.Result = Expression.Divide(left, right);
 		}
 
 		public void Eval(FunctionEvalArgs e)

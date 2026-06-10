@@ -117,7 +117,7 @@ namespace AScript.Lang.Python3
 #endif
 
 			AddTokenHandler("?", QuestionIIFTokenHandler.Instance);
-			AddTokenHandler("[", Python3BracketTokenHandler.Instance);
+			AddTokenHandler("[", new BracketTokenHandler(typeof(List<object>)));
 			AddTokenHandler("True", BoolTokenHandler.Instance);
 			AddTokenHandler("False", BoolTokenHandler.Instance);
 			AddTokenHandler("None", NullTokenHandler.Instance);

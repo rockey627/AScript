@@ -173,12 +173,13 @@ namespace AScript.Lang.Python3
 
 		protected override object EvalNumber(string num)
 		{
-			var n = base.EvalNumber(num);
-			if (ScriptUtils.IsIntegerType(n.GetType()))
-			{
-				return Convert.ToInt64(n);
-			}
-			return Convert.ToDouble(n);
+			//var n = base.EvalNumber(num);
+			//if (ScriptUtils.IsIntegerType(n.GetType()))
+			//{
+			//	return Convert.ToInt64(n);
+			//}
+			//return Convert.ToDouble(n);
+			return ScriptUtils.EvalNumber(num, true);
 		}
 	}
 }
