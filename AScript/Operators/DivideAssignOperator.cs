@@ -9,6 +9,17 @@ namespace AScript.Operators
 	{
 		public static readonly DivideAssignOperator Instance = new DivideAssignOperator();
 
+		/// <summary>
+		/// 是否转浮点型
+		/// </summary>
+		private readonly bool _Double;
+
+		public DivideAssignOperator() { }
+		public DivideAssignOperator(bool isDouble)
+		{
+			_Double = isDouble;
+		}
+
 		public void Build(FunctionBuildArgs e)
 		{
 			var arg0 = e.Args[0];
@@ -26,17 +37,32 @@ namespace AScript.Operators
 				left = arg0.Build(e.BuildContext, e.ScriptContext, e.Options);
 			}
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-			if (left.Type == typeof(object) || right.Type == typeof(object)
-				|| !ExpressionUtils.ConvertMaxType(ref left, ref right))
+			var left2 = left;
+			if (_Double)
+			{
+				if (left2.Type != typeof(double)) left2 = Expression.Convert(left2, typeof(double));
+				if (right.Type != typeof(double)) right = Expression.Convert(right, typeof(double));
+			}
+			if (left2.Type == typeof(object) || right.Type == typeof(object)
+				|| !ExpressionUtils.ConvertMaxType(ref left2, ref right))
 			{
 				// dynamic方式作用/=无效
 				//e.Result = Expression.Dynamic(ExpressionUtils.Binder_AddAssign, typeof(object), left, right);
-				var expr = Expression.Dynamic(ExpressionUtils.Binder_Divide, typeof(object), left, right);
+				var expr = Expression.Dynamic(ExpressionUtils.Binder_Divide, typeof(object), left2, right);
 				e.Result = Expression.Assign(left, expr);
 			}
 			else
 			{
-				e.Result = Expression.DivideAssign(left, right);
+				if (_Double && left.Type != typeof(object) && left.Type != typeof(double))
+				{
+					var result = Expression.Divide(left2, right);
+					var convert = Expression.Convert(result, left.Type);
+					e.Result = Expression.Assign(left, convert);
+				}
+				else
+				{
+					e.Result = Expression.DivideAssign(left, right);
+				}
 			}
 		}
 
@@ -46,10 +72,20 @@ namespace AScript.Operators
 			var arg0Node = e.Args[0];
 			if (arg0Node is VariableNode varNode)
 			{
-				dynamic arg0 = varNode.Eval(e.Context, e.Options, e.Control, out var type0);
-				dynamic arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
-				arg0 /= arg1;
-				e.SetResult(arg0, type0);
+				if (_Double)
+				{
+					double arg0 = Convert.ToDouble(varNode.Eval(e.Context, e.Options, e.Control, out _));
+					double arg1 = Convert.ToDouble(e.Args[1].Eval(e.Context, e.Options, e.Control, out _));
+					arg0 /= arg1;
+					e.SetResult(arg0);
+				}
+				else
+				{
+					dynamic arg0 = varNode.Eval(e.Context, e.Options, e.Control, out var type0);
+					dynamic arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
+					arg0 /= arg1;
+					e.SetResult(arg0, type0);
+				}
 				e.Context.SetTempVar(varNode.Name, e.Result, true);
 			}
 			else if (arg0Node is OperatorNode opNode)
@@ -59,7 +95,11 @@ namespace AScript.Operators
 					// 属性赋值
 					var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type1);
 					var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
-					var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) => (dynamic)v / (dynamic)arg1);
+					var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) =>
+					{
+						if (_Double) return Convert.ToDouble(v) / Convert.ToDouble(arg1);
+						return (dynamic)v / (dynamic)arg1;
+					});
 					e.SetResult(value, type0 == typeof(object) ? type1 : type0);
 					return;
 				}
@@ -69,12 +109,16 @@ namespace AScript.Operators
 					// 设置索引值
 					var obj = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
 					var idx = opNode.Right.Eval(e.Context, e.Options, e.Control, out _);
-					var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
+					var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
 
 					//// 根据obj类型处理索引器赋值
-					var v = ScriptUtils.GetAndSetValue(obj, idx, v1 => (dynamic)v1 / (dynamic)value);
+					var v = ScriptUtils.GetAndSetValue(obj, idx, v1 =>
+					{
+						if (_Double) return Convert.ToDouble(v1) / Convert.ToDouble(value);
+						return (dynamic)v1 / (dynamic)value;
+					});
 
-					e.SetResult(v, type);
+					e.SetResult(v);
 					return;
 				}
 			}
