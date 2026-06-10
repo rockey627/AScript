@@ -897,11 +897,11 @@ namespace AScript.Syntaxs
 			var nextToken = tokenReader.Read();
 			if (!nextToken.HasValue)
 			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect {nextTokenTypeForValid.ToString()}");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect {nextTokenTypeForValid}");
 			}
-			if (nextToken.Value.Type != nextTokenTypeForValid)
+			if ((nextToken.Value.Type & nextTokenTypeForValid) == ETokenType.None)
 			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect {nextTokenTypeForValid.ToString()}");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect {nextTokenTypeForValid}");
 			}
 			return nextToken;
 		}
@@ -911,11 +911,11 @@ namespace AScript.Syntaxs
 			var nextToken = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 			if (!nextToken.HasValue)
 			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect {nextTokenTypeForValid.ToString()}");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect {nextTokenTypeForValid}");
 			}
-			if (nextToken.Value.Type != nextTokenTypeForValid)
+			if ((nextToken.Value.Type & nextTokenTypeForValid) == ETokenType.None)
 			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect {nextTokenTypeForValid.ToString()}");
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect {nextTokenTypeForValid}");
 			}
 			return nextToken;
 		}

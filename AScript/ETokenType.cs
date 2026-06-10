@@ -5,6 +5,7 @@ namespace AScript
 	/// <summary>
 	/// 
 	/// </summary>
+	[Flags]
 	public enum ETokenType
 	{
 		/// <summary>
@@ -14,18 +15,18 @@ namespace AScript
 		/// <summary>
 		/// 操作符，如：+ - * / 等
 		/// </summary>
-		Operator,
+		Operator = 1,
 		/// <summary>
 		/// 数字，如：12.5 12D 0x0A
 		/// </summary>
-		Number,
+		Number = 2,
 		/// <summary>
 		/// 字符串，如：'hello' "hello"
 		/// </summary>
-		String,
+		String = 4,
 		/// <summary>
 		/// 单词，如：int name a
 		/// </summary>
-		Word
+		Word = 8
 	}
 }
