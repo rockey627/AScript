@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -46,6 +47,26 @@ namespace AScript.Readers
 			if (string.IsNullOrEmpty(s)) return;
 			int to = count > 0 ? from + count - 1 : s.Length - 1;
 			for (int i = to; i >= from ; i--)
+			{
+				Push(s[i]);
+			}
+		}
+
+		public void Push(StringBuilder s)
+		{
+			Push(s, 0, s.Length);
+		}
+
+		public void Push(StringBuilder s, int from)
+		{
+			Push(s, from, -1);
+		}
+
+		public void Push(StringBuilder s, int from, int count)
+		{
+			if (s.Length == 0) return;
+			int to = count > 0 ? from + count - 1 : s.Length - 1;
+			for (int i = to; i >= from; i--)
 			{
 				Push(s[i]);
 			}
