@@ -20,7 +20,7 @@ namespace AScript.Functions
 			var argTypes = args?.Select(a => a.Type).ToList();
 			if (ScriptUtils.IsMatchArgTypes(argTypes, _lambda, out _, out _))
 			{
-				e.Result = _lambda;
+				e.Result = Expression.Invoke(_lambda, args);
 			}
 		}
 
