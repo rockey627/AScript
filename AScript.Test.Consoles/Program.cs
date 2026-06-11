@@ -120,18 +120,21 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 
 			using (var context = new TestSqliteContext())
 			{
-				//string s = @"
-				//var persons = context.Persons;
-				//var q = from a in persons
-				//		orderby a.Age
-				//		select new Person { a.Name, a.Age };
-				//q.ToList();
-				//";
-				//var script = new Script();
-				//script.Context.AddType<Person>();
-				//script.Context.SetVar("context", context);
-				//var list = script.Eval<IList>(s);
-				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
+				string s = @"
+				var persons = context.Persons;
+				var q = from a in persons where a.Name.isnotempty() && a.Name.contains2('o')
+						orderby a.Age
+						select new Person { a.Name, a.Age };
+				q.ToList()//.Where(a=>a.Name.contains2('m')).ToList()
+				";
+				var script = new Script();
+				script.Context.AddType<Person>();
+				script.Context.AddLambda<Func<string, bool>>("isnotempty", s => !string.IsNullOrEmpty(s));
+				script.Context.AddLambda<Func<string, string, bool>>("contains2", (s, a) => s.Contains(a));
+				//script.Context.AddFunc<string, string, bool>("contains2", (s, a) => s.Contains(a));
+				script.Context.SetVar("context", context);
+				var list = script.Eval<IList>(s);
+				Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
 
 				//string s = @"
 				//var persons = context.Persons;
@@ -169,17 +172,17 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 
 				// case p.Age when 20 then 1 when 22 then 2 else 3 end as Level
 				// case when p.Age=20 then 1 when p.Age=22 then 2 else 3 end as Level
-				string s = @"
-				select p.Id, p.Name, p.Age, a.Address as MyAddress, case when p.Age=20 then 1 when p.Age=22 then 2 else 3 end as Level
-				from context.Persons as p
-				left join context.AddressInfos as a on p.Id = a.UserId
-				order by p.age desc
-				";
-				var script = new Script();
-				script.Context.Langs = new[] { "sql" };
-				script.Context.SetVar("context", context);
-				var list = script.Eval<IEnumerable<dynamic>>(s).ToList();
-				Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
+				//string s = @"
+				//select p.Id, p.Name, p.Age, a.Address as MyAddress, case when p.Age=20 then 1 when p.Age=22 then 2 else 3 end as Level
+				//from context.Persons as p
+				//left join context.AddressInfos as a on p.Id = a.UserId
+				//order by p.age desc
+				//";
+				//var script = new Script();
+				//script.Context.Langs = new[] { "sql" };
+				//script.Context.SetVar("context", context);
+				//var list = script.Eval<IEnumerable<dynamic>>(s).ToList();
+				//Console.WriteLine(JsonConvert.SerializeObject(list, Formatting.Indented));
 
 				//string s = @"
 				//var q = from p in context.Persons
