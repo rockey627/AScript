@@ -74,7 +74,6 @@ namespace AScript.Lang.JavaScript
 			AddLambda<Func<string, string, bool>>("startsWith", (s, p) => s.StartsWith(p));
 			AddLambda<Func<string, string, bool>>("endsWith", (s, p) => s.EndsWith(p));
 			AddLambda<Func<string, string, bool>>("includes", (s, p) => s.Contains(p));
-			//AddLambda < Func<string, string, List<object>>("match", (s, p) => p[0] == '/' ? (p.SubString(p.LastIndexOf('/') + 1).Contains('g')) : new List<object> { Regex.Match(p).Value });
 			AddLambda<Func<string, string, long>>("indexOf", (s, p) => s.IndexOf(p));
 			AddLambda<Func<string, string, long, long>>("indexOf", (s, p, start) => s.IndexOf(p, (int)start));
 			AddLambda<Func<string, string, long>>("lastIndexOf", (s, p) => s.LastIndexOf(p));
@@ -85,8 +84,17 @@ namespace AScript.Lang.JavaScript
 			AddLambda<Func<string, long, long, string>>("substring", (s, start, end) => s.Substring((int)start, (int)(end - start)));
 			AddLambda<Func<string, long, string>>("slice", (s, start) => s.Substring((int)(start < 0 ? s.Length + start : start)));
 			AddLambda<Func<string, long, long, string>>("slice", (s, start, end) => s.Substring((int)(start < 0 ? s.Length + start : start), (int)((end < 0 ? s.Length + end : end) - (start < 0 ? s.Length + start : start))));
-			AddFunc<string, string, List<object>>("match", StringMatch);
-			AddFunc<string, JavaScriptRegexPattern, List<object>>("match", StringMatch);
+			AddLambda<Func<string, string>>("toLowerCase", s => s.ToLower());
+			AddLambda<Func<string, string>>("toUpperCase", s => s.ToUpper());
+			AddLambda<Func<string, string>>("trim", s => s.Trim());
+			AddLambda<Func<string, string>>("trimStart", s => s.TrimStart());
+			AddLambda<Func<string, string>>("trimEnd", s => s.TrimEnd());
+			AddFunc<string, string, List<object>>("match", String_match);
+			AddFunc<string, JavaScriptRegexPattern, List<object>>("match", String_match);
+			AddFunc<string, long, string>("charAt", (s, index) => index < 0 || index >= s.Length ? string.Empty : s[(int)index].ToString());
+			AddFunc<string, long, long>("charCodeAt", (s, index) => index < 0 || index >= s.Length ? -1L : (long)(int)s[(int)index]);
+			AddFunc<string, string, string, string>("replace", String_replace);
+			AddFunc<string, JavaScriptRegexPattern, string, string>("replace", String_replace);
 
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);
@@ -122,24 +130,21 @@ namespace AScript.Lang.JavaScript
 			return JavaScriptSyntaxAnalyzer.Instance;
 		}
 
-		private static List<object> StringMatch(string s, string p)
+		private static List<object> String_match(string s, string p)
 		{
-			if (string.IsNullOrEmpty(s) || string.IsNullOrEmpty(p)) return new List<object>();
+			if (string.IsNullOrEmpty(s) || string.IsNullOrEmpty(p)) return null;
 			var match = Regex.Match(s, p);
-			if (match == null) return new List<object>();
+			if (!match.Success) return null;
 			return new List<object> { match.Value };
 		}
 
-		private static List<object> StringMatch(string s, JavaScriptRegexPattern p)
+		private static List<object> String_match(string s, JavaScriptRegexPattern p)
 		{
-			if (string.IsNullOrEmpty(s)) return new List<object>();
-			int lastIndex = p.Value.LastIndexOf('/');
-			var p0 = p.Value.Substring(1, lastIndex - 1);
-			var p1 = p.Value.Substring(lastIndex + 1);
-			var options = p1.Contains('i') ? RegexOptions.IgnoreCase : RegexOptions.None;
-			if (p1.Contains('g'))
+			if (string.IsNullOrEmpty(s)) return null;
+			if (p.SearchAll)
 			{
-				var matches = Regex.Matches(s, p0, options);
+				var matches = Regex.Matches(s, p.Pattern, p.Options);
+				if (matches.Count == 0) return null;
 				var list = new List<object>(matches.Count);
 				for (int i = 0; i < matches.Count; i++)
 				{
@@ -150,10 +155,30 @@ namespace AScript.Lang.JavaScript
 			}
 			else
 			{
-				var match = Regex.Match(s, p0, options);
-				if (match == null) return new List<object>();
+				var match = Regex.Match(s, p.Pattern, p.Options);
+				if (!match.Success) return null;
 				return new List<object> { match.Value };
 			}
+		}
+
+		private static string String_replace(string s, string pattern, string value)
+		{
+			// 只替换第1个匹配项，string.Replace是替换所有匹配项
+			if (string.IsNullOrEmpty(s)) return s;
+			if (string.IsNullOrEmpty(pattern)) return s;
+			int index = s.IndexOf(pattern);
+			if (index < 0) return s;
+			return s.Substring(0, index) + value + s.Substring(index + pattern.Length);
+		}
+
+		private static string String_replace(string s, JavaScriptRegexPattern p, string value)
+		{
+			if (string.IsNullOrEmpty(s)) return s;
+			if (p.SearchAll)
+			{
+				return Regex.Replace(s, p.Pattern, value, p.Options);
+			}
+			return new Regex(p.Pattern, p.Options).Replace(s, value, 1);
 		}
 	}
 }
