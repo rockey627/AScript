@@ -515,6 +515,16 @@ namespace AScript
 			}
 		}
 
+		public void AddLambda(string name, LambdaExpression lambda)
+		{
+			AddFunc(name, new LambdaFunction(lambda));
+		}
+
+		public void AddLambda<TFunc>(string name, Expression<TFunc> lambda) where TFunc : Delegate
+		{
+			AddFunc(name, new LambdaFunction(lambda));
+		}
+
 		/// <summary>
 		/// 添加类型中的所有公开静态方法
 		/// </summary>
