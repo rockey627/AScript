@@ -563,6 +563,36 @@ namespace AScript
 		}
 
 		/// <summary>
+		/// 对象内部方法是否可用
+		/// </summary>
+		/// <returns></returns>
+		public virtual bool IsObjectMethodEnabled(Type objType)
+		{
+			var langs = this.Langs;
+			if (langs == null || langs.Length == 0)
+			{
+				foreach (var item in Script.Langs.GetDefaults())
+				{
+					if (Script.Langs.TryGetValue(item, out var lang))
+					{
+						return lang.IsObjectMethodEnabled(objType);
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < langs.Length; i++)
+				{
+					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					{
+						return lang.IsObjectMethodEnabled(objType);
+					}
+				}
+			}
+			return true;
+		}
+
+		/// <summary>
 		/// 清空所有数据
 		/// </summary>
 		public void Clear()

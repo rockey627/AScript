@@ -245,6 +245,15 @@ namespace AScript
 			return dict != null && dict.ContainsKey(word);
 		}
 
+		/// <summary>
+		/// 对象内部方法是否可用
+		/// </summary>
+		/// <returns></returns>
+		public virtual bool IsObjectMethodEnabled(Type objType)
+		{
+			return true;
+		}
+
 		public object EvalVar(string name)
 		{
 			return EvalVar(name, out _);

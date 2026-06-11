@@ -92,6 +92,11 @@ namespace AScript.Lang.JavaScript
 			return true;
 		}
 
+		public override bool IsObjectMethodEnabled(Type objType)
+		{
+			return false;
+		}
+
 		public override ISyntaxAnalyzer GetSyntaxAnalyzer()
 		{
 			return JavaScriptSyntaxAnalyzer.Instance;
