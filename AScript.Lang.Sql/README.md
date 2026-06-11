@@ -286,8 +286,8 @@ Assert.AreEqual("不及格", list[3].basic_grade);
 Assert.AreEqual("需加强", list[3].advanced_grade);
 ```
 
-#### SQL to LINQ to SQL
-操作DbContext，将SQL语句转为LINQ查询，实现SQL to LINQ to SQL闭环：
+#### SQL to LINQ
+操作IQueryable数据源，将SQL语句转为LINQ查询，再由ORM框架转SQL查询：
 ```C#
 using (var context = new TestSqliteContext())
 {
