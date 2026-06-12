@@ -565,6 +565,7 @@ namespace AScript
 		/// <summary>
 		/// 对象内部方法是否可用
 		/// </summary>
+		/// <param name="objType"></param>
 		/// <returns></returns>
 		public virtual bool IsObjectMethodEnabled(Type objType)
 		{
@@ -586,6 +587,37 @@ namespace AScript
 					if (Script.Langs.TryGetValue(langs[i], out var lang))
 					{
 						return lang.IsObjectMethodEnabled(objType);
+					}
+				}
+			}
+			return true;
+		}
+
+		/// <summary>
+		/// 对象内部属性是否可用
+		/// </summary>
+		/// <param name="objType"></param>
+		/// <returns></returns>
+		public virtual bool IsObjectPropertyEnabled(Type objType)
+		{
+			var langs = this.Langs;
+			if (langs == null || langs.Length == 0)
+			{
+				foreach (var item in Script.Langs.GetDefaults())
+				{
+					if (Script.Langs.TryGetValue(item, out var lang))
+					{
+						return lang.IsObjectPropertyEnabled(objType);
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < langs.Length; i++)
+				{
+					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					{
+						return lang.IsObjectPropertyEnabled(objType);
 					}
 				}
 			}

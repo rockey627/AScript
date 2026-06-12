@@ -254,6 +254,16 @@ namespace AScript
 			return true;
 		}
 
+		/// <summary>
+		/// 对象内部属性是否可用
+		/// </summary>
+		/// <param name="objType"></param>
+		/// <returns></returns>
+		public virtual bool IsObjectPropertyEnabled(Type objType)
+		{
+			return true;
+		}
+
 		public object EvalVar(string name)
 		{
 			return EvalVar(name, out _);
