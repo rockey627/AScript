@@ -41,7 +41,8 @@ namespace AScript.Nodes
 				if (lastType == null) return varExpr;
 				return Expression.Convert(varExpr, lastType);
 			}
-			scriptContext.GetOwnerContext(this.Name, out var value, out var type, true);
+			//scriptContext.GetOwnerContext(this.Name, out var value, out var type, true);
+			var value = scriptContext.EvalVar(this.Name, out var type);
 			if (type == null)
 			{
 				if (options.ThrowIfVariableNotExists ?? false)

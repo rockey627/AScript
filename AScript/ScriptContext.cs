@@ -866,14 +866,46 @@ namespace AScript
 			//		return new TypeWrapper(mytype);
 			//	}
 			//}
+			if (context == null)
+			{
+				// 从语言上下文中搜索
+				value = EvalVarFromLangs(name, out type);
+			}
 			if (type == null) return value;
 			if (value == null && type.IsValueType)
 			{
 				// 值类型的变量未赋值，则取该变量时初始化
 				value = ScriptUtils.GetDefaultValue(type);
-				context._TempVariables[name] = value;
+				(context ?? this)._TempVariables[name] = value;
 			}
 			return value;
+		}
+
+		private object EvalVarFromLangs(string name, out Type type)
+		{
+			var langs = this.Langs;
+			if (langs == null || langs.Length == 0)
+			{
+				foreach (var item in Script.Langs.GetDefaults())
+				{
+					if (Script.Langs.TryGetValue(item, out var lang))
+					{
+						return lang.EvalVar(name, out type);
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < langs.Length; i++)
+				{
+					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					{
+						return lang.EvalVar(name, out type);
+					}
+				}
+			}
+			type = null;
+			return null;
 		}
 
 		public void EvalAction(BuildOptions options, EvalControl control, string name, IList<ITreeNode> args)
