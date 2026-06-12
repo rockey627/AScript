@@ -79,6 +79,8 @@ namespace AScript.Lang.JavaScript
 			AddLambda<Func<string, string, long, long>>("indexOf", (s, p, start) => s.IndexOf(p, (int)start));
 			AddLambda<Func<string, string, long>>("lastIndexOf", (s, p) => s.LastIndexOf(p));
 			AddLambda<Func<string, string, long, long>>("lastIndexOf", (s, p, start) => s.LastIndexOf(p, (int)start));
+			AddLambda<Func<string, string, long>>("search", (s, p) => s.IndexOf(p));
+			AddFunc<string, JavaScriptRegexPattern, long>("search", String_search);
 			AddLambda<Func<string, long, string>>("substr", (s, start) => s.Substring((int)(start < 0 ? s.Length + start : start)));
 			AddLambda<Func<string, long, long, string>>("substr", (s, start, count) => s.Substring((int)(start < 0 ? s.Length + start : start), (int)count));
 			AddLambda<Func<string, long, string>>("substring", (s, start) => s.Substring((int)start));
@@ -97,6 +99,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc<string, string, string, string>("replace", String_replace);
 			AddFunc<string, JavaScriptRegexPattern, string, string>("replace", String_replace);
 			AddFunc<string, string, List<object>>("split", String_split);
+			//AddFunc<string, long, string>("repeat", (s, count) => count <= 0 || string.IsNullOrEmpty(s) ? "" : string.);
 
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);
@@ -186,6 +189,14 @@ namespace AScript.Lang.JavaScript
 				return Regex.Replace(s, p.Pattern, value, p.Options);
 			}
 			return new Regex(p.Pattern, p.Options).Replace(s, value, 1);
+		}
+
+		private static long String_search(string s, JavaScriptRegexPattern p)
+		{
+			if (string.IsNullOrEmpty(s)) return -1L;
+			var match = Regex.Match(s, p.Pattern, p.Options);
+			if (!match.Success) return -1L;
+			return match.Index;
 		}
 
 		private static List<object> String_split(string s, string pattern)

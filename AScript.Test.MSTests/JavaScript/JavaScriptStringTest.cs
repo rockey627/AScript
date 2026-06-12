@@ -497,6 +497,11 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(0L, script.Eval("'hello'.search('hel')"));
 			Assert.AreEqual(2L, script.Eval("'hello'.search('l')"));
+			Assert.AreEqual(-1L, script.Eval("'hello'.search('L')"));
+			Assert.AreEqual(2L, script.Eval("'hello'.search(/l/)"));
+			Assert.AreEqual(-1L, script.Eval("'hello'.search(/L/)"));
+			Assert.AreEqual(2L, script.Eval("'hello'.search(/L/i)"));
+			Assert.AreEqual(2L, script.Eval("'hello'.search(/L/gi)"));
 			Assert.AreEqual(-1L, script.Eval("'hello'.search('xyz')"));
 		}
 
@@ -508,6 +513,11 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(0L, script.Eval("'hello'.search('hel')"));
 			Assert.AreEqual(2L, script.Eval("'hello'.search('l')"));
+			Assert.AreEqual(-1L, script.Eval("'hello'.search('L')"));
+			Assert.AreEqual(2L, script.Eval("'hello'.search(/l/)"));
+			Assert.AreEqual(-1L, script.Eval("'hello'.search(/L/)"));
+			Assert.AreEqual(2L, script.Eval("'hello'.search(/L/i)"));
+			Assert.AreEqual(2L, script.Eval("'hello'.search(/L/gi)"));
 			Assert.AreEqual(-1L, script.Eval("'hello'.search('xyz')"));
 		}
 
