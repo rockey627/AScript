@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -10,8 +9,6 @@ namespace AScript.Functions
 {
 	public class ContainsFunction : IFunctionEvaluator, IFunctionBuilder
 	{
-		public static readonly ContainsFunction Instance = new ContainsFunction();
-
 		private readonly bool _reverse;
 
 		public ContainsFunction() { }

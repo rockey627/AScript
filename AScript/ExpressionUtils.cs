@@ -39,8 +39,18 @@ namespace AScript
 
 		public static readonly MethodInfo Method_Delegate_DynamicInvoke = typeof(Delegate).GetMethod("DynamicInvoke", new Type[] { typeof(object[]) });
 
+		public static readonly MethodInfo Method_String_Concat = typeof(string).GetMethod("Concat", new Type[] { typeof(string) });
+		public static readonly MethodInfo Method_String_Concat_object = typeof(string).GetMethod("Concat", new Type[] { typeof(object) });
 		public static readonly MethodInfo Method_String_Concat2 = typeof(string).GetMethod("Concat", new Type[] { typeof(string), typeof(string) });
+		public static readonly MethodInfo Method_String_Concat2_object = typeof(string).GetMethod("Concat", new Type[] { typeof(object), typeof(object) });
+		public static readonly MethodInfo Method_String_Concat3 = typeof(string).GetMethod("Concat", new Type[] { typeof(string), typeof(string), typeof(string) });
+		public static readonly MethodInfo Method_String_Concat3_object = typeof(string).GetMethod("Concat", new Type[] { typeof(object), typeof(object), typeof(object) });
+		public static readonly MethodInfo Method_String_Concat4 = typeof(string).GetMethod("Concat", new Type[] { typeof(string), typeof(string), typeof(string), typeof(string) });
+		public static readonly MethodInfo Method_String_Concat4_object = typeof(string).GetMethod("Concat", new Type[] { typeof(object), typeof(object), typeof(object), typeof(object) });
 		public static readonly MethodInfo Method_String_Concat_list = typeof(string).GetMethod("Concat", new Type[] { typeof(IEnumerable<string>) });
+		public static readonly MethodInfo Method_String_Concat_list_object = typeof(string).GetMethod("Concat", new Type[] { typeof(IEnumerable<object>) });
+		public static readonly MethodInfo Method_String_Concat_array = typeof(string).GetMethod("Concat", new Type[] { typeof(string[]) });
+		public static readonly MethodInfo Method_String_Concat_array_object = typeof(string).GetMethod("Concat", new Type[] { typeof(object[]) });
 		public static readonly MethodInfo Method_Object_ToString = typeof(object).GetMethod("ToString", new Type[0]);
 		public static readonly MethodInfo Method_Object_Equals = typeof(object).GetMethod("Equals", new[] { typeof(object) });
 
