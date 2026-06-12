@@ -254,6 +254,7 @@ namespace AScript.Test.MSTests.JavaScript
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual("hello /js/gi", script.Eval("'hello '+/js/gi"));
 			Assert.AreEqual("hello js", script.Eval("'hello world'.replace('world', 'js')"));
 			Assert.AreEqual("hello ", script.Eval("'hello world'.replace('world', '')"));
 			Assert.AreEqual("hellx world", script.Eval("'hello world'.replace('o', 'x')"));
@@ -272,6 +273,7 @@ namespace AScript.Test.MSTests.JavaScript
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual("hello /js/gi", script.Eval("'hello '+/js/gi"));
 			Assert.AreEqual("hello js", script.Eval("'hello world'.replace('world', 'js')"));
 			Assert.AreEqual("hello ", script.Eval("'hello world'.replace('world', '')"));
 			Assert.AreEqual("hellx world", script.Eval("'hello world'.replace('o', 'x')"));
@@ -312,6 +314,37 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual("c", arr[2]);
 		}
 
+		[TestMethod]
+		public void Test12_split_2()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval("'a,b,c'.split('')");
+			var arr = (List<object>)result;
+			Assert.AreEqual(5, arr.Count);
+			Assert.AreEqual("a", arr[0]);
+			Assert.AreEqual(",", arr[1]);
+			Assert.AreEqual("b", arr[2]);
+			Assert.AreEqual(",", arr[3]);
+			Assert.AreEqual("c", arr[4]);
+		}
+
+		[TestMethod]
+		public void Test12_split_2_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval("'a,b,c'.split('')");
+			var arr = (List<object>)result;
+			Assert.AreEqual(5, arr.Count);
+			Assert.AreEqual("a", arr[0]);
+			Assert.AreEqual(",", arr[1]);
+			Assert.AreEqual("b", arr[2]);
+			Assert.AreEqual(",", arr[3]);
+			Assert.AreEqual("c", arr[4]);
+		}
+
 		// concat
 		[TestMethod]
 		public void Test13_concat()
@@ -320,6 +353,7 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual("hello world", script.Eval("'hello'.concat(' ', 'world')"));
 			Assert.AreEqual("helloworld", script.Eval("'hello'.concat('world')"));
+			Assert.AreEqual("helloworld34567", script.Eval("'hello'.concat('world','3','4','5','6','7')"));
 		}
 
 		[TestMethod]
@@ -330,6 +364,7 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual("hello world", script.Eval("'hello'.concat(' ', 'world')"));
 			Assert.AreEqual("helloworld", script.Eval("'hello'.concat('world')"));
+			Assert.AreEqual("helloworld34567", script.Eval("'hello'.concat('world','3','4','5','6','7')"));
 		}
 
 		// startsWith

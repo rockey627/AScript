@@ -4,6 +4,7 @@ using AScript.Operators;
 using AScript.TokenHandlers;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -68,8 +69,8 @@ namespace AScript.Lang.JavaScript
 			AddFunc("[]", IndexOperator.Instance);
 			AddFunc("[:]", IndexStartEndOperator.Instance);
 
-			// 内置eval函数
 			AddFunc("eval", EvalFunction.Instance);
+			AddFunc("concat", StringConcatFunction.Instance);
 
 			AddLambda<Func<string, string, bool>>("startsWith", (s, p) => s.StartsWith(p));
 			AddLambda<Func<string, string, bool>>("endsWith", (s, p) => s.EndsWith(p));
@@ -95,6 +96,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc<string, long, long>("charCodeAt", (s, index) => index < 0 || index >= s.Length ? -1L : (long)(int)s[(int)index]);
 			AddFunc<string, string, string, string>("replace", String_replace);
 			AddFunc<string, JavaScriptRegexPattern, string, string>("replace", String_replace);
+			AddFunc<string, string, List<object>>("split", String_split);
 
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);
@@ -123,6 +125,11 @@ namespace AScript.Lang.JavaScript
 		public override bool IsObjectMethodEnabled(Type objType)
 		{
 			return false;
+		}
+
+		public override bool IsObjectPropertyEnabled(Type objType)
+		{
+			return objType == typeof(ExpandoObject);
 		}
 
 		public override ISyntaxAnalyzer GetSyntaxAnalyzer()
@@ -179,6 +186,20 @@ namespace AScript.Lang.JavaScript
 				return Regex.Replace(s, p.Pattern, value, p.Options);
 			}
 			return new Regex(p.Pattern, p.Options).Replace(s, value, 1);
+		}
+
+		private static List<object> String_split(string s, string pattern)
+		{
+			if (string.IsNullOrEmpty(s)) return new List<object>();
+			if (string.IsNullOrEmpty(pattern))
+			{
+				return s.Select(a => (object)a.ToString()).ToList();
+			}
+#if NETSTANDARD2_1_OR_GREATER
+			return s.Split(pattern).Select(a => (object)a).ToList();
+#else
+			return s.Split(new[] { pattern }, StringSplitOptions.None).Select(a => (object)a).ToList();
+#endif
 		}
 	}
 }
