@@ -434,7 +434,9 @@ namespace AScript.Test.MSTests.JavaScript
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual("aaa", script.Eval("'a'.repeat(3)"));
+			Assert.AreEqual("aaaaaaaa", script.Eval("'a'.repeat(8)"));
 			Assert.AreEqual("", script.Eval("'hello'.repeat(0)"));
+			Assert.AreEqual("", script.Eval("''.repeat(10)"));
 			Assert.AreEqual("hellohello", script.Eval("'hello'.repeat(2)"));
 		}
 
@@ -445,7 +447,9 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual("aaa", script.Eval("'a'.repeat(3)"));
+			Assert.AreEqual("aaaaaaaa", script.Eval("'a'.repeat(8)"));
 			Assert.AreEqual("", script.Eval("'hello'.repeat(0)"));
+			Assert.AreEqual("", script.Eval("''.repeat(10)"));
 			Assert.AreEqual("hellohello", script.Eval("'hello'.repeat(2)"));
 		}
 
@@ -456,6 +460,7 @@ namespace AScript.Test.MSTests.JavaScript
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual("xxabc", script.Eval("'abc'.padStart(5, 'x')"));
+			Assert.AreEqual("abc", script.Eval("'abc'.padStart(5, '')"));
 			Assert.AreEqual("  abc", script.Eval("'abc'.padStart(5)"));
 		}
 
@@ -466,6 +471,7 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual("xxabc", script.Eval("'abc'.padStart(5, 'x')"));
+			Assert.AreEqual("abc", script.Eval("'abc'.padStart(5, '')"));
 			Assert.AreEqual("  abc", script.Eval("'abc'.padStart(5)"));
 		}
 
@@ -476,6 +482,7 @@ namespace AScript.Test.MSTests.JavaScript
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual("abcxx", script.Eval("'abc'.padEnd(5, 'x')"));
+			Assert.AreEqual("abc", script.Eval("'abc'.padEnd(5, '')"));
 			Assert.AreEqual("abc  ", script.Eval("'abc'.padEnd(5)"));
 		}
 
@@ -486,6 +493,7 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual("abcxx", script.Eval("'abc'.padEnd(5, 'x')"));
+			Assert.AreEqual("abc", script.Eval("'abc'.padEnd(5, '')"));
 			Assert.AreEqual("abc  ", script.Eval("'abc'.padEnd(5)"));
 		}
 

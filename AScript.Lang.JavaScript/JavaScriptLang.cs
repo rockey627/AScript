@@ -1,4 +1,5 @@
 ﻿using AScript.Functions;
+using AScript.Lang.JavaScript.Functions;
 using AScript.Lang.JavaScript.TokenHandlers;
 using AScript.Operators;
 using AScript.TokenHandlers;
@@ -19,6 +20,8 @@ namespace AScript.Lang.JavaScript
 
 		protected JavaScriptLang()
 		{
+			SetVar("String", JavaScriptString.Instance);
+
 			AddType("var", typeof(object));
 			AddType("let", typeof(object));
 			AddType("const", typeof(object));
@@ -71,6 +74,7 @@ namespace AScript.Lang.JavaScript
 
 			AddFunc("eval", EvalFunction.Instance);
 			AddFunc("concat", StringConcatFunction.Instance);
+			AddFunc("fromCharCode", JavaScriptStringFromCharCodeFunction.Instance);
 
 			AddLambda<Func<string, string, bool>>("startsWith", (s, p) => s.StartsWith(p));
 			AddLambda<Func<string, string, bool>>("endsWith", (s, p) => s.EndsWith(p));
@@ -92,6 +96,10 @@ namespace AScript.Lang.JavaScript
 			AddLambda<Func<string, string>>("trim", s => s.Trim());
 			AddLambda<Func<string, string>>("trimStart", s => s.TrimStart());
 			AddLambda<Func<string, string>>("trimEnd", s => s.TrimEnd());
+			AddFunc<string, long, string>("padStart", (s, count) => s.PadLeft((int)count));
+			AddFunc<string, long, string, string>("padStart", (s, count, v) => string.IsNullOrEmpty(v) ? s : s.PadLeft((int)count, v[0]));
+			AddFunc<string, long, string>("padEnd", (s, count) => s.PadRight((int)count));
+			AddFunc<string, long, string, string>("padEnd", (s, count, v) => string.IsNullOrEmpty(v) ? s : s.PadRight((int)count, v[0]));
 			AddFunc<string, string, List<object>>("match", String_match);
 			AddFunc<string, JavaScriptRegexPattern, List<object>>("match", String_match);
 			AddFunc<string, long, string>("charAt", (s, index) => index < 0 || index >= s.Length ? string.Empty : s[(int)index].ToString());
@@ -99,7 +107,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc<string, string, string, string>("replace", String_replace);
 			AddFunc<string, JavaScriptRegexPattern, string, string>("replace", String_replace);
 			AddFunc<string, string, List<object>>("split", String_split);
-			//AddFunc<string, long, string>("repeat", (s, count) => count <= 0 || string.IsNullOrEmpty(s) ? "" : string.);
+			AddFunc<string, long, string>("repeat", String_repeat);
 
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);
@@ -212,5 +220,22 @@ namespace AScript.Lang.JavaScript
 			return s.Split(new[] { pattern }, StringSplitOptions.None).Select(a => (object)a).ToList();
 #endif
 		}
+
+		private static string String_repeat(string s, long count)
+		{
+			if (string.IsNullOrEmpty(s)) return string.Empty;
+			if (count <= 0) return string.Empty;
+			if (count == 1) return s;
+			if (count == 2) return s + s;
+			if (count == 3) return s + s + s;
+			if (count == 4) return s + s + s + s;
+			var arr = new string[count];
+			for (int i = 0; i < count; i++)
+			{
+				arr[i] = s;
+			}
+			return string.Concat(arr);
+		}
+
 	}
 }
