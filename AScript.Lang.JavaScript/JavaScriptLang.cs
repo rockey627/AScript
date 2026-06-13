@@ -28,6 +28,7 @@ namespace AScript.Lang.JavaScript
 			AddType("Array", typeof(Array));
 			AddType("Set", typeof(HashSet<object>));
 			AddType("Map", typeof(Dictionary<object, object>));
+			//AddType("Math", typeof(Math));
 
 			AddFunc("=", AssignOperator.Instance);
 			AddFunc("+=", PlusAssignOperator.Instance);
@@ -144,7 +145,7 @@ namespace AScript.Lang.JavaScript
 
 		public override bool IsObjectPropertyEnabled(Type objType)
 		{
-			return objType == typeof(ExpandoObject);
+			return false;
 		}
 
 		public override ISyntaxAnalyzer GetSyntaxAnalyzer()

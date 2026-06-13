@@ -14,7 +14,6 @@ namespace AScript.Lang.JavaScript.Functions
 		public static readonly JavaScriptStringFromCharCodeFunction Instance = new JavaScriptStringFromCharCodeFunction();
 
 		private static readonly MethodInfo Method_StringBuilder_Append_char = typeof(StringBuilder).GetMethod("Append", new[] { typeof(char) });
-		//private static readonly MethodInfo Method_StringBuilder_ToString
 
 		public void Build(FunctionBuildArgs e)
 		{
@@ -24,7 +23,6 @@ namespace AScript.Lang.JavaScript.Functions
 
 			// 创建 StringBuilder 变量
 			var sbVar = Expression.Variable(typeof(StringBuilder), "sb");
-			var toStringMethod = ExpressionUtils.Method_Object_ToString;// typeof(StringBuilder).GetMethod("ToString", Type.EmptyTypes);
 
 			// 构建表达式列表
 			var expressions = new List<Expression>(args.Count + 1);
@@ -40,7 +38,7 @@ namespace AScript.Lang.JavaScript.Functions
 			}
 
 			// 调用 ToString() 并赋值给 Result
-			expressions.Add(Expression.Call(sbVar, toStringMethod));
+			expressions.Add(Expression.Call(sbVar, ExpressionUtils.Method_Object_ToString));
 
 			// 创建代码块
 			var body = Expression.Block(new[] { sbVar }, expressions);
