@@ -74,6 +74,7 @@ namespace AScript.Lang.JavaScript
 
 			AddFunc("eval", EvalFunction.Instance);
 			AddFunc("concat", StringConcatFunction.Instance);
+			AddFunc("get_length", new LengthFunction(typeof(long)));
 			AddFunc("fromCharCode", JavaScriptStringFromCharCodeFunction.Instance);
 
 			AddLambda<Func<string, string, bool>>("startsWith", (s, p) => s.StartsWith(p));
