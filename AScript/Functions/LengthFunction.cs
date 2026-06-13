@@ -13,17 +13,25 @@ namespace AScript.Functions
 
 		public static readonly LengthFunction Instance = new LengthFunction();
 
+		private readonly Type _lengthType;
+
+		public LengthFunction() { }
+		public LengthFunction(Type lengthType)
+		{
+			_lengthType = lengthType;
+		}
+
 		public void Build(FunctionBuildArgs e)
 		{
 			var a = e.BuildArgs(0);
 			if (a.Type == typeof(string) || a.Type.IsArray)
 			{
-				e.Result = Expression.Property(a, "Length");
+				e.Result = TryChangeType(Expression.Property(a, "Length"));
 				return;
 			}
 			if (typeof(IList).IsAssignableFrom(a.Type) || typeof(IDictionary).IsAssignableFrom(a.Type))
 			{
-				e.Result = Expression.Property(a, "Count");
+				e.Result = TryChangeType(Expression.Property(a, "Count"));
 				return;
 			}
 			if (typeof(IQueryable).IsAssignableFrom(a.Type))
@@ -31,7 +39,7 @@ namespace AScript.Functions
 				if (a.Type.IsGenericType)
 				{
 					var countMethod = Method_Queryable_Count1.MakeGenericMethod(a.Type.GetGenericArguments()[0]);
-					e.Result = Expression.Call(countMethod, a);
+					e.Result = TryChangeType(Expression.Call(countMethod, a));
 					return;
 				}
 			}
@@ -40,10 +48,22 @@ namespace AScript.Functions
 				if (a.Type.IsGenericType)
 				{
 					var countMethod = Method_Enumerable_Count1.MakeGenericMethod(a.Type.GetGenericArguments()[0]);
-					e.Result = Expression.Call(countMethod, a);
+					e.Result = TryChangeType(Expression.Call(countMethod, a));
 					return;
 				}
 			}
+		}
+
+		private Expression TryChangeType(Expression expr)
+		{
+			if (_lengthType == null || _lengthType == typeof(int)) return expr;
+			return Expression.Convert(expr, _lengthType);
+		}
+
+		private object TryChangeType(object length)
+		{
+			if (_lengthType == null || _lengthType == typeof(int)) return length;
+			return Convert.ChangeType(length, _lengthType);
 		}
 
 		public void Eval(FunctionEvalArgs e)
@@ -51,22 +71,22 @@ namespace AScript.Functions
 			var a = e.EvalArgs(0, out _);
 			if (a == null)
 			{
-				e.SetResult(0);
+				e.SetResult(TryChangeType(0));
 				return;
 			}
 			if (a is string s)
 			{
-				e.SetResult(s.Length);
+				e.SetResult(TryChangeType(s.Length));
 				return;
 			}
 			if (a is IList list)
 			{
-				e.SetResult(list.Count);
+				e.SetResult(TryChangeType(list.Count));
 				return;
 			}
 			if (a is IDictionary dict)
 			{
-				e.SetResult(dict.Count);
+				e.SetResult(TryChangeType(dict.Count));
 				return;
 			}
 			if (a is IQueryable)
@@ -75,7 +95,7 @@ namespace AScript.Functions
 				if (type.IsGenericType)
 				{
 					var countMethod = Method_Queryable_Count1.MakeGenericMethod(type.GetGenericArguments()[0]);
-					e.SetResult(countMethod.Invoke(null, new[] { a }));
+					e.SetResult(TryChangeType(countMethod.Invoke(null, new[] { a })));
 					return;
 				}
 			}
@@ -85,7 +105,7 @@ namespace AScript.Functions
 				if (type.IsGenericType)
 				{
 					var countMethod = Method_Enumerable_Count1.MakeGenericMethod(type.GetGenericArguments()[0]);
-					e.SetResult(countMethod.Invoke(null, new[] { a }));
+					e.SetResult(TryChangeType(countMethod.Invoke(null, new[] { a })));
 					return;
 				}
 				//int n = 0;
