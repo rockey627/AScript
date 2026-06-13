@@ -36,7 +36,6 @@ C#动态脚本解析编译执行引擎
 * 支持if/else语句
 * 支持for/while/foreach语句
 * 支持continue/break/return
-* 支持switch语句：case语句块不需要break
 * 支持自定义语法解析（自定义关键字）
 * 支持流式读取表达式
 * 支持自定义脚本语言，已实现CSharp/Python3/SQL三种语言
@@ -364,29 +363,6 @@ while(n <= 10) {
 total";
 var script = new Script();
 Assert.AreEqual(55, script.Eval(s));
-```
-
-#### switch
-与C#中的switch语法不同，语句块中不需要break。
-```C#
-var s = @"
-n=1;
-switch(n) {
-case 0:
-case 1:
-	int m=6;
-	n=m+4;
-case 2:
-	int m=8
-	n=m+12;
-default:
-	int m=9
-	n=m+21;
-}
-n
-";
-var script = new Script();
-Assert.AreEqual(10, script.Eval(s));
 ```
 
 #### LINQ
