@@ -11,7 +11,7 @@ namespace AScript.Readers
 	{
 		private static readonly HashSet<char> _SpaceChars = new HashSet<char> { ' ', '\r', '\t', '\n' };
 		private static readonly HashSet<char> _OperatorChars = new HashSet<char> { '=', '+', '-', '*', '/', '&', '|', '>', '<', '!', '^', '%', '~', '.', '?', ':' };
-		private static readonly HashSet<char> _SingleChars = new HashSet<char> { ';', ',', '(', ')', '{', '}', '[', ']' };
+		private static readonly HashSet<char> _SingleChars = new HashSet<char> { ';', ',', '(', ')', '{', '}', '[', ']', '`' };
 
 		protected readonly StringBuilder _buffer = new StringBuilder();
 

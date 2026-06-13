@@ -8,7 +8,7 @@ using System.Text;
 namespace AScript.TokenHandlers
 {
 	/// <summary>
-	/// 字符串内插功能：$"hello {name}"
+	/// 字符串插值：$"hello {name}"
 	/// </summary>
 	public class StringInterpolationTokenHandler : ITokenHandler
 	{
@@ -198,6 +198,5 @@ namespace AScript.TokenHandlers
 				}
 			}
 		}
-
 	}
 }
