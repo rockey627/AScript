@@ -93,6 +93,10 @@ namespace AScript.Nodes
 			{
 				return VisitSwitchNode(switchNode);
 			}
+			if (node is CaseWhenNode caseWhenNode)
+			{
+				return VisitCaseWhenNode(caseWhenNode);
+			}
 			if (node is FuncObjectNode funcObjectNode)
 			{
 				return VisitFuncObjectNode(funcObjectNode);
@@ -274,6 +278,26 @@ namespace AScript.Nodes
 				}
 			}
 			return switchNode;
+		}
+
+		public virtual ITreeNode VisitCaseWhenNode(CaseWhenNode caseWhenNode)
+		{
+			caseWhenNode.CaseValue = Visit(caseWhenNode.CaseValue);
+			caseWhenNode.ElseBody = Visit(caseWhenNode.ElseBody);
+			if (caseWhenNode.Whens != null && caseWhenNode.Whens.Count > 0)
+			{
+				for (int i = 0; i < caseWhenNode.Whens.Count; i++)
+				{
+					var t = caseWhenNode.Whens[i];
+					Visit(t.Item1);
+					var body = Visit(t.Item2);
+					if (body != t.Item2)
+					{
+						caseWhenNode.Whens[i] = Tuple.Create(t.Item1, body);
+					}
+				}
+			}
+			return caseWhenNode;
 		}
 
 		public virtual ITreeNode VisitFuncObjectNode(FuncObjectNode funcObjectNode)
