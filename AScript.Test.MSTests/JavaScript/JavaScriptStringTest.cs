@@ -722,5 +722,51 @@ namespace AScript.Test.MSTests.JavaScript
 			// 无匹配返回null
 			Assert.AreEqual(null, script.Eval("'hello'.match('xyz')"));
 		}
+
+		// 字符串插值
+		[TestMethod]
+		public void Test28_stringInterpolation()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			// 基本插值
+			Assert.AreEqual("hello world", script.Eval("`hello ${'world'}`"));
+			Assert.AreEqual("hello world", script.Eval("var name='world';`hello ${name}`"));
+			// 表达式插值
+			Assert.AreEqual("3", script.Eval("`${1+2}`"));
+			Assert.AreEqual("ab", script.Eval("`${'a'+'b'}`"));
+			// 多重插值
+			Assert.AreEqual("a b c", script.Eval("var a='a',b='b',c='c';`${a} ${b} ${c}`"));
+			// 空字符串
+			Assert.AreEqual("", script.Eval("``"));
+			// 只有文本
+			Assert.AreEqual("hello", script.Eval("`hello`"));
+			// 转义字符
+			Assert.AreEqual("$\n", script.Eval("`$\\n`"));
+			Assert.AreEqual("$\t", script.Eval("`$\\t`"));
+		}
+
+		[TestMethod]
+		public void Test28_stringInterpolation_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			// 基本插值
+			Assert.AreEqual("hello world", script.Eval("`hello ${'world'}`"));
+			Assert.AreEqual("hello world", script.Eval("var name='world';`hello ${name}`"));
+			// 表达式插值
+			Assert.AreEqual("3", script.Eval("`${1+2}`"));
+			Assert.AreEqual("ab", script.Eval("`${'a'+'b'}`"));
+			// 多重插值
+			Assert.AreEqual("a b c", script.Eval("var a='a',b='b',c='c';`${a} ${b} ${c}`"));
+			// 空字符串
+			Assert.AreEqual("", script.Eval("``"));
+			// 只有文本
+			Assert.AreEqual("hello", script.Eval("`hello`"));
+			// 转义字符
+			Assert.AreEqual("$\n", script.Eval("`$\\n`"));
+			Assert.AreEqual("$\t", script.Eval("`$\\t`"));
+		}
 	}
 }

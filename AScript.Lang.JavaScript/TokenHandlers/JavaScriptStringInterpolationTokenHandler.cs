@@ -37,10 +37,9 @@ namespace AScript.Lang.JavaScript.TokenHandlers
 
 			List<ITreeNode> concatArgs = null;
 			List<Expression> exprs = null;
-			char startChar = c.Value;
 			var _buffer = new StringBuilder();
+			char startChar = '`';
 			bool prevEscape = false;
-			c = _reader.Read();
 			while (c.HasValue)
 			{
 				if (c == '\\')
