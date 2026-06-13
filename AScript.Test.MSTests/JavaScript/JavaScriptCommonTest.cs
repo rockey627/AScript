@@ -251,7 +251,7 @@ isAdult(20);
 			script.Context.Langs = new[] { "js" };
 
 			Assert.AreEqual("helloworld", script.Eval("'hello' + 'world'"));
-			Assert.AreEqual(5, script.Eval("'hello'.length"));
+			Assert.AreEqual(5L, script.Eval("'hello'.length"));
 			Assert.AreEqual("ell", script.Eval("'hello'.substring(1, 4)"));
 		}
 
@@ -729,10 +729,25 @@ asyncAdd(100, 200);
 			script.Context.Langs = new[] { "js" };
 
 			string code = @"
-function double(x) {
+var fn = function (x) {
 	return x * 2;
 }
-var fn = double;
+fn(5);
+";
+			Assert.AreEqual(10L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestFunction_AssignToVariable_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var fn = function (x) {
+	return x * 2;
+}
 fn(5);
 ";
 			Assert.AreEqual(10L, script.Eval(code));

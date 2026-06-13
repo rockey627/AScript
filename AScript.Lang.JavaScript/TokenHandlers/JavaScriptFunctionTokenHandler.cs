@@ -24,10 +24,24 @@ namespace AScript.Lang.JavaScript.TokenHandlers
 				return;
 			}
 			// 函数名
-			var funcNameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
-			string funcName = funcNameToken.Value.Value;
+			//var funcNameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+			var funcNameToken = e.TokenReader.Read();
+			string funcName;
+			if (!funcNameToken.HasValue)
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid function at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
+			}
+			if (funcNameToken.Value.IsSymbol("(")) funcName = null;
+			else if (funcNameToken.Value.Type == ETokenType.Word)
+			{
+				funcName = funcNameToken.Value.Value;
+				analyzer.ValidateNextToken(e.TokenReader, "(");
+			}
+			else
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid function '{funcNameToken.Value.Value}' at ({funcNameToken.Value.Line},{funcNameToken.Value.Column})");
+			}
 			// 参数
-			analyzer.ValidateNextToken(e.TokenReader, "(");
 			var nextToken = e.TokenReader.Read();
 			if (!nextToken.HasValue)
 			{
