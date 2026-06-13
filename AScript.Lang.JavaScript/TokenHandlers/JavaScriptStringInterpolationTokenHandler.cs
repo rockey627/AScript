@@ -1,0 +1,217 @@
+﻿using AScript.Nodes;
+using AScript.Syntaxs;
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Text;
+
+namespace AScript.Lang.JavaScript.TokenHandlers
+{
+	/// <summary>
+	/// 字符串插值：`hello ${name}`
+	/// </summary>
+	public class JavaScriptStringInterpolationTokenHandler : ITokenHandler
+	{
+		public static readonly JavaScriptStringInterpolationTokenHandler Instance = new JavaScriptStringInterpolationTokenHandler();
+
+		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
+		{
+			e.IsHandled = true;
+
+			var _reader = e.TokenReader.CharReader;
+			var c = _reader.Read();
+			if (!c.HasValue)
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at ({_reader.CurrentLine},{_reader.CurrentColumn})");
+			}
+			if (c.Value == '`')
+			{
+				if (!e.Ignore)
+				{
+					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(""));
+				}
+				return;
+			}
+
+			e.IsHandled = true;
+
+			List<ITreeNode> concatArgs = null;
+			List<Expression> exprs = null;
+			char startChar = c.Value;
+			var _buffer = new StringBuilder();
+			bool prevEscape = false;
+			c = _reader.Read();
+			while (c.HasValue)
+			{
+				if (c == '\\')
+				{
+					if (prevEscape)
+					{
+						prevEscape = false;
+						_buffer.Append(c);
+					}
+					else
+					{
+						prevEscape = true;
+					}
+					c = _reader.Read();
+					continue;
+				}
+				if (c == startChar && !prevEscape)
+				{
+					break;
+				}
+
+				if (!prevEscape)
+				{
+					if (c.Value != '$')
+					{
+						_buffer.Append(c.Value);
+						c = _reader.Read();
+						continue;
+					}
+
+					var nextC = _reader.Read();
+					if (!nextC.HasValue)
+					{
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression at ({_reader.CurrentLine},{_reader.CurrentColumn})");
+					}
+					if (nextC.Value == '\\')
+					{
+						_buffer.Append('$');
+						prevEscape = true;
+						c = _reader.Read();
+						continue;
+					}
+
+					if (nextC.Value == '{')
+					{
+						// 插值计算
+						var node = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+						if (e.Options.CreateFullTreeNode ?? false)
+						{
+							if (concatArgs == null) concatArgs = new List<ITreeNode>();
+							if (_buffer.Length > 0)
+							{
+								concatArgs.Add(PoolManage.CreateObjectNode(_buffer.ToString(), typeof(string)));
+								_buffer.Clear();
+							}
+							concatArgs.Add(node);
+						}
+						else if ((e.Options.CompileMode ?? ECompileMode.None) != ECompileMode.All)
+						{
+							var obj = node.Eval(e.ScriptContext, e.Options, e.Control, out _);
+							if (obj != null) _buffer.Append(obj.ToString());
+						}
+						else
+						{
+							var v = node.Build(e.BuildContext, e.ScriptContext, e.Options);
+							Expression vs;
+							if (v.Type.IsValueType)
+							{
+								vs = Expression.Call(v, ExpressionUtils.Method_Object_ToString);
+							}
+							else
+							{
+								var testNull = Expression.ReferenceEqual(v, ExpressionUtils.Constant_null);
+								vs = Expression.Condition(testNull, ExpressionUtils.Constant_string_empty, Expression.Call(v, ExpressionUtils.Method_Object_ToString));
+							}
+							if (exprs == null) exprs = new List<Expression>();
+							if (_buffer.Length > 0)
+							{
+								exprs.Add(Expression.Constant(_buffer.ToString()));
+								_buffer.Clear();
+							}
+							exprs.Add(vs);
+						}
+						analyzer.ValidateNextToken(e.TokenReader, "}");
+						c = _reader.Read();
+						continue;
+					}
+
+					_buffer.Append(c.Value);
+					_buffer.Append(nextC.Value);
+					c = _reader.Read();
+					continue;
+				}
+
+				prevEscape = false;
+				if (c == startChar)
+				{
+					_buffer.Append(c);
+				}
+				else if (c == '$')
+				{
+					_buffer.Append('$');
+				}
+				else if (c == '{')
+				{
+					_buffer.Append('{');
+				}
+				else if (c == 'n')
+				{
+					_buffer.Append('\n');
+				}
+				else if (c == 'r')
+				{
+					_buffer.Append('\r');
+				}
+				else if (c == 't')
+				{
+					_buffer.Append('\t');
+				}
+				else throw new Exceptions.ScriptRuntimeException("unknown string escape:\\" + c);
+
+				c = _reader.Read();
+			}
+
+			if (!c.HasValue)
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid string at ({_reader.CurrentLine},{_reader.CurrentColumn}), expect {startChar}");
+			}
+
+			if (e.Options.CreateFullTreeNode ?? false)
+			{
+				if (concatArgs == null || concatArgs.Count == 0)
+				{
+					if ((e.Options.CompileMode ?? ECompileMode.None) != ECompileMode.All)
+					{
+						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(_buffer.ToString(), typeof(string)));
+					}
+					else
+					{
+						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateExpressionNode(Expression.Constant(_buffer.ToString())));
+					}
+				}
+				else
+				{
+					if (_buffer.Length > 0)
+					{
+						concatArgs.Add(PoolManage.CreateObjectNode(_buffer.ToString(), typeof(string)));
+					}
+					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new StringConcatNode { Args = concatArgs });
+				}
+			}
+			else if ((e.Options.CompileMode ?? ECompileMode.None) != ECompileMode.All)
+			{
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(_buffer.ToString(), typeof(string)));
+			}
+			else
+			{
+				if (exprs == null || exprs.Count == 0)
+				{
+					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateExpressionNode(Expression.Constant(_buffer.ToString())));
+				}
+				else
+				{
+					if (_buffer.Length > 0)
+					{
+						exprs.Add(Expression.Constant(_buffer.ToString()));
+					}
+					var a = Expression.NewArrayInit(typeof(string), exprs);
+					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateExpressionNode(Expression.Call(null, ExpressionUtils.Method_String_Concat_list, a)));
+				}
+			}
+		}
+	}
+}

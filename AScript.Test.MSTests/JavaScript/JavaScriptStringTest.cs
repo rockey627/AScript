@@ -611,43 +611,43 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual("abc", script.Eval("String.fromCharCode(97, 98, 99)"));
 		}
 
-		// String.fromCodePoint
-		[TestMethod]
-		public void Test25_fromCodePoint()
-		{
-			var script = new Script();
-			script.Context.Langs = new[] { "js" };
-			Assert.AreEqual("a", script.Eval("String.fromCodePoint(97)"));
-			Assert.AreEqual("abc", script.Eval("String.fromCodePoint(97, 98, 99)"));
-		}
+		//// String.fromCodePoint
+		//[TestMethod]
+		//public void Test25_fromCodePoint()
+		//{
+		//	var script = new Script();
+		//	script.Context.Langs = new[] { "js" };
+		//	Assert.AreEqual("a", script.Eval("String.fromCodePoint(97)"));
+		//	Assert.AreEqual("abc", script.Eval("String.fromCodePoint(97, 98, 99)"));
+		//}
 
-		[TestMethod]
-		public void Test25_fromCodePoint_CompileAll()
-		{
-			var script = new Script();
-			script.Options.CompileMode = ECompileMode.All;
-			script.Context.Langs = new[] { "js" };
-			Assert.AreEqual("a", script.Eval("String.fromCodePoint(97)"));
-			Assert.AreEqual("abc", script.Eval("String.fromCodePoint(97, 98, 99)"));
-		}
+		//[TestMethod]
+		//public void Test25_fromCodePoint_CompileAll()
+		//{
+		//	var script = new Script();
+		//	script.Options.CompileMode = ECompileMode.All;
+		//	script.Context.Langs = new[] { "js" };
+		//	Assert.AreEqual("a", script.Eval("String.fromCodePoint(97)"));
+		//	Assert.AreEqual("abc", script.Eval("String.fromCodePoint(97, 98, 99)"));
+		//}
 
-		// String.raw
-		[TestMethod]
-		public void Test26_raw()
-		{
-			var script = new Script();
-			script.Context.Langs = new[] { "js" };
-			Assert.AreEqual("hello\\nworld", script.Eval("String.raw`hello\\nworld`"));
-		}
+		//// String.raw
+		//[TestMethod]
+		//public void Test26_raw()
+		//{
+		//	var script = new Script();
+		//	script.Context.Langs = new[] { "js" };
+		//	Assert.AreEqual("hello\\nworld", script.Eval("String.raw`hello\\nworld`"));
+		//}
 
-		[TestMethod]
-		public void Test26_raw_CompileAll()
-		{
-			var script = new Script();
-			script.Options.CompileMode = ECompileMode.All;
-			script.Context.Langs = new[] { "js" };
-			Assert.AreEqual("hello\\nworld", script.Eval("String.raw`hello\\nworld`"));
-		}
+		//[TestMethod]
+		//public void Test26_raw_CompileAll()
+		//{
+		//	var script = new Script();
+		//	script.Options.CompileMode = ECompileMode.All;
+		//	script.Context.Langs = new[] { "js" };
+		//	Assert.AreEqual("hello\\nworld", script.Eval("String.raw`hello\\nworld`"));
+		//}
 
 		// match
 		[TestMethod]

@@ -106,6 +106,8 @@ namespace AScript.Lang.JavaScript
 			AddFunc<string, long, long>("charCodeAt", (s, index) => index < 0 || index >= s.Length ? -1L : (long)(int)s[(int)index]);
 			AddFunc<string, string, string, string>("replace", String_replace);
 			AddFunc<string, JavaScriptRegexPattern, string, string>("replace", String_replace);
+			AddFunc<string, string, string, string>("replaceAll", (s, p, v) => s.Replace(p, v));
+			AddFunc<string, JavaScriptRegexPattern, string, string>("replaceAll", String_replace);
 			AddFunc<string, string, List<object>>("split", String_split);
 			AddFunc<string, long, string>("repeat", String_repeat);
 
@@ -126,6 +128,7 @@ namespace AScript.Lang.JavaScript
 			AddTokenHandler("for", JavaScriptForTokenHandler.Instance);
 			AddTokenHandler("function", JavaScriptFunctionTokenHandler.Instance);
 			AddTokenHandler("/", JavaScriptRegexPatternTokenHandler.Instance);
+			AddTokenHandler("`", JavaScriptStringInterpolationTokenHandler.Instance);
 		}
 
 		public override bool IsDynamic()
