@@ -351,14 +351,14 @@ namespace AScript
 			var flags = BindingFlags.Public | BindingFlags.IgnoreCase;
 			if (instance is TypeWrapper w)
 			{
-				// 静态属性赋值
+				// 静态属性
 				target = null;
 				targetType = w.Type;
 				flags |= BindingFlags.Static;
 			}
 			else
 			{
-				// 实例属性赋值
+				// 实例属性
 				target = instance;
 				targetType = instance.GetType();
 				flags |= BindingFlags.Instance;
