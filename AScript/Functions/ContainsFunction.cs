@@ -47,6 +47,11 @@ namespace AScript.Functions
 				containsMethod = type0.GetMethod("ContainsKey", BindingFlags.Public | BindingFlags.Instance);
 				if (containsMethod != null)
 				{
+					var definedType = containsMethod.GetParameters()[0].ParameterType;
+					if (itemExpr.Type != definedType)
+					{
+						itemExpr = Expression.Convert(itemExpr, definedType);
+					}
 					e.Result = Expression.Call(listExpr, containsMethod, itemExpr);
 					return;
 				}
@@ -58,6 +63,11 @@ namespace AScript.Functions
 				containsMethod = type0.GetMethod("Contains", BindingFlags.Public | BindingFlags.Instance);
 				if (containsMethod != null)
 				{
+					var definedType = containsMethod.GetParameters()[0].ParameterType;
+					if (itemExpr.Type != definedType)
+					{
+						itemExpr = Expression.Convert(itemExpr, definedType);
+					}
 					e.Result = Expression.Call(listExpr, containsMethod, itemExpr);
 					return;
 				}
@@ -69,6 +79,11 @@ namespace AScript.Functions
 				containsMethod = type0.GetMethod("Contains", BindingFlags.Public | BindingFlags.Instance);
 				if (containsMethod != null)
 				{
+					var definedType = containsMethod.GetParameters()[0].ParameterType;
+					if (itemExpr.Type != definedType)
+					{
+						itemExpr = Expression.Convert(itemExpr, definedType);
+					}
 					e.Result = Expression.Call(listExpr, containsMethod, itemExpr);
 					return;
 				}
@@ -78,6 +93,11 @@ namespace AScript.Functions
 			if (typeof(IDictionary).IsAssignableFrom(type0))
 			{
 				var idictContainsMethod = typeof(IDictionary).GetMethod("Contains");
+				var definedType = idictContainsMethod.GetParameters()[0].ParameterType;
+				if (itemExpr.Type != definedType)
+				{
+					itemExpr = Expression.Convert(itemExpr, definedType);
+				}
 				e.Result = Expression.Call(listExpr, idictContainsMethod, itemExpr);
 				return;
 			}

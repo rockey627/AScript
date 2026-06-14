@@ -95,6 +95,7 @@ namespace AScript
 			if (inType == null) return true;
 			if (defineType == null) return true;
 			if (inType == defineType) return true;
+			if (defineType == typeof(object)) return true;
 			if (IsNumberType(defineType)) return IsNumberType(inType);
 			if (defineType.IsClass) return inType.IsSubclassOf(defineType);
 			if (defineType.IsInterface) return inType.GetInterfaces().Contains(defineType);

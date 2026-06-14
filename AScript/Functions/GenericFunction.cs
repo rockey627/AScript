@@ -18,7 +18,7 @@ namespace AScript.Functions
 
 		public GenericFunction(MethodInfo method)
 		{
-			this.Method = method;
+			this.Method = method ?? throw new Exception("method is null");
 		}
 		public GenericFunction(MethodInfo method, object target) : this(method)
 		{
@@ -355,6 +355,21 @@ namespace AScript.Functions
 			var concreteMethod = this.Method.MakeGenericMethod(typeArguments);
 
 			// 第五步：构建方法调用表达式
+			if (argExpressions != null && argExpressions.Length > 0)
+			{
+				var definedParameters = concreteMethod.GetParameters();
+				for (int i = 0; i < argExpressions.Length; i++)
+				{
+					var definedType = definedParameters[i].ParameterType;
+					if (typeof(Delegate).IsAssignableFrom(definedType)) continue;
+					if (typeof(LambdaExpression).IsAssignableFrom(definedType)) continue;
+					var arg = argExpressions[i];
+					if (arg.Type != definedType)
+					{
+						argExpressions[i] = Expression.Convert(arg, definedType);
+					}
+				}
+			}
 			var resultExpr = Expression.Call(this.Target != null ? Expression.Constant(this.Target) : null, concreteMethod, argExpressions);
 			e.Result = resultExpr;
 		}

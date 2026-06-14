@@ -20,6 +20,18 @@ namespace AScript.Functions
 			var argTypes = args?.Select(a => a.Type).ToList();
 			if (ScriptUtils.IsMatchArgTypes(argTypes, _lambda, out _, out _))
 			{
+				if (args != null && args.Count > 0)
+				{
+					for (int i = 0; i < args.Count; i++)
+					{
+						var definedType = _lambda.Parameters[i].Type;
+						var arg = args[i];
+						if (arg.Type != definedType)
+						{
+							args[i] = Expression.Convert(arg, definedType);
+						}
+					}
+				}
 				e.Result = Expression.Invoke(_lambda, args);
 			}
 		}

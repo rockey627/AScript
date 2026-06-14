@@ -1055,7 +1055,7 @@ namespace AScript
 					if (functionEvalArgs.IsHandled)
 					{
 						var returnType = functionEvalArgs.ResultType ?? functionEvalArgs.Result?.GetType() ?? typeof(object);
-						return new EvalResult( functionEvalArgs.Result, returnType);
+						return new EvalResult(functionEvalArgs.Result, returnType);
 					}
 					// 自定义函数
 					await EvalFuncAsync(functionEvalArgs, context._CustomFunctions, cancellationToken).ConfigureAwait(false);
@@ -1472,6 +1472,10 @@ namespace AScript
 						}
 					}
 				}
+			}
+			catch (Exception ex)
+			{
+				throw new Exceptions.ScriptRuntimeException(ex.Message, ex);
 			}
 			finally
 			{
