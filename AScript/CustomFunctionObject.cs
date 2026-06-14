@@ -47,6 +47,11 @@ namespace AScript
 			}
 		}
 
+		public Delegate Compile(BuildOptions options)
+		{
+			return this.Function.Compile(_scriptContext, options);
+		}
+
 		public Delegate Compile(Type delegateType, BuildOptions options, Type[] argTypes, Type returnType)
 		{
 			if (argTypes != null) this.Function.ArgTypes = argTypes;

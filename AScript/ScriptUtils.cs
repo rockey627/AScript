@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Nodes;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -96,6 +97,7 @@ namespace AScript
 			if (defineType == null) return true;
 			if (inType == defineType) return true;
 			if (defineType == typeof(object)) return true;
+			if (typeof(Delegate).IsAssignableFrom(inType)) return typeof(Delegate).IsAssignableFrom(defineType);
 			if (IsNumberType(defineType)) return IsNumberType(inType);
 			if (defineType.IsClass) return inType.IsSubclassOf(defineType);
 			if (defineType.IsInterface) return inType.GetInterfaces().Contains(defineType);

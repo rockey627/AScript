@@ -1244,6 +1244,28 @@ namespace AScript
 			//	}
 			//}
 			//var result = d.DynamicInvoke(argValues);
+			var parameters = d.Method.GetParameters();
+			for (int i = 0; i < e.ArgValues.Length; i++)
+			{
+				var arg = e.ArgValues[i];
+				if (arg is DefineFuncNode node)
+				{
+					var f = node.Eval(e.Context, e.Options, e.Control, out _);
+					if (f is CustomFunctionObject cfo)
+					{
+						f = cfo.Compile(parameters[i].ParameterType, e.Options);
+					}
+					e.ArgValues[i] = f;
+				}
+				else if (arg is CustomFunction func)
+				{
+					e.ArgValues[i] = func.Compile(parameters[i].ParameterType, e.Context, e.Options);
+				}
+				else if (arg is CustomFunctionObject cfo)
+				{
+					e.ArgValues[i] = cfo.Compile(parameters[i].ParameterType, e.Options);
+				}
+			}
 			var result = ScriptUtils.DynamicInvoke(this, d, e.ArgValues, e.ArgTypes, useScriptContext, hasClosure);
 			e.SetResult(result, returnType);
 		}
@@ -1298,6 +1320,28 @@ namespace AScript
 			//	}
 			//}
 			//var result = d.DynamicInvoke(argValues);
+			var parameters = d.Method.GetParameters();
+			for (int i = 0; i < e.ArgValues.Length; i++)
+			{
+				var arg = e.ArgValues[i];
+				if (arg is DefineFuncNode node)
+				{
+					var f = (await node.EvalAsync(e.Context, e.Options, e.Control).ConfigureAwait(false)).Value;
+					if (f is CustomFunctionObject cfo)
+					{
+						f = cfo.Compile(parameters[i].ParameterType, e.Options);
+					}
+					e.ArgValues[i] = f;
+				}
+				else if (arg is CustomFunction func)
+				{
+					e.ArgValues[i] = func.Compile(parameters[i].ParameterType, e.Context, e.Options);
+				}
+				else if (arg is CustomFunctionObject cfo)
+				{
+					e.ArgValues[i] = cfo.Compile(parameters[i].ParameterType, e.Options);
+				}
+			}
 			var result = ScriptUtils.DynamicInvoke(this, d, e.ArgValues, e.ArgTypes, useScriptContext, hasClosure);
 			e.SetResult(result, returnType);
 		}
@@ -1519,6 +1563,21 @@ namespace AScript
 			}
 
 			var d = GetFunc(list3, argTypes, out var useScriptContext, out var hasClosure);
+			if (d != null && argExprs != null && argExprs.Length > 0)
+			{
+				var parameters = d.Method.GetParameters();
+				for (int i = 0; i < argExprs.Length; i++)
+				{
+					if (argExprs[i] == null && argTypes[i] == typeof(Delegate))
+					{
+						if (!parameters[i].ParameterType.Name.StartsWith("Func`"))
+						{
+							((DefineFuncNode)args[i]).ReturnSystemType = typeof(void);
+						}
+						argExprs[i] = args[i].Build(buildContext, this, options);
+					}
+				}
+			}
 			return BuildFunc(d, argExprs, useScriptContext, hasClosure);
 		}
 
@@ -1550,6 +1609,21 @@ namespace AScript
 			}
 
 			var d = GetFunc(functions, argTypes, out var useScriptContext, out var hasClosure);
+			if (d != null && argExprs != null && argExprs.Length > 0)
+			{
+				var parameters = d.Method.GetParameters();
+				for (int i = 0; i < argExprs.Length; i++)
+				{
+					if (argExprs[i] == null && argTypes[i] == typeof(Delegate))
+					{
+						if (!parameters[i].ParameterType.Name.StartsWith("Func`"))
+						{
+							((DefineFuncNode)args[i]).ReturnSystemType = typeof(void);
+						}
+						argExprs[i] = args[i].Build(buildContext, this, options);
+					}
+				}
+			}
 			return BuildFunc(d, argExprs, useScriptContext, hasClosure);
 		}
 
@@ -1627,7 +1701,7 @@ namespace AScript
 				{
 					var p = parameters[hasClosure ? i + 1 : i];
 					var arg = argExprs[i];
-					if (arg.Type != p.ParameterType)
+					if (!typeof(Delegate).IsAssignableFrom(arg.Type) && arg.Type != p.ParameterType)
 					{
 						argExprs[i] = Expression.Convert(arg, p.ParameterType);
 					}

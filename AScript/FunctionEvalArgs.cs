@@ -131,7 +131,7 @@ namespace AScript
 				{
 					var value = arg.Eval(this.Context, this.Options, this.Control, out var type);
 					this.ArgValues[i] = value;
-					this.ArgTypes[i] = type;
+					this.ArgTypes[i] = value is CustomFunctionObject ? typeof(Delegate) : type;
 					if (!(arg is ObjectNode))
 					{
 						this.Args[i] = PoolManage.CreateObjectNode(value, type);
@@ -149,7 +149,7 @@ namespace AScript
 			for (int i = 0; i < this.Args.Count; i++)
 			{
 				var arg = this.Args[i];
-				if (!evalDefineFuncNode && arg is DefineFuncNode)
+				if (!evalDefineFuncNode && (arg is DefineFuncNode || arg is CustomFunctionObject))
 				{
 					this.ArgValues[i] = arg;
 					this.ArgTypes[i] = typeof(Delegate);
@@ -158,7 +158,7 @@ namespace AScript
 				{
 					var result = await arg.EvalAsync(this.Context, this.Options, this.Control, cancellationToken).ConfigureAwait(false);
 					this.ArgValues[i] = result.Value;
-					this.ArgTypes[i] = result.Type;
+					this.ArgTypes[i] = result.Value is CustomFunctionObject ? typeof(Delegate) : result.Type;
 					if (!(arg is ObjectNode))
 					{
 						this.Args[i] = PoolManage.CreateObjectNode(result.Value, result.Type);
