@@ -19,8 +19,12 @@ namespace AScript.Operators
 		{
 			var target = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
 			var start = e.Args[1]?.Build(e.BuildContext, e.ScriptContext, e.Options) ?? Expression.Constant(0);
-			var end = e.Args[2]?.Build(e.BuildContext, e.ScriptContext, e.Options) ?? ExpressionUtils.Constant_null;
-			var result = Expression.Call(Method_Execute, target, start, Expression.Convert(end, typeof(int?)));
+			var end = e.Args[2]?.Build(e.BuildContext, e.ScriptContext, e.Options);// ?? ExpressionUtils.Constant_null;
+			if (start.Type != typeof(int)) start = Expression.Convert(start, typeof(int));
+			if (end == null) end = Expression.Default(typeof(int?));
+			//else if (end.Type != typeof(int) && end.Type != typeof(int?)) end = Expression.Convert(end, typeof(int));
+			else end = Expression.Convert(end, typeof(int?));
+			var result = Expression.Call(Method_Execute, target, start, end);
 			if (target.Type == typeof(string))
 			{
 				e.Result = Expression.Convert(result, typeof(string));
@@ -43,82 +47,8 @@ namespace AScript.Operators
 			var target = targetNode.Eval(e.Context, e.Options, e.Control, out _);
 			int start = startNode == null ? 0 : Convert.ToInt32(startNode.Eval(e.Context, e.Options, e.Control, out _));
 			int? end = endNode == null ? (int?)null : Convert.ToInt32(endNode.Eval(e.Context, e.Options, e.Control, out _));
-
 			var result = Execute(target, start, end);
 			e.SetResult(result);
-
-			//if (target is string str)
-			//{
-			//	// Python风格：负数索引从末尾计算
-			//	int len = str.Length;
-			//	int startIdx = start < 0 ? len + start : start;
-			//	if (!end.HasValue)
-			//	{
-			//		e.SetResult(str.Substring(startIdx));
-			//		return;
-			//	}
-
-			//	int endIdx = end.Value < 0 ? len + end.Value : end.Value;
-
-			//	// 边界约束
-			//	startIdx = Math.Max(0, Math.Min(startIdx, len));
-			//	endIdx = Math.Max(0, Math.Min(endIdx, len));
-
-			//	if (startIdx == 0 && endIdx >= len)
-			//	{
-			//		e.SetResult(str);
-			//	}
-			//	else
-			//	{
-			//		e.SetResult(str.Substring(startIdx, endIdx - startIdx));
-			//	}
-			//	return;
-			//}
-			//if (target is IList list)
-			//{
-			//	int len = list.Count;
-			//	int startIdx = start < 0 ? len + start : start;
-			//	int endIdx = end.HasValue ? (end.Value < 0 ? len + end.Value : end.Value) : len;
-
-			//	// 边界约束
-			//	startIdx = Math.Max(0, Math.Min(startIdx, len));
-			//	endIdx = Math.Max(0, Math.Min(endIdx, len));
-
-			//	var result = new List<object>();
-			//	for (int i = startIdx; i < endIdx; i++)
-			//	{
-			//		result.Add(list[i]);
-			//	}
-			//	e.SetResult(result);
-			//	return;
-			//}
-			//else if (target is IEnumerable enumerable)
-			//{
-			//	// 处理通用 IEnumerable
-			//	int len = 0;
-			//	foreach (var _ in enumerable)
-			//	{
-			//		len++;
-			//	}
-
-			//	int startIdx = start < 0 ? len + start : start;
-			//	int endIdx = end.HasValue ? (end.Value < 0 ? len + end.Value : end.Value) : len;
-
-			//	startIdx = Math.Max(0, Math.Min(startIdx, len));
-			//	endIdx = Math.Max(0, Math.Min(endIdx, len));
-
-			//	var result = new List<object>();
-			//	int idx = 0;
-			//	foreach (var item in enumerable)
-			//	{
-			//		if (idx >= endIdx)
-			//			break;
-			//		if (idx >= startIdx)
-			//			result.Add(item);
-			//		idx++;
-			//	}
-			//	e.SetResult(result);
-			//}
 		}
 
 		public static object Execute(object target, int start, int? end)

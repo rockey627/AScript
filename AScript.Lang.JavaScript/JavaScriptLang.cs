@@ -74,7 +74,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc("[:]", IndexStartEndOperator.Instance);
 
 			AddFunc("eval", EvalFunction.Instance);
-			AddFunc("concat", StringConcatFunction.Instance);
+			AddFunc("concat", ConcatFunction.Instance);
 			AddFunc("get_length", new LengthFunction(typeof(long)));
 			AddFunc("fromCharCode", JavaScriptStringFromCharCodeFunction.Instance);
 

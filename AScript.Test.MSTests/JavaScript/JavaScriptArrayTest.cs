@@ -251,7 +251,7 @@ namespace AScript.Test.MSTests.JavaScript
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(10L, script.Eval("var arr = [1, 2, 3]; arr[0] = 10; arr[0]"));
-			Assert.AreEqual(10L, script.Eval("var arr = [1, 2, 3]; arr[0] = 10; arr.length"));
+			Assert.AreEqual(3L, script.Eval("var arr = [1, 2, 3]; arr[0] = 10; arr.length"));
 		}
 
 		[TestMethod]
@@ -261,7 +261,7 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(10L, script.Eval("var arr = [1, 2, 3]; arr[0] = 10; arr[0]"));
-			Assert.AreEqual(10L, script.Eval("var arr = [1, 2, 3]; arr[0] = 10; arr.length"));
+			Assert.AreEqual(3L, script.Eval("var arr = [1, 2, 3]; arr[0] = 10; arr.length"));
 		}
 
 		// for-of loop
