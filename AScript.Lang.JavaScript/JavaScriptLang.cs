@@ -119,13 +119,18 @@ namespace AScript.Lang.JavaScript
 			AddLambda<Func<List<object>, object, long>>("indexOf", (list, obj) => (long)list.IndexOf(obj));
 			AddFunc<List<object>, List<object>>("reverse", list => { list.Reverse(); return list; });
 			AddFunc<List<object>, object, List<object>>("fill", List_fill);
+			AddFunc<List<object>, Func<object, bool>, List<object>>("filter", List_filter);
 			AddFunc<List<object>, Func<object, bool>, long>("findIndex", List_findIndex);
-			AddFunc("filter", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_filter", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
-			AddFunc("map", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_map", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
-			AddFunc("reduce", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_reduce1", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
-			AddFunc("reduce", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_reduce2", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
+			AddFunc<List<object>, Func<object, object>, List<object>>("map", List_map);
+			AddFunc<List<object>, Func<object, object, object>, object>("reduce", List_reduce1);
+			AddFunc<List<object>, Func<object, object, object>, object, object>("reduce", List_reduce2);
+			AddAction<List<object>, Action<object>>("forEach", List_forEach);
+			//AddFunc("filter", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_filter", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
+			//AddFunc("map", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_map", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
+			//AddFunc("reduce", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_reduce1", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
+			//AddFunc("reduce", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_reduce2", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
 			//AddFunc("findIndex", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_findIndex", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
-			AddFunc("forEach", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_forEach", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
+			//AddFunc("forEach", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_forEach", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
 			AddFunc(typeof(Enumerable), method =>
 			{
 				if (method.Name == "All") return "every";
@@ -263,17 +268,17 @@ namespace AScript.Lang.JavaScript
 			return string.Concat(arr);
 		}
 
-		private static List<T> List_filter<T>(List<T> list, Func<T, bool> func)
+		private static List<object> List_filter(List<object> list, Func<object, bool> func)
 		{
 			return list.Where(func).ToList();
 		}
 
-		private static List<object> List_map<T>(List<T> list, Func<T, object> func)
+		private static List<object> List_map(List<object> list, Func<object, object> func)
 		{
 			return list.Select(func).ToList();
 		}
 
-		private static object List_reduce1<T>(List<T> list, Func<object, T, object> func)
+		private static object List_reduce1(List<object> list, Func<object, object, object> func)
 		{
 			if (list.Count == 0) return null;
 			if (list.Count == 1) return list[0];
@@ -285,7 +290,7 @@ namespace AScript.Lang.JavaScript
 			return r;
 		}
 
-		private static object List_reduce2<T>(List<T> list, Func<object, T, object> func, object init)
+		private static object List_reduce2(List<object> list, Func<object, object, object> func, object init)
 		{
 			if (list.Count == 0) return init;
 			object r = init;
@@ -314,7 +319,7 @@ namespace AScript.Lang.JavaScript
 			return list;
 		}
 
-		private static void List_forEach<T>(List<T> list, Action<T> action)
+		private static void List_forEach(List<object> list, Action<object> action)
 		{
 			list.ForEach(action);
 		}
