@@ -580,7 +580,10 @@ s
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(6L, script.Eval("[1, 2, 3].reduce((acc, x) => acc + x)"));
 			Assert.AreEqual(6L, script.Eval("[1, 2, 3].reduce((acc, x) => acc + x, 0)"));
+			Assert.AreEqual("123", script.Eval("[1, 2, 3].reduce((acc, x) => acc + x, '')"));
+			Assert.AreEqual(3L, script.Eval("[1, 2, 3].reduce((acc, x) => acc + x, '').length"));
 			Assert.AreEqual(10L, script.Eval("[1, 2, 3, 4].reduce((acc, x) => acc + x, 0)"));
 		}
 
@@ -590,7 +593,10 @@ s
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(6L, script.Eval("[1, 2, 3].reduce((acc, x) => acc + x)"));
 			Assert.AreEqual(6L, script.Eval("[1, 2, 3].reduce((acc, x) => acc + x, 0)"));
+			Assert.AreEqual("123", script.Eval("[1, 2, 3].reduce((acc, x) => acc + x, '')"));
+			Assert.AreEqual(3L, script.Eval("[1, 2, 3].reduce((acc, x) => acc + x, '').length"));
 			Assert.AreEqual(10L, script.Eval("[1, 2, 3, 4].reduce((acc, x) => acc + x, 0)"));
 		}
 
@@ -620,7 +626,7 @@ s
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			Assert.AreEqual(true, script.Eval("[1, 3, 5].some(x => x % 2 == 0)"));
+			Assert.AreEqual(true, script.Eval("[1, 3, 6].some(x => x % 2 == 0)"));
 			Assert.AreEqual(false, script.Eval("[1, 3, 5].some(x => x % 2 == 0)"));
 		}
 
@@ -630,7 +636,7 @@ s
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			Assert.AreEqual(true, script.Eval("[1, 3, 5].some(x => x % 2 == 0)"));
+			Assert.AreEqual(true, script.Eval("[1, 3, 6].some(x => x % 2 == 0)"));
 			Assert.AreEqual(false, script.Eval("[1, 3, 5].some(x => x % 2 == 0)"));
 		}
 
@@ -661,6 +667,7 @@ s
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(1L, script.Eval("[1, 2, 3].findIndex(x => x > 1)"));
+			Assert.AreEqual(1L, script.Eval("var func = function(x){x>1} [1, 2, 3].findIndex(func)"));
 			Assert.AreEqual(-1L, script.Eval("[1, 2, 3].findIndex(x => x > 10)"));
 		}
 
@@ -671,6 +678,7 @@ s
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(1L, script.Eval("[1, 2, 3].findIndex(x => x > 1)"));
+			Assert.AreEqual(1L, script.Eval("var func = function(x){x>1} [1, 2, 3].findIndex(func)"));
 			Assert.AreEqual(-1L, script.Eval("[1, 2, 3].findIndex(x => x > 10)"));
 		}
 

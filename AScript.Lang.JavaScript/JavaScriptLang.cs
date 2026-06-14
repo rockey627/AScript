@@ -75,6 +75,7 @@ namespace AScript.Lang.JavaScript
 
 			AddFunc("eval", EvalFunction.Instance);
 			AddFunc("concat", ConcatFunction.Instance);
+			AddFunc("includes", new ContainsFunction());
 			AddFunc("get_length", new LengthFunction(typeof(long)));
 			AddFunc("fromCharCode", JavaScriptStringFromCharCodeFunction.Instance);
 
@@ -112,6 +113,26 @@ namespace AScript.Lang.JavaScript
 			AddFunc<string, JavaScriptRegexPattern, string, string>("replaceAll", String_replace);
 			AddFunc<string, string, List<object>>("split", String_split);
 			AddFunc<string, long, string>("repeat", String_repeat);
+
+			AddLambda<Func<List<object>, string>>("join", list => string.Join("", list));
+			AddLambda<Func<List<object>, string, string>>("join", (list,separator) => string.Join(separator, list));
+			AddLambda<Func<List<object>, object, long>>("indexOf", (list, obj) => (long)list.IndexOf(obj));
+			AddFunc<List<object>, List<object>>("reverse", list => { list.Reverse(); return list; });
+			AddFunc<List<object>, object, List<object>>("fill", List_fill);
+			AddFunc<List<object>, Func<object, bool>, long>("findIndex", List_findIndex);
+			AddFunc("filter", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_filter", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
+			AddFunc("map", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_map", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
+			AddFunc("reduce", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_reduce1", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
+			AddFunc("reduce", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_reduce2", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
+			//AddFunc("findIndex", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_findIndex", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
+			AddFunc("forEach", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_forEach", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
+			AddFunc(typeof(Enumerable), method =>
+			{
+				if (method.Name == "All") return "every";
+				if (method.Name == "Any") return "some";
+				if (method.Name == "FirstOrDefault") return "find";
+				return null;
+			});
 
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);
@@ -242,5 +263,60 @@ namespace AScript.Lang.JavaScript
 			return string.Concat(arr);
 		}
 
+		private static List<T> List_filter<T>(List<T> list, Func<T, bool> func)
+		{
+			return list.Where(func).ToList();
+		}
+
+		private static List<object> List_map<T>(List<T> list, Func<T, object> func)
+		{
+			return list.Select(func).ToList();
+		}
+
+		private static object List_reduce1<T>(List<T> list, Func<object, T, object> func)
+		{
+			if (list.Count == 0) return null;
+			if (list.Count == 1) return list[0];
+			object r = list[0];
+			for (int i = 1; i < list.Count; i++)
+			{
+				r = func(r, list[i]);
+			}
+			return r;
+		}
+
+		private static object List_reduce2<T>(List<T> list, Func<object, T, object> func, object init)
+		{
+			if (list.Count == 0) return init;
+			object r = init;
+			for (int i = 0; i < list.Count; i++)
+			{
+				r = func(r, list[i]);
+			}
+			return r;
+		}
+
+		private static long List_findIndex(List<object> list, Func<object, bool> func)
+		{
+			for (int i = 0; i < list.Count; i++)
+			{
+				if (func(list[i])) return i;
+			}
+			return -1L;
+		}
+
+		private static List<object> List_fill(List<object> list, object v)
+		{
+			for (int i = 0; i < list.Count; i++)
+			{
+				list[i] = v;
+			}
+			return list;
+		}
+
+		private static void List_forEach<T>(List<T> list, Action<T> action)
+		{
+			list.ForEach(action);
+		}
 	}
 }
