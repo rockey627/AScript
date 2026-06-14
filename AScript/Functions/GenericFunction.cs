@@ -232,7 +232,8 @@ namespace AScript.Functions
 					// 比如：Func<TSource, TKey>，TSource已由前面的参数推导出来，TKey类型由defineFuncNode实际返回值来推导
 					var innerGens = paramType.GetGenericArguments();
 					int innerArgsCount = innerGens.Length;
-					if (paramType.Name.StartsWith("Func`")) innerArgsCount -= 1;
+					bool isFunc = paramType.Name.StartsWith("Func`");
+					if (isFunc) innerArgsCount -= 1;
 					int defineArgsCount = defineFuncNode.Args == null ? 0 : defineFuncNode.Args.Length;
 					if (innerArgsCount != defineArgsCount) return;
 					var types = new Type[innerArgsCount];
@@ -318,6 +319,7 @@ namespace AScript.Functions
 							tempBuildContext.ReturnType = returnGenType;
 						}
 					}
+					if (!isFunc) tempBuildContext.ReturnType = typeof(void);
 					var lambdaExpr = tempBuildContext.Build(e.ScriptContext, funcOptions, body);
 					argExpressions[i] = lambdaExpr;
 					if (returnGen.IsGenericParameter)

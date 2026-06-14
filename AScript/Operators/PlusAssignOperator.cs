@@ -85,10 +85,21 @@ namespace AScript.Operators
 				var addExpr = Expression.Dynamic(ExpressionUtils.Binder_Add, typeof(object), leftExpr, rightExpr);
 				e.Result = Expression.Assign(left, addExpr);
 			}
-			else if (left.Type == typeof(string) && right.Type == typeof(string))
+			else if (left.Type == typeof(string))
 			{
 				// 字符串相加使用string.Concat方法
-				e.Result = Expression.Assign(left, Expression.Call(ExpressionUtils.Method_String_Concat2, left, right));
+				if (right.Type == typeof(string))
+				{
+					e.Result = Expression.Assign(left, Expression.Call(ExpressionUtils.Method_String_Concat2, left, right));
+				}
+				else
+				{
+					if (right.Type != typeof(object))
+					{
+						right = Expression.Convert(right, typeof(object));
+					}
+					e.Result = Expression.Assign(left, Expression.Call(ExpressionUtils.Method_String_Concat2_object, left, right));
+				}
 			}
 			else
 			{
