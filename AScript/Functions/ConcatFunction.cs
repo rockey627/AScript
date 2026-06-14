@@ -3,12 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace AScript.Functions
 {
 	public class ConcatFunction : IFunctionEvaluator, IFunctionBuilder
 	{
 		public static readonly ConcatFunction Instance = new ConcatFunction();
+
+		private static readonly MethodInfo Method_ArrayConcat = typeof(ConcatFunction).GetMethod("ArrayConcat", new[] { typeof(Array[]) });
+		private static readonly MethodInfo Method_ListConcat = typeof(ConcatFunction).GetMethod("ListConcat", new[] { typeof(IList<object>) });
 
 		public void Build(FunctionBuildArgs e)
 		{
@@ -21,15 +25,15 @@ namespace AScript.Functions
 			}
 			else if (t0.IsArray)
 			{
-
+				e.Result = ConcatArray(args);
 			}
 			else if (typeof(ICollection).IsAssignableFrom(t0))
 			{
-
+				e.Result = ConcatList(args);
 			}
 		}
 
-		private Expression ConcatString(IList<Expression> args)
+		private static Expression ConcatString(IList<Expression> args)
 		{
 			if (args.Count == 1)
 			{
@@ -114,6 +118,18 @@ namespace AScript.Functions
 			}
 		}
 
+		private static Expression ConcatArray(IList<Expression> args)
+		{
+			var arraysExpr = Expression.NewArrayInit(typeof(Array), args);
+			return Expression.Call(Method_ArrayConcat, arraysExpr);
+		}
+
+		private static Expression ConcatList(IList<Expression> args)
+		{
+			var arraysExpr = Expression.NewArrayInit(typeof(object), args);
+			return Expression.Call(Method_ListConcat, arraysExpr);
+		}
+
 		public void Eval(FunctionEvalArgs e)
 		{
 			if (e.Args == null || e.Args.Count == 0) return;
@@ -125,12 +141,62 @@ namespace AScript.Functions
 			}
 			else if (t0.IsArray)
 			{
-
+				var arrays = new Array[e.ArgValues.Length];
+				for (int i = 0; i < e.ArgValues.Length; i++)
+				{
+					arrays[i] = (Array)e.ArgValues[i];
+				}
+				e.SetResult(ArrayConcat(arrays));
 			}
 			else if (typeof(ICollection).IsAssignableFrom(t0))
 			{
-				
+				e.SetResult(ListConcat(e.ArgValues));
 			}
+		}
+
+		public static object ListConcat(IList<object> args)
+		{
+			if (args.Count == 0) return null;
+			var length = 0;
+			foreach (ICollection item in args)
+			{
+				length += item.Count;
+			}
+			var elementType = ScriptUtils.GetElementType(args[0].GetType());
+			var listType = typeof(List<>).MakeGenericType(elementType);
+			var list = (IList)Activator.CreateInstance(listType, length);
+			foreach (ICollection item in args)
+			{
+				foreach (var el in item)
+				{
+					list.Add(el);
+				}
+			}
+			return list;
+		}
+
+		/// <summary>
+		/// 合并多个数组
+		/// </summary>
+		public static Array ArrayConcat(params Array[] arrays)
+		{
+			if (arrays == null || arrays.Length == 0) return null;
+
+			var elementType = arrays[0].GetType().GetElementType();
+			int totalLength = 0;
+			foreach (var arr in arrays)
+			{
+				totalLength += arr.Length;
+			}
+
+			var result = Array.CreateInstance(elementType, totalLength);
+			int offset = 0;
+			foreach (var arr in arrays)
+			{
+				Array.Copy(arr, 0, result, offset, arr.Length);
+				offset += arr.Length;
+			}
+			return result;
 		}
 	}
 }
