@@ -125,6 +125,8 @@ namespace AScript.Lang.JavaScript
 			AddFunc<List<object>, Func<object, object, object>, object>("reduce", List_reduce1);
 			AddFunc<List<object>, Func<object, object, object>, object, object>("reduce", List_reduce2);
 			AddAction<List<object>, Action<object>>("forEach", List_forEach);
+			AddFunc<List<object>, object>("pop", List_pop);
+			AddFunc<List<object>, object, object>("pop", List_push);
 			//AddFunc("filter", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_filter", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
 			//AddFunc("map", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_map", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
 			//AddFunc("reduce", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_reduce1", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
@@ -322,6 +324,21 @@ namespace AScript.Lang.JavaScript
 		private static void List_forEach(List<object> list, Action<object> action)
 		{
 			list.ForEach(action);
+		}
+
+		private static object List_pop(List<object> list)
+		{
+			if (list == null || list.Count == 0) return null;
+			int index = list.Count - 1;
+			object v = list[index];
+			list.RemoveAt(index);
+			return v;
+		}
+
+		private static object List_push(List<object> list, object v)
+		{
+			list.Add(v);
+			return v;
 		}
 	}
 }
