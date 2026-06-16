@@ -17,9 +17,9 @@ namespace AScript.Operators
 
 		public void Build(FunctionBuildArgs e)
 		{
-			var target = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
-			var start = e.Args[1]?.Build(e.BuildContext, e.ScriptContext, e.Options) ?? Expression.Constant(0);
-			var end = e.Args[2]?.Build(e.BuildContext, e.ScriptContext, e.Options);// ?? ExpressionUtils.Constant_null;
+			var target = e.BuildArgs(0);// e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
+			var start = e.BuildArgs(1) ?? Expression.Constant(0);// e.Args[1]?.Build(e.BuildContext, e.ScriptContext, e.Options) ?? Expression.Constant(0);
+			var end = e.BuildArgs(2);// e.Args[2]?.Build(e.BuildContext, e.ScriptContext, e.Options);// ?? ExpressionUtils.Constant_null;
 			if (start.Type != typeof(int)) start = Expression.Convert(start, typeof(int));
 			if (end == null) end = Expression.Default(typeof(int?));
 			//else if (end.Type != typeof(int) && end.Type != typeof(int?)) end = Expression.Convert(end, typeof(int));

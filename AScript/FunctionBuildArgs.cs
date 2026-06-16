@@ -83,8 +83,8 @@ namespace AScript
 
 		public Expression BuildArgs(int index)
 		{
-			if (this.ArgExprs != null) return this.ArgExprs[index];
-			return this.Args[index].Build(this.BuildContext, this.ScriptContext, this.Options);
+			if (this.ArgExprs != null) return index < this.ArgExprs.Count ? this.ArgExprs[index] : null;
+			return index < this.Args.Count ? this.Args[index]?.Build(this.BuildContext, this.ScriptContext, this.Options) : null;
 		}
 
 		public IList<Expression> BuildArgs()
@@ -94,7 +94,7 @@ namespace AScript
 				this.ArgExprs = new Expression[this.Args.Count];
 				for (int i = 0; i < this.Args.Count; i++)
 				{
-					this.ArgExprs[i] = this.Args[i].Build(this.BuildContext, this.ScriptContext, this.Options);
+					this.ArgExprs[i] = this.Args[i]?.Build(this.BuildContext, this.ScriptContext, this.Options);
 				}
 			}
 			return this.ArgExprs;
