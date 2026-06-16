@@ -28,7 +28,7 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Context.Langs = new[] { "js" };
 			var result = script.Eval("new Date(0)");
 			Assert.IsNotNull(result);
-			Assert.IsInstanceOfType(result, typeof(JavaScriptDate));
+			Assert.IsInstanceOfType(result, typeof(JavaScriptDateExtensions));
 		}
 
 		[TestMethod]
@@ -39,7 +39,7 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Context.Langs = new[] { "js" };
 			var result = script.Eval("new Date(0)");
 			Assert.IsNotNull(result);
-			Assert.IsInstanceOfType(result, typeof(JavaScriptDate));
+			Assert.IsInstanceOfType(result, typeof(JavaScriptDateExtensions));
 		}
 
 		// Date creation with string
@@ -50,7 +50,7 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Context.Langs = new[] { "js" };
 			var result = script.Eval("new Date('2024-01-15')");
 			Assert.IsNotNull(result);
-			Assert.IsInstanceOfType(result, typeof(JavaScriptDate));
+			Assert.IsInstanceOfType(result, typeof(JavaScriptDateExtensions));
 		}
 
 		[TestMethod]
@@ -61,7 +61,7 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Context.Langs = new[] { "js" };
 			var result = script.Eval("new Date('2024-01-15')");
 			Assert.IsNotNull(result);
-			Assert.IsInstanceOfType(result, typeof(JavaScriptDate));
+			Assert.IsInstanceOfType(result, typeof(JavaScriptDateExtensions));
 		}
 
 		// Date creation with year, month, day
@@ -72,7 +72,7 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Context.Langs = new[] { "js" };
 			var result = script.Eval("new Date(2024, 0, 15)");
 			Assert.IsNotNull(result);
-			Assert.IsInstanceOfType(result, typeof(JavaScriptDate));
+			Assert.IsInstanceOfType(result, typeof(JavaScriptDateExtensions));
 		}
 
 		[TestMethod]
@@ -83,7 +83,7 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Context.Langs = new[] { "js" };
 			var result = script.Eval("new Date(2024, 0, 15)");
 			Assert.IsNotNull(result);
-			Assert.IsInstanceOfType(result, typeof(JavaScriptDate));
+			Assert.IsInstanceOfType(result, typeof(JavaScriptDateExtensions));
 		}
 
 		// Date creation with full parameters
@@ -94,7 +94,7 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Context.Langs = new[] { "js" };
 			var result = script.Eval("new Date(2024, 0, 15, 10, 30, 45, 123)");
 			Assert.IsNotNull(result);
-			Assert.IsInstanceOfType(result, typeof(JavaScriptDate));
+			Assert.IsInstanceOfType(result, typeof(JavaScriptDateExtensions));
 		}
 
 		[TestMethod]
@@ -105,7 +105,7 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Context.Langs = new[] { "js" };
 			var result = script.Eval("new Date(2024, 0, 15, 10, 30, 45, 123)");
 			Assert.IsNotNull(result);
-			Assert.IsInstanceOfType(result, typeof(JavaScriptDate));
+			Assert.IsInstanceOfType(result, typeof(JavaScriptDateExtensions));
 		}
 
 		// Date.now() static method
