@@ -802,7 +802,7 @@ namespace AScript
 				var tempFunctions = context._TempFunctions;
 				if (tempFunctions != null && tempFunctions.TryGetValue(name, out var list1))
 				{
-					var func = GetFunc(list1, argTypes, out _, out _);
+					var func = GetFunc(list1, argTypes, out _, out _, out _);
 					if (func != null)
 					{
 						if (context._Events == null)
@@ -824,7 +824,7 @@ namespace AScript
 				var functions = context._Functions;
 				if (functions != null && functions.TryGetValue(name, out var list3))
 				{
-					var func = GetFunc(list3, argTypes, out _, out _);
+					var func = GetFunc(list3, argTypes, out _, out _, out _);
 					if (func != null)
 					{
 						if (context._Events == null)
@@ -1203,7 +1203,7 @@ namespace AScript
 
 			e.EvalArgs(false);
 
-			var d = GetFunc(list3, e.ArgTypes, out var useScriptContext, out var hasClosure);
+			var d = GetFunc(list3, e.ArgTypes, out var useScriptContext, out var hasClosure, out var paramsIndex);
 			if (d == null)
 			{
 				return;
@@ -1269,7 +1269,29 @@ namespace AScript
 					e.ArgValues[i] = cfo.Compile(parameters[i].ParameterType, e.Options);
 				}
 			}
-			var result = ScriptUtils.DynamicInvoke(this, d, e.ArgValues, e.ArgTypes, useScriptContext, hasClosure);
+			var argValues = e.ArgValues;
+			var argTypes = e.ArgTypes;
+			if (paramsIndex >= 0)
+			{
+				if (parameters == null) parameters = d.Method.GetParameters();
+				var itemType = parameters[parameters.Length - 1].ParameterType.GetElementType();
+				var paramsValues = new object[e.ArgValues.Length - paramsIndex];
+				Array.Copy(e.ArgValues, paramsIndex, paramsValues, 0, paramsValues.Length);
+				var paramsArr = Array.CreateInstance(itemType, paramsValues.Length);
+				for (int i = 0; i < paramsValues.Length; i++)
+				{
+					paramsArr.SetValue(System.Convert.ChangeType(paramsValues[i], itemType), i);
+				}
+				var newValues = new object[paramsIndex + 1];
+				var newTypes = new Type[newValues.Length];
+				Array.Copy(e.ArgValues, 0, newValues, 0, paramsIndex);
+				Array.Copy(e.ArgTypes, 0, newTypes, 0, paramsIndex);
+				newValues[paramsIndex] = paramsArr;
+				newTypes[paramsIndex] = paramsArr.GetType();
+				argValues = newValues;
+				argTypes = newTypes;
+			}
+			var result = ScriptUtils.DynamicInvoke(this, d, argValues, argTypes, useScriptContext, hasClosure);
 			e.SetResult(result, returnType);
 		}
 
@@ -1282,7 +1304,7 @@ namespace AScript
 
 			await e.EvalArgsAsync(false, cancellationToken).ConfigureAwait(false);
 
-			var d = GetFunc(list3, e.ArgTypes, out var useScriptContext, out var hasClosure);
+			var d = GetFunc(list3, e.ArgTypes, out var useScriptContext, out var hasClosure, out var paramsIndex);
 			if (d == null)
 			{
 				return;
@@ -1348,7 +1370,29 @@ namespace AScript
 					e.ArgValues[i] = cfo.Compile(parameters[i].ParameterType, e.Options);
 				}
 			}
-			var result = ScriptUtils.DynamicInvoke(this, d, e.ArgValues, e.ArgTypes, useScriptContext, hasClosure);
+			var argValues = e.ArgValues;
+			var argTypes = e.ArgTypes;
+			if (paramsIndex >= 0)
+			{
+				if (parameters == null) parameters = d.Method.GetParameters();
+				var itemType = parameters[parameters.Length - 1].ParameterType.GetElementType();
+				var paramsValues = new object[e.ArgValues.Length - paramsIndex];
+				Array.Copy(e.ArgValues, paramsIndex, paramsValues, 0, paramsValues.Length);
+				var paramsArr = Array.CreateInstance(itemType, paramsValues.Length);
+				for (int i = 0; i < paramsValues.Length; i++)
+				{
+					paramsArr.SetValue(System.Convert.ChangeType(paramsValues[i], itemType), i);
+				}
+				var newValues = new object[paramsIndex + 1];
+				var newTypes = new Type[newValues.Length];
+				Array.Copy(e.ArgValues, 0, newValues, 0, paramsIndex);
+				Array.Copy(e.ArgTypes, 0, newTypes, 0, paramsIndex);
+				newValues[paramsIndex] = paramsArr;
+				newTypes[paramsIndex] = paramsArr.GetType();
+				argValues = newValues;
+				argTypes = newTypes;
+			}
+			var result = ScriptUtils.DynamicInvoke(this, d, argValues, argTypes, useScriptContext, hasClosure);
 			e.SetResult(result, returnType);
 		}
 
@@ -1542,50 +1586,50 @@ namespace AScript
 		internal Expression BuildFunc(BuildContext buildContext, BuildOptions options, IDictionary<string, List<Delegate>> functions, string name, IList<ITreeNode> args, ref Expression[] argExprs, ref Type[] argTypes)
 		{
 			if (functions == null || !functions.TryGetValue(name, out var list3)) return null;
+			return BuildFunc(buildContext, options, list3, args, ref argExprs, ref argTypes);
+			//if (argExprs == null && args != null && args.Count > 0)
+			//{
+			//	argExprs = new Expression[args.Count];
+			//	argTypes = new Type[args.Count];
+			//	for (int i = 0; i < args.Count; i++)
+			//	{
+			//		var arg = args[i];
+			//		var expr = arg.Build(buildContext, this, options);
+			//		argExprs[i] = expr;
+			//		argTypes[i] = expr.Type;
+			//		if (!(arg is ExpressionNode))
+			//		{
+			//			args[i] = PoolManage.CreateExpressionNode(expr);
+			//		}
+			//	}
+			//}
+			//else if (argExprs != null && argExprs.Length > 0)
+			//{
+			//	argTypes = new Type[argExprs.Length];
+			//	for (int i = 0; i < argExprs.Length; i++)
+			//	{
+			//		argTypes[i] = argExprs[i].Type;
+			//	}
+			//}
 
-			if (argExprs == null && args != null && args.Count > 0)
-			{
-				argExprs = new Expression[args.Count];
-				argTypes = new Type[args.Count];
-				for (int i = 0; i < args.Count; i++)
-				{
-					var arg = args[i];
-					var expr = arg.Build(buildContext, this, options);
-					argExprs[i] = expr;
-					argTypes[i] = expr.Type;
-					if (!(arg is ExpressionNode))
-					{
-						args[i] = PoolManage.CreateExpressionNode(expr);
-					}
-				}
-			}
-			else if (argExprs != null && argExprs.Length > 0)
-			{
-				argTypes = new Type[argExprs.Length];
-				for (int i = 0; i < argExprs.Length; i++)
-				{
-					argTypes[i] = argExprs[i].Type;
-				}
-			}
-
-			var d = GetFunc(list3, argTypes, out var useScriptContext, out var hasClosure);
-			if (d != null && argExprs != null && argExprs.Length > 0)
-			{
-				ParameterInfo[] parameters = null;
-				for (int i = 0; i < argExprs.Length; i++)
-				{
-					if (argExprs[i] == null && argTypes[i] == typeof(Delegate))
-					{
-						if (parameters == null) parameters = d.Method.GetParameters();
-						if (!parameters[i].ParameterType.Name.StartsWith("Func`"))
-						{
-							((DefineFuncNode)args[i]).ReturnSystemType = typeof(void);
-						}
-						argExprs[i] = args[i].Build(buildContext, this, options);
-					}
-				}
-			}
-			return BuildFunc(d, argExprs, useScriptContext, hasClosure);
+			//var d = GetFunc(list3, argTypes, out var useScriptContext, out var hasClosure, out var paramsIndex);
+			//if (d != null && argExprs != null && argExprs.Length > 0)
+			//{
+			//	ParameterInfo[] parameters = null;
+			//	for (int i = 0; i < argExprs.Length; i++)
+			//	{
+			//		if (argExprs[i] == null && argTypes[i] == typeof(Delegate))
+			//		{
+			//			if (parameters == null) parameters = d.Method.GetParameters();
+			//			if (!parameters[i].ParameterType.Name.StartsWith("Func`"))
+			//			{
+			//				((DefineFuncNode)args[i]).ReturnSystemType = typeof(void);
+			//			}
+			//			argExprs[i] = args[i].Build(buildContext, this, options);
+			//		}
+			//	}
+			//}
+			//return BuildFunc(d, argExprs, useScriptContext, hasClosure);
 		}
 
 		internal Expression BuildFunc(BuildContext buildContext, BuildOptions options, IList<Delegate> functions, IList<ITreeNode> args, ref Expression[] argExprs, ref Type[] argTypes)
@@ -1615,7 +1659,7 @@ namespace AScript
 				}
 			}
 
-			var d = GetFunc(functions, argTypes, out var useScriptContext, out var hasClosure);
+			var d = GetFunc(functions, argTypes, out var useScriptContext, out var hasClosure, out var paramsIndex);
 			if (d != null && argExprs != null && argExprs.Length > 0)
 			{
 				ParameterInfo[] parameters = null;
@@ -1630,6 +1674,26 @@ namespace AScript
 						}
 						argExprs[i] = args[i].Build(buildContext, this, options);
 					}
+				}
+				if (paramsIndex >= 0)
+				{
+					if (parameters == null) parameters = d.Method.GetParameters();
+					var itemType = parameters[parameters.Length - 1].ParameterType.GetElementType();
+					var paramsExprs = new Expression[argExprs.Length - paramsIndex];
+					Array.Copy(argExprs, paramsIndex, paramsExprs, 0, paramsExprs.Length);
+					for (int i = 0; i < paramsExprs.Length; i++)
+					{
+						var p = paramsExprs[i];
+						if (p.Type != itemType)
+						{
+							paramsExprs[i] = Expression.Convert(p, itemType);
+						}
+					}
+					var paramsArr = Expression.NewArrayInit(itemType, paramsExprs);
+					var newExprs = new Expression[paramsIndex + 1];
+					Array.Copy(argExprs, 0, newExprs, 0, paramsIndex);
+					newExprs[paramsIndex] = paramsArr;
+					argExprs = newExprs;
 				}
 			}
 			return BuildFunc(d, argExprs, useScriptContext, hasClosure);
@@ -1918,60 +1982,20 @@ namespace AScript
 			return null;
 		}
 
-		private static Delegate GetFunc(IList<Delegate> list, IList<Type> argTypes, out bool useScriptContext, out bool hasClosure)
+		private static Delegate GetFunc(IList<Delegate> list, IList<Type> argTypes, out bool useScriptContext, out bool hasClosure, out int paramsIndex)
 		{
 			//int argTypesCount = argTypes == null ? 0 : argTypes.Count;
 			for (int i = list.Count - 1; i >= 0; i--)
 			{
 				var d = list[i];
-				if (ScriptUtils.IsMatchArgTypes(argTypes, d.Method, out useScriptContext, out hasClosure))
+				if (ScriptUtils.IsMatchArgTypes(argTypes, d.Method, out useScriptContext, out hasClosure, out paramsIndex))
 				{
 					return d;
 				}
-				//var methodParameters = d.Method.GetParameters();
-				//if (methodParameters.Length < argTypesCount) continue;
-				//if (methodParameters.Length == argTypesCount)
-				//{
-				//	if (argTypesCount == 0)
-				//	{
-				//		useScriptContext = false;
-				//		hasClosure = false;
-				//		return d;
-				//	}
-				//}
-				//int index = 0;
-				//hasClosure = false;
-				//useScriptContext = false;
-				//if (methodParameters[index].ParameterType.FullName == "System.Runtime.CompilerServices.Closure")
-				//{
-				//	index++;
-				//	hasClosure = true;
-				//}
-				//if (methodParameters.Length > index && methodParameters[index].ParameterType == typeof(ScriptContext))
-				//{
-				//	index++;
-				//	useScriptContext = true;
-				//}
-				//if (methodParameters.Length - argTypesCount > index)
-				//{
-				//	continue;
-				//}
-				//bool matched = true;
-				//for (int j = 0; j < argTypesCount; j++)
-				//{
-				//	if (!ScriptUtils.IsMatchArgType(argTypes[j], methodParameters[j + index].ParameterType))
-				//	{
-				//		matched = false;
-				//		break;
-				//	}
-				//}
-				//if (matched)
-				//{
-				//	return d;
-				//}
 			}
 			hasClosure = false;
 			useScriptContext = false;
+			paramsIndex = -1;
 			return null;
 		}
 
@@ -2039,10 +2063,10 @@ namespace AScript
 
 		public Delegate GetFunc(string name, IList<Type> argTypes)
 		{
-			return GetFunc(name, argTypes, out _, out _);
+			return GetFunc(name, argTypes, out _, out _, out _);
 		}
 
-		public Delegate GetFunc(string name, IList<Type> argTypes, out bool useScriptContext, out bool hasClosure)
+		public Delegate GetFunc(string name, IList<Type> argTypes, out bool useScriptContext, out bool hasClosure, out int paramsIndex)
 		{
 			var context = this;
 			while (context != null)
@@ -2056,6 +2080,7 @@ namespace AScript
 					{
 						useScriptContext = false;
 						hasClosure = false;
+						paramsIndex = -1;
 						var del = func.Compile(this, null);
 						// 缓存编译结果
 						context.AddTempFunc(name, del);
@@ -2065,19 +2090,20 @@ namespace AScript
 				var tempFunctions = context._TempFunctions;
 				if (tempFunctions != null && tempFunctions.TryGetValue(name, out var list1))
 				{
-					var func = GetFunc(list1, argTypes, out useScriptContext, out hasClosure);
+					var func = GetFunc(list1, argTypes, out useScriptContext, out hasClosure, out paramsIndex);
 					if (func != null) return func;
 				}
 				var functions = context._Functions;
 				if (functions != null && functions.TryGetValue(name, out var list3))
 				{
-					var func = GetFunc(list3, argTypes, out useScriptContext, out hasClosure);
+					var func = GetFunc(list3, argTypes, out useScriptContext, out hasClosure, out paramsIndex);
 					if (func != null) return func;
 				}
 				context = context.Parent;
 			}
 			hasClosure = false;
 			useScriptContext = false;
+			paramsIndex = -1;
 			return null;
 		}
 

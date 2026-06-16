@@ -124,22 +124,37 @@ namespace AScript
 			return true;
 		}
 
-		public static bool IsMatchArgTypes(IList<Type> inArgTypes, MethodInfo method, out bool useScriptContext, out bool hasClosure)
+		public static bool IsMatchArgTypes(IList<Type> inArgTypes, MethodInfo method, out bool useScriptContext, out bool hasClosure, out int paramsIndex)
 		{
 			int argTypesCount = inArgTypes == null ? 0 : inArgTypes.Count;
 			var methodParameters = method.GetParameters();
-			if (methodParameters.Length < argTypesCount)
-			{
-				useScriptContext = false;
-				hasClosure = false;
-				return false;
-			}
 			if (methodParameters.Length == argTypesCount && argTypesCount == 0)
 			{
 				useScriptContext = false;
 				hasClosure = false;
+				paramsIndex = -1;
 				return true;
 			}
+
+			bool hasParams = false;
+			ParameterInfo lastParam = null;
+			if (methodParameters.Length > 0)
+			{
+				lastParam = methodParameters[methodParameters.Length - 1];
+				if (lastParam.IsDefined(typeof(ParamArrayAttribute), false))
+				{
+					hasParams = true;
+				}
+			}
+
+			if (!hasParams && methodParameters.Length < argTypesCount)
+			{
+				useScriptContext = false;
+				hasClosure = false;
+				paramsIndex = -1;
+				return false;
+			}
+
 			int index = 0;
 			hasClosure = false;
 			useScriptContext = false;
@@ -155,10 +170,12 @@ namespace AScript
 			}
 			if (methodParameters.Length - argTypesCount > index)
 			{
+				paramsIndex = -1;
 				return false;
 			}
 			bool matched = true;
-			for (int j = 0; j < argTypesCount; j++)
+			int j;
+			for (j = 0; j < argTypesCount; j++)
 			{
 				if (!IsMatchArgType(inArgTypes[j], methodParameters[j + index].ParameterType))
 				{
@@ -166,7 +183,11 @@ namespace AScript
 					break;
 				}
 			}
-			return matched;
+			paramsIndex = -1;
+			if (matched || !hasParams || j + index < methodParameters.Length - 1) return matched;
+
+			paramsIndex = j;
+			return true;
 		}
 
 		public static bool IsMatchArgTypes(IList<Type> inArgTypes, LambdaExpression lambda, out bool useScriptContext, out bool hasClosure)

@@ -27,7 +27,7 @@ namespace AScript.Functions
 		{
 			var exprs = e.BuildArgs();
 			var argTypes = exprs?.Select(a => a == null ? typeof(Delegate) : a.Type).ToList();
-			if (!ScriptUtils.IsMatchArgTypes(argTypes, this.Method, out var useScriptContext, out var hasClosure))
+			if (!ScriptUtils.IsMatchArgTypes(argTypes, this.Method, out var useScriptContext, out var hasClosure, out _))
 			{
 				return;
 			}
@@ -66,7 +66,7 @@ namespace AScript.Functions
 		public void Eval(FunctionEvalArgs e)
 		{
 			e.EvalArgs(false);
-			if (!ScriptUtils.IsMatchArgTypes(e.ArgTypes, this.Method, out var useScriptContext, out var hasClosure))
+			if (!ScriptUtils.IsMatchArgTypes(e.ArgTypes, this.Method, out var useScriptContext, out var hasClosure, out _))
 			{
 				return;
 			}
