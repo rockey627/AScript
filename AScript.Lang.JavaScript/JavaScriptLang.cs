@@ -132,6 +132,9 @@ namespace AScript.Lang.JavaScript
 			AddFunc<List<object>, object, long>("unshift", List_unshift);
 			AddFunc<List<object>, object[], long>("unshift", List_unshift);
 			AddFunc("slice", IndexStartEndOperator.Instance);
+			AddFunc<List<object>, long, long, object[], List<object>>("splice", List_splice);
+			AddFunc<List<object>, long, List<object>>("splice", List_splice);
+			AddFunc<List<object>, long, long, List<object>>("splice", List_splice);
 			AddFunc(typeof(Enumerable), method =>
 			{
 				if (method.Name == "All") return "every";
@@ -368,6 +371,34 @@ namespace AScript.Lang.JavaScript
 			if (vs.Length == 1) list.Insert(0, vs[0]);
 			else list.InsertRange(0, vs);
 			return list.Count;
+		}
+
+		private static List<object> List_splice(List<object> list, long index)
+		{
+			int count = list.Count - (int)index;
+			return List_splice(list, index, count);
+		}
+
+		private static List<object> List_splice(List<object> list, long index, long count)
+		{
+			if (count == 0) return new List<object>();
+			var result = new List<object>((int)count);
+			for (int i = 0; i < count; i++)
+			{
+				result.Add(list[i + (int)index]);
+			}
+			list.RemoveRange((int)index, (int)count);
+			return result;
+		}
+
+		private static List<object> List_splice(List<object> list, long index, long count, params object[] addingList)
+		{
+			var result = List_splice(list, index, count);
+			if (addingList != null && addingList.Length > 0)
+			{
+				list.InsertRange((int)index, addingList);
+			}
+			return result;
 		}
 	}
 }
