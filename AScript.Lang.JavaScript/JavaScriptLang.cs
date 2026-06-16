@@ -20,7 +20,7 @@ namespace AScript.Lang.JavaScript
 
 		protected JavaScriptLang()
 		{
-			SetVar("String", JavaScriptString.Instance);
+			//SetVar("String", JavaScriptString.Instance);
 
 			AddType("var", typeof(object));
 			AddType("let", typeof(object));
@@ -28,6 +28,7 @@ namespace AScript.Lang.JavaScript
 			AddType("Array", typeof(Array));
 			AddType("Set", typeof(HashSet<object>));
 			AddType("Map", typeof(Dictionary<object, object>));
+			AddType("Date", typeof(JavaScriptDate));
 			//AddType("Math", typeof(Math));
 
 			AddFunc("=", AssignOperator.Instance);
@@ -77,7 +78,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc("concat", ConcatFunction.Instance);
 			AddFunc("includes", new ContainsFunction());
 			AddFunc("get_length", new LengthFunction(typeof(long)));
-			AddFunc("fromCharCode", JavaScriptStringFromCharCodeFunction.Instance);
+			//AddFunc("fromCharCode", JavaScriptStringFromCharCodeFunction.Instance);
 
 			AddLambda<Func<string, string, bool>>("startsWith", (s, p) => s.StartsWith(p));
 			AddLambda<Func<string, string, bool>>("endsWith", (s, p) => s.EndsWith(p));
@@ -170,12 +171,12 @@ namespace AScript.Lang.JavaScript
 
 		public override bool IsObjectMethodEnabled(Type objType)
 		{
-			return false;
+			return objType == typeof(JavaScriptDate);
 		}
 
 		public override bool IsObjectPropertyEnabled(Type objType)
 		{
-			return false;
+			return objType == typeof(JavaScriptDate);
 		}
 
 		public override ISyntaxAnalyzer GetSyntaxAnalyzer()
