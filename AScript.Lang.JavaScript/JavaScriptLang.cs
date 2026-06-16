@@ -127,13 +127,11 @@ namespace AScript.Lang.JavaScript
 			AddAction<List<object>, Action<object>>("forEach", List_forEach);
 			AddFunc<List<object>, object>("pop", List_pop);
 			AddFunc<List<object>, object>("shift", List_shift);
-			AddFunc<List<object>, object, object>("push", List_push);
-			//AddFunc("filter", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_filter", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
-			//AddFunc("map", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_map", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
-			//AddFunc("reduce", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_reduce1", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
-			//AddFunc("reduce", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_reduce2", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
-			//AddFunc("findIndex", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_findIndex", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
-			//AddFunc("forEach", new GenericFunction(typeof(JavaScriptLang).GetMethod("List_forEach", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)));
+			AddFunc<List<object>, object, long>("push", List_push);
+			AddFunc<List<object>, object[], long>("push", List_push);
+			AddFunc<List<object>, object, long>("unshift", List_unshift);
+			AddFunc<List<object>, object[], long>("unshift", List_unshift);
+			AddFunc("slice", IndexStartEndOperator.Instance);
 			AddFunc(typeof(Enumerable), method =>
 			{
 				if (method.Name == "All") return "every";
@@ -344,10 +342,32 @@ namespace AScript.Lang.JavaScript
 			return v;
 		}
 
-		private static object List_push(List<object> list, object v)
+		private static long List_push(List<object> list, object v)
 		{
 			list.Add(v);
-			return v;
+			return list.Count;
+		}
+
+		private static long List_push(List<object> list, params object[] vs)
+		{
+			if (vs == null || vs.Length == 0) return list.Count;
+			if (vs.Length == 1) list.Add(vs[0]);
+			else list.AddRange(vs);
+			return list.Count;
+		}
+
+		private static long List_unshift(List<object> list, object v)
+		{
+			list.Insert(0, v);
+			return list.Count;
+		}
+
+		private static long List_unshift(List<object> list, params object[] vs)
+		{
+			if (vs == null || vs.Length == 0) return list.Count;
+			if (vs.Length == 1) list.Insert(0, vs[0]);
+			else list.InsertRange(0, vs);
+			return list.Count;
 		}
 	}
 }

@@ -764,10 +764,10 @@ s
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			Assert.AreEqual(4L, script.Eval("var arr = [1, 2, 3]; arr.push(4)"));
-			var arr = (List<object>)script.Eval("var arr = [1, 2, 3]; arr.push(4); arr");
+			Assert.AreEqual(4L, script.Eval("var arr = [1, 2, 3]; arr.push(5)"));
+			var arr = (List<object>)script.Eval("var arr = [1, 2, 3]; arr.push(5); arr");
 			Assert.AreEqual(4, arr.Count);
-			Assert.AreEqual(4L, arr[3]);
+			Assert.AreEqual(5L, arr[3]);
 		}
 
 		[TestMethod]
@@ -776,10 +776,35 @@ s
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			Assert.AreEqual(4L, script.Eval("var arr = [1, 2, 3]; arr.push(4)"));
-			var arr = (List<object>)script.Eval("var arr = [1, 2, 3]; arr.push(4); arr");
+			Assert.AreEqual(4L, script.Eval("var arr = [1, 2, 3]; arr.push(5)"));
+			var arr = (List<object>)script.Eval("var arr = [1, 2, 3]; arr.push(5); arr");
 			Assert.AreEqual(4, arr.Count);
-			Assert.AreEqual(4L, arr[3]);
+			Assert.AreEqual(5L, arr[3]);
+		}
+
+		[TestMethod]
+		public void Test30_push2()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(5L, script.Eval("var arr = [1, 2, 3]; arr.push(5, 7)"));
+			var arr = (List<object>)script.Eval("var arr = [1, 2, 3]; arr.push(5, 7); arr");
+			Assert.AreEqual(5, arr.Count);
+			Assert.AreEqual(5L, arr[3]);
+			Assert.AreEqual(7L, arr[4]);
+		}
+
+		[TestMethod]
+		public void Test30_push2_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(5L, script.Eval("var arr = [1, 2, 3]; arr.push(5, 7)"));
+			var arr = (List<object>)script.Eval("var arr = [1, 2, 3]; arr.push(5, 7); arr");
+			Assert.AreEqual(5, arr.Count);
+			Assert.AreEqual(5L, arr[3]);
+			Assert.AreEqual(7L, arr[4]);
 		}
 
 		// array shift
@@ -811,8 +836,17 @@ s
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(4L, script.Eval("var arr = [1, 2, 3]; arr.unshift(0)"));
+			Assert.AreEqual(5L, script.Eval("var arr = [1, 2, 3]; arr.unshift(0, 9)"));
 			Assert.AreEqual(0L, script.Eval("var arr = [1, 2, 3]; arr.unshift(0); arr[0]"));
+			var arr = (List<object>)script.Eval("var arr = [1, 2, 3]; arr.unshift(0, 9); arr");
+			Assert.AreEqual(5, arr.Count);
+			Assert.AreEqual(0L, arr[0]);
+			Assert.AreEqual(9L, arr[1]);
+			Assert.AreEqual(1L, arr[2]);
+			Assert.AreEqual(2L, arr[3]);
+			Assert.AreEqual(3L, arr[4]);
 			Assert.AreEqual(4L, script.Eval("var arr = [1, 2, 3]; arr.unshift(0); arr.length"));
+			Assert.AreEqual(5L, script.Eval("var arr = [1, 2, 3]; arr.unshift(0, 9); arr.length"));
 		}
 
 		[TestMethod]
@@ -822,8 +856,17 @@ s
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(4L, script.Eval("var arr = [1, 2, 3]; arr.unshift(0)"));
+			Assert.AreEqual(5L, script.Eval("var arr = [1, 2, 3]; arr.unshift(0, 9)"));
 			Assert.AreEqual(0L, script.Eval("var arr = [1, 2, 3]; arr.unshift(0); arr[0]"));
+			var arr = (List<object>)script.Eval("var arr = [1, 2, 3]; arr.unshift(0, 9); arr");
+			Assert.AreEqual(5, arr.Count);
+			Assert.AreEqual(0L, arr[0]);
+			Assert.AreEqual(9L, arr[1]);
+			Assert.AreEqual(1L, arr[2]);
+			Assert.AreEqual(2L, arr[3]);
+			Assert.AreEqual(3L, arr[4]);
 			Assert.AreEqual(4L, script.Eval("var arr = [1, 2, 3]; arr.unshift(0); arr.length"));
+			Assert.AreEqual(5L, script.Eval("var arr = [1, 2, 3]; arr.unshift(0, 9); arr.length"));
 		}
 
 		// array slice method
@@ -832,11 +875,11 @@ s
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("[1, 2, 3, 4, 5].slice(1, 3)");
+			var result = script.Eval("[1, 2, 3, 4, 5].slice(2, 4)");
 			var arr = (List<object>)result;
 			Assert.AreEqual(2, arr.Count);
-			Assert.AreEqual(2L, arr[0]);
-			Assert.AreEqual(3L, arr[1]);
+			Assert.AreEqual(3L, arr[0]);
+			Assert.AreEqual(4L, arr[1]);
 		}
 
 		[TestMethod]
@@ -845,11 +888,11 @@ s
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("[1, 2, 3, 4, 5].slice(1, 3)");
+			var result = script.Eval("[1, 2, 3, 4, 5].slice(2, 4)");
 			var arr = (List<object>)result;
 			Assert.AreEqual(2, arr.Count);
-			Assert.AreEqual(2L, arr[0]);
-			Assert.AreEqual(3L, arr[1]);
+			Assert.AreEqual(3L, arr[0]);
+			Assert.AreEqual(4L, arr[1]);
 		}
 
 		// array splice
