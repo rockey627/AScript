@@ -35,7 +35,44 @@ namespace AScript.Lang.JavaScript
 			Expression<Func<string, string, long, long>> expr2 = (s, p, start) => s.LastIndexOf(p, (int)start);
 			return new LambdaExpression[] { expr1, expr2 };
 		}
-		public static Expression<Func<string, string, long>> search()=> (s, p) => s.LastIndexOf(p);
+		public static Expression<Func<string, string, long>> search() => (s, p) => s.IndexOf(p);
+		// substr扩展方法有多个重载方法
+		public static LambdaExpression[] substr()
+		{
+			Expression<Func<string, long, string>> expr1 = (s, start) => s.Substring((int)(start < 0 ? s.Length + start : start));
+			Expression<Func<string, long, long, string>> expr2 = (s, start, count) => s.Substring((int)(start < 0 ? s.Length + start : start), (int)count);
+			return new LambdaExpression[] { expr1, expr2 };
+		}
+		// substring扩展方法有多个重载方法
+		public static LambdaExpression[] substring()
+		{
+			Expression<Func<string, long, string>> expr1 = (s, start) => s.Substring((int)start);
+			Expression<Func<string, long, long, string>> expr2 = (s, start, end) => s.Substring((int)start, (int)(end - start));
+			return new LambdaExpression[] { expr1, expr2 };
+		}
+		// slice扩展方法有多个重载方法
+		public static LambdaExpression[] slice()
+		{
+			Expression<Func<string, long, string>> expr1 = (s, start) => s.Substring((int)(start < 0 ? s.Length + start : start));
+			Expression<Func<string, long, long, string>> expr2 = (s, start, end) => s.Substring((int)(start < 0 ? s.Length + start : start), (int)((end < 0 ? s.Length + end : end) - (start < 0 ? s.Length + start : start)));
+			return new LambdaExpression[] { expr1, expr2 };
+		}
+		public static Expression<Func<string, string>> toLowerCase() => s => s.ToLower();
+		public static Expression<Func<string, string>> toUpperCase() => s => s.ToUpper();
+		public static Expression<Func<string, string>> trim() => s => s.Trim();
+		public static Expression<Func<string, string>> trimStart() => s => s.TrimStart();
+		public static Expression<Func<string, string>> trimEnd() => s => s.TrimEnd();
+		public static Expression<Func<string, string, string, string>> replaceAll() => (s, p, v) => s.Replace(p, v);
+		public static Expression<Func<string, long, string>> padStart() => (s, count) => s.PadLeft((int)count);
+		public static Expression<Func<string, long, string>> padEnd() => (s, count) => s.PadRight((int)count);
+
+		public static string padStart(string s, long count, string v) => string.IsNullOrEmpty(v) ? s : s.PadLeft((int)count, v[0]);
+
+		public static string padEnd(string s, long count, string v) => string.IsNullOrEmpty(v) ? s : s.PadRight((int)count, v[0]);
+
+		public static string charAt(string s, long index) => index < 0 || index >= s.Length ? string.Empty : s[(int)index].ToString();
+
+		public static long charCodeAt(string s, long index) => index < 0 || index >= s.Length ? -1L : (long)(int)s[(int)index];
 
 		public static List<object> match(string s, string p)
 		{
