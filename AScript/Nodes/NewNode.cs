@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -239,8 +240,30 @@ namespace AScript.Nodes
 				return Expression.Block(new[] { instanceVar }, statements); ;
 			}
 
-			var con = type.GetConstructor(argTypes);
-			var newExpr = Expression.New(con, argValues);
+			ConstructorInfo con = null;
+			if (scriptContext.IsObjectMemberEnabled(type))
+			{
+				con = type.GetConstructor(argTypes);
+			}
+			Expression instance;
+			if (con != null)
+			{
+				instance = Expression.New(con, argValues);
+			}
+			else if (!string.IsNullOrEmpty(this.Name))
+			{
+				// 调用方法：new_XXX
+				instance = scriptContext.BuildFunc(buildContext, options, null, $"new_{this.Name}", false, null, argValues, false);
+			}
+			else instance = null;
+			if (instance == null)
+			{
+				if (argTypes == null || argTypes.Length == 0)
+				{
+					throw new Exceptions.ScriptRuntimeException($"unkown {type.Name}()");
+				}
+				throw new Exceptions.ScriptRuntimeException($"unkown {type.Name}({string.Join(",", argTypes.Select(a => a.Name))})");
+			}
 
 			// 初始化属性列表
 			if (this.InitProperties != null && this.InitProperties.Count > 0)
@@ -290,7 +313,7 @@ namespace AScript.Nodes
 							var valueExpr = opNode.Right.Build(buildContext, scriptContext, options);
 
 							// 创建索引赋值表达式
-							var itemProperty = Expression.Property(newExpr, "Item", indexExpr);
+							var itemProperty = Expression.Property(instance, "Item", indexExpr);
 							var indexAssign = Expression.Assign(
 								itemProperty,
 								valueExpr.Type == itemProperty.Type ? valueExpr : Expression.Convert(valueExpr, itemProperty.Type)
@@ -425,14 +448,13 @@ namespace AScript.Nodes
 				}
 
 				// 处理属性绑定
-				if (initBindings.Count > 0)
+				if (initBindings.Count > 0 && (instance is NewExpression newExpr))
 				{
-					//return Expression.MemberInit(newExpr, initBindings);
 					return Expression.MemberInit(newExpr, initBindings);
 				}
 			}
 
-			return newExpr;
+			return instance;
 		}
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
@@ -647,8 +669,29 @@ namespace AScript.Nodes
 
 			returnType = type;
 
-			var con = type.GetConstructor(argTypes);
-			var instance = con.Invoke(argValues);
+			ConstructorInfo con = null;
+			if (context.IsObjectMemberEnabled(type))
+			{
+				con = type.GetConstructor(argTypes);
+			}
+			object instance;
+			if (con != null)
+			{
+				instance = con.Invoke(argValues);
+			}
+			else if (!string.IsNullOrEmpty(this.Name))
+			{
+				// 调用方法：new_XXX
+				instance = context.EvalFunc($"new_{this.Name}", argValues, argTypes);
+			}
+			else
+			{
+				if (argTypes == null || argTypes.Length == 0)
+				{
+					throw new Exceptions.ScriptRuntimeException($"unkown {type.Name}()");
+				}
+				throw new Exceptions.ScriptRuntimeException($"unkown {type.Name}({string.Join(",", argTypes.Select(a => a.Name))})");
+			}
 
 			// 初始化属性列表
 			if (this.InitProperties != null)

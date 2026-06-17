@@ -563,11 +563,11 @@ namespace AScript
 		}
 
 		/// <summary>
-		/// 对象内部方法是否可用
+		/// 对象内部成员（构造函数、属性、字段、方法）是否可用
 		/// </summary>
 		/// <param name="objType"></param>
 		/// <returns></returns>
-		public virtual bool IsObjectMethodEnabled(Type objType)
+		public virtual bool IsObjectMemberEnabled(Type objType)
 		{
 			var langs = this.Langs;
 			if (langs == null || langs.Length == 0)
@@ -576,7 +576,7 @@ namespace AScript
 				{
 					if (Script.Langs.TryGetValue(item, out var lang))
 					{
-						return lang.IsObjectMethodEnabled(objType);
+						return lang.IsObjectMemberEnabled(objType);
 					}
 				}
 			}
@@ -586,38 +586,7 @@ namespace AScript
 				{
 					if (Script.Langs.TryGetValue(langs[i], out var lang))
 					{
-						return lang.IsObjectMethodEnabled(objType);
-					}
-				}
-			}
-			return true;
-		}
-
-		/// <summary>
-		/// 对象内部属性是否可用
-		/// </summary>
-		/// <param name="objType"></param>
-		/// <returns></returns>
-		public virtual bool IsObjectPropertyEnabled(Type objType)
-		{
-			var langs = this.Langs;
-			if (langs == null || langs.Length == 0)
-			{
-				foreach (var item in Script.Langs.GetDefaults())
-				{
-					if (Script.Langs.TryGetValue(item, out var lang))
-					{
-						return lang.IsObjectPropertyEnabled(objType);
-					}
-				}
-			}
-			else
-			{
-				for (int i = 0; i < langs.Length; i++)
-				{
-					if (Script.Langs.TryGetValue(langs[i], out var lang))
-					{
-						return lang.IsObjectPropertyEnabled(objType);
+						return lang.IsObjectMemberEnabled(objType);
 					}
 				}
 			}
@@ -1868,6 +1837,11 @@ namespace AScript
 			return EvalFunc(name, false, argValues, argTypes, out _);
 		}
 
+		public Task<EvalResult> EvalFuncAsync(string name, IList<object> argValues, IList<Type> argTypes)
+		{
+			return EvalFuncAsync(null, name, false, argValues, argTypes);
+		}
+
 		public object EvalFunc(string name, IList<object> argValues, IList<Type> argTypes, out Type returnType)
 		{
 			return EvalFunc(name, false, argValues, argTypes, out returnType);
@@ -1900,6 +1874,27 @@ namespace AScript
 				}
 			}
 			var result = EvalFunc(options ?? new BuildOptions(Script.DefaultOptions), null, name, isPrefix, args, out returnType);
+			PoolManage.Return(args);
+			return result;
+		}
+
+		public async Task<EvalResult> EvalFuncAsync(BuildOptions options, string name, bool isPrefix, IList<object> argValues, IList<Type> argTypes)
+		{
+			var argCount = argValues == null ? 0 : argValues.Count;
+			var args = new ITreeNode[argCount];
+			for (int i = 0; i < argCount; i++)
+			{
+				var argValue = argValues[i];
+				if (argValue is ITreeNode node)
+				{
+					args[i] = node;
+				}
+				else
+				{
+					args[i] = PoolManage.CreateObjectNode(argValue, argTypes[i]);
+				}
+			}
+			var result = await EvalFuncAsync(options ?? new BuildOptions(Script.DefaultOptions), null, name, isPrefix, args).ConfigureAwait(false);
 			PoolManage.Return(args);
 			return result;
 		}

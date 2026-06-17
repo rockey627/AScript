@@ -36,14 +36,17 @@ namespace AScript.Operators
 			{
 				// 调用静态类属性或字段
 				var targetType = ((TypeWrapper)((ConstantExpression)instance).Value).Type;
-				var property = targetType.GetProperty(propertyOrFieldName, BindingFlags.Static | BindingFlags.Public);
-				if (property != null)
+				if (e.ScriptContext.IsObjectMemberEnabled(targetType))
 				{
-					return Expression.Property(null, property);
-				}
+					var property = targetType.GetProperty(propertyOrFieldName, BindingFlags.Static | BindingFlags.Public);
+					if (property != null) return Expression.Property(null, property);
 
-				var field = targetType.GetField(propertyOrFieldName, BindingFlags.Static | BindingFlags.Public);
-				return Expression.Field(null, field);
+					var field = targetType.GetField(propertyOrFieldName, BindingFlags.Static | BindingFlags.Public);
+					if (field != null) return Expression.Field(null, field);
+				}
+				var staticExpr = e.ScriptContext.BuildFunc(e.BuildContext, e.Options, e.Control, $"{((VariableNode)e.Args[0]).Name}_get_{propertyOrFieldName}", false, null);
+				if (staticExpr != null) return staticExpr;
+				throw new Exceptions.ScriptRuntimeException($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
 			}
 
 			if (typeof(DataRow).IsAssignableFrom(instance.Type))
@@ -58,7 +61,7 @@ namespace AScript.Operators
 			}
 
 			// 变量的属性或字段
-			if (e.ScriptContext.IsObjectPropertyEnabled(instance.Type))
+			if (e.ScriptContext.IsObjectMemberEnabled(instance.Type))
 			{
 				if (nullable)
 				{
@@ -76,7 +79,10 @@ namespace AScript.Operators
 				return Expression.PropertyOrField(instance, propertyOrFieldName);
 			}
 
-			return e.ScriptContext.BuildFunc(e.BuildContext, e.Options, e.Control, $"get_{propertyOrFieldName}", false, new[] { new ExpressionNode(instance) });
+			var expr = e.ScriptContext.BuildFunc(e.BuildContext, e.Options, e.Control, $"get_{propertyOrFieldName}", false, new[] { new ExpressionNode(instance) });
+			if (expr != null) return expr;
+
+			throw new Exceptions.ScriptRuntimeException($"unknow Property or Field {instance.Type.Name}.{propertyOrFieldName}");
 		}
 
 		public void Eval(FunctionEvalArgs e)
@@ -130,7 +136,7 @@ namespace AScript.Operators
 				return value;
 			}
 
-			if (e.Context.IsObjectPropertyEnabled(targetType))
+			if (e.Context.IsObjectMemberEnabled(targetType))
 			{
 				var p = targetType.GetProperty(propertyOrFieldName, flags);
 				if (p != null)
@@ -145,8 +151,6 @@ namespace AScript.Operators
 					type = f.FieldType;
 					return f.GetValue(target);
 				}
-
-				throw new Exceptions.ScriptRuntimeException($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
 			}
 
 			return e.Context.EvalFunc($"get_{propertyOrFieldName}", new[] { instance }, new[] { targetType }, out type);

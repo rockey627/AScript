@@ -23,6 +23,8 @@ namespace AScript
 		/// </summary>
 		public event EventHandler<FunctionBuildArgs> FunctionBuild;
 
+		public ConcurrentDictionary<Type, bool> ObjectMemberEnabledDict { get; private set; } = new ConcurrentDictionary<Type, bool>();
+
 		/// <summary>
 		/// 函数处理器（包含操作符处理）
 		/// </summary>
@@ -246,21 +248,15 @@ namespace AScript
 		}
 
 		/// <summary>
-		/// 对象内部方法是否可用
+		/// 对象内部成员（构造函数、属性、字段、方法）是否可用
 		/// </summary>
 		/// <returns></returns>
-		public virtual bool IsObjectMethodEnabled(Type objType)
+		public virtual bool IsObjectMemberEnabled(Type objType)
 		{
-			return true;
-		}
-
-		/// <summary>
-		/// 对象内部属性是否可用
-		/// </summary>
-		/// <param name="objType"></param>
-		/// <returns></returns>
-		public virtual bool IsObjectPropertyEnabled(Type objType)
-		{
+			if (this.ObjectMemberEnabledDict.TryGetValue(objType, out var enable))
+			{
+				return enable;
+			}
 			return true;
 		}
 
@@ -431,9 +427,21 @@ namespace AScript
 			this._Types[name] = type;
 		}
 
+		public void AddType(string name, Type type, bool memberEnabled)
+		{
+			Init_Types();
+			this._Types[name] = type;
+			this.ObjectMemberEnabledDict[type] = memberEnabled;
+		}
+
 		public void AddType(Type type)
 		{
 			AddType(type.Name, type);
+		}
+
+		public void AddType(Type type, bool memberEnabled)
+		{
+			AddType(type.Name, type, memberEnabled);
 		}
 
 		public void AddType<T>(string name)
@@ -441,9 +449,19 @@ namespace AScript
 			AddType(name, typeof(T));
 		}
 
+		public void AddType<T>(string name, bool memberEnabled)
+		{
+			AddType(name, typeof(T), memberEnabled);
+		}
+
 		public void AddType<T>()
 		{
 			AddType(typeof(T));
+		}
+
+		public void AddType<T>(bool memberEnabled)
+		{
+			AddType(typeof(T), memberEnabled);
 		}
 
 		public void RemoveType(string name)

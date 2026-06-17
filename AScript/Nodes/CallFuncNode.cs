@@ -81,25 +81,25 @@ namespace AScript.Nodes
 				if (t0 == typeof(TypeWrapper))
 				{
 					var type = ((TypeWrapper)v0).Type;
-					if (!context.IsObjectMethodEnabled(type))
+					if (context.IsObjectMemberEnabled(type))
 					{
-						throw new ScriptAnalyzingException($"function is disabled: {type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
+						var methodInfo = type.GetMethod(this.Name, argTypes);
+						if (methodInfo != null)
+						{
+							var parameters = methodInfo.GetParameters();
+							var convertedArgs = Syntaxs.DefaultSyntaxAnalyzer.ConvertObjectArguments(argValues, parameters);
+							var result = methodInfo.Invoke(null, convertedArgs);
+							returnType = methodInfo.ReturnType;
+							return result;
+						}
 					}
-					var methodInfo = type.GetMethod(this.Name, argTypes);
-					if (methodInfo == null)
-					{
-						throw new ScriptAnalyzingException($"unknown function: {type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
-					}
-					var parameters = methodInfo.GetParameters();
-					var convertedArgs = Syntaxs.DefaultSyntaxAnalyzer.ConvertObjectArguments(argValues, parameters);
-					var result = methodInfo.Invoke(null, convertedArgs);
-					returnType = methodInfo.ReturnType;
-					return result;
+					// 静态方法扩展
+					return context.EvalFunc($"{((VariableNode)this.Target).Name}_{this.Name}", argValues, argTypes, out returnType);
 				}
 				else
 				{
 					MethodInfo methodInfo = null;
-					if (context.IsObjectMethodEnabled(t0))
+					if (context.IsObjectMemberEnabled(t0))
 					{
 						methodInfo = t0.GetMethod(this.Name, argTypes);
 						if (methodInfo == null)
@@ -259,24 +259,24 @@ namespace AScript.Nodes
 				if (t0 == typeof(TypeWrapper))
 				{
 					var type = ((TypeWrapper)v0).Type;
-					if (!context.IsObjectMethodEnabled(type))
+					if (context.IsObjectMemberEnabled(type))
 					{
-						throw new ScriptAnalyzingException($"function is disabled: {type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
+						var methodInfo = type.GetMethod(this.Name, argTypes);
+						if (methodInfo != null)
+						{
+							var parameters = methodInfo.GetParameters();
+							var convertedArgs = Syntaxs.DefaultSyntaxAnalyzer.ConvertObjectArguments(argValues, parameters);
+							var result = methodInfo.Invoke(null, convertedArgs);
+							return new EvalResult(result, methodInfo.ReturnType);
+						}
 					}
-					var methodInfo = type.GetMethod(this.Name, argTypes);
-					if (methodInfo == null)
-					{
-						throw new ScriptAnalyzingException($"unknown function: {type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
-					}
-					var parameters = methodInfo.GetParameters();
-					var convertedArgs = Syntaxs.DefaultSyntaxAnalyzer.ConvertObjectArguments(argValues, parameters);
-					var result = methodInfo.Invoke(null, convertedArgs);
-					return new EvalResult(result, methodInfo.ReturnType);
+					// 静态方法扩展
+					return await context.EvalFuncAsync($"{((VariableNode)this.Target).Name}_{this.Name}", argValues, argTypes).ConfigureAwait(false);
 				}
 				else
 				{
 					MethodInfo methodInfo = null;
-					if (context.IsObjectMethodEnabled(t0))
+					if (context.IsObjectMemberEnabled(t0))
 					{
 						methodInfo = t0.GetMethod(this.Name, argTypes);
 						if (methodInfo == null)
@@ -424,23 +424,28 @@ namespace AScript.Nodes
 				if (v0.Type == typeof(TypeWrapper))
 				{
 					var type = ((TypeWrapper)((ConstantExpression)v0).Value).Type;
-					if (!scriptContext.IsObjectMethodEnabled(type))
+					if (scriptContext.IsObjectMemberEnabled(type))
 					{
-						throw new ScriptAnalyzingException($"function is disabled: {type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
+						var methodInfo = type.GetMethod(this.Name, argTypes);
+						if (methodInfo != null)
+						{
+							var parameters = methodInfo.GetParameters();
+							var convertedArgs = Syntaxs.DefaultSyntaxAnalyzer.ConvertArguments(argExprs, parameters);
+							return Expression.Call(null, methodInfo, convertedArgs);
+						}
 					}
-					var methodInfo = type.GetMethod(this.Name, argTypes);
-					if (methodInfo == null)
+					var result = scriptContext.BuildFunc(buildContext, options, null, $"{((VariableNode)this.Target).Name}_{this.Name}", false, null, argExprs, false);
+					if (result != null) return result;
+					if (argTypes == null || argTypes.Length == 0)
 					{
-						throw new ScriptAnalyzingException($"unknown function: {type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
+						throw new ScriptAnalyzingException($"unknown function: {v0.Type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
 					}
-					var parameters = methodInfo.GetParameters();
-					var convertedArgs = Syntaxs.DefaultSyntaxAnalyzer.ConvertArguments(argExprs, parameters);
-					return Expression.Call(null, methodInfo, convertedArgs);
+					throw new ScriptAnalyzingException($"unknown function: {v0.Type}.{this.Name}()");
 				}
 				else
 				{
 					MethodInfo methodInfo = null;
-					if (scriptContext.IsObjectMethodEnabled(v0.Type))
+					if (scriptContext.IsObjectMemberEnabled(v0.Type))
 					{
 						methodInfo = v0.Type.GetMethod(this.Name, argTypes);
 						if (methodInfo == null)
