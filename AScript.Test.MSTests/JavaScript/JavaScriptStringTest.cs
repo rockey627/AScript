@@ -27,6 +27,7 @@ namespace AScript.Test.MSTests.JavaScript
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(0L, script.Eval("'hello'.indexOf('h')"));
+			Assert.AreEqual(-1L, script.Eval("'hello'.indexOf('h', 1)"));
 			Assert.AreEqual(1L, script.Eval("'hello'.indexOf('e')"));
 			Assert.AreEqual(-1L, script.Eval("'hello'.indexOf('x')"));
 			Assert.AreEqual(2L, script.Eval("'hello'.indexOf('l')"));
@@ -39,6 +40,7 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(0L, script.Eval("'hello'.indexOf('h')"));
+			Assert.AreEqual(-1L, script.Eval("'hello'.indexOf('h', 1)"));
 			Assert.AreEqual(1L, script.Eval("'hello'.indexOf('e')"));
 			Assert.AreEqual(-1L, script.Eval("'hello'.indexOf('x')"));
 			Assert.AreEqual(2L, script.Eval("'hello'.indexOf('l')"));

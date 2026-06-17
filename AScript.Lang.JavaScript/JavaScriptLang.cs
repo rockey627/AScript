@@ -21,6 +21,7 @@ namespace AScript.Lang.JavaScript
 			AddType("var", typeof(object));
 			AddType("let", typeof(object));
 			AddType("const", typeof(object));
+			AddType("String", typeof(string));
 			AddType("Array", typeof(Array));
 			AddType("Set", typeof(HashSet<object>));
 			AddType("Map", typeof(Dictionary<object, object>));
@@ -79,14 +80,14 @@ namespace AScript.Lang.JavaScript
 			AddFunc(typeof(JavaScriptMathExtensions));
 			AddFunc(typeof(JavaScriptStringExtensions));
 
-			AddLambda<Func<string, string, bool>>("startsWith", (s, p) => s.StartsWith(p));
-			AddLambda<Func<string, string, bool>>("endsWith", (s, p) => s.EndsWith(p));
-			AddLambda<Func<string, string, bool>>("includes", (s, p) => s.Contains(p));
-			AddLambda<Func<string, string, long>>("indexOf", (s, p) => s.IndexOf(p));
-			AddLambda<Func<string, string, long, long>>("indexOf", (s, p, start) => s.IndexOf(p, (int)start));
-			AddLambda<Func<string, string, long>>("lastIndexOf", (s, p) => s.LastIndexOf(p));
-			AddLambda<Func<string, string, long, long>>("lastIndexOf", (s, p, start) => s.LastIndexOf(p, (int)start));
-			AddLambda<Func<string, string, long>>("search", (s, p) => s.IndexOf(p));
+			//AddLambda<Func<string, string, bool>>("startsWith", (s, p) => s.StartsWith(p));
+			//AddLambda<Func<string, string, bool>>("endsWith", (s, p) => s.EndsWith(p));
+			//AddLambda<Func<string, string, bool>>("includes", (s, p) => s.Contains(p));
+			//AddLambda<Func<string, string, long>>("indexOf", (s, p) => s.IndexOf(p));
+			//AddLambda<Func<string, string, long, long>>("indexOf", (s, p, start) => s.IndexOf(p, (int)start));
+			//AddLambda<Func<string, string, long>>("lastIndexOf", (s, p) => s.LastIndexOf(p));
+			//AddLambda<Func<string, string, long, long>>("lastIndexOf", (s, p, start) => s.LastIndexOf(p, (int)start));
+			//AddLambda<Func<string, string, long>>("search", (s, p) => s.IndexOf(p));
 			AddLambda<Func<string, long, string>>("substr", (s, start) => s.Substring((int)(start < 0 ? s.Length + start : start)));
 			AddLambda<Func<string, long, long, string>>("substr", (s, start, count) => s.Substring((int)(start < 0 ? s.Length + start : start), (int)count));
 			AddLambda<Func<string, long, string>>("substring", (s, start) => s.Substring((int)start));

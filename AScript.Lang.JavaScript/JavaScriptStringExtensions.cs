@@ -12,7 +12,7 @@ namespace AScript.Lang.JavaScript
 		public static string String_fromCharCode(params long[] codes)
 		{
 			var sb = new StringBuilder(codes.Length);
-			for (int i = 1; i < codes.Length; i++)
+			for (int i = 0; i < codes.Length; i++)
 			{
 				sb.Append((char)Convert.ToInt32(codes[i]));
 			}
@@ -20,6 +20,22 @@ namespace AScript.Lang.JavaScript
 		}
 
 		public static Expression<Func<string, string, bool>> startsWith() => (s, p) => s.StartsWith(p);
+		public static Expression<Func<string, string, bool>> endsWith() => (s, p) => s.EndsWith(p);
+		public static Expression<Func<string, string, bool>> includes() => (s, p) => s.Contains(p);
+		// indexOf扩展方法有多个重载方法
+		public static LambdaExpression[] indexOf()
+		{
+			Expression<Func<string, string, long>> expr1 = (s, p) => s.IndexOf(p);
+			Expression<Func<string, string, long, long>> expr2 = (s, p, start) => s.IndexOf(p, (int)start);
+			return new LambdaExpression[] { expr1, expr2 };
+		}
+		public static LambdaExpression[] lastIndexOf()
+		{
+			Expression<Func<string, string, long>> expr1 = (s, p) => s.LastIndexOf(p);
+			Expression<Func<string, string, long, long>> expr2 = (s, p, start) => s.LastIndexOf(p, (int)start);
+			return new LambdaExpression[] { expr1, expr2 };
+		}
+		public static Expression<Func<string, string, long>> search()=> (s, p) => s.LastIndexOf(p);
 
 		public static List<object> match(string s, string p)
 		{

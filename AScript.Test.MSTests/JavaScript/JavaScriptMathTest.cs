@@ -530,6 +530,7 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual(10.0, script.Eval("Math.max(1, 10, 5)"));
 			Assert.AreEqual(-1.0, script.Eval("Math.max(-5, -10, -1)"));
 			Assert.AreEqual(5.0, script.Eval("Math.max(-5, -10, -1, 1, 2, 3, 4, 5)"));
+			Assert.AreEqual(8.0, script.Eval("Math.max(8, -10, -1, 1, 2, 3, 4, 5)"));
 		}
 
 		[TestMethod]
@@ -541,6 +542,7 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual(10.0, script.Eval("Math.max(1, 10, 5)"));
 			Assert.AreEqual(-1.0, script.Eval("Math.max(-5, -10, -1)"));
 			Assert.AreEqual(5.0, script.Eval("Math.max(-5, -10, -1, 1, 2, 3, 4, 5)"));
+			Assert.AreEqual(8.0, script.Eval("Math.max(8, -10, -1, 1, 2, 3, 4, 5)"));
 		}
 
 		// Math.min
@@ -552,6 +554,7 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual(1.0, script.Eval("Math.min(1, 10, 5)"));
 			Assert.AreEqual(-10.0, script.Eval("Math.min(-5, -10, -1)"));
 			Assert.AreEqual(-10.0, script.Eval("Math.min(-5, -10, -1, 1, 2, 3, 4, 5)"));
+			Assert.AreEqual(-15.0, script.Eval("Math.min(-15, -10, -1, 1, 2, 3, 4, 5)"));
 		}
 
 		[TestMethod]
@@ -563,6 +566,7 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual(1.0, script.Eval("Math.min(1, 10, 5)"));
 			Assert.AreEqual(-10.0, script.Eval("Math.min(-5, -10, -1)"));
 			Assert.AreEqual(-10.0, script.Eval("Math.min(-5, -10, -1, 1, 2, 3, 4, 5)"));
+			Assert.AreEqual(-15.0, script.Eval("Math.min(-15, -10, -1, 1, 2, 3, 4, 5)"));
 		}
 
 		// Math.pow
