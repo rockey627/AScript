@@ -2617,11 +2617,18 @@ namespace AScript
 					if (string.IsNullOrEmpty(name)) continue;
 				}
 				if (target == null && type.IsAbstract && type.IsSealed
-					&& typeof(LambdaExpression).IsAssignableFrom(method.ReturnType)
+					&& (typeof(LambdaExpression).IsAssignableFrom(method.ReturnType) || typeof(IList<LambdaExpression>).IsAssignableFrom(method.ReturnType))
 					&& method.GetParameters().Length == 0)
 				{
-					var lambda = (LambdaExpression)method.Invoke(null, null);
-					if (lambda != null) AddLambda(name, lambda);
+					var result = method.Invoke(null, null);
+					if (result is LambdaExpression lambda) AddLambda(name, lambda);
+					else if (result is IList<LambdaExpression> list)
+					{
+						foreach (var item in list)
+						{
+							AddLambda(name, item);
+						}
+					}
 				}
 				else
 				{
