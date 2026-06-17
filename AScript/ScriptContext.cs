@@ -2616,7 +2616,17 @@ namespace AScript
 					name = methodNameMap(method);
 					if (string.IsNullOrEmpty(name)) continue;
 				}
-				AddFunc(name, method, target);
+				if (target == null && type.IsAbstract && type.IsSealed
+					&& typeof(LambdaExpression).IsAssignableFrom(method.ReturnType)
+					&& method.GetParameters().Length == 0)
+				{
+					var lambda = (LambdaExpression)method.Invoke(null, null);
+					if (lambda != null) AddLambda(name, lambda);
+				}
+				else
+				{
+					AddFunc(name, method, target);
+				}
 			}
 		}
 
