@@ -76,6 +76,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc("get_length", new LengthFunction(typeof(long)));
 
 			AddFunc(typeof(JavaScriptDateExtensions));
+			AddFunc(typeof(JavaScriptMathExtensions));
 
 			AddLambda<Func<string, string, bool>>("startsWith", (s, p) => s.StartsWith(p));
 			AddLambda<Func<string, string, bool>>("endsWith", (s, p) => s.EndsWith(p));
