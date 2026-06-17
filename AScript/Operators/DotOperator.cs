@@ -153,6 +153,10 @@ namespace AScript.Operators
 				}
 			}
 
+			if (target == null)
+			{
+				return e.Context.EvalFunc($"{((VariableNode)e.Args[0]).Name}_get_{propertyOrFieldName}", null, null, out type);
+			}
 			return e.Context.EvalFunc($"get_{propertyOrFieldName}", new[] { instance }, new[] { targetType }, out type);
 		}
 	}
