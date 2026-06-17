@@ -77,6 +77,7 @@ namespace AScript.Lang.JavaScript
 
 			AddFunc(typeof(JavaScriptDateExtensions));
 			AddFunc(typeof(JavaScriptMathExtensions));
+			AddFunc(typeof(JavaScriptStringExtensions));
 
 			AddLambda<Func<string, string, bool>>("startsWith", (s, p) => s.StartsWith(p));
 			AddLambda<Func<string, string, bool>>("endsWith", (s, p) => s.EndsWith(p));
@@ -86,7 +87,6 @@ namespace AScript.Lang.JavaScript
 			AddLambda<Func<string, string, long>>("lastIndexOf", (s, p) => s.LastIndexOf(p));
 			AddLambda<Func<string, string, long, long>>("lastIndexOf", (s, p, start) => s.LastIndexOf(p, (int)start));
 			AddLambda<Func<string, string, long>>("search", (s, p) => s.IndexOf(p));
-			AddFunc<string, JavaScriptRegexPattern, long>("search", String_search);
 			AddLambda<Func<string, long, string>>("substr", (s, start) => s.Substring((int)(start < 0 ? s.Length + start : start)));
 			AddLambda<Func<string, long, long, string>>("substr", (s, start, count) => s.Substring((int)(start < 0 ? s.Length + start : start), (int)count));
 			AddLambda<Func<string, long, string>>("substring", (s, start) => s.Substring((int)start));
@@ -102,16 +102,9 @@ namespace AScript.Lang.JavaScript
 			AddFunc<string, long, string, string>("padStart", (s, count, v) => string.IsNullOrEmpty(v) ? s : s.PadLeft((int)count, v[0]));
 			AddFunc<string, long, string>("padEnd", (s, count) => s.PadRight((int)count));
 			AddFunc<string, long, string, string>("padEnd", (s, count, v) => string.IsNullOrEmpty(v) ? s : s.PadRight((int)count, v[0]));
-			AddFunc<string, string, List<object>>("match", String_match);
-			AddFunc<string, JavaScriptRegexPattern, List<object>>("match", String_match);
 			AddFunc<string, long, string>("charAt", (s, index) => index < 0 || index >= s.Length ? string.Empty : s[(int)index].ToString());
 			AddFunc<string, long, long>("charCodeAt", (s, index) => index < 0 || index >= s.Length ? -1L : (long)(int)s[(int)index]);
-			AddFunc<string, string, string, string>("replace", String_replace);
-			AddFunc<string, JavaScriptRegexPattern, string, string>("replace", String_replace);
 			AddFunc<string, string, string, string>("replaceAll", (s, p, v) => s.Replace(p, v));
-			AddFunc<string, JavaScriptRegexPattern, string, string>("replaceAll", String_replace);
-			AddFunc<string, string, List<object>>("split", String_split);
-			AddFunc<string, long, string>("repeat", String_repeat);
 
 			AddLambda<Func<List<object>, string>>("join", list => string.Join("", list));
 			AddLambda<Func<List<object>, string, string>>("join", (list,separator) => string.Join(separator, list));
@@ -179,95 +172,6 @@ namespace AScript.Lang.JavaScript
 		public override ISyntaxAnalyzer GetSyntaxAnalyzer()
 		{
 			return JavaScriptSyntaxAnalyzer.Instance;
-		}
-
-		private static List<object> String_match(string s, string p)
-		{
-			if (string.IsNullOrEmpty(s) || string.IsNullOrEmpty(p)) return null;
-			var match = Regex.Match(s, p);
-			if (!match.Success) return null;
-			return new List<object> { match.Value };
-		}
-
-		private static List<object> String_match(string s, JavaScriptRegexPattern p)
-		{
-			if (string.IsNullOrEmpty(s)) return null;
-			if (p.SearchAll)
-			{
-				var matches = Regex.Matches(s, p.Pattern, p.Options);
-				if (matches.Count == 0) return null;
-				var list = new List<object>(matches.Count);
-				for (int i = 0; i < matches.Count; i++)
-				{
-					var match = matches[i];
-					list.Add(match.Value);
-				}
-				return list;
-			}
-			else
-			{
-				var match = Regex.Match(s, p.Pattern, p.Options);
-				if (!match.Success) return null;
-				return new List<object> { match.Value };
-			}
-		}
-
-		private static string String_replace(string s, string pattern, string value)
-		{
-			// 只替换第1个匹配项，string.Replace是替换所有匹配项
-			if (string.IsNullOrEmpty(s)) return s;
-			if (string.IsNullOrEmpty(pattern)) return s;
-			int index = s.IndexOf(pattern);
-			if (index < 0) return s;
-			return s.Substring(0, index) + value + s.Substring(index + pattern.Length);
-		}
-
-		private static string String_replace(string s, JavaScriptRegexPattern p, string value)
-		{
-			if (string.IsNullOrEmpty(s)) return s;
-			if (p.SearchAll)
-			{
-				return Regex.Replace(s, p.Pattern, value, p.Options);
-			}
-			return new Regex(p.Pattern, p.Options).Replace(s, value, 1);
-		}
-
-		private static long String_search(string s, JavaScriptRegexPattern p)
-		{
-			if (string.IsNullOrEmpty(s)) return -1L;
-			var match = Regex.Match(s, p.Pattern, p.Options);
-			if (!match.Success) return -1L;
-			return match.Index;
-		}
-
-		private static List<object> String_split(string s, string pattern)
-		{
-			if (string.IsNullOrEmpty(s)) return new List<object>();
-			if (string.IsNullOrEmpty(pattern))
-			{
-				return s.Select(a => (object)a.ToString()).ToList();
-			}
-#if NETSTANDARD2_1_OR_GREATER
-			return s.Split(pattern).Select(a => (object)a).ToList();
-#else
-			return s.Split(new[] { pattern }, StringSplitOptions.None).Select(a => (object)a).ToList();
-#endif
-		}
-
-		private static string String_repeat(string s, long count)
-		{
-			if (string.IsNullOrEmpty(s)) return string.Empty;
-			if (count <= 0) return string.Empty;
-			if (count == 1) return s;
-			if (count == 2) return s + s;
-			if (count == 3) return s + s + s;
-			if (count == 4) return s + s + s + s;
-			var arr = new string[count];
-			for (int i = 0; i < count; i++)
-			{
-				arr[i] = s;
-			}
-			return string.Concat(arr);
 		}
 
 		private static List<object> List_filter(List<object> list, Func<object, bool> func)

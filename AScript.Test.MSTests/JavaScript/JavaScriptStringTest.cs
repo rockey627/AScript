@@ -591,25 +591,25 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual("hello", script.Eval("'hello\\n\\t'.trimEnd()"));
 		}
 
-		//// String.fromCharCode
-		//[TestMethod]
-		//public void Test24_fromCharCode()
-		//{
-		//	var script = new Script();
-		//	script.Context.Langs = new[] { "js" };
-		//	Assert.AreEqual("a", script.Eval("String.fromCharCode(97)"));
-		//	Assert.AreEqual("abc", script.Eval("String.fromCharCode(97, 98, 99)"));
-		//}
+		// String.fromCharCode
+		[TestMethod]
+		public void Test24_fromCharCode()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual("a", script.Eval("String.fromCharCode(97)"));
+			Assert.AreEqual("abc", script.Eval("String.fromCharCode(97, 98, 99)"));
+		}
 
-		//[TestMethod]
-		//public void Test24_fromCharCode_CompileAll()
-		//{
-		//	var script = new Script();
-		//	script.Options.CompileMode = ECompileMode.All;
-		//	script.Context.Langs = new[] { "js" };
-		//	Assert.AreEqual("a", script.Eval("String.fromCharCode(97)"));
-		//	Assert.AreEqual("abc", script.Eval("String.fromCharCode(97, 98, 99)"));
-		//}
+		[TestMethod]
+		public void Test24_fromCharCode_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual("a", script.Eval("String.fromCharCode(97)"));
+			Assert.AreEqual("abc", script.Eval("String.fromCharCode(97, 98, 99)"));
+		}
 
 		//// String.fromCodePoint
 		//[TestMethod]
