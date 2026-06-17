@@ -7,6 +7,11 @@ namespace AScript.Lang.JavaScript
 	{
 		private static readonly DateTime _epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
+		public static DateTime new_Date()
+		{
+			return DateTime.Now;
+		}
+
 		public static DateTime new_Date(long milliseconds)
 		{
 			return _epoch.AddMilliseconds(milliseconds).ToLocalTime();
@@ -28,6 +33,13 @@ namespace AScript.Lang.JavaScript
 			}
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="year"></param>
+		/// <param name="month">0 ~ 11</param>
+		/// <param name="day"></param>
+		/// <returns></returns>
 		public static DateTime new_Date(long year, long month, long day)
 		{
 			return new DateTime((int)year, (int)month + 1, (int)day, 0, 0, 0, DateTimeKind.Local);
@@ -44,12 +56,12 @@ namespace AScript.Lang.JavaScript
 		}
 
 		// 静态方法
-		public static long Date_Now()
+		public static long Date_now()
 		{
 			return (long)(DateTime.Now - _epoch).TotalMilliseconds;
 		}
 
-		public static long Date_Parse(string dateString)
+		public static long Date_parse(string dateString)
 		{
 			if (DateTime.TryParse(dateString, out var result))
 			{
@@ -85,342 +97,342 @@ namespace AScript.Lang.JavaScript
 			return (int)time.DayOfWeek;
 		}
 
-		public static long GetFullYear(DateTime time)
+		public static long getFullYear(DateTime time)
 		{
 			return time.Year;
 		}
 
-		public static long GetHours(DateTime time)
+		public static long getHours(DateTime time)
 		{
 			return time.Hour;
 		}
 
-		public static long GetMilliseconds(DateTime time)
+		public static long getMilliseconds(DateTime time)
 		{
 			return time.Millisecond;
 		}
 
-		public static long GetMinutes(DateTime time)
+		public static long getMinutes(DateTime time)
 		{
 			return time.Minute;
 		}
 
-		public static long GetMonth(DateTime time)
+		public static long getMonth(DateTime time)
 		{
 			return time.Month - 1;
 		}
 
-		public static long GetSeconds(DateTime time)
+		public static long getSeconds(DateTime time)
 		{
 			return time.Second;
 		}
 
-		public static long GetTime(DateTime time)
+		public static long getTime(DateTime time)
 		{
 			return (long)(time.ToUniversalTime() - _epoch).TotalMilliseconds;
 		}
 
-		public static long GetTimezoneOffset(DateTime time)
+		public static long getTimezoneOffset(DateTime time)
 		{
 			return (long)(time - time.ToUniversalTime()).TotalMinutes;
 		}
 
-		public static long GetYear(DateTime time)
+		public static long getYear(DateTime time)
 		{
 			return time.Year - 1900;
 		}
 
 		// UTC 版本
-		public static long GetUTCDate(DateTime time)
+		public static long getUTCDate(DateTime time)
 		{
 			return time.ToUniversalTime().Day;
 		}
 
-		public static long GetUTCDay(DateTime time)
+		public static long getUTCDay(DateTime time)
 		{
 			return (int)time.ToUniversalTime().DayOfWeek;
 		}
 
-		public static long GetUTCFullYear(DateTime time)
+		public static long getUTCFullYear(DateTime time)
 		{
 			return time.ToUniversalTime().Year;
 		}
 
-		public static long GetUTCHours(DateTime time)
+		public static long getUTCHours(DateTime time)
 		{
 			return time.ToUniversalTime().Hour;
 		}
 
-		public static long GetUTCMilliseconds(DateTime time)
+		public static long getUTCMilliseconds(DateTime time)
 		{
 			return time.ToUniversalTime().Millisecond;
 		}
 
-		public static long GetUTCMinutes(DateTime time)
+		public static long getUTCMinutes(DateTime time)
 		{
 			return time.ToUniversalTime().Minute;
 		}
 
-		public static long GetUTCMonth(DateTime time)
+		public static long getUTCMonth(DateTime time)
 		{
 			return time.ToUniversalTime().Month - 1;
 		}
 
-		public static long GetUTCSeconds(DateTime time)
+		public static long getUTCSeconds(DateTime time)
 		{
 			return time.ToUniversalTime().Second;
 		}
 
 		// setter 方法
-		public static long SetDate(DateTime time, long day)
+		public static long setDate(DateTime time, long day)
 		{
 			time = time.AddDays(day - time.Day);
-			return GetTime(time);
+			return getTime(time);
 		}
 
-		public static long SetFullYear(DateTime time, long year)
+		public static long setFullYear(DateTime time, long year)
 		{
 			time = new DateTime((int)year, time.Month, time.Day, time.Hour, time.Minute, time.Second, time.Millisecond, DateTimeKind.Local);
-			return GetTime(time);
+			return getTime(time);
 		}
 
-		public static long SetFullYear(DateTime time, long year, long month)
+		public static long setFullYear(DateTime time, long year, long month)
 		{
-			return SetFullYear(time, year, month, time.Day);
+			return setFullYear(time, year, month, time.Day);
 		}
 
-		public static long SetFullYear(DateTime time, long year, long month, long day)
+		public static long setFullYear(DateTime time, long year, long month, long day)
 		{
 			time = new DateTime((int)year, (int)month + 1, (int)day, time.Hour, time.Minute, time.Second, time.Millisecond, DateTimeKind.Local);
-			return GetTime(time);
+			return getTime(time);
 		}
 
-		public static long SetHours(DateTime time, long hour)
+		public static long setHours(DateTime time, long hour)
 		{
-			return SetHours(time, hour, time.Minute, time.Second, time.Millisecond);
+			return setHours(time, hour, time.Minute, time.Second, time.Millisecond);
 		}
 
-		public static long SetHours(DateTime time, long hour, long minute)
+		public static long setHours(DateTime time, long hour, long minute)
 		{
-			return SetHours(time, hour, minute, time.Second, time.Millisecond);
+			return setHours(time, hour, minute, time.Second, time.Millisecond);
 		}
 
-		public static long SetHours(DateTime time, long hour, long minute, long second)
+		public static long setHours(DateTime time, long hour, long minute, long second)
 		{
-			return SetHours(time, hour, minute, second, time.Millisecond);
+			return setHours(time, hour, minute, second, time.Millisecond);
 		}
 
-		public static long SetHours(DateTime time, long hour, long minute, long second, long millisecond)
+		public static long setHours(DateTime time, long hour, long minute, long second, long millisecond)
 		{
 			time = new DateTime(time.Year, time.Month, time.Day, (int)hour, (int)minute, (int)second, (int)millisecond, DateTimeKind.Local);
-			return GetTime(time);
+			return getTime(time);
 		}
 
-		public static long SetMilliseconds(DateTime time, long millisecond)
+		public static long setMilliseconds(DateTime time, long millisecond)
 		{
 			time = new DateTime(time.Year, time.Month, time.Day, time.Hour, time.Minute, time.Second, (int)millisecond, DateTimeKind.Local);
-			return GetTime(time);
+			return getTime(time);
 		}
 
-		public static long SetMinutes(DateTime time, long minute)
+		public static long setMinutes(DateTime time, long minute)
 		{
-			return SetMinutes(time, minute, time.Second, time.Millisecond);
+			return setMinutes(time, minute, time.Second, time.Millisecond);
 		}
 
-		public static long SetMinutes(DateTime time, long minute, long second)
+		public static long setMinutes(DateTime time, long minute, long second)
 		{
-			return SetMinutes(time, minute, second, time.Millisecond);
+			return setMinutes(time, minute, second, time.Millisecond);
 		}
 
-		public static long SetMinutes(DateTime time, long minute, long second, long millisecond)
+		public static long setMinutes(DateTime time, long minute, long second, long millisecond)
 		{
 			time = new DateTime(time.Year, time.Month, time.Day, time.Hour, (int)minute, (int)second, (int)millisecond, DateTimeKind.Local);
-			return GetTime(time);
+			return getTime(time);
 		}
 
-		public static long SetMonth(DateTime time, long month)
+		public static long setMonth(DateTime time, long month)
 		{
-			return SetMonth(time, month, time.Day);
+			return setMonth(time, month, time.Day);
 		}
 
-		public static long SetMonth(DateTime time, long month, long day)
+		public static long setMonth(DateTime time, long month, long day)
 		{
 			time = new DateTime(time.Year, (int)month + 1, (int)day, time.Hour, time.Minute, time.Second, time.Millisecond, DateTimeKind.Local);
-			return GetTime(time);
+			return getTime(time);
 		}
 
-		public static long SetSeconds(DateTime time, long second)
+		public static long setSeconds(DateTime time, long second)
 		{
-			return SetSeconds(time, second, time.Millisecond);
+			return setSeconds(time, second, time.Millisecond);
 		}
 
-		public static long SetSeconds(DateTime time, long second, long millisecond)
+		public static long setSeconds(DateTime time, long second, long millisecond)
 		{
 			time = new DateTime(time.Year, time.Month, time.Day, time.Hour, time.Minute, (int)second, (int)millisecond, DateTimeKind.Local);
-			return GetTime(time);
+			return getTime(time);
 		}
 
-		public static long SetTime(DateTime time, long milliseconds)
+		public static long setTime(DateTime time, long milliseconds)
 		{
 			time = _epoch.AddMilliseconds(milliseconds).ToLocalTime();
-			return GetTime(time);
+			return getTime(time);
 		}
 
-		public static long SetYear(DateTime time, long year)
+		public static long setYear(DateTime time, long year)
 		{
 			long fullYear = year < 100L ? year + 1900L : year;
-			return SetFullYear(time, fullYear);
+			return setFullYear(time, fullYear);
 		}
 
 		// UTC setter 版本
-		public static long SetUTCDate(DateTime time, long day)
+		public static long setUTCDate(DateTime time, long day)
 		{
 			var utc = time.ToUniversalTime();
 			utc = new DateTime(utc.Year, utc.Month, (int)day, utc.Hour, utc.Minute, utc.Second, utc.Millisecond, DateTimeKind.Utc);
 			time = utc.ToLocalTime();
-			return GetTime(time);
+			return getTime(time);
 		}
 
-		public static long SetUTCFullYear(DateTime time, long year)
+		public static long setUTCFullYear(DateTime time, long year)
 		{
-			return SetUTCFullYear(time, year, time.Month - 1, time.Day);
+			return setUTCFullYear(time, year, time.Month - 1, time.Day);
 		}
 
-		public static long SetUTCFullYear(DateTime time, long year, long month)
+		public static long setUTCFullYear(DateTime time, long year, long month)
 		{
-			return SetUTCFullYear(time, year, month, time.Day);
+			return setUTCFullYear(time, year, month, time.Day);
 		}
 
-		public static long SetUTCFullYear(DateTime time, long year, long month, long day)
+		public static long setUTCFullYear(DateTime time, long year, long month, long day)
 		{
 			var utc = time.ToUniversalTime();
 			utc = new DateTime((int)year, (int)month + 1, (int)day, utc.Hour, utc.Minute, utc.Second, utc.Millisecond, DateTimeKind.Utc);
 			time = utc.ToLocalTime();
-			return GetTime(time);
+			return getTime(time);
 		}
 
-		public static long SetUTCHours(DateTime time, long hour)
+		public static long setUTCHours(DateTime time, long hour)
 		{
-			return SetUTCHours(time, hour, time.Minute, time.Second, time.Millisecond);
+			return setUTCHours(time, hour, time.Minute, time.Second, time.Millisecond);
 		}
 
-		public static long SetUTCHours(DateTime time, long hour, long minute)
+		public static long setUTCHours(DateTime time, long hour, long minute)
 		{
-			return SetUTCHours(time, hour, minute, time.Second, time.Millisecond);
+			return setUTCHours(time, hour, minute, time.Second, time.Millisecond);
 		}
 
-		public static long SetUTCHours(DateTime time, long hour, long minute, long second)
+		public static long setUTCHours(DateTime time, long hour, long minute, long second)
 		{
-			return SetUTCHours(time, hour, minute, second, time.Millisecond);
+			return setUTCHours(time, hour, minute, second, time.Millisecond);
 		}
 
-		public static long SetUTCHours(DateTime time, long hour, long minute, long second, long millisecond)
+		public static long setUTCHours(DateTime time, long hour, long minute, long second, long millisecond)
 		{
 			var utc = time.ToUniversalTime();
 			utc = new DateTime(utc.Year, utc.Month, utc.Day, (int)hour, (int)minute, (int)second, (int)millisecond, DateTimeKind.Utc);
 			time = utc.ToLocalTime();
-			return GetTime(time);
+			return getTime(time);
 		}
 
-		public static long SetUTCMilliseconds(DateTime time, long millisecond)
+		public static long setUTCMilliseconds(DateTime time, long millisecond)
 		{
 			var utc = time.ToUniversalTime();
 			utc = new DateTime(utc.Year, utc.Month, utc.Day, utc.Hour, utc.Minute, utc.Second, (int)millisecond, DateTimeKind.Utc);
 			time = utc.ToLocalTime();
-			return GetTime(time);
+			return getTime(time);
 		}
 
-		public static long SetUTCMinutes(DateTime time, long minute)
+		public static long setUTCMinutes(DateTime time, long minute)
 		{
-			return SetUTCMinutes(time, minute, time.Second, time.Millisecond);
+			return setUTCMinutes(time, minute, time.Second, time.Millisecond);
 		}
 
-		public static long SetUTCMinutes(DateTime time, long minute, long second)
+		public static long setUTCMinutes(DateTime time, long minute, long second)
 		{
-			return SetUTCMinutes(time, minute, second, time.Millisecond);
+			return setUTCMinutes(time, minute, second, time.Millisecond);
 		}
 
-		public static long SetUTCMinutes(DateTime time, long minute, long second, long millisecond)
+		public static long setUTCMinutes(DateTime time, long minute, long second, long millisecond)
 		{
 			var utc = time.ToUniversalTime();
 			utc = new DateTime(utc.Year, utc.Month, utc.Day, utc.Hour, (int)minute, (int)second, (int)millisecond, DateTimeKind.Utc);
 			time = utc.ToLocalTime();
-			return GetTime(time);
+			return getTime(time);
 		}
 
-		public static long SetUTCMonth(DateTime time, long month)
+		public static long setUTCMonth(DateTime time, long month)
 		{
-			return SetUTCMonth(time, month, time.Day);
+			return setUTCMonth(time, month, time.Day);
 		}
 
-		public static long SetUTCMonth(DateTime time, long month, long day)
+		public static long setUTCMonth(DateTime time, long month, long day)
 		{
 			var utc = time.ToUniversalTime();
 			utc = new DateTime(utc.Year, (int)month + 1, (int)day, utc.Hour, utc.Minute, utc.Second, utc.Millisecond, DateTimeKind.Utc);
 			time = utc.ToLocalTime();
-			return GetTime(time);
+			return getTime(time);
 		}
 
-		public static long SetUTCSeconds(DateTime time, long second)
+		public static long setUTCSeconds(DateTime time, long second)
 		{
-			return SetUTCSeconds(time, second, time.Millisecond);
+			return setUTCSeconds(time, second, time.Millisecond);
 		}
 
-		public static long SetUTCSeconds(DateTime time, long second, long millisecond)
+		public static long setUTCSeconds(DateTime time, long second, long millisecond)
 		{
 			var utc = time.ToUniversalTime();
 			utc = new DateTime(utc.Year, utc.Month, utc.Day, utc.Hour, utc.Minute, (int)second, (int)millisecond, DateTimeKind.Utc);
 			time = utc.ToLocalTime();
-			return GetTime(time);
+			return getTime(time);
 		}
 
 		// 转换方法
-		public static string ToDateString(DateTime time)
+		public static string toDateString(DateTime time)
 		{
 			return time.ToString("ddd MMM dd yyyy", CultureInfo.InvariantCulture);
 		}
 
-		public static string ToISOString(DateTime time)
+		public static string toISOString(DateTime time)
 		{
 			return time.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture);
 		}
 
-		public static string ToJSON(DateTime time)
+		public static string toJSON(DateTime time)
 		{
-			return ToISOString(time);
+			return toISOString(time);
 		}
 
-		public static string ToLocaleDateString(DateTime time)
+		public static string toLocaleDateString(DateTime time)
 		{
 			return time.ToLocalTime().ToString("D", CultureInfo.CurrentCulture);
 		}
 
-		public static string ToLocaleTimeString(DateTime time)
+		public static string toLocaleTimeString(DateTime time)
 		{
 			return time.ToLocalTime().ToString("T", CultureInfo.CurrentCulture);
 		}
 
-		public static string ToLocaleString(DateTime time)
+		public static string toLocaleString(DateTime time)
 		{
 			return time.ToLocalTime().ToString("G", CultureInfo.CurrentCulture);
 		}
 
-		public static string ToTimeString(DateTime time)
+		public static string toTimeString(DateTime time)
 		{
 			return time.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
 		}
 
-		public static string ToUTCString(DateTime time)
+		public static string toUTCString(DateTime time)
 		{
 			return time.ToUniversalTime().ToString("ddd, dd MMM yyyy HH:mm:ss GMT", CultureInfo.InvariantCulture);
 		}
 
-		public static long ValueOf(DateTime time)
+		public static long valueOf(DateTime time)
 		{
-			return GetTime(time);
+			return getTime(time);
 		}
 
-		public static string ToString(DateTime time)
+		public static string toString(DateTime time)
 		{
 			return time.ToString("ddd MMM dd yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 		}

@@ -166,14 +166,13 @@ namespace AScript.Lang.JavaScript
 			return true;
 		}
 
-		public override bool IsObjectMethodEnabled(Type objType)
+		public override bool IsObjectMemberEnabled(Type objType)
 		{
-			return objType == typeof(JavaScriptDateExtensions);
-		}
-
-		public override bool IsObjectPropertyEnabled(Type objType)
-		{
-			return objType == typeof(JavaScriptDateExtensions);
+			if (this.ObjectMemberEnabledDict.TryGetValue(objType, out var enable))
+			{
+				return enable;
+			}
+			return false;
 		}
 
 		public override ISyntaxAnalyzer GetSyntaxAnalyzer()
