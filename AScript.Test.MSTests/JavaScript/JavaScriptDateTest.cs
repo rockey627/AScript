@@ -1049,5 +1049,16 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.IsNotNull(result);
 			Assert.IsInstanceOfType(result, typeof(string));
 		}
+
+		[TestMethod]
+		public void Test53_newDate()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval<DateTime>("new Date()");
+			var now = DateTime.Now;
+			Assert.AreEqual(now.ToString("yyyy-MM-dd HH"), result.ToString("yyyy-MM-dd HH"));
+		}
 	}
 }

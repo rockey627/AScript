@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace AScript.Lang.JavaScript
+namespace AScript.Lang.JavaScript.Extensions
 {
 	public static class JavaScriptStringExtensions
 	{
@@ -72,7 +72,7 @@ namespace AScript.Lang.JavaScript
 
 		public static string charAt(string s, long index) => index < 0 || index >= s.Length ? string.Empty : s[(int)index].ToString();
 
-		public static long charCodeAt(string s, long index) => index < 0 || index >= s.Length ? -1L : (long)(int)s[(int)index];
+		public static long charCodeAt(string s, long index) => index < 0 || index >= s.Length ? -1L : s[(int)index];
 
 		public static List<object> match(string s, string p)
 		{

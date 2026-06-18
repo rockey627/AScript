@@ -1,15 +1,16 @@
 using System;
 using System.Globalization;
+using System.Linq.Expressions;
 
-namespace AScript.Lang.JavaScript
+namespace AScript.Lang.JavaScript.Extensions
 {
 	public static class JavaScriptDateExtensions
 	{
 		private static readonly DateTime _epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-		public static DateTime new_Date()
+		public static Expression<Func<DateTime>> new_Date()
 		{
-			return DateTime.Now;
+			return () => DateTime.Now;
 		}
 
 		public static DateTime new_Date(long milliseconds)

@@ -1,11 +1,11 @@
 ﻿using AScript.Functions;
+using AScript.Lang.JavaScript.Extensions;
 using AScript.Lang.JavaScript.TokenHandlers;
 using AScript.Operators;
 using AScript.TokenHandlers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace AScript.Lang.JavaScript
 {
@@ -22,7 +22,7 @@ namespace AScript.Lang.JavaScript
 			AddType("let", typeof(object));
 			AddType("const", typeof(object));
 			AddType("String", typeof(string));
-			AddType("Array", typeof(Array));
+			AddType("Array", typeof(List<object>));
 			AddType("Set", typeof(HashSet<object>));
 			AddType("Map", typeof(Dictionary<object, object>));
 			AddType("Date", typeof(DateTime));
@@ -79,7 +79,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc(typeof(JavaScriptDateExtensions));
 			AddFunc(typeof(JavaScriptMathExtensions));
 			AddFunc(typeof(JavaScriptStringExtensions));
-
+			AddFunc(typeof(JavaScriptArrayExtensions));
 
 			AddLambda<Func<List<object>, string>>("join", list => string.Join("", list));
 			AddLambda<Func<List<object>, string, string>>("join", (list,separator) => string.Join(separator, list));

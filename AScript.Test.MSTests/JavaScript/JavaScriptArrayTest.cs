@@ -48,6 +48,58 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual(3L, arr[2]);
 		}
 
+		[TestMethod]
+		public void Test01_arrayCreation2()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval("new Array(1, 2, 3)");
+			var arr = (List<object>)result;
+			Assert.AreEqual(3, arr.Count);
+			Assert.AreEqual(1L, arr[0]);
+			Assert.AreEqual(2L, arr[1]);
+			Assert.AreEqual(3L, arr[2]);
+		}
+
+		[TestMethod]
+		public void Test01_arrayCreation2_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval("new Array(1, 2, 3)");
+			var arr = (List<object>)result;
+			Assert.AreEqual(3, arr.Count);
+			Assert.AreEqual(1L, arr[0]);
+			Assert.AreEqual(2L, arr[1]);
+			Assert.AreEqual(3L, arr[2]);
+		}
+
+		[TestMethod]
+		public void Test01_arrayCreation3()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval("new Array(2)");
+			var arr = (List<object>)result;
+			Assert.AreEqual(2, arr.Count);
+			Assert.IsNull(arr[0]);
+			Assert.IsNull(arr[1]);
+		}
+
+		[TestMethod]
+		public void Test01_arrayCreation3_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval("new Array(2)");
+			var arr = (List<object>)result;
+			Assert.AreEqual(2, arr.Count);
+			Assert.IsNull(arr[0]);
+			Assert.IsNull(arr[1]);
+		}
+
 		// array empty
 		[TestMethod]
 		public void Test02_arrayEmpty()

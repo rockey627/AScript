@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 
-namespace AScript.Lang.JavaScript
+namespace AScript.Lang.JavaScript.Extensions
 {
 	public static class JavaScriptMathExtensions
 	{
