@@ -190,6 +190,72 @@ namespace AScript
 			return true;
 		}
 
+		public static bool IsMatchArgTypes(IList<Expression> inArgs, MethodInfo method, out bool useScriptContext, out bool hasClosure, out int paramsIndex)
+		{
+			int argTypesCount = inArgs == null ? 0 : inArgs.Count;
+			var methodParameters = method.GetParameters();
+			if (methodParameters.Length == argTypesCount && argTypesCount == 0)
+			{
+				useScriptContext = false;
+				hasClosure = false;
+				paramsIndex = -1;
+				return true;
+			}
+
+			bool hasParams = false;
+			ParameterInfo lastParam = null;
+			if (methodParameters.Length > 0)
+			{
+				lastParam = methodParameters[methodParameters.Length - 1];
+				if (lastParam.IsDefined(typeof(ParamArrayAttribute), false))
+				{
+					hasParams = true;
+				}
+			}
+
+			if (!hasParams && methodParameters.Length < argTypesCount)
+			{
+				useScriptContext = false;
+				hasClosure = false;
+				paramsIndex = -1;
+				return false;
+			}
+
+			int index = 0;
+			hasClosure = false;
+			useScriptContext = false;
+			if (methodParameters[index].ParameterType.FullName == "System.Runtime.CompilerServices.Closure")
+			{
+				index++;
+				hasClosure = true;
+			}
+			if (methodParameters.Length > index && methodParameters[index].ParameterType == typeof(ScriptContext))
+			{
+				index++;
+				useScriptContext = true;
+			}
+			if (methodParameters.Length - argTypesCount > index)
+			{
+				paramsIndex = -1;
+				return false;
+			}
+			bool matched = true;
+			int j;
+			for (j = 0; j < argTypesCount; j++)
+			{
+				if (!IsMatchArgType(inArgs[j]?.Type ?? typeof(Delegate), methodParameters[j + index].ParameterType))
+				{
+					matched = false;
+					break;
+				}
+			}
+			paramsIndex = -1;
+			if (matched || !hasParams || j + index < methodParameters.Length - 1) return matched;
+
+			paramsIndex = j;
+			return true;
+		}
+
 		public static bool IsMatchArgTypes(IList<Type> inArgTypes, LambdaExpression lambda, out bool useScriptContext, out bool hasClosure)
 		{
 			int argTypesCount = inArgTypes == null ? 0 : inArgTypes.Count;
@@ -230,6 +296,54 @@ namespace AScript
 			for (int j = 0; j < argTypesCount; j++)
 			{
 				if (!IsMatchArgType(inArgTypes[j], methodParameters[j + index].Type))
+				{
+					matched = false;
+					break;
+				}
+			}
+			return matched;
+		}
+
+		public static bool IsMatchArgTypes(IList<Expression> inArgs, LambdaExpression lambda, out bool useScriptContext, out bool hasClosure)
+		{
+			int argTypesCount = inArgs == null ? 0 : inArgs.Count;
+			var methodParameters = lambda.Parameters;
+			if (methodParameters.Count < argTypesCount)
+			{
+				useScriptContext = false;
+				hasClosure = false;
+				return false;
+			}
+			if (methodParameters.Count == argTypesCount)
+			{
+				if (argTypesCount == 0)
+				{
+					useScriptContext = false;
+					hasClosure = false;
+					return true;
+				}
+			}
+			int index = 0;
+			hasClosure = false;
+			useScriptContext = false;
+			if (methodParameters[index].Type.FullName == "System.Runtime.CompilerServices.Closure")
+			{
+				index++;
+				hasClosure = true;
+			}
+			if (methodParameters[index].Type == typeof(ScriptContext))
+			{
+				index++;
+				useScriptContext = true;
+			}
+			if (methodParameters.Count - argTypesCount > index)
+			{
+				return false;
+			}
+			bool matched = true;
+			for (int j = 0; j < argTypesCount; j++)
+			{
+				if (!IsMatchArgType(inArgs[j]?.Type ?? typeof(Delegate), methodParameters[j + index].Type))
 				{
 					matched = false;
 					break;

@@ -342,52 +342,23 @@ namespace AScript
 
 		public void EvalFunc(FunctionEvalArgs e)
 		{
-			e.Context.EvalFunc(e, _Functions);
-			if (e.IsHandled)
-			{
-				return;
-			}
+			ScriptContext.EvalFunc(e, _Functions);
+			if (e.IsHandled) return;
 
-			if (_FunctionEvaluators != null && _FunctionEvaluators.TryGetValue(e.Name, out var list))
-			{
-				for (int i = list.Count - 1; i >= 0; i--)
-				{
-					var item = list[i];
-					item.Eval(e);
-					if (e.IsHandled) return;
-				}
-			}
+			ScriptContext.EvalFunc(e, _FunctionEvaluators);
+			if (e.IsHandled) return;
 
-			// 
 			OnFunctionEval(e);
 		}
 
 		public async Task EvalFuncAsync(FunctionEvalArgs e, CancellationToken cancellationToken = default)
 		{
-			await e.Context.EvalFuncAsync(e, _Functions, cancellationToken).ConfigureAwait(false);
-			if (e.IsHandled)
-			{
-				return;
-			}
+			await ScriptContext.EvalFuncAsync(e, _Functions, cancellationToken).ConfigureAwait(false);
+			if (e.IsHandled) return;
 
-			if (_FunctionEvaluators != null && _FunctionEvaluators.TryGetValue(e.Name, out var list))
-			{
-				for (int i = list.Count - 1; i >= 0; i--)
-				{
-					var item = list[i];
-					if (item is IAsyncFunctionEvaluator asyncFunctionEvaluator)
-					{
-						await asyncFunctionEvaluator.EvalAsync(e, cancellationToken).ConfigureAwait(false);
-					}
-					else
-					{
-						item.Eval(e);
-					}
-					if (e.IsHandled) return;
-				}
-			}
+			await ScriptContext.EvalFuncAsync(e, _FunctionEvaluators, cancellationToken).ConfigureAwait(false);
+			if (e.IsHandled) return;
 
-			// 
 			OnFunctionEval(e);
 		}
 
@@ -405,18 +376,8 @@ namespace AScript
 				}
 			}
 
-			if (_FunctionEvaluators != null && _FunctionEvaluators.TryGetValue(e.Name, out var list))
-			{
-				for (int i = list.Count - 1; i >= 0; i--)
-				{
-					var item = list[i];
-					if (item is IFunctionBuilder builder)
-					{
-						builder.Build(e);
-						if (e.Result != null) return;
-					}
-				}
-			}
+			ScriptContext.BuildFunc(e, _FunctionEvaluators);
+			if (e.Result != null) return;
 
 			OnFunctionBuild(e);
 		}

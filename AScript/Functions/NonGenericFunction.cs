@@ -26,8 +26,7 @@ namespace AScript.Functions
 		public void Build(FunctionBuildArgs e)
 		{
 			var exprs = e.BuildArgs();
-			var argTypes = exprs?.Select(a => a == null ? typeof(Delegate) : a.Type).ToList();
-			if (!ScriptUtils.IsMatchArgTypes(argTypes, this.Method, out var useScriptContext, out var hasClosure, out var paramsIndex))
+			if (!ScriptUtils.IsMatchArgTypes(exprs, this.Method, out var useScriptContext, out var hasClosure, out var paramsIndex))
 			{
 				return;
 			}

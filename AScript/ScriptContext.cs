@@ -938,6 +938,13 @@ namespace AScript
 						returnType = functionEvalArgs.ResultType;
 						return functionEvalArgs.Result;
 					}
+					// 
+					EvalFunc(functionEvalArgs, context._FunctionEvaluators);
+					if (functionEvalArgs.IsHandled)
+					{
+						returnType = functionEvalArgs.ResultType;
+						return functionEvalArgs.Result;
+					}
 					context = context.Parent;
 				}
 				// 脚本语言环境
@@ -1020,7 +1027,7 @@ namespace AScript
 				while (context != null)
 				{
 					// 事件
-					await context.OnFunctionEvalAsync(functionEvalArgs, cancellationToken).ConfigureAwait(false);
+					context.OnFunctionEval(functionEvalArgs);
 					if (functionEvalArgs.IsHandled)
 					{
 						var returnType = functionEvalArgs.ResultType ?? functionEvalArgs.Result?.GetType() ?? typeof(object);
@@ -1030,7 +1037,6 @@ namespace AScript
 					await EvalFuncAsync(functionEvalArgs, context._CustomFunctions, cancellationToken).ConfigureAwait(false);
 					if (functionEvalArgs.IsHandled)
 					{
-						//returnType = functionEvalArgs.ResultType;
 						var returnType = functionEvalArgs.ResultType ?? functionEvalArgs.Result?.GetType() ?? typeof(object);
 						return new EvalResult(functionEvalArgs.Result, returnType);
 					}
@@ -1038,7 +1044,6 @@ namespace AScript
 					await EvalFuncAsync(functionEvalArgs, context._TempFunctions, cancellationToken).ConfigureAwait(false);
 					if (functionEvalArgs.IsHandled)
 					{
-						//returnType = functionEvalArgs.ResultType;
 						var returnType = functionEvalArgs.ResultType ?? functionEvalArgs.Result?.GetType() ?? typeof(object);
 						return new EvalResult(functionEvalArgs.Result, returnType);
 					}
@@ -1046,7 +1051,13 @@ namespace AScript
 					await EvalFuncAsync(functionEvalArgs, context._Functions, cancellationToken).ConfigureAwait(false);
 					if (functionEvalArgs.IsHandled)
 					{
-						//returnType = functionEvalArgs.ResultType;
+						var returnType = functionEvalArgs.ResultType ?? functionEvalArgs.Result?.GetType() ?? typeof(object);
+						return new EvalResult(functionEvalArgs.Result, returnType);
+					}
+					// 
+					await EvalFuncAsync(functionEvalArgs, context._FunctionEvaluators, cancellationToken).ConfigureAwait(false);
+					if (functionEvalArgs.IsHandled)
+					{
 						var returnType = functionEvalArgs.ResultType ?? functionEvalArgs.Result?.GetType() ?? typeof(object);
 						return new EvalResult(functionEvalArgs.Result, returnType);
 					}
@@ -1063,7 +1074,6 @@ namespace AScript
 							await lang.EvalFuncAsync(functionEvalArgs, cancellationToken).ConfigureAwait(false);
 							if (functionEvalArgs.IsHandled)
 							{
-								//returnType = functionEvalArgs.ResultType;
 								var returnType = functionEvalArgs.ResultType ?? functionEvalArgs.Result?.GetType() ?? typeof(object);
 								return new EvalResult(functionEvalArgs.Result, returnType);
 							}
@@ -1079,7 +1089,6 @@ namespace AScript
 							await lang.EvalFuncAsync(functionEvalArgs, cancellationToken).ConfigureAwait(false);
 							if (functionEvalArgs.IsHandled)
 							{
-								//returnType = functionEvalArgs.ResultType;
 								var returnType = functionEvalArgs.ResultType ?? functionEvalArgs.Result?.GetType() ?? typeof(object);
 								return new EvalResult(functionEvalArgs.Result, returnType);
 							}
@@ -1127,7 +1136,7 @@ namespace AScript
 			}
 		}
 
-		protected void EvalFunc(FunctionEvalArgs e, IDictionary<string, List<CustomFunction>> functions)
+		protected static void EvalFunc(FunctionEvalArgs e, IDictionary<string, List<CustomFunction>> functions)
 		{
 			if (functions == null || !functions.TryGetValue(e.Name, out var list1))
 			{
@@ -1145,7 +1154,7 @@ namespace AScript
 			d.Eval(e);
 		}
 
-		protected async Task EvalFuncAsync(FunctionEvalArgs e, IDictionary<string, List<CustomFunction>> functions, CancellationToken cancellationToken)
+		protected static async Task EvalFuncAsync(FunctionEvalArgs e, IDictionary<string, List<CustomFunction>> functions, CancellationToken cancellationToken)
 		{
 			if (functions == null || !functions.TryGetValue(e.Name, out var list1))
 			{
@@ -1163,7 +1172,7 @@ namespace AScript
 			await d.EvalAsync(e, cancellationToken).ConfigureAwait(false);
 		}
 
-		internal void EvalFunc(FunctionEvalArgs e, IDictionary<string, List<Delegate>> functions)
+		internal static void EvalFunc(FunctionEvalArgs e, IDictionary<string, List<Delegate>> functions)
 		{
 			if (functions == null || !functions.TryGetValue(e.Name, out var list3))
 			{
@@ -1260,11 +1269,11 @@ namespace AScript
 				argValues = newValues;
 				argTypes = newTypes;
 			}
-			var result = ScriptUtils.DynamicInvoke(this, d, argValues, argTypes, useScriptContext, hasClosure);
+			var result = ScriptUtils.DynamicInvoke(e.Context, d, argValues, argTypes, useScriptContext, hasClosure);
 			e.SetResult(result, returnType);
 		}
 
-		internal async Task EvalFuncAsync(FunctionEvalArgs e, IDictionary<string, List<Delegate>> functions, CancellationToken cancellationToken)
+		internal static async Task EvalFuncAsync(FunctionEvalArgs e, IDictionary<string, List<Delegate>> functions, CancellationToken cancellationToken)
 		{
 			if (functions == null || !functions.TryGetValue(e.Name, out var list3))
 			{
@@ -1361,7 +1370,7 @@ namespace AScript
 				argValues = newValues;
 				argTypes = newTypes;
 			}
-			var result = ScriptUtils.DynamicInvoke(this, d, argValues, argTypes, useScriptContext, hasClosure);
+			var result = ScriptUtils.DynamicInvoke(e.Context, d, argValues, argTypes, useScriptContext, hasClosure);
 			e.SetResult(result, returnType);
 		}
 
@@ -1408,6 +1417,12 @@ namespace AScript
 					// 全局函数
 					result = BuildFunc(buildContext, options, context._Functions, name, args, ref argExprs, ref argTypes);
 					if (result != null) return result;
+					// 
+					BuildFunc(functionBuildArgs, _FunctionEvaluators);
+					if (functionBuildArgs.Result != null)
+					{
+						return functionBuildArgs.Result;
+					}
 					// 
 					context = context.Parent;
 				}
@@ -1501,6 +1516,12 @@ namespace AScript
 					// 全局函数
 					result = BuildFunc(buildContext, options, context._Functions, name, args, ref argExprs, ref argTypes);
 					if (result != null) return result;
+					// 
+					BuildFunc(functionBuildArgs, _FunctionEvaluators);
+					if (functionBuildArgs.Result != null)
+					{
+						return functionBuildArgs.Result;
+					}
 					// 
 					context = context.Parent;
 				}
@@ -1897,6 +1918,110 @@ namespace AScript
 			var result = await EvalFuncAsync(options ?? new BuildOptions(Script.DefaultOptions), null, name, isPrefix, args).ConfigureAwait(false);
 			PoolManage.Return(args);
 			return result;
+		}
+
+		public static void EvalFunc(FunctionEvalArgs e, IDictionary<string, IList<IFunctionEvaluator>> functionEvaluators)
+		{
+			if (functionEvaluators == null || !functionEvaluators.TryGetValue(e.Name, out var list)) return;
+
+			IFunctionEvaluator paramsFunc = null;
+			for (int i = list.Count - 1; i >= 0; i--)
+			{
+				var item = list[i];
+				if (item is NonGenericFunction nonGenericFunction)
+				{
+					e.EvalArgs(false);
+					if (!ScriptUtils.IsMatchArgTypes(e.ArgTypes, nonGenericFunction.Method, out _, out _, out var paramsIndex))
+					{
+						continue;
+					}
+					if (paramsIndex >= 0)
+					{
+						paramsFunc = nonGenericFunction;
+						continue;
+					}
+				}
+				item.Eval(e);
+				if (e.IsHandled) return;
+			}
+
+			paramsFunc?.Eval(e);
+		}
+
+		public static async Task EvalFuncAsync(FunctionEvalArgs e, IDictionary<string, IList<IFunctionEvaluator>> functionEvaluators, CancellationToken cancellationToken)
+		{
+			if (functionEvaluators == null || !functionEvaluators.TryGetValue(e.Name, out var list)) return;
+
+			IFunctionEvaluator paramsFunc = null;
+			for (int i = list.Count - 1; i >= 0; i--)
+			{
+				var item = list[i];
+				if (item is NonGenericFunction nonGenericFunction)
+				{
+					await e.EvalArgsAsync(false, cancellationToken).ConfigureAwait(false);
+					if (!ScriptUtils.IsMatchArgTypes(e.ArgTypes, nonGenericFunction.Method, out _, out _, out var paramsIndex))
+					{
+						continue;
+					}
+					if (paramsIndex >= 0)
+					{
+						paramsFunc = nonGenericFunction;
+						continue;
+					}
+				}
+				if (item is IAsyncFunctionEvaluator asyncFunctionEvaluator)
+				{
+					await asyncFunctionEvaluator.EvalAsync(e, cancellationToken).ConfigureAwait(false);
+				}
+				else
+				{
+					item.Eval(e);
+				}
+				if (e.IsHandled) return;
+			}
+
+			if (paramsFunc is IAsyncFunctionEvaluator paramAsyncFunctionEvaluator)
+			{
+				await paramAsyncFunctionEvaluator.EvalAsync(e, cancellationToken).ConfigureAwait(false);
+			}
+			else
+			{
+				paramsFunc?.Eval(e);
+			}
+		}
+
+		public static void BuildFunc(FunctionBuildArgs e, IDictionary<string, IList<IFunctionEvaluator>> functionEvaluators)
+		{
+			if (functionEvaluators == null || !functionEvaluators.TryGetValue(e.Name, out var list)) return;
+
+			IFunctionEvaluator paramsFunc = null;
+			for (int i = list.Count - 1; i >= 0; i--)
+			{
+				var item = list[i];
+				if (item is NonGenericFunction nonGenericFunction)
+				{
+					var exprs = e.BuildArgs();
+					if (!ScriptUtils.IsMatchArgTypes(exprs, nonGenericFunction.Method, out _, out _, out var paramsIndex))
+					{
+						continue;
+					}
+					if (paramsIndex >= 0)
+					{
+						paramsFunc = nonGenericFunction;
+						continue;
+					}
+				}
+				if (item is IFunctionBuilder builder)
+				{
+					builder.Build(e);
+					if (e.Result != null) return;
+				}
+			}
+
+			if (paramsFunc is IFunctionBuilder paramBuilder)
+			{
+				paramBuilder.Build(e);
+			}
 		}
 
 		public Type EvalType(string name)
@@ -2799,61 +2924,12 @@ namespace AScript
 		protected virtual void OnFunctionEval(FunctionEvalArgs e)
 		{
 			if (e.IsHandled) return;
-
-			var functionEvaluators = _FunctionEvaluators;
-			if (functionEvaluators != null && functionEvaluators.TryGetValue(e.Name, out var list))
-			{
-				foreach (var item in list)
-				{
-					item.Eval(e);
-					if (e.IsHandled) return;
-				}
-			}
-
-			this.FunctionEval?.Invoke(this, e);
-		}
-
-		protected virtual async Task OnFunctionEvalAsync(FunctionEvalArgs e, CancellationToken cancellationToken)
-		{
-			if (e.IsHandled) return;
-
-			var functionEvaluators = _FunctionEvaluators;
-			if (functionEvaluators != null && functionEvaluators.TryGetValue(e.Name, out var list))
-			{
-				foreach (var item in list)
-				{
-					if (item is IAsyncFunctionEvaluator asyncFunctionEvaluator)
-					{
-						await asyncFunctionEvaluator.EvalAsync(e, cancellationToken).ConfigureAwait(false);
-					}
-					else
-					{
-						item.Eval(e);
-					}
-					if (e.IsHandled) return;
-				}
-			}
-
 			this.FunctionEval?.Invoke(this, e);
 		}
 
 		protected virtual void OnFunctionBuild(FunctionBuildArgs e)
 		{
 			if (e.Result != null) return;
-
-			var functionEvaluators = _FunctionEvaluators;
-			if (functionEvaluators != null && functionEvaluators.TryGetValue(e.Name, out var list))
-			{
-				foreach (var item in list)
-				{
-					if (item is IFunctionBuilder builder)
-					{
-						builder.Build(e);
-						if (e.Result != null) return;
-					}
-				}
-			}
-
 			this.FunctionBuild?.Invoke(this, e);
 		}
 	}
