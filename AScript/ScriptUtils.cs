@@ -413,15 +413,37 @@ namespace AScript
 					var dataType = argTypes[i - startIndex];
 					if (dataType != paramType)
 					{
-						var data = argValues[hasClosure ? i - 1 : i];
-						if (data is IConvertible && !paramType.IsInstanceOfType(data))
+						var arg = argValues[hasClosure ? i - 1 : i];
+						if (arg is IConvertible && !paramType.IsInstanceOfType(arg))
 						{
-							argValues[hasClosure ? i - 1 : i] = System.Convert.ChangeType(data, paramType);
+							argValues[hasClosure ? i - 1 : i] = System.Convert.ChangeType(arg, paramType);
 						}
 					}
 				}
 			}
 			return method.Invoke(target, argValues);
+		}
+
+		public static object TryParseDelegateArg(ScriptContext context, BuildOptions options, EvalControl control, object arg, Type delegateType)
+		{
+			if (arg is DefineFuncNode node)
+			{
+				arg = node.Eval(context, options, control, out _);
+			}
+			if (arg is CustomFunction func)
+			{
+				return func.Compile(delegateType, context, options);
+			}
+			if (arg is CustomFunctionObject cfo)
+			{
+				return cfo.Compile(delegateType, options);
+			}
+			return arg;
+		}
+
+		public static bool IsDefineFuncNode(object obj)
+		{
+			return obj is DefineFuncNode || obj is CustomFunction || obj is CustomFunctionObject;
 		}
 
 		public static object GetDefaultValue(Type targetType)

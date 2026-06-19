@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using AScript.Nodes;
 
 namespace AScript.Functions
 {
@@ -71,6 +72,14 @@ namespace AScript.Functions
 				{
 					var p = parameters[hasClosure ? i + 1 : i];
 					var arg = argExprs[i];
+					if (arg == null && typeof(Delegate).IsAssignableFrom(p.ParameterType))
+					{
+						if (!p.ParameterType.Name.StartsWith("Func`"))
+						{
+							((DefineFuncNode)e.Args[i]).ReturnSystemType = typeof(void);
+						}
+						argExprs[i] = arg = e.Args[i].Build(e.BuildContext, e.ScriptContext, e.Options);
+					}
 					if (arg.Type != p.ParameterType)
 					{
 						argExprs[i] = Expression.Convert(arg, p.ParameterType);
@@ -90,12 +99,25 @@ namespace AScript.Functions
 			}
 			var argValues = e.ArgValues;
 			var argTypes = e.ArgTypes;
+			if (argValues != null && argValues.Length > 0)
+			{
+				ParameterInfo[] parameters = null;
+				for (int i = 0; i < argValues.Length; i++)
+				{
+					var arg = argValues[i];
+					if (ScriptUtils.IsDefineFuncNode(arg))
+					{
+						if (parameters == null) parameters = this.Method.GetParameters();
+						argValues[i] = ScriptUtils.TryParseDelegateArg(e.Context, e.Options, e.Control, arg, parameters[i].ParameterType);
+					}
+				}
+			}
 			if (paramsIndex >= 0)
 			{
 				var parameters = this.Method.GetParameters();
 				var itemType = parameters[parameters.Length - 1].ParameterType.GetElementType();
-				var paramsValues = new object[e.ArgValues.Length - paramsIndex];
-				Array.Copy(e.ArgValues, paramsIndex, paramsValues, 0, paramsValues.Length);
+				var paramsValues = new object[argValues.Length - paramsIndex];
+				Array.Copy(argValues, paramsIndex, paramsValues, 0, paramsValues.Length);
 				var paramsArr = Array.CreateInstance(itemType, paramsValues.Length);
 				for (int i = 0; i < paramsValues.Length; i++)
 				{
@@ -103,8 +125,8 @@ namespace AScript.Functions
 				}
 				var newValues = new object[paramsIndex + 1];
 				var newTypes = new Type[newValues.Length];
-				Array.Copy(e.ArgValues, 0, newValues, 0, paramsIndex);
-				Array.Copy(e.ArgTypes, 0, newTypes, 0, paramsIndex);
+				Array.Copy(argValues, 0, newValues, 0, paramsIndex);
+				Array.Copy(argTypes, 0, newTypes, 0, paramsIndex);
 				newValues[paramsIndex] = paramsArr;
 				newTypes[paramsIndex] = paramsArr.GetType();
 				argValues = newValues;
