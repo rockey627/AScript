@@ -100,6 +100,7 @@ namespace AScript.Lang.JavaScript
 			AddTokenHandler("function", JavaScriptFunctionTokenHandler.Instance);
 			AddTokenHandler("/", JavaScriptRegexPatternTokenHandler.Instance);
 			AddTokenHandler("`", JavaScriptStringInterpolationTokenHandler.Instance);
+			AddTokenHandler("undefined", JavaScriptUndefinedTokenHandler.Instance);
 		}
 
 		public override bool IsDynamic()
