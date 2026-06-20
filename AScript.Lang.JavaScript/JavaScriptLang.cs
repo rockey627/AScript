@@ -81,6 +81,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc(typeof(JavaScriptStringExtensions));
 			AddFunc(typeof(JavaScriptArrayExtensions));
 			AddFunc(typeof(JavaScriptSetExtensions));
+			AddFunc(typeof(JavaScriptMapExtensions));
 
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);
