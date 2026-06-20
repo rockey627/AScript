@@ -31,8 +31,15 @@ namespace AScript.Operators
 			{
 				// dynamic方式作用+=无效
 				//e.Result = Expression.Dynamic(ExpressionUtils.Binder_AndAssign, typeof(object), left, right);
-				var addExpr = Expression.Dynamic(ExpressionUtils.Binder_And, typeof(object), left, right);
-				e.Result = Expression.Assign(left, addExpr);
+				var expr = Expression.Dynamic(ExpressionUtils.Binder_And, typeof(object), left, right);
+				if (expr.Type != left.Type)
+				{
+					e.Result = Expression.Assign(left, Expression.Convert(expr, left.Type));
+				}
+				else
+				{
+					e.Result = Expression.Assign(left, expr);
+				}
 			}
 			else
 			{

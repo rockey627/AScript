@@ -29,7 +29,15 @@ namespace AScript.Operators
 					|| !ExpressionUtils.ConvertMaxType(ref left, ref right))
 			{
 				var expr = Expression.Dynamic(ExpressionUtils.Binder_RightShift, typeof(object), left, right);
-				e.Result = Expression.Assign(left, expr);
+				//e.Result = Expression.Assign(left, expr);
+				if (expr.Type != left.Type)
+				{
+					e.Result = Expression.Assign(left, Expression.Convert(expr, left.Type));
+				}
+				else
+				{
+					e.Result = Expression.Assign(left, expr);
+				}
 			}
 			else
 			{

@@ -83,7 +83,14 @@ namespace AScript.Operators
 				// dynamic方式作用+=无效
 				//e.Result = Expression.Dynamic(ExpressionUtils.Binder_AddAssign, typeof(object), left, right);
 				var addExpr = Expression.Dynamic(ExpressionUtils.Binder_Add, typeof(object), leftExpr, rightExpr);
-				e.Result = Expression.Assign(left, addExpr);
+				if (addExpr.Type != left.Type)
+				{
+					e.Result = Expression.Assign(left, Expression.Convert(addExpr, left.Type));
+				}
+				else
+				{
+					e.Result = Expression.Assign(left, addExpr);
+				}
 			}
 			else if (left.Type == typeof(string))
 			{
