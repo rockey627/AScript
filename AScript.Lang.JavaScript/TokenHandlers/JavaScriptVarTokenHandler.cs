@@ -54,6 +54,31 @@ namespace AScript.Lang.JavaScript.TokenHandlers
 				return;
 			}
 
+			if (nextToken.Value.IsSymbol("["))
+			{
+				var list = e.Ignore ? null : new List<ITreeNode>();
+				while (true)
+				{
+					nextToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+					list?.Add(PoolManage.CreateDefineVarNode(nextToken.Value.Value, null, systemType: typeof(object)));
+					nextToken = analyzer.ValidateNextToken(e.TokenReader);
+					if (nextToken.Value.IsSymbol(",")) continue;
+					if (nextToken.Value.IsSymbol("]")) break;
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
+				}
+				if (!e.Ignore)
+				{
+					var node = new CallFuncNode { Name = "var", Args = list.ToArray() };
+					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, node);
+				}
+				analyzer.ValidateNextToken(e.TokenReader, "=");
+				if (!e.Ignore)
+				{
+					e.TreeBuilder.AddOperator(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateOperatorNode("=", 2, DefaultSyntaxAnalyzer.OperatorPriorities["="]));
+				}
+				return;
+			}
+
 			throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
 		}
 	}
