@@ -920,6 +920,26 @@ namespace AScript.Syntaxs
 			return nextToken;
 		}
 
+		public virtual Token? ValidateNextToken(TokenReader tokenReader)
+		{
+			var nextToken = tokenReader.Read();
+			if (!nextToken.HasValue)
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}");
+			}
+			return nextToken;
+		}
+
+		public virtual async Task<Token?> ValidateNextTokenAsync(TokenReader tokenReader, CancellationToken cancellationToken = default)
+		{
+			var nextToken = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+			if (!nextToken.HasValue)
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}");
+			}
+			return nextToken;
+		}
+
 		public virtual void TrySkipNextToken(TokenReader tokenReader, string nextTokenForSkip)
 		{
 			var nextToken = tokenReader.Read();
