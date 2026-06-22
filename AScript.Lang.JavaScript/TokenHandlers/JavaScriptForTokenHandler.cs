@@ -71,7 +71,7 @@ namespace AScript.Lang.JavaScript.TokenHandlers
 					var forInNode = new ForeachNode
 					{
 						ForeachKey = true,
-						VarDefine = PoolManage.CreateDefineVarNode(token2.Value.Value, token1.Value.Value),
+						VarDefine = PoolManage.CreateDefineVarNode(token2.Value.Value, null, systemType: typeof(object)),
 						Collection = list,
 						Body = body
 					};
@@ -89,7 +89,7 @@ namespace AScript.Lang.JavaScript.TokenHandlers
 				{
 					var forInNode = new ForeachNode
 					{
-						VarDefine = PoolManage.CreateDefineVarNode(token2.Value.Value, token1.Value.Value),
+						VarDefine = PoolManage.CreateDefineVarNode(token2.Value.Value, null, systemType: typeof(object)),
 						Collection = list,
 						Body = body
 					};

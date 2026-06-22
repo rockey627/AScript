@@ -17,9 +17,6 @@ namespace AScript.Lang.JavaScript
 
 		protected JavaScriptLang()
 		{
-			AddType("var", typeof(object));
-			AddType("let", typeof(object));
-			AddType("const", typeof(object));
 			AddType("String", typeof(string));
 			AddType("Array", typeof(List<object>));
 			AddType("Set", typeof(HashSet<object>));
@@ -83,6 +80,9 @@ namespace AScript.Lang.JavaScript
 			AddFunc(typeof(JavaScriptSetExtensions));
 			AddFunc(typeof(JavaScriptMapExtensions));
 
+			AddTokenHandler("var", JavaScriptVarTokenHandler.Instance);
+			AddTokenHandler("let", JavaScriptVarTokenHandler.Instance);
+			AddTokenHandler("const", JavaScriptVarTokenHandler.Instance);
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);
 			AddTokenHandler("?", QuestionIIFTokenHandler.Instance);
