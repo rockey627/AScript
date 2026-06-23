@@ -130,7 +130,7 @@ namespace AScript.Operators
 			else if (arg0 is TupleNode tupleNode)
 			{
 				// 元组解构
-				HandleTupleBuild(e, tupleNode.Items);
+				HandleTupleBuild(e, tupleNode.Items, false);
 			}
 			else
 			{
@@ -282,16 +282,16 @@ namespace AScript.Operators
 				e.SetResult(list, list == null ? type : list.GetType());
 				return;
 			}
-			else if (arg0 is CallFuncNode callFuncNode2 && callFuncNode2.Name == "var")
-			{
-				// 元组解构
-				HandleTuple(e, callFuncNode2.Args, false);
-				return;
-			}
+			//else if (arg0 is CallFuncNode callFuncNode2 && callFuncNode2.Name == "var")
+			//{
+			//	// 元组解构
+			//	HandleTuple(e, callFuncNode2.Args, false);
+			//	return;
+			//}
 			else if (arg0 is TupleNode tupleNode0)
 			{
 				// 元组解构
-				HandleTuple(e, tupleNode0.Items);
+				HandleTuple(e, tupleNode0.Items, false);
 				return;
 			}
 		}
@@ -304,15 +304,15 @@ namespace AScript.Operators
 				{
 					throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
 				}
-				var itemValues = new object[arg0Items.Count];
-				var itemTypes = new Type[arg0Items.Count];
+				//var itemValues = new object[arg0Items.Count];
+				//var itemTypes = new Type[arg0Items.Count];
 				for (int i = 0; i < tupleNode.Items.Count; i++)
 				{
 					var value = tupleNode.Items[i].Eval(e.Context, e.Options, e.Control, out var itemType);
 					if (i < arg0Items.Count)
 					{
-						itemValues[i] = value;
-						itemTypes[i] = itemType;
+						//itemValues[i] = value;
+						//itemTypes[i] = itemType;
 						var varName = ((VariableNode)arg0Items[i]).Name;
 						if (varName != "_")
 						{
@@ -321,7 +321,8 @@ namespace AScript.Operators
 					}
 				}
 				// 返回元组
-				e.SetResult(TupleNode.CreateTuple(itemValues, itemTypes));
+				//e.SetResult(TupleNode.CreateTuple(itemValues, itemTypes));
+				e.SetResult(null, typeof(void));
 				return;
 			}
 			var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
@@ -335,12 +336,13 @@ namespace AScript.Operators
 				{
 					throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
 				}
-				var itemValues = arg0Items.Count == arg1FieldCount ? null : new object[arg0Items.Count];
-				var itemTypes = arg0Items.Count == arg1FieldCount ? null : new Type[arg0Items.Count];
+				//var itemValues = arg0Items.Count == arg1FieldCount ? null : new object[arg0Items.Count];
+				//var itemTypes = arg0Items.Count == arg1FieldCount ? null : new Type[arg0Items.Count];
 				for (int i = 0; i < arg0Items.Count; i++)
 				{
 					var varName = ((VariableNode)arg0Items[i]).Name;
-					if (varName == "_" && itemValues == null) continue;
+					//if (varName == "_" && itemValues == null) continue;
+					if (varName == "_") continue;
 					object value;
 					Type itemType;
 					if (isValueTuple)
@@ -355,18 +357,19 @@ namespace AScript.Operators
 						value = info.GetValue(arg1);
 						itemType = info.PropertyType;
 					}
-					if (itemValues != null)
-					{
-						itemValues[i] = value;
-						itemTypes[i] = itemType;
-					}
+					//if (itemValues != null)
+					//{
+					//	itemValues[i] = value;
+					//	itemTypes[i] = itemType;
+					//}
 					if (varName != "_")
 					{
 						e.Context.SetTempVar(varName, value, itemType, searchContext ?? !(arg0Items[i] is DefineVarNode));
 					}
 				}
 				// 返回元组
-				e.SetResult(itemValues == null ? arg1 : TupleNode.CreateTuple(itemValues, itemTypes));
+				//e.SetResult(itemValues == null ? arg1 : TupleNode.CreateTuple(itemValues, itemTypes));
+				e.SetResult(null, typeof(void));
 				return;
 			}
 
@@ -463,7 +466,7 @@ namespace AScript.Operators
 				throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
 			}
 
-			var expressions = new List<Expression>(arg0Items.Count + 1);
+			var expressions = new List<Expression>(arg0Items.Count);
 			for (int i = 0; i < arg0Items.Count; i++)
 			{
 				var arg0Item = arg0Items[i] as VariableNode;
@@ -472,14 +475,14 @@ namespace AScript.Operators
 				expressions.Add(HandleVariableAssign(e, arg0Item, value, searchContext));
 			}
 
-			if (arg0Items.Count == rightFieldCount)
-			{
-				expressions.Add(right);
-			}
-			else
-			{
-				expressions.Add(TupleNode.BuildTuple(expressions.ToArray(), expressions.Select(a => a.Type).ToArray()));
-			}
+			//if (arg0Items.Count == rightFieldCount)
+			//{
+			//	expressions.Add(right);
+			//}
+			//else
+			//{
+			//	expressions.Add(TupleNode.BuildTuple(expressions.ToArray(), expressions.Select(a => a.Type).ToArray()));
+			//}
 
 			e.Result = Expression.Block(expressions);
 		}

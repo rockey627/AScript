@@ -8,6 +8,49 @@ namespace AScript.Test.MSTests
 	public class ScriptTupleTest
 	{
 		[TestMethod]
+		public void Test07_2()
+		{
+			string s = @"
+var (a) = ('1', 2, '3');
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var r = script.Eval(s);
+			//#if NET45
+			//			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
+			//			var t = (Tuple<string, int, string>)r;
+			//#else
+			//			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
+			//			var t = (ValueTuple<string, int, string>)r;
+			//#endif
+			//			Assert.AreEqual("1", t.Item1);
+			//			Assert.AreEqual(2, t.Item2);
+			//			Assert.AreEqual("3", t.Item3);
+			Assert.AreEqual("1", script.Context.EvalVar("a"));
+		}
+
+		[TestMethod]
+		public void Test07()
+		{
+			string s = @"
+var (a) = ('1', 2, '3');
+";
+			var script = new Script();
+			var r = script.Eval(s);
+			//#if NET45
+			//			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
+			//			var t = (Tuple<string, int, string>)r;
+			//#else
+			//			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
+			//			var t = (ValueTuple<string, int, string>)r;
+			//#endif
+			//			Assert.AreEqual("1", t.Item1);
+			//			Assert.AreEqual(2, t.Item2);
+			//			Assert.AreEqual("3", t.Item3);
+			Assert.AreEqual("1", script.Context.EvalVar("a"));
+		}
+
+		[TestMethod]
 		public void Test06_2()
 		{
 			string s = @"
@@ -16,16 +59,16 @@ var (a, _, _) = ('1', 2, '3');
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
-#if NET45
-			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
-			var t = (Tuple<string, int, string>)r;
-#else
-			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
-			var t = (ValueTuple<string, int, string>)r;
-#endif
-			Assert.AreEqual("1", t.Item1);
-			Assert.AreEqual(2, t.Item2);
-			Assert.AreEqual("3", t.Item3);
+//#if NET45
+//			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
+//			var t = (Tuple<string, int, string>)r;
+//#else
+//			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
+//			var t = (ValueTuple<string, int, string>)r;
+//#endif
+//			Assert.AreEqual("1", t.Item1);
+//			Assert.AreEqual(2, t.Item2);
+//			Assert.AreEqual("3", t.Item3);
 			Assert.AreEqual("1", script.Context.EvalVar("a"));
 		}
 
@@ -37,16 +80,16 @@ var (a, _, _) = ('1', 2, '3');
 ";
 			var script = new Script();
 			var r = script.Eval(s);
-#if NET45
-			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
-			var t = (Tuple<string, int, string>)r;
-#else
-			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
-			var t = (ValueTuple<string, int, string>)r;
-#endif
-			Assert.AreEqual("1", t.Item1);
-			Assert.AreEqual(2, t.Item2);
-			Assert.AreEqual("3", t.Item3);
+//#if NET45
+//			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
+//			var t = (Tuple<string, int, string>)r;
+//#else
+//			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
+//			var t = (ValueTuple<string, int, string>)r;
+//#endif
+//			Assert.AreEqual("1", t.Item1);
+//			Assert.AreEqual(2, t.Item2);
+//			Assert.AreEqual("3", t.Item3);
 			Assert.AreEqual("1", script.Context.EvalVar("a"));
 		}
 
@@ -59,16 +102,16 @@ var (a, _, c) = ('1', 2, '3');
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
-#if NET45
-			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
-			var t = (Tuple<string, int, string>)r;
-#else
-			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
-			var t = (ValueTuple<string, int, string>)r;
-#endif
-			Assert.AreEqual("1", t.Item1);
-			Assert.AreEqual(2, t.Item2);
-			Assert.AreEqual("3", t.Item3);
+//#if NET45
+//			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
+//			var t = (Tuple<string, int, string>)r;
+//#else
+//			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
+//			var t = (ValueTuple<string, int, string>)r;
+//#endif
+//			Assert.AreEqual("1", t.Item1);
+//			Assert.AreEqual(2, t.Item2);
+//			Assert.AreEqual("3", t.Item3);
 			Assert.AreEqual("1", script.Context.EvalVar("a"));
 			Assert.AreEqual("3", script.Context.EvalVar("c"));
 		}
@@ -81,16 +124,16 @@ var (a, _, c) = ('1', 2, '3');
 ";
 			var script = new Script();
 			var r = script.Eval(s);
-#if NET45
-			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
-			var t = (Tuple<string, int, string>)r;
-#else
-			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
-			var t = (ValueTuple<string, int, string>)r;
-#endif
-			Assert.AreEqual("1", t.Item1);
-			Assert.AreEqual(2, t.Item2);
-			Assert.AreEqual("3", t.Item3);
+//#if NET45
+//			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
+//			var t = (Tuple<string, int, string>)r;
+//#else
+//			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
+//			var t = (ValueTuple<string, int, string>)r;
+//#endif
+//			Assert.AreEqual("1", t.Item1);
+//			Assert.AreEqual(2, t.Item2);
+//			Assert.AreEqual("3", t.Item3);
 			Assert.AreEqual("1", script.Context.EvalVar("a"));
 			Assert.AreEqual("3", script.Context.EvalVar("c"));
 		}
@@ -104,15 +147,15 @@ var (a, b) = ('1', 2, '3');
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
-#if NET45
-			Assert.IsInstanceOfType(r, typeof(Tuple<string, int>));
-			var t = (Tuple<string, int>)r;
-#else
-			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int>));
-			var t = (ValueTuple<string, int>)r;
-#endif
-			Assert.AreEqual("1", t.Item1);
-			Assert.AreEqual(2, t.Item2);
+//#if NET45
+//			Assert.IsInstanceOfType(r, typeof(Tuple<string, int>));
+//			var t = (Tuple<string, int>)r;
+//#else
+//			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int>));
+//			var t = (ValueTuple<string, int>)r;
+//#endif
+//			Assert.AreEqual("1", t.Item1);
+//			Assert.AreEqual(2, t.Item2);
 			Assert.AreEqual("1", script.Context.EvalVar("a"));
 			Assert.AreEqual(2, script.Context.EvalVar("b"));
 		}
@@ -125,15 +168,15 @@ var (a, b) = ('1', 2, '3');
 ";
 			var script = new Script();
 			var r = script.Eval(s);
-#if NET45
-			Assert.IsInstanceOfType(r, typeof(Tuple<string, int>));
-			var t = (Tuple<string, int>)r;
-#else
-			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int>));
-			var t = (ValueTuple<string, int>)r;
-#endif
-			Assert.AreEqual("1", t.Item1);
-			Assert.AreEqual(2, t.Item2);
+//#if NET45
+//			Assert.IsInstanceOfType(r, typeof(Tuple<string, int>));
+//			var t = (Tuple<string, int>)r;
+//#else
+//			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int>));
+//			var t = (ValueTuple<string, int>)r;
+//#endif
+//			Assert.AreEqual("1", t.Item1);
+//			Assert.AreEqual(2, t.Item2);
 			Assert.AreEqual("1", script.Context.EvalVar("a"));
 			Assert.AreEqual(2, script.Context.EvalVar("b"));
 		}
@@ -147,16 +190,16 @@ var (a, b) = ('1', 2, '3');
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
-#if NET45
-			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
-			var t = (Tuple<string, int, string>)r;
-#else
-			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
-			var t = (ValueTuple<string, int, string>)r;
-#endif
-			Assert.AreEqual("1", t.Item1);
-			Assert.AreEqual(2, t.Item2);
-			Assert.AreEqual("3", t.Item3);
+//#if NET45
+//			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
+//			var t = (Tuple<string, int, string>)r;
+//#else
+//			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
+//			var t = (ValueTuple<string, int, string>)r;
+//#endif
+//			Assert.AreEqual("1", t.Item1);
+//			Assert.AreEqual(2, t.Item2);
+//			Assert.AreEqual("3", t.Item3);
 			Assert.AreEqual("1", script.Context.EvalVar("a"));
 			Assert.AreEqual(2, script.Context.EvalVar("b"));
 			Assert.AreEqual("3", script.Context.EvalVar("c"));
@@ -170,16 +213,16 @@ var (a, b) = ('1', 2, '3');
 ";
 			var script = new Script();
 			var r = script.Eval(s);
-#if NET45
-			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
-			var t = (Tuple<string, int, string>)r;
-#else
-			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
-			var t = (ValueTuple<string, int, string>)r;
-#endif
-			Assert.AreEqual("1", t.Item1);
-			Assert.AreEqual(2, t.Item2);
-			Assert.AreEqual("3", t.Item3);
+//#if NET45
+//			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
+//			var t = (Tuple<string, int, string>)r;
+//#else
+//			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
+//			var t = (ValueTuple<string, int, string>)r;
+//#endif
+//			Assert.AreEqual("1", t.Item1);
+//			Assert.AreEqual(2, t.Item2);
+//			Assert.AreEqual("3", t.Item3);
 			Assert.AreEqual("1", script.Context.EvalVar("a"));
 			Assert.AreEqual(2, script.Context.EvalVar("b"));
 			Assert.AreEqual("3", script.Context.EvalVar("c"));
@@ -194,16 +237,16 @@ var (a, b, c) = ('1', 2, '3');
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			var r = script.Eval(s);
-#if NET45
-			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
-			var t = (Tuple<string, int, string>)r;
-#else
-			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
-			var t = (ValueTuple<string, int, string>)r;
-#endif
-			Assert.AreEqual("1", t.Item1);
-			Assert.AreEqual(2, t.Item2);
-			Assert.AreEqual("3", t.Item3);
+			//#if NET45
+			//			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
+			//			var t = (Tuple<string, int, string>)r;
+			//#else
+			//			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
+			//			var t = (ValueTuple<string, int, string>)r;
+			//#endif
+			//			Assert.AreEqual("1", t.Item1);
+			//			Assert.AreEqual(2, t.Item2);
+			//			Assert.AreEqual("3", t.Item3);
 			Assert.AreEqual("1", script.Context.EvalVar("a"));
 			Assert.AreEqual(2, script.Context.EvalVar("b"));
 			Assert.AreEqual("3", script.Context.EvalVar("c"));
@@ -217,16 +260,16 @@ var (a, b, c) = ('1', 2, '3');
 ";
 			var script = new Script();
 			var r = script.Eval(s);
-#if NET45
-			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
-			var t = (Tuple<string, int, string>)r;
-#else
-			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
-			var t = (ValueTuple<string, int, string>)r;
-#endif
-			Assert.AreEqual("1", t.Item1);
-			Assert.AreEqual(2, t.Item2);
-			Assert.AreEqual("3", t.Item3);
+//#if NET45
+//			Assert.IsInstanceOfType(r, typeof(Tuple<string, int, string>));
+//			var t = (Tuple<string, int, string>)r;
+//#else
+//			Assert.IsInstanceOfType(r, typeof(ValueTuple<string, int, string>));
+//			var t = (ValueTuple<string, int, string>)r;
+//#endif
+//			Assert.AreEqual("1", t.Item1);
+//			Assert.AreEqual(2, t.Item2);
+//			Assert.AreEqual("3", t.Item3);
 			Assert.AreEqual("1", script.Context.EvalVar("a"));
 			Assert.AreEqual(2, script.Context.EvalVar("b"));
 			Assert.AreEqual("3", script.Context.EvalVar("c"));
