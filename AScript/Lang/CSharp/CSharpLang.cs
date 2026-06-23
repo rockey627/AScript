@@ -131,6 +131,7 @@ namespace AScript.Lang.CSharp
 			AddTokenHandler("[", BracketTokenHandler.Instance);
 			AddTokenHandler("null", NullTokenHandler.Instance);
 			AddTokenHandler("new", NewTokenHandler.Instance);
+			AddTokenHandler("var", VarTokenHandler.Instance);
 			AddTokenHandler("if", IfTokenHandler.Instance);
 			AddTokenHandler("else", IfTokenHandler.Instance);
 			//AddTokenHandler("switch", SwitchTokenHandler.Instance);

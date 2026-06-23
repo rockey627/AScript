@@ -122,11 +122,11 @@ namespace AScript.Operators
 				var valuesExpr = Expression.Convert(values, typeof(IList));
 				e.Result = Expression.Call(ExpressionUtils.Method_ScriptUtils_SliceAssign, listExpr, startExpr, endExpr, valuesExpr);
 			}
-			else if (arg0 is CallFuncNode callFuncNode2 && callFuncNode2.Name == "var")
-			{
-				// 元组解构
-				HandleTupleBuild(e, callFuncNode2.Args, false);
-			}
+			//else if (arg0 is CallFuncNode callFuncNode2 && callFuncNode2.Name == "var")
+			//{
+			//	// 元组解构
+			//	HandleTupleBuild(e, callFuncNode2.Args, false);
+			//}
 			else if (arg0 is TupleNode tupleNode)
 			{
 				// 元组解构
