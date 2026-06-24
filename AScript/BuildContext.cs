@@ -456,7 +456,7 @@ namespace AScript
 			for (int i = 0; i < bodies.Length; i++)
 			{
 				var body = bodies[i];
-				if (body is BlockExpression blockExpression && blockExpression.Variables.Count == 0)
+				if (body is BlockExpression blockExpression && blockExpression.Variables.Count == 0 && blockExpression.Type != typeof(void))
 				{
 					if (expandBodies == null)
 					{

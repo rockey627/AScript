@@ -470,7 +470,8 @@ namespace AScript.Operators
 			for (int i = 0; i < arg0Items.Count; i++)
 			{
 				var arg0Item = arg0Items[i] as VariableNode;
-				if (arg0Item.Name == "_" && arg0Items.Count == rightFieldCount) continue;
+				//if (arg0Item.Name == "_" && arg0Items.Count == rightFieldCount) continue;
+				if (arg0Item.Name == "_") continue;
 				var value = isValueTuple ? Expression.Field(right, $"Item{i + 1}") : Expression.Property(right, $"Item{i + 1}");
 				expressions.Add(HandleVariableAssign(e, arg0Item, value, searchContext));
 			}
@@ -484,7 +485,7 @@ namespace AScript.Operators
 			//	expressions.Add(TupleNode.BuildTuple(expressions.ToArray(), expressions.Select(a => a.Type).ToArray()));
 			//}
 
-			e.Result = Expression.Block(expressions);
+			e.Result = Expression.Block(typeof(void), expressions);
 		}
 
 		/// <summary>
