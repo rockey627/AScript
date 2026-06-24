@@ -132,6 +132,17 @@ namespace AScript.Operators
 				// 元组解构
 				HandleTupleBuild(e, tupleNode.Items, false);
 			}
+			else if (arg0 is CollectionNode collectionNode)
+			{
+				if (collectionNode.CollectionType == typeof(object))
+				{
+					HandleObjectPropertyBuild(e, collectionNode.Items, false);
+				}
+				else
+				{
+
+				}
+			}
 			else
 			{
 				var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
@@ -294,8 +305,26 @@ namespace AScript.Operators
 				HandleTuple(e, tupleNode0.Items, false);
 				return;
 			}
+			else if (arg0 is CollectionNode collectionNode)
+			{
+				if (collectionNode.CollectionType == typeof(object))
+				{
+					HandleObjectProperty(e, collectionNode.Items, false);
+				}
+				else
+				{
+
+				}
+			}
 		}
 
+		/// <summary>
+		/// 解构元组
+		/// </summary>
+		/// <param name="e"></param>
+		/// <param name="arg0Items"></param>
+		/// <param name="searchContext"></param>
+		/// <exception cref="ScriptAnalyzingException"></exception>
 		private void HandleTuple(FunctionEvalArgs e, IList<ITreeNode> arg0Items, bool? searchContext = null)
 		{
 			if (e.Args[1] is TupleNode tupleNode)
@@ -374,6 +403,40 @@ namespace AScript.Operators
 			}
 
 			throw new ScriptAnalyzingException("invalid expression near =");
+		}
+
+		/// <summary>
+		/// 解构对象属性或字典：var { name, age } = new Person { name = 'tom', age = 20 };
+		/// </summary>
+		/// <param name="e"></param>
+		/// <param name="arg0Items"></param>
+		/// <param name="searchContext"></param>
+		private void HandleObjectProperty(FunctionEvalArgs e, IList<ITreeNode> arg0Items, bool? searchContext = null)
+		{
+			var right = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
+			for (int i = 0; i < arg0Items.Count; i++)
+			{
+				var varNode = arg0Items[i] as VariableNode;
+				if (varNode == null)
+				{
+					throw new ScriptAnalyzingException("invalid expression near =, expected variable name");
+				}
+				if (varNode.Name == "_") continue;
+
+				object value;
+				Type valueType;
+				if (right == null)
+				{
+					value = null;
+					valueType = typeof(object);
+				}
+				else
+				{
+					value = ScriptUtils.GetValue(right, varNode.Name, out valueType);
+				}
+				e.Context.SetTempVar(varNode.Name, value, valueType, searchContext ?? !(arg0Items[i] is DefineVarNode));
+			}
+			e.SetResult(null, typeof(void));
 		}
 
 		private Expression HandleVariableAssign(FunctionBuildArgs e, VariableNode arg0Node, Expression right, bool? searchContext = null)
@@ -484,6 +547,33 @@ namespace AScript.Operators
 			//{
 			//	expressions.Add(TupleNode.BuildTuple(expressions.ToArray(), expressions.Select(a => a.Type).ToArray()));
 			//}
+
+			e.Result = Expression.Block(typeof(void), expressions);
+		}
+
+		/// <summary>
+		/// 解构对象属性或字典：var { name, age } = new Person { name = 'tom', age = 20 };
+		/// </summary>
+		/// <param name="e"></param>
+		/// <param name="arg0Items"></param>
+		/// <param name="searchContext"></param>
+		private void HandleObjectPropertyBuild(FunctionBuildArgs e, IList<ITreeNode> arg0Items, bool? searchContext = null)
+		{
+			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+			var expressions = new List<Expression>(arg0Items.Count);
+
+			for (int i = 0; i < arg0Items.Count; i++)
+			{
+				var varNode = arg0Items[i] as VariableNode;
+				if (varNode == null)
+				{
+					throw new ScriptAnalyzingException("invalid expression near =, expected variable name");
+				}
+				if (varNode.Name == "_") continue;
+
+				var value = ExpressionUtils.GetValue(right, varNode.Name);
+				expressions.Add(HandleVariableAssign(e, varNode, value, searchContext));
+			}
 
 			e.Result = Expression.Block(typeof(void), expressions);
 		}

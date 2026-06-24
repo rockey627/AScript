@@ -1159,6 +1159,20 @@ inner + outer;
 		}
 
 		[TestMethod]
+		public void TestDestructuring_Object_Basic_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var {name, age} = {name: 'Alice', age: 25};
+name;
+";
+			Assert.AreEqual("Alice", script.Eval(code));
+		}
+
+		[TestMethod]
 		public void TestDestructuring_Object_Basic()
 		{
 			var script = new Script();
@@ -1169,6 +1183,20 @@ var {name, age} = {name: 'Alice', age: 25};
 name;
 ";
 			Assert.AreEqual("Alice", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestDestructuring_Object_Another_2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var {name, age} = {name: 'Alice', age: 25};
+age;
+";
+			Assert.AreEqual(25L, script.Eval(code));
 		}
 
 		[TestMethod]

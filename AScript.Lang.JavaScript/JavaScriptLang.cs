@@ -80,9 +80,9 @@ namespace AScript.Lang.JavaScript
 			AddFunc(typeof(JavaScriptSetExtensions));
 			AddFunc(typeof(JavaScriptMapExtensions));
 
-			AddTokenHandler("var", JavaScriptVarTokenHandler.Instance);
-			AddTokenHandler("let", JavaScriptVarTokenHandler.Instance);
-			AddTokenHandler("const", JavaScriptVarTokenHandler.Instance);
+			AddTokenHandler("var", VarTokenHandler.Instance);
+			AddTokenHandler("let", VarTokenHandler.Instance);
+			AddTokenHandler("const", VarTokenHandler.Instance);
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);
 			AddTokenHandler("?", QuestionIIFTokenHandler.Instance);
