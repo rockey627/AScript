@@ -1079,6 +1079,20 @@ obj.x + obj.y;
 		}
 
 		[TestMethod]
+		public void TestDestructuring_Array_Basic2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var [a, b] = [1, 2];
+a + b;
+";
+			Assert.AreEqual(3L, script.Eval(code));
+		}
+
+		[TestMethod]
 		public void TestDestructuring_Array_Basic()
 		{
 			var script = new Script();
@@ -1092,6 +1106,20 @@ a + b;
 		}
 
 		[TestMethod]
+		public void TestDestructuring_Array_Multi2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var [x, y, z] = [10, 20, 30];
+x + y + z;
+";
+			Assert.AreEqual(60L, script.Eval(code));
+		}
+
+		[TestMethod]
 		public void TestDestructuring_Array_Multi()
 		{
 			var script = new Script();
@@ -1102,6 +1130,20 @@ var [x, y, z] = [10, 20, 30];
 x + y + z;
 ";
 			Assert.AreEqual(60L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestDestructuring_Array_Partial2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var [first, , third] = [1, 2, 3];
+first + third;
+";
+			Assert.AreEqual(4L, script.Eval(code));
 		}
 
 		[TestMethod]

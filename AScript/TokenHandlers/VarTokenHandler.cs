@@ -79,7 +79,17 @@ namespace AScript.TokenHandlers
 				var list = e.Ignore ? null : new List<ITreeNode>();
 				while (true)
 				{
-					nextToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+					//nextToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+					nextToken = analyzer.ValidateNextToken(e.TokenReader);
+					if (nextToken.Value.IsSymbol(","))
+					{
+						list?.Add(null);
+						continue;
+					}
+					if (nextToken.Value.Type != ETokenType.Word)
+					{
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression at ({nextToken.Value.Line},{nextToken.Value.Column}), expect Word");
+					}
 					list?.Add(PoolManage.CreateDefineVarNode(nextToken.Value.Value, null, systemType: typeof(object)));
 					nextToken = analyzer.ValidateNextToken(e.TokenReader);
 					if (nextToken.Value.IsSymbol(",")) continue;

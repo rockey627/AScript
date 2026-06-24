@@ -140,7 +140,7 @@ namespace AScript.Operators
 				}
 				else
 				{
-
+					HandleArrayBuild(e, collectionNode.Items, false);
 				}
 			}
 			else
@@ -313,8 +313,9 @@ namespace AScript.Operators
 				}
 				else
 				{
-
+					HandleArray(e, collectionNode.Items, false);
 				}
+				return;
 			}
 		}
 
@@ -406,7 +407,7 @@ namespace AScript.Operators
 		}
 
 		/// <summary>
-		/// 解构对象属性或字典：var { name, age } = new Person { name = 'tom', age = 20 };
+		/// 解构对象属性或字典：var { name, age } = new Person { name = 'tom', age = 20 }
 		/// </summary>
 		/// <param name="e"></param>
 		/// <param name="arg0Items"></param>
@@ -434,6 +435,43 @@ namespace AScript.Operators
 				{
 					value = ScriptUtils.GetValue(right, varNode.Name, out valueType);
 				}
+				e.Context.SetTempVar(varNode.Name, value, valueType, searchContext ?? !(arg0Items[i] is DefineVarNode));
+			}
+			e.SetResult(null, typeof(void));
+		}
+
+		/// <summary>
+		/// 列表解构：var { name1, name2 } = ['tom', 'tony', 'jim']
+		/// </summary>
+		/// <param name="e"></param>
+		/// <param name="arg0Items"></param>
+		/// <param name="searchContext"></param>
+		private void HandleArray(FunctionEvalArgs e, IList<ITreeNode> arg0Items, bool? searchContext = null)
+		{
+			var right = e.Args[1].Eval(e.Context, e.Options, e.Control, out var rightType);
+			if (right == null)
+			{
+				throw new ScriptAnalyzingException("invalid expression near =, right side is null");
+			}
+
+			if (!(right is IList list))
+			{
+				throw new ScriptAnalyzingException("invalid expression near =, right side is not a list");
+			}
+
+			for (int i = 0; i < arg0Items.Count; i++)
+			{
+				var item = arg0Items[i];
+				if (item == null) continue;
+				var varNode = item as VariableNode;
+				if (varNode == null)
+				{
+					throw new ScriptAnalyzingException("invalid expression near =, expected variable name");
+				}
+				if (varNode.Name == "_") continue;
+
+				object value = i < list.Count ? list[i] : null;
+				Type valueType = i < list.Count ? list[i]?.GetType() ?? typeof(object) : typeof(object);
 				e.Context.SetTempVar(varNode.Name, value, valueType, searchContext ?? !(arg0Items[i] is DefineVarNode));
 			}
 			e.SetResult(null, typeof(void));
@@ -572,6 +610,63 @@ namespace AScript.Operators
 				if (varNode.Name == "_") continue;
 
 				var value = ExpressionUtils.GetValue(right, varNode.Name);
+				expressions.Add(HandleVariableAssign(e, varNode, value, searchContext));
+			}
+
+			e.Result = Expression.Block(typeof(void), expressions);
+		}
+
+		/// <summary>
+		/// 列表解构：var { name1, name2 } = ['tom', 'tony', 'jim']
+		/// </summary>
+		/// <param name="e"></param>
+		/// <param name="arg0Items"></param>
+		/// <param name="searchContext"></param>
+		private void HandleArrayBuild(FunctionBuildArgs e, IList<ITreeNode> arg0Items, bool? searchContext = null)
+		{
+			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+			var rightType = right.Type;
+			var isArray = rightType.IsArray;
+			var isList = typeof(IList).IsAssignableFrom(rightType);
+
+			if (!isArray && !isList)
+			{
+				throw new ScriptAnalyzingException("invalid expression near =, right side is not a list");
+			}
+
+			var expressions = new List<Expression>(arg0Items.Count);
+
+			for (int i = 0; i < arg0Items.Count; i++)
+			{
+				var item = arg0Items[i];
+				if (item == null) continue;
+				var varNode = item as VariableNode;
+				if (varNode == null)
+				{
+					throw new ScriptAnalyzingException("invalid expression near =, expected variable name");
+				}
+				if (varNode.Name == "_") continue;
+
+				Expression value;
+				if (isArray)
+				{
+					value = Expression.ArrayAccess(right, Expression.Constant(i));
+				}
+				else
+				{
+					// IList 类型（如 List<T>, IDictionary<string, object> 等）
+					var indexer = rightType.GetProperty("Item");
+					if (indexer != null)
+					{
+						value = Expression.Property(right, indexer, Expression.Constant(i));
+					}
+					else
+					{
+						var getItemMethod = rightType.GetMethod("get_Item");
+						value = Expression.Call(right, getItemMethod, Expression.Constant(i));
+					}
+				}
+
 				expressions.Add(HandleVariableAssign(e, varNode, value, searchContext));
 			}
 
