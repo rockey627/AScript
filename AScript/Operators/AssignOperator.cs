@@ -130,17 +130,18 @@ namespace AScript.Operators
 			else if (arg0 is TupleNode tupleNode)
 			{
 				// 元组解构
-				HandleTupleBuild(e, tupleNode.Items, false);
+				HandleTupleBuild(e, tupleNode.Items);
 			}
 			else if (arg0 is CollectionNode collectionNode)
 			{
+				var value = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 				if (collectionNode.CollectionType == typeof(object))
 				{
-					HandleObjectPropertyBuild(e, collectionNode.Items, false);
+					HandleObjectPropertyBuild(e, collectionNode.Items);
 				}
 				else
 				{
-					HandleArrayBuild(e, collectionNode.Items, false);
+					e.Result = BuildDeconstructArray(e, collectionNode, value);
 				}
 			}
 			else
@@ -696,7 +697,7 @@ namespace AScript.Operators
 			return Expression.Assign(left, rightExpr);
 		}
 
-		private void HandleTupleBuild(FunctionBuildArgs e, IList<ITreeNode> arg0Items, bool? searchContext = null)
+		private void HandleTupleBuild(FunctionBuildArgs e, IList<ITreeNode> arg0Items)
 		{
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 			var rightType = right.Type;
@@ -717,23 +718,194 @@ namespace AScript.Operators
 			var expressions = new List<Expression>(arg0Items.Count);
 			for (int i = 0; i < arg0Items.Count; i++)
 			{
-				var arg0Item = arg0Items[i] as VariableNode;
-				//if (arg0Item.Name == "_" && arg0Items.Count == rightFieldCount) continue;
-				if (arg0Item.Name == "_") continue;
+				var item = arg0Items[i];
 				var value = isValueTuple ? Expression.Field(right, $"Item{i + 1}") : Expression.Property(right, $"Item{i + 1}");
-				expressions.Add(HandleVariableAssign(e, arg0Item, value, searchContext));
+				var expr = BuildDeconstruct(e, item, value);
+				if (expr != null) expressions.Add(expr);
 			}
 
-			//if (arg0Items.Count == rightFieldCount)
-			//{
-			//	expressions.Add(right);
-			//}
-			//else
-			//{
-			//	expressions.Add(TupleNode.BuildTuple(expressions.ToArray(), expressions.Select(a => a.Type).ToArray()));
-			//}
-
 			e.Result = Expression.Block(typeof(void), expressions);
+		}
+
+		private Expression BuildDeconstruct(FunctionBuildArgs e, ITreeNode item, Expression right)
+		{
+			if (item is DefineVarNode defNode)
+			{
+				if (defNode.Name == "_") return null;
+				return HandleVariableAssign(e, defNode, right);
+			}
+			if (item is VariableNode varNode)
+			{
+				if (varNode.Name == "_") return null;
+				return HandleVariableAssign(e, varNode, right);
+			}
+			if (item is TupleNode tupleNode)
+			{
+				var rightType = right.Type;
+				var rightTypeName = rightType.Name;
+				bool isValueTuple = rightTypeName.StartsWith("ValueTuple`");
+				bool isTuple = rightTypeName.StartsWith("Tuple`");
+				if (!isValueTuple && !isTuple)
+				{
+					throw new ScriptAnalyzingException("invalid expression near =, right side is not a tuple");
+				}
+				int rightFieldCount = isValueTuple ? rightType.GetFields().Length : rightType.GetProperties().Length;
+				if (tupleNode.Items.Count > rightFieldCount)
+				{
+					throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
+				}
+				var expressions = new List<Expression>(tupleNode.Items.Count);
+				for (int i = 0; i < tupleNode.Items.Count; i++)
+				{
+					var value = isValueTuple ? Expression.Field(right, $"Item{i + 1}") : Expression.Property(right, $"Item{i + 1}");
+					var expr = BuildDeconstruct(e, tupleNode.Items[i], value);
+					if (expr != null) expressions.Add(expr);
+				}
+				return Expression.Block(typeof(void), expressions);
+			}
+			if (item is CollectionNode collectionNode)
+			{
+				if (collectionNode.CollectionType == typeof(object))
+				{
+					return HandleObjectPropertyDeconstruct(e, collectionNode, right);
+				}
+				else
+				{
+					return BuildDeconstructArray(e, collectionNode, right);
+				}
+			}
+			if (item is OperatorNode opNode)
+			{
+				if (opNode.Name == "=" && opNode.Left is VariableNode leftVar)
+				{
+					// 重命名语法 { name: n } = obj
+					if (leftVar.Name == "_") return null;
+					//var value = ExpressionUtils.GetValue(right, leftVar.Name);
+					if (right == null)
+					{
+						right = opNode.Right.Build(e.BuildContext, e.ScriptContext, e.Options);
+					}
+					else
+					{
+						var defaultValue = opNode.Right.Build(e.BuildContext, e.ScriptContext, e.Options);
+						var tmpVar = Expression.Variable(right.Type);
+						var tmpAssign = Expression.Assign(tmpVar, right);
+						if (defaultValue.Type != right.Type)
+						{
+							defaultValue = Expression.Convert(defaultValue, right.Type);
+						}
+						var right2 = Expression.Condition(Expression.Equal(tmpVar, ExpressionUtils.Constant_null), defaultValue, tmpVar);
+						right = Expression.Block(new[] { tmpVar }, tmpAssign, right2);
+					}
+					return BuildDeconstruct(e, leftVar, right);
+				}
+				throw new ScriptRuntimeException($"unsupport deconstruct {opNode.Name}");
+			}
+			throw new ScriptRuntimeException($"unsupport deconstruct {item.GetType().Name}");
+		}
+
+		private Expression HandleObjectPropertyDeconstruct(FunctionBuildArgs e, CollectionNode collectionNode, Expression right)
+		{
+			var expressions = new List<Expression>(collectionNode.Items.Count);
+			for (int i = 0; i < collectionNode.Items.Count; i++)
+			{
+				var item = collectionNode.Items[i];
+				if (item is VariableNode varNode)
+				{
+					if (varNode.Name == "_") continue;
+					var value = ExpressionUtils.GetValue(right, varNode.Name);
+					expressions.Add(BuildDeconstruct(e, item, value));
+				}
+				else if (item is OperatorNode opNode && opNode.Name == "=" && opNode.Left is VariableNode leftVar)
+				{
+					if (leftVar.Name == "_") continue;
+					var value = ExpressionUtils.GetValue(right, leftVar.Name);
+					expressions.Add(BuildDeconstruct(e, opNode.Right, value));
+				}
+				else
+				{
+					throw new ScriptAnalyzingException("invalid expression near =, expected variable name");
+				}
+			}
+			return Expression.Block(typeof(void), expressions);
+		}
+
+		/// <summary>
+		/// 列表解构：var { name1, name2 } = ['tom', 'tony', 'jim']
+		/// </summary>
+		/// <param name="e"></param>
+		/// <param name="collectionNode"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		/// <exception cref="ScriptAnalyzingException"></exception>
+		private Expression BuildDeconstructArray(FunctionBuildArgs e, CollectionNode collectionNode, Expression value)
+		{
+			var rightType = value.Type;
+			var isArray = rightType.IsArray;
+			var isList = typeof(IList).IsAssignableFrom(rightType);
+			if (!isArray && !isList)
+			{
+				throw new ScriptAnalyzingException("invalid expression near =, right side is not a list");
+			}
+			// 获取集合长度
+			Expression countExpr;
+			if (isArray)
+			{
+				countExpr = Expression.ArrayLength(value);
+			}
+			else
+			{
+				var countProperty = rightType.GetProperty("Count");
+				if (countProperty != null)
+				{
+					countExpr = Expression.Property(value, countProperty);
+				}
+				else
+				{
+					var getCountMethod = rightType.GetMethod("get_Count");
+					countExpr = Expression.Call(value, getCountMethod);
+				}
+			}
+			var expressions = new List<Expression>(collectionNode.Items.Count);
+			for (int i = 0; i < collectionNode.Items.Count; i++)
+			{
+				var item = collectionNode.Items[i];
+				if (item == null) continue;
+				// 判断索引是否在边界内
+				var indexExpr = Expression.Constant(i);
+				var isInBounds = Expression.LessThan(indexExpr, countExpr);
+				Expression value0;
+				if (isArray)
+				{
+					value0 = Expression.Condition(
+						isInBounds,
+						Expression.ArrayAccess(value, indexExpr),
+						Expression.Constant(null, typeof(object))
+					);
+				}
+				else
+				{
+					var indexer = rightType.GetProperty("Item");
+					Expression getValueExpr;
+					if (indexer != null)
+					{
+						getValueExpr = Expression.Property(value, indexer, indexExpr);
+					}
+					else
+					{
+						var getItemMethod = rightType.GetMethod("get_Item");
+						getValueExpr = Expression.Call(value, getItemMethod, indexExpr);
+					}
+					value0 = Expression.Condition(
+						isInBounds,
+						getValueExpr,
+						Expression.Constant(null, typeof(object))
+					);
+				}
+				var expr = BuildDeconstruct(e, item, value0);
+				if (expr != null) expressions.Add(expr);
+			}
+			return Expression.Block(typeof(void), expressions);
 		}
 
 		/// <summary>
@@ -742,82 +914,11 @@ namespace AScript.Operators
 		/// <param name="e"></param>
 		/// <param name="arg0Items"></param>
 		/// <param name="searchContext"></param>
-		private void HandleObjectPropertyBuild(FunctionBuildArgs e, IList<ITreeNode> arg0Items, bool? searchContext = null)
+		private void HandleObjectPropertyBuild(FunctionBuildArgs e, IList<ITreeNode> arg0Items)
 		{
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-			var expressions = new List<Expression>(arg0Items.Count);
-
-			for (int i = 0; i < arg0Items.Count; i++)
-			{
-				var varNode = arg0Items[i] as VariableNode;
-				if (varNode == null)
-				{
-					throw new ScriptAnalyzingException("invalid expression near =, expected variable name");
-				}
-				if (varNode.Name == "_") continue;
-
-				var value = ExpressionUtils.GetValue(right, varNode.Name);
-				expressions.Add(HandleVariableAssign(e, varNode, value, searchContext));
-			}
-
-			e.Result = Expression.Block(typeof(void), expressions);
-		}
-
-		/// <summary>
-		/// 列表解构：var { name1, name2 } = ['tom', 'tony', 'jim']
-		/// </summary>
-		/// <param name="e"></param>
-		/// <param name="arg0Items"></param>
-		/// <param name="searchContext"></param>
-		private void HandleArrayBuild(FunctionBuildArgs e, IList<ITreeNode> arg0Items, bool? searchContext = null)
-		{
-			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-			var rightType = right.Type;
-			var isArray = rightType.IsArray;
-			var isList = typeof(IList).IsAssignableFrom(rightType);
-
-			if (!isArray && !isList)
-			{
-				throw new ScriptAnalyzingException("invalid expression near =, right side is not a list");
-			}
-
-			var expressions = new List<Expression>(arg0Items.Count);
-
-			for (int i = 0; i < arg0Items.Count; i++)
-			{
-				var item = arg0Items[i];
-				if (item == null) continue;
-				var varNode = item as VariableNode;
-				if (varNode == null)
-				{
-					throw new ScriptAnalyzingException("invalid expression near =, expected variable name");
-				}
-				if (varNode.Name == "_") continue;
-
-				Expression value;
-				if (isArray)
-				{
-					value = Expression.ArrayAccess(right, Expression.Constant(i));
-				}
-				else
-				{
-					// IList 类型（如 List<T>, IDictionary<string, object> 等）
-					var indexer = rightType.GetProperty("Item");
-					if (indexer != null)
-					{
-						value = Expression.Property(right, indexer, Expression.Constant(i));
-					}
-					else
-					{
-						var getItemMethod = rightType.GetMethod("get_Item");
-						value = Expression.Call(right, getItemMethod, Expression.Constant(i));
-					}
-				}
-
-				expressions.Add(HandleVariableAssign(e, varNode, value, searchContext));
-			}
-
-			e.Result = Expression.Block(typeof(void), expressions);
+			var collectionNode = new CollectionNode { CollectionType = typeof(object), Items = arg0Items.ToList() };
+			e.Result = HandleObjectPropertyDeconstruct(e, collectionNode, right);
 		}
 
 		/// <summary>
