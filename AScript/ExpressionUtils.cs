@@ -442,19 +442,43 @@ namespace AScript
 
 			if (typeof(DataRow).IsAssignableFrom(instance.Type))
 			{
-				//var table = Expression.Property(instance, "Table");
-				//var cols = Expression.Property(table, "Columns");
-				//var col = Expression.Property(cols, "Item", Expression.Constant(propertyOrFieldName));
-				//var type = Expression.Property(col, "DataType");
-				//var item = Expression.Property(instance, Property_DataRow_Item_String, Expression.Constant(propertyOrFieldName));
-				//return Expression.Call(Method_Convert_ChangeType, item, type);
-				return Expression.Property(instance, Property_DataRow_Item_String, Expression.Constant(propertyOrFieldName));
+				// 检查列是否存在
+				var table = Expression.Property(instance, "Table");
+				var cols = Expression.Property(table, "Columns");
+				var containsMethod = typeof(DataColumnCollection).GetMethod("Contains", new[] { typeof(string) });
+				var colExists = Expression.Call(cols, containsMethod, Expression.Constant(propertyOrFieldName));
+				var item = Expression.Property(instance, Property_DataRow_Item_String, Expression.Constant(propertyOrFieldName));
+				if (defaultValue == null)
+				{
+					defaultValue = Expression.Constant(DBNull.Value);
+				}
+				return Expression.Condition(colExists, item, defaultValue);
 			}
 
 			if (typeof(ExpandoObject).IsAssignableFrom(instance.Type))
 			{
 				var d = Expression.Convert(instance, typeof(IDictionary<string, object>));
-				return Expression.Property(d, Property_IDictionary_String_Object_Item, Expression.Constant(propertyOrFieldName));
+				// 检查键是否存在
+				var containsKeyMethod = typeof(IDictionary<string, object>).GetMethod("ContainsKey");
+				var keyExists = Expression.Call(d, containsKeyMethod, Expression.Constant(propertyOrFieldName));
+				var item = Expression.Property(d, Property_IDictionary_String_Object_Item, Expression.Constant(propertyOrFieldName));
+				if (defaultValue == null)
+				{
+					defaultValue = Expression.Constant(null, typeof(object));
+				}
+				else if (defaultValue.Type != item.Type)
+				{
+					defaultValue = Expression.Convert(defaultValue, item.Type);
+				}
+				return Expression.Condition(keyExists, item, defaultValue);
+			}
+
+			// 变量的属性或字段 - 先检查是否存在
+			var prop = instance.Type.GetProperty(propertyOrFieldName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+			if (prop == null)
+			{
+				var fld = instance.Type.GetField(propertyOrFieldName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+				if (fld == null) return defaultValue;
 			}
 
 			// 变量的属性或字段

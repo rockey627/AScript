@@ -827,8 +827,9 @@ namespace AScript.Operators
 				else if (item is OperatorNode opNode && opNode.Name == "=" && opNode.Left is VariableNode leftVar)
 				{
 					if (leftVar.Name == "_") continue;
-					var value = ExpressionUtils.GetValue(right, leftVar.Name);
-					expressions.Add(BuildDeconstruct(e, opNode.Right, value));
+					var defaultValue = opNode.Right.Build(e.BuildContext, e.ScriptContext, e.Options);
+					var value = ExpressionUtils.GetValue(right, leftVar.Name, defaultValue: defaultValue);
+					expressions.Add(BuildDeconstruct(e, leftVar, value));
 				}
 				else
 				{
