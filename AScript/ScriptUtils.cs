@@ -504,7 +504,7 @@ namespace AScript
 			throw new Exceptions.ScriptRuntimeException($"{collectionType} is not a enumerable type");
 		}
 
-		public static object GetValue(object instance, string propertyOrFieldName, out Type type)
+		public static object GetValue(object instance, string propertyOrFieldName, out Type type, bool throwExceptionIfNotExists = true)
 		{
 			object target;
 			Type targetType;
@@ -534,8 +534,14 @@ namespace AScript
 			{
 				var dict = (IDictionary<string, object>)instance;
 				//var value = dict[propertyOrFieldName];
-				dict.TryGetValue(propertyOrFieldName, out var value);
-				type = value?.GetType();
+				if (dict.TryGetValue(propertyOrFieldName, out var value))
+				{
+					type = value?.GetType() ?? typeof(object);
+				}
+				else
+				{
+					type = null;
+				}
 				return value;
 			}
 
@@ -553,7 +559,13 @@ namespace AScript
 				return f.GetValue(target);
 			}
 
-			throw new Exceptions.ScriptRuntimeException($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
+			if (throwExceptionIfNotExists)
+			{
+				throw new Exceptions.ScriptRuntimeException($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
+			}
+
+			type = null;
+			return null;
 		}
 
 		public static void SetValue(object instance, string propertyOrFieldName, object value)
@@ -696,7 +708,7 @@ namespace AScript
 			{
 				if (idx is int n)
 				{
-					var value = valueFac( dataRow[n]);
+					var value = valueFac(dataRow[n]);
 					dataRow[n] = value;
 					return value;
 				}

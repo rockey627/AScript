@@ -302,35 +302,95 @@ namespace AScript.Operators
 			else if (arg0 is TupleNode tupleNode0)
 			{
 				// 元组解构
-				HandleTuple(e, tupleNode0.Items, false);
+				DecontructTuple(e, tupleNode0, e.Args[1]);
 				return;
 			}
 			else if (arg0 is CollectionNode collectionNode)
 			{
 				if (collectionNode.CollectionType == typeof(object))
 				{
-					HandleObjectProperty(e, collectionNode.Items, false);
+					DecontructObjectProperty(e, collectionNode, e.Args[1]);
 				}
 				else
 				{
-					HandleArray(e, collectionNode.Items, false);
+					DecontructArray(e, collectionNode, e.Args[1]);
 				}
 				return;
 			}
+		}
+
+		private void Decontruct(FunctionEvalArgs e, ITreeNode item, object value, Type valueType = null)
+		{
+			if (item is DefineVarNode defineVarNode)
+			{
+				if (value is ITreeNode treeNode)
+				{
+					value = treeNode.Eval(e.Context, e.Options, e.Control, out valueType);
+				}
+				if (!string.IsNullOrEmpty(defineVarNode.Name) && defineVarNode.Name != "_")
+				{
+					e.Context.SetTempVar(defineVarNode.Name, value, valueType, false);
+				}
+				return;
+			}
+			if (item is VariableNode variableNode)
+			{
+				if (value is ITreeNode treeNode)
+				{
+					value = treeNode.Eval(e.Context, e.Options, e.Control, out valueType);
+				}
+				if (!string.IsNullOrEmpty(variableNode.Name) && variableNode.Name != "_")
+				{
+					e.Context.SetTempVar(variableNode.Name, value, valueType, true);
+				}
+				return;
+			}
+			if (item is OperatorNode operatorNode)
+			{
+				if (operatorNode.Name == "=")
+				{
+					// 默认值
+					if (valueType == null)
+					{
+						value = operatorNode.Right.Eval(e.Context, e.Options, e.Control, out valueType);
+					}
+					Decontruct(e, operatorNode.Left, value, valueType);
+					return;
+				}
+				throw new Exceptions.ScriptRuntimeException($"unsupport decontruct {operatorNode.Name}");
+			}
+			if (item is TupleNode tupleNode)
+			{
+				DecontructTuple(e, tupleNode, value);
+				return;
+			}
+			if (item is CollectionNode collectionNode)
+			{
+				if (collectionNode.CollectionType == typeof(object))
+				{
+					DecontructObjectProperty(e, collectionNode, value);
+				}
+				else
+				{
+					DecontructArray(e, collectionNode, value);
+				}
+				return;
+			}
+			throw new Exceptions.ScriptRuntimeException($"unsupport decontruct {item.GetType().Name}");
 		}
 
 		/// <summary>
 		/// 解构元组
 		/// </summary>
 		/// <param name="e"></param>
-		/// <param name="arg0Items"></param>
-		/// <param name="searchContext"></param>
+		/// <param name="item"></param>
+		/// <param name="value"></param>
 		/// <exception cref="ScriptAnalyzingException"></exception>
-		private void HandleTuple(FunctionEvalArgs e, IList<ITreeNode> arg0Items, bool? searchContext = null)
+		private void DecontructTuple(FunctionEvalArgs e, TupleNode item, object value)
 		{
-			if (e.Args[1] is TupleNode tupleNode)
+			if (value is TupleNode tupleNode)
 			{
-				if (arg0Items.Count > tupleNode.Items.Count)
+				if (item.Items.Count > tupleNode.Items.Count)
 				{
 					throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
 				}
@@ -338,16 +398,17 @@ namespace AScript.Operators
 				//var itemTypes = new Type[arg0Items.Count];
 				for (int i = 0; i < tupleNode.Items.Count; i++)
 				{
-					var value = tupleNode.Items[i].Eval(e.Context, e.Options, e.Control, out var itemType);
-					if (i < arg0Items.Count)
+					var value0 = tupleNode.Items[i].Eval(e.Context, e.Options, e.Control, out var valueType0);
+					if (i < item.Items.Count)
 					{
 						//itemValues[i] = value;
 						//itemTypes[i] = itemType;
-						var varName = ((VariableNode)arg0Items[i]).Name;
-						if (varName != "_")
-						{
-							e.Context.SetTempVar(varName, value, itemType, searchContext ?? !(arg0Items[i] is DefineVarNode));
-						}
+						//var varName = ((VariableNode)item.Items[i]).Name;
+						//if (varName != "_")
+						//{
+						//	e.Context.SetTempVar(varName, value0, itemType, searchContext ?? !(arg0Items[i] is DefineVarNode));
+						//}
+						Decontruct(e, item.Items[i], value0, valueType0);
 					}
 				}
 				// 返回元组
@@ -355,47 +416,51 @@ namespace AScript.Operators
 				e.SetResult(null, typeof(void));
 				return;
 			}
-			var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
-			var arg1Type = arg1?.GetType();
+			if (value is ITreeNode treeNode)
+			{
+				value = treeNode.Eval(e.Context, e.Options, e.Control, out _);
+			}
+			var arg1Type = value?.GetType();
 			var arg1TypeName = arg1Type?.Name;
 			if (arg1TypeName != null && (arg1TypeName.StartsWith("ValueTuple`") || arg1TypeName.StartsWith("Tuple`")))
 			{
 				bool isValueTuple = arg1TypeName.StartsWith("ValueTuple`");
 				int arg1FieldCount = isValueTuple ? arg1Type.GetFields().Length : arg1Type.GetProperties().Length;
-				if (arg0Items.Count > arg1FieldCount)
+				if (item.Items.Count > arg1FieldCount)
 				{
 					throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
 				}
 				//var itemValues = arg0Items.Count == arg1FieldCount ? null : new object[arg0Items.Count];
 				//var itemTypes = arg0Items.Count == arg1FieldCount ? null : new Type[arg0Items.Count];
-				for (int i = 0; i < arg0Items.Count; i++)
+				for (int i = 0; i < item.Items.Count; i++)
 				{
-					var varName = ((VariableNode)arg0Items[i]).Name;
+					//var varName = ((VariableNode)arg0Items[i]).Name;
 					//if (varName == "_" && itemValues == null) continue;
-					if (varName == "_") continue;
-					object value;
-					Type itemType;
+					//if (varName == "_") continue;
+					object value0;
+					Type valueType0;
 					if (isValueTuple)
 					{
 						var info = arg1Type.GetField($"Item{i + 1}");
-						value = info.GetValue(arg1);
-						itemType = info.FieldType;
+						value0 = info.GetValue(value);
+						valueType0 = info.FieldType;
 					}
 					else
 					{
 						var info = arg1Type.GetProperty($"Item{i + 1}");
-						value = info.GetValue(arg1);
-						itemType = info.PropertyType;
+						value0 = info.GetValue(value);
+						valueType0 = info.PropertyType;
 					}
+					Decontruct(e, item.Items[i], value0, valueType0);
 					//if (itemValues != null)
 					//{
 					//	itemValues[i] = value;
 					//	itemTypes[i] = itemType;
 					//}
-					if (varName != "_")
-					{
-						e.Context.SetTempVar(varName, value, itemType, searchContext ?? !(arg0Items[i] is DefineVarNode));
-					}
+					//if (varName != "_")
+					//{
+					//	e.Context.SetTempVar(varName, value, itemType, searchContext ?? !(arg0Items[i] is DefineVarNode));
+					//}
 				}
 				// 返回元组
 				//e.SetResult(itemValues == null ? arg1 : TupleNode.CreateTuple(itemValues, itemTypes));
@@ -410,69 +475,151 @@ namespace AScript.Operators
 		/// 解构对象属性或字典：var { name, age } = new Person { name = 'tom', age = 20 }
 		/// </summary>
 		/// <param name="e"></param>
-		/// <param name="arg0Items"></param>
-		/// <param name="searchContext"></param>
-		private void HandleObjectProperty(FunctionEvalArgs e, IList<ITreeNode> arg0Items, bool? searchContext = null)
+		/// <param name="item"></param>
+		/// <param name="value"></param>
+		private void DecontructObjectProperty(FunctionEvalArgs e, CollectionNode item, object value)
 		{
-			var right = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
-			for (int i = 0; i < arg0Items.Count; i++)
+			if (value is ITreeNode treeNode)
 			{
-				var varNode = arg0Items[i] as VariableNode;
-				if (varNode == null)
-				{
-					throw new ScriptAnalyzingException("invalid expression near =, expected variable name");
-				}
-				if (varNode.Name == "_") continue;
+				value = treeNode.Eval(e.Context, e.Options, e.Control, out _);
+			}
+			for (int i = 0; i < item.Items.Count; i++)
+			{
+				//var varNode = arg0Items[i] as VariableNode;
+				//if (varNode == null)
+				//{
+				//	throw new ScriptAnalyzingException("invalid expression near =, expected variable name");
+				//}
+				//if (varNode.Name == "_") continue;
 
-				object value;
-				Type valueType;
-				if (right == null)
-				{
-					value = null;
-					valueType = typeof(object);
-				}
-				else
-				{
-					value = ScriptUtils.GetValue(right, varNode.Name, out valueType);
-				}
-				e.Context.SetTempVar(varNode.Name, value, valueType, searchContext ?? !(arg0Items[i] is DefineVarNode));
+				//object value0;
+				//Type valueType0;
+				//if (valueTop == null)
+				//{
+				//	value0 = null;
+				//	valueType0 = typeof(object);
+				//}
+				//else
+				//{
+				//	value0 = ScriptUtils.GetValue(valueTop, varNode.Name, out valueType0);
+				//}
+				DecontructObjectProperty(e, item.Items[i], value);
+				//e.Context.SetTempVar(varNode.Name, value0, valueType0, searchContext ?? !(arg0Items[i] is DefineVarNode));
 			}
 			e.SetResult(null, typeof(void));
+		}
+
+		private void DecontructObjectProperty(FunctionEvalArgs e, ITreeNode item, object value)
+		{
+			//if (item is DefineVarNode defineVarNode)
+			//{
+			//	if (value is ITreeNode treeNode)
+			//	{
+			//		value = treeNode.Eval(e.Context, e.Options, e.Control, out _);
+			//	}
+			//	if (!string.IsNullOrEmpty(defineVarNode.Name) && defineVarNode.Name != "_")
+			//	{
+			//		object value0;
+			//		Type valueType0;
+			//		if (value == null)
+			//		{
+			//			value0 = null;
+			//			valueType0 = typeof(object);
+			//		}
+			//		else
+			//		{
+			//			value0 = ScriptUtils.GetValue(value, defineVarNode.Name, out valueType0);
+			//		}
+			//		e.Context.SetTempVar(defineVarNode.Name, value0, valueType0, false);
+			//	}
+			//	return;
+			//}
+			if (item is VariableNode variableNode)
+			{
+				if (!string.IsNullOrEmpty(variableNode.Name) && variableNode.Name != "_")
+				{
+					object value0;
+					Type valueType0;
+					if (value == null)
+					{
+						value0 = null;
+						valueType0 = null;
+					}
+					else
+					{
+						value0 = ScriptUtils.GetValue(value, variableNode.Name, out valueType0, false);
+					}
+					//e.Context.SetTempVar(variableNode.Name, value0, valueType0, false);
+					Decontruct(e, item, value0, valueType0);
+				}
+				return;
+			}
+			if (item is OperatorNode operatorNode)
+			{
+				if (operatorNode.Name == "=" && operatorNode.Left is VariableNode variableNode1)
+				{
+					if (!string.IsNullOrEmpty(variableNode1.Name) && variableNode1.Name != "_")
+					{
+						object value0;
+						Type valueType0;
+						if (value == null)
+						{
+							value0 = null;
+							valueType0 = null;
+						}
+						else
+						{
+							value0 = ScriptUtils.GetValue(value, variableNode1.Name, out valueType0, false);
+						}
+						if (valueType0 == null)
+						{
+							value0 = operatorNode.Right.Eval(e.Context, e.Options, e.Control, out valueType0);
+						}
+						Decontruct(e, operatorNode.Left, value0, valueType0);
+					}
+					return;
+				}
+			}
+			throw new Exceptions.ScriptRuntimeException($"unsupport decontruct {item.GetType().Name}");
 		}
 
 		/// <summary>
 		/// 列表解构：var { name1, name2 } = ['tom', 'tony', 'jim']
 		/// </summary>
 		/// <param name="e"></param>
-		/// <param name="arg0Items"></param>
-		/// <param name="searchContext"></param>
-		private void HandleArray(FunctionEvalArgs e, IList<ITreeNode> arg0Items, bool? searchContext = null)
+		/// <param name="item"></param>
+		/// <param name="value"></param>
+		private void DecontructArray(FunctionEvalArgs e, CollectionNode item, object value)
 		{
-			var right = e.Args[1].Eval(e.Context, e.Options, e.Control, out var rightType);
-			if (right == null)
+			if (value is ITreeNode treeNode)
+			{
+				value = treeNode.Eval(e.Context, e.Options, e.Control, out _);
+			}
+			if (value == null)
 			{
 				throw new ScriptAnalyzingException("invalid expression near =, right side is null");
 			}
 
-			if (!(right is IList list))
+			if (!(value is IList list))
 			{
 				throw new ScriptAnalyzingException("invalid expression near =, right side is not a list");
 			}
 
-			for (int i = 0; i < arg0Items.Count; i++)
+			for (int i = 0; i < item.Items.Count; i++)
 			{
-				var item = arg0Items[i];
-				if (item == null) continue;
-				var varNode = item as VariableNode;
-				if (varNode == null)
-				{
-					throw new ScriptAnalyzingException("invalid expression near =, expected variable name");
-				}
-				if (varNode.Name == "_") continue;
+				var item0 = item.Items[i];
+				if (item0 == null) continue;
+				//var varNode = item0 as VariableNode;
+				//if (varNode == null)
+				//{
+				//	throw new ScriptAnalyzingException("invalid expression near =, expected variable name");
+				//}
+				//if (varNode.Name == "_") continue;
 
-				object value = i < list.Count ? list[i] : null;
-				Type valueType = i < list.Count ? list[i]?.GetType() ?? typeof(object) : typeof(object);
-				e.Context.SetTempVar(varNode.Name, value, valueType, searchContext ?? !(arg0Items[i] is DefineVarNode));
+				object value0 = i < list.Count ? list[i] : null;
+				Type valueType0 = i < list.Count ? list[i]?.GetType() ?? typeof(object) : null;
+				//e.Context.SetTempVar(varNode.Name, value, valueType, searchContext ?? !(arg0Items[i] is DefineVarNode));
+				Decontruct(e, item0, value0, valueType0);
 			}
 			e.SetResult(null, typeof(void));
 		}

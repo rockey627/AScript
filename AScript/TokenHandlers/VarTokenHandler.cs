@@ -55,8 +55,25 @@ namespace AScript.TokenHandlers
 				while (true)
 				{
 					nextToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
-					list?.Add(PoolManage.CreateDefineVarNode(nextToken.Value.Value, null, systemType: typeof(object)));
+					string varName = nextToken.Value.Value;
+					//list?.Add(PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object)));
 					nextToken = analyzer.ValidateNextToken(e.TokenReader);
+					if (nextToken.Value.IsSymbol("="))
+					{
+						var value = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+						if (list != null)
+						{
+							var opNode = PoolManage.CreateOperatorNode("=", 2, 0);
+							opNode.Left = PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object));
+							opNode.Right = value;
+							list.Add(opNode);
+						}
+						nextToken = analyzer.ValidateNextToken(e.TokenReader);
+					}
+					else
+					{
+						list?.Add(PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object)));
+					}
 					if (nextToken.Value.IsSymbol(",")) continue;
 					if (nextToken.Value.IsSymbol("}")) break;
 					throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
@@ -90,8 +107,24 @@ namespace AScript.TokenHandlers
 					{
 						throw new Exceptions.ScriptAnalyzingException($"invalid expression at ({nextToken.Value.Line},{nextToken.Value.Column}), expect Word");
 					}
-					list?.Add(PoolManage.CreateDefineVarNode(nextToken.Value.Value, null, systemType: typeof(object)));
+					string varName = nextToken.Value.Value;
 					nextToken = analyzer.ValidateNextToken(e.TokenReader);
+					if (nextToken.Value.IsSymbol("="))
+					{
+						var value = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+						if (list != null)
+						{
+							var opNode = PoolManage.CreateOperatorNode("=", 2, 0);
+							opNode.Left = PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object));
+							opNode.Right = value;
+							list.Add(opNode);
+						}
+						nextToken = analyzer.ValidateNextToken(e.TokenReader);
+					}
+					else
+					{
+						list?.Add(PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object)));
+					}
 					if (nextToken.Value.IsSymbol(",")) continue;
 					if (nextToken.Value.IsSymbol("]")) break;
 					throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
