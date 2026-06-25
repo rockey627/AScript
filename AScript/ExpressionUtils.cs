@@ -419,7 +419,7 @@ namespace AScript
 			return true;
 		}
 
-		public static Expression GetValue(Expression instance, string propertyOrFieldName, bool nullable = false)
+		public static Expression GetValue(Expression instance, string propertyOrFieldName, bool nullable = false, Expression defaultValue = null)
 		{
 			if (instance.Type == typeof(TypeWrapper))
 			{
@@ -432,7 +432,12 @@ namespace AScript
 				}
 
 				var field = targetType.GetField(propertyOrFieldName, BindingFlags.Static | BindingFlags.Public);
-				return Expression.Field(null, field);
+				if (field != null)
+				{
+					return Expression.Field(null, field);
+				}
+
+				return defaultValue;
 			}
 
 			if (typeof(DataRow).IsAssignableFrom(instance.Type))

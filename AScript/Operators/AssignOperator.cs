@@ -137,7 +137,7 @@ namespace AScript.Operators
 				var value = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 				if (collectionNode.CollectionType == typeof(object))
 				{
-					HandleObjectPropertyBuild(e, collectionNode.Items);
+					e.Result = BuildDeconstructObjectProperty(e, collectionNode, value);
 				}
 				else
 				{
@@ -767,7 +767,7 @@ namespace AScript.Operators
 			{
 				if (collectionNode.CollectionType == typeof(object))
 				{
-					return HandleObjectPropertyDeconstruct(e, collectionNode, right);
+					return BuildDeconstructObjectProperty(e, collectionNode, right);
 				}
 				else
 				{
@@ -804,7 +804,15 @@ namespace AScript.Operators
 			throw new ScriptRuntimeException($"unsupport deconstruct {item.GetType().Name}");
 		}
 
-		private Expression HandleObjectPropertyDeconstruct(FunctionBuildArgs e, CollectionNode collectionNode, Expression right)
+		/// <summary>
+		/// 解构对象属性或字典：var { name, age } = new Person { name = 'tom', age = 20 };
+		/// </summary>
+		/// <param name="e"></param>
+		/// <param name="collectionNode"></param>
+		/// <param name="right"></param>
+		/// <returns></returns>
+		/// <exception cref="ScriptAnalyzingException"></exception>
+		private Expression BuildDeconstructObjectProperty(FunctionBuildArgs e, CollectionNode collectionNode, Expression right)
 		{
 			var expressions = new List<Expression>(collectionNode.Items.Count);
 			for (int i = 0; i < collectionNode.Items.Count; i++)
@@ -906,19 +914,6 @@ namespace AScript.Operators
 				if (expr != null) expressions.Add(expr);
 			}
 			return Expression.Block(typeof(void), expressions);
-		}
-
-		/// <summary>
-		/// 解构对象属性或字典：var { name, age } = new Person { name = 'tom', age = 20 };
-		/// </summary>
-		/// <param name="e"></param>
-		/// <param name="arg0Items"></param>
-		/// <param name="searchContext"></param>
-		private void HandleObjectPropertyBuild(FunctionBuildArgs e, IList<ITreeNode> arg0Items)
-		{
-			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-			var collectionNode = new CollectionNode { CollectionType = typeof(object), Items = arg0Items.ToList() };
-			e.Result = HandleObjectPropertyDeconstruct(e, collectionNode, right);
 		}
 
 		/// <summary>
