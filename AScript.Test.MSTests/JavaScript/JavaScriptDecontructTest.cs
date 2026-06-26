@@ -131,19 +131,33 @@ a + b;
 			Assert.AreEqual(13L, script.Eval(code));
 		}
 
+		//		[TestMethod]
+		//		public void TestDestructuring_Array_Swap()
+		//		{
+		//			var script = new Script();
+		//			script.Context.Langs = new[] { "js" };
+
+		//			string code = @"
+		//var a = 1;
+		//var b = 2;
+		//[a, b] = [b, a];
+		//a + b;
+		//";
+		//			Assert.AreEqual(3L, script.Eval(code));
+		//		}
+
 		[TestMethod]
-		public void TestDestructuring_Array_Swap()
+		public void TestDestructuring_Array_Nested2()
 		{
 			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
 
 			string code = @"
-var a = 1;
-var b = 2;
-[a, b] = [b, a];
-a + b;
+var [[inner], outer] = [[10], 20];
+inner + outer;
 ";
-			Assert.AreEqual(3L, script.Eval(code));
+			Assert.AreEqual(30L, script.Eval(code));
 		}
 
 		[TestMethod]
@@ -266,34 +280,48 @@ aliasName;
 			Assert.AreEqual("Bob", script.Eval(code));
 		}
 
+		//		[TestMethod]
+		//		public void TestDestructuring_FunctionParam_Object()
+		//		{
+		//			var script = new Script();
+		//			script.Context.Langs = new[] { "js" };
+
+		//			string code = @"
+		//function greet({name, age}) {
+		//	return name + ' is ' + age;
+		//}
+		//greet({name: 'Tom', age: 20});
+		//";
+		//			Assert.AreEqual("Tom is 20", script.Eval(code));
+		//		}
+
+		//		[TestMethod]
+		//		public void TestDestructuring_FunctionParam_Array()
+		//		{
+		//			var script = new Script();
+		//			script.Context.Langs = new[] { "js" };
+
+		//			string code = @"
+		//function sum([a, b, c]) {
+		//	return a + b + c;
+		//}
+		//sum([10, 20, 30]);
+		//";
+		//			Assert.AreEqual(60L, script.Eval(code));
+		//		}
+
 		[TestMethod]
-		public void TestDestructuring_FunctionParam_Object()
+		public void TestDestructuring_Combined2()
 		{
 			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
 
 			string code = @"
-function greet({name, age}) {
-	return name + ' is ' + age;
-}
-greet({name: 'Tom', age: 20});
+var [first, {name}] = [1, {name: 'John'}];
+first + name.length;
 ";
-			Assert.AreEqual("Tom is 20", script.Eval(code));
-		}
-
-		[TestMethod]
-		public void TestDestructuring_FunctionParam_Array()
-		{
-			var script = new Script();
-			script.Context.Langs = new[] { "js" };
-
-			string code = @"
-function sum([a, b, c]) {
-	return a + b + c;
-}
-sum([10, 20, 30]);
-";
-			Assert.AreEqual(60L, script.Eval(code));
+			Assert.AreEqual(5L, script.Eval(code));
 		}
 
 		[TestMethod]

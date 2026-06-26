@@ -850,8 +850,16 @@ namespace AScript.Operators
 		private Expression BuildDeconstructArray(FunctionBuildArgs e, CollectionNode collectionNode, Expression value)
 		{
 			var rightType = value.Type;
+			var collectionType = rightType;
 			var isArray = rightType.IsArray;
 			var isList = typeof(IList).IsAssignableFrom(rightType);
+			if (!isArray && !isList && rightType == typeof(object))
+			{
+				value = Expression.Convert(value, typeof(IList));
+				rightType = value.Type;
+				collectionType = typeof(ICollection);
+				isList = true;
+			}
 			if (!isArray && !isList)
 			{
 				throw new ScriptAnalyzingException("invalid expression near =, right side is not a list");
@@ -864,14 +872,14 @@ namespace AScript.Operators
 			}
 			else
 			{
-				var countProperty = rightType.GetProperty("Count");
+				var countProperty = collectionType.GetProperty("Count");
 				if (countProperty != null)
 				{
 					countExpr = Expression.Property(value, countProperty);
 				}
 				else
 				{
-					var getCountMethod = rightType.GetMethod("get_Count");
+					var getCountMethod = collectionType.GetMethod("get_Count");
 					countExpr = Expression.Call(value, getCountMethod);
 				}
 			}

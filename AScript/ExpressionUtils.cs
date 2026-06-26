@@ -474,11 +474,14 @@ namespace AScript
 			}
 
 			// 变量的属性或字段 - 先检查是否存在
-			var prop = instance.Type.GetProperty(propertyOrFieldName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-			if (prop == null)
+			if (defaultValue != null)
 			{
-				var fld = instance.Type.GetField(propertyOrFieldName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-				if (fld == null) return defaultValue;
+				var prop = instance.Type.GetProperty(propertyOrFieldName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+				if (prop == null)
+				{
+					var fld = instance.Type.GetField(propertyOrFieldName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+					if (fld == null) return defaultValue;
+				}
 			}
 
 			// 变量的属性或字段

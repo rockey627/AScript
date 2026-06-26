@@ -51,33 +51,7 @@ namespace AScript.TokenHandlers
 
 			if (nextToken.Value.IsSymbol("{"))
 			{
-				var list = e.Ignore ? null : new List<ITreeNode>();
-				while (true)
-				{
-					nextToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
-					string varName = nextToken.Value.Value;
-					//list?.Add(PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object)));
-					nextToken = analyzer.ValidateNextToken(e.TokenReader);
-					if (nextToken.Value.IsSymbol("="))
-					{
-						var value = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
-						if (list != null)
-						{
-							var opNode = PoolManage.CreateOperatorNode("=", 2, 0);
-							opNode.Left = PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object));
-							opNode.Right = value;
-							list.Add(opNode);
-						}
-						nextToken = analyzer.ValidateNextToken(e.TokenReader);
-					}
-					else
-					{
-						list?.Add(PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object)));
-					}
-					if (nextToken.Value.IsSymbol(",")) continue;
-					if (nextToken.Value.IsSymbol("}")) break;
-					throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
-				}
+				var list = BuildList(analyzer, e, "}");
 				if (!e.Ignore)
 				{
 					var node = new CollectionNode { Items = list, CollectionType = typeof(object) };
@@ -93,16 +67,56 @@ namespace AScript.TokenHandlers
 
 			if (nextToken.Value.IsSymbol("["))
 			{
-				var list = e.Ignore ? null : new List<ITreeNode>();
-				while (true)
+				var list = BuildList(analyzer, e, "]");
+				if (!e.Ignore)
 				{
-					//nextToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
-					nextToken = analyzer.ValidateNextToken(e.TokenReader);
-					if (nextToken.Value.IsSymbol(","))
+					var node = new CollectionNode { Items = list, CollectionType = typeof(Array) };
+					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, node);
+				}
+				analyzer.ValidateNextToken(e.TokenReader, "=");
+				if (!e.Ignore)
+				{
+					e.TreeBuilder.AddOperator(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateOperatorNode("=", 2, DefaultSyntaxAnalyzer.OperatorPriorities["="]));
+				}
+				return;
+			}
+
+			throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
+		}
+
+		private List<ITreeNode> BuildList(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, string endToken)
+		{
+			var list = e.Ignore ? null : new List<ITreeNode>();
+			while (true)
+			{
+				var nextToken = analyzer.ValidateNextToken(e.TokenReader);
+				if (nextToken.Value.IsSymbol(","))
+				{
+					list?.Add(null);
+					continue;
+				}
+				if (nextToken.Value.IsSymbol("{"))
+				{
+					var list2 = BuildList(analyzer, e, "}");
+					if (!e.Ignore)
 					{
-						list?.Add(null);
-						continue;
+						var node = new CollectionNode { Items = list2, CollectionType = typeof(object) };
+						list?.Add(node);
 					}
+					nextToken = analyzer.ValidateNextToken(e.TokenReader);
+				}
+				else if (nextToken.Value.IsSymbol("["))
+				{
+					var list2 = BuildList(analyzer, e, "]");
+					if (!e.Ignore)
+					{
+						var node = new CollectionNode { Items = list2, CollectionType = typeof(Array) };
+						list?.Add(node);
+					}
+					nextToken = analyzer.ValidateNextToken(e.TokenReader);
+				}
+				else
+				{
 					if (nextToken.Value.Type != ETokenType.Word)
 					{
 						throw new Exceptions.ScriptAnalyzingException($"invalid expression at ({nextToken.Value.Line},{nextToken.Value.Column}), expect Word");
@@ -125,24 +139,12 @@ namespace AScript.TokenHandlers
 					{
 						list?.Add(PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object)));
 					}
-					if (nextToken.Value.IsSymbol(",")) continue;
-					if (nextToken.Value.IsSymbol("]")) break;
-					throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
 				}
-				if (!e.Ignore)
-				{
-					var node = new CollectionNode { Items = list, CollectionType = typeof(Array) };
-					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, node);
-				}
-				analyzer.ValidateNextToken(e.TokenReader, "=");
-				if (!e.Ignore)
-				{
-					e.TreeBuilder.AddOperator(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateOperatorNode("=", 2, DefaultSyntaxAnalyzer.OperatorPriorities["="]));
-				}
-				return;
+				if (nextToken.Value.IsSymbol(",")) continue;
+				if (nextToken.Value.IsSymbol(endToken)) break;
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
 			}
-
-			throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
+			return list;
 		}
 	}
 }
