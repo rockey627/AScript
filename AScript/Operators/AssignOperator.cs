@@ -122,11 +122,6 @@ namespace AScript.Operators
 				var valuesExpr = Expression.Convert(values, typeof(IList));
 				e.Result = Expression.Call(ExpressionUtils.Method_ScriptUtils_SliceAssign, listExpr, startExpr, endExpr, valuesExpr);
 			}
-			//else if (arg0 is CallFuncNode callFuncNode2 && callFuncNode2.Name == "var")
-			//{
-			//	// 元组解构
-			//	HandleTupleBuild(e, callFuncNode2.Args, false);
-			//}
 			else if (arg0 is TupleNode tupleNode)
 			{
 				// 元组解构
@@ -294,12 +289,6 @@ namespace AScript.Operators
 				e.SetResult(list, list == null ? type : list.GetType());
 				return;
 			}
-			//else if (arg0 is CallFuncNode callFuncNode2 && callFuncNode2.Name == "var")
-			//{
-			//	// 元组解构
-			//	HandleTuple(e, callFuncNode2.Args, false);
-			//	return;
-			//}
 			else if (arg0 is TupleNode tupleNode0)
 			{
 				// 元组解构
@@ -512,29 +501,6 @@ namespace AScript.Operators
 
 		private void DecontructObjectProperty(FunctionEvalArgs e, ITreeNode item, object value)
 		{
-			//if (item is DefineVarNode defineVarNode)
-			//{
-			//	if (value is ITreeNode treeNode)
-			//	{
-			//		value = treeNode.Eval(e.Context, e.Options, e.Control, out _);
-			//	}
-			//	if (!string.IsNullOrEmpty(defineVarNode.Name) && defineVarNode.Name != "_")
-			//	{
-			//		object value0;
-			//		Type valueType0;
-			//		if (value == null)
-			//		{
-			//			value0 = null;
-			//			valueType0 = typeof(object);
-			//		}
-			//		else
-			//		{
-			//			value0 = ScriptUtils.GetValue(value, defineVarNode.Name, out valueType0);
-			//		}
-			//		e.Context.SetTempVar(defineVarNode.Name, value0, valueType0, false);
-			//	}
-			//	return;
-			//}
 			if (item is VariableNode variableNode)
 			{
 				if (!string.IsNullOrEmpty(variableNode.Name) && variableNode.Name != "_")
@@ -550,7 +516,6 @@ namespace AScript.Operators
 					{
 						value0 = ScriptUtils.GetValue(value, variableNode.Name, out valueType0, false);
 					}
-					//e.Context.SetTempVar(variableNode.Name, value0, valueType0, false);
 					Decontruct(e, item, value0, valueType0);
 				}
 				return;
@@ -580,6 +545,12 @@ namespace AScript.Operators
 					}
 					return;
 				}
+			}
+			else if (item is PropertyMapNode propertyMapNode)
+			{
+				var value0 = ScriptUtils.GetValue(value, propertyMapNode.PropertyName, out var valueType0, false);
+				Decontruct(e, propertyMapNode.MapNode, value0, valueType0);
+				return;
 			}
 			throw new Exceptions.ScriptRuntimeException($"unsupport decontruct {item.GetType().Name}");
 		}
@@ -809,10 +780,10 @@ namespace AScript.Operators
 		/// </summary>
 		/// <param name="e"></param>
 		/// <param name="collectionNode"></param>
-		/// <param name="right"></param>
+		/// <param name="value"></param>
 		/// <returns></returns>
 		/// <exception cref="ScriptAnalyzingException"></exception>
-		private Expression BuildDeconstructObjectProperty(FunctionBuildArgs e, CollectionNode collectionNode, Expression right)
+		private Expression BuildDeconstructObjectProperty(FunctionBuildArgs e, CollectionNode collectionNode, Expression value)
 		{
 			var expressions = new List<Expression>(collectionNode.Items.Count);
 			for (int i = 0; i < collectionNode.Items.Count; i++)
@@ -821,15 +792,20 @@ namespace AScript.Operators
 				if (item is VariableNode varNode)
 				{
 					if (varNode.Name == "_") continue;
-					var value = ExpressionUtils.GetValue(right, varNode.Name);
-					expressions.Add(BuildDeconstruct(e, item, value));
+					var value0 = ExpressionUtils.GetValue(value, varNode.Name);
+					expressions.Add(BuildDeconstruct(e, item, value0));
 				}
 				else if (item is OperatorNode opNode && opNode.Name == "=" && opNode.Left is VariableNode leftVar)
 				{
 					if (leftVar.Name == "_") continue;
 					var defaultValue = opNode.Right.Build(e.BuildContext, e.ScriptContext, e.Options);
-					var value = ExpressionUtils.GetValue(right, leftVar.Name, defaultValue: defaultValue);
-					expressions.Add(BuildDeconstruct(e, leftVar, value));
+					var value0 = ExpressionUtils.GetValue(value, leftVar.Name, defaultValue: defaultValue);
+					expressions.Add(BuildDeconstruct(e, leftVar, value0));
+				}
+				else if (item is PropertyMapNode propertyMapNode)
+				{
+					var value0 = ExpressionUtils.GetValue(value, propertyMapNode.PropertyName);
+					expressions.Add(BuildDeconstruct(e, propertyMapNode.MapNode, value0));
 				}
 				else
 				{

@@ -255,6 +255,20 @@ a + b;
 		}
 
 		[TestMethod]
+		public void TestDestructuring_Object_Nested2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var {inner: {value}} = {inner: {value: 42}};
+value;
+";
+			Assert.AreEqual(42L, script.Eval(code));
+		}
+
+		[TestMethod]
 		public void TestDestructuring_Object_Nested()
 		{
 			var script = new Script();
@@ -265,6 +279,20 @@ var {inner: {value}} = {inner: {value: 42}};
 value;
 ";
 			Assert.AreEqual(42L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void TestDestructuring_Object_Alias2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var {name: aliasName} = {name: 'Bob'};
+aliasName;
+";
+			Assert.AreEqual("Bob", script.Eval(code));
 		}
 
 		[TestMethod]

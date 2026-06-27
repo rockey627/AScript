@@ -98,20 +98,20 @@ namespace AScript.TokenHandlers
 				if (nextToken.Value.IsSymbol("{"))
 				{
 					var list2 = BuildList(analyzer, e, "}");
-					if (!e.Ignore)
+					if (list != null)
 					{
 						var node = new CollectionNode { Items = list2, CollectionType = typeof(object) };
-						list?.Add(node);
+						list.Add(node);
 					}
 					nextToken = analyzer.ValidateNextToken(e.TokenReader);
 				}
 				else if (nextToken.Value.IsSymbol("["))
 				{
 					var list2 = BuildList(analyzer, e, "]");
-					if (!e.Ignore)
+					if (list != null)
 					{
 						var node = new CollectionNode { Items = list2, CollectionType = typeof(Array) };
-						list?.Add(node);
+						list.Add(node);
 					}
 					nextToken = analyzer.ValidateNextToken(e.TokenReader);
 				}
@@ -132,6 +132,41 @@ namespace AScript.TokenHandlers
 							opNode.Left = PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object));
 							opNode.Right = value;
 							list.Add(opNode);
+						}
+						nextToken = analyzer.ValidateNextToken(e.TokenReader);
+					}
+					else if (nextToken.Value.IsSymbol(":"))
+					{
+						nextToken = analyzer.ValidateNextToken(e.TokenReader);
+						if (nextToken.Value.Type == ETokenType.Word)
+						{
+							if (list != null)
+							{
+								var node = new PropertyMapNode { PropertyName = varName, MapNode = new DefineVarNode(nextToken.Value.Value, null, typeof(object)) };
+								list.Add(node);
+							}
+						}
+						else if (nextToken.Value.IsSymbol("{"))
+						{
+							var list2 = BuildList(analyzer, e, "}");
+							if (list != null)
+							{
+								var node = new CollectionNode { Items = list2, CollectionType = typeof(object) };
+								list.Add(new PropertyMapNode { PropertyName = varName, MapNode = node });
+							}
+						}
+						else if (nextToken.Value.IsSymbol("["))
+						{
+							var list2 = BuildList(analyzer, e, "]");
+							if (list != null)
+							{
+								var node = new CollectionNode { Items = list2, CollectionType = typeof(Array) };
+								list.Add(new PropertyMapNode { PropertyName = varName, MapNode = node });
+							}
+						}
+						else
+						{
+							throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
 						}
 						nextToken = analyzer.ValidateNextToken(e.TokenReader);
 					}
