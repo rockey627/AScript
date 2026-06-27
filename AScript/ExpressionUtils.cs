@@ -498,6 +498,17 @@ namespace AScript
 				var nullCheck = Expression.Equal(instance, Expression.Constant(null, instance.Type));
 				return Expression.Condition(nullCheck, Expression.Constant(null, propType), Expression.Convert(propOrField, propType));
 			}
+
+			// 当 instance.Type == typeof(object) 时，可能是 JavaScript 对象（IDictionary<string, object>）
+			// 也可能是普通对象，使用动态绑定来处理不同运行时类型的属性访问
+			if (instance.Type == typeof(object))
+			{
+				var getMemberBinder = Microsoft.CSharp.RuntimeBinder.Binder.GetMember(
+					CSharpBinderFlags.None, propertyOrFieldName, typeof(object),
+					new[] { CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null) });
+				return Expression.Dynamic(getMemberBinder, typeof(object), instance);
+			}
+
 			return Expression.PropertyOrField(instance, propertyOrFieldName);
 		}
 
