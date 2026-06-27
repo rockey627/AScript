@@ -51,7 +51,7 @@ var script = new Script();
 Assert.AreEqual(230, script.Eval(s));
 ```
 
-#### 字符串内插值
+#### 字符串插值
 ```
 string s = @"
 name='tom'; 
