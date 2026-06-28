@@ -63,3 +63,27 @@ var script = new Script();
 script.Context.Langs = new [] { "js" };
 Assert.AreEqual("hello tom, 5+8=13", script.Eval(s));
 ```
+
+#### 正则表达式
+```
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+var result = script.Eval<List<object>>("'hello world World'.match(/world/gi)");
+Assert.AreEqual(2, result.Count);
+Assert.AreEqual("world", result[0]);
+Assert.AreEqual("World", result[1]);
+```
+
+#### 字符串函数
+```
+String.fromCharCode(65,66,67); // 'ABC'
+'hello'.startsWith('he'); // true
+'hello'.endsWith('a'); // false
+'hello'.includes('e'); // true
+'hello'.indexOf('el'); // 1
+'hello'.indexOf('el', 2); // -1
+'hello'.lastIndexOf('l'); // 3
+'hello'.search('el'); // 1
+'hello'.search(/el/gi); // 1
+'hello'.substr(-2); // 'lo'
+```

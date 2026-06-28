@@ -4,30 +4,34 @@
 	  <TargetFrameworks>netstandard2.0;netstandard2.1;net45</TargetFrameworks>
 	  <GenerateDocumentationFile>true</GenerateDocumentationFile>
 	  <Authors>rockey627</Authors>
-	  <PackageTags>C# javascript js Expression Eval Evaluator Execute Function Compile Compiler Script Scripting 脚本执行 动态脚本 表达式 计算</PackageTags>
+	  <PackageTags>C# JavaScript js Expression Eval Evaluator Execute Function Compile Compiler Script Scripting 脚本执行 动态脚本 表达式 计算</PackageTags>
 	  <PackageLicenseUrl>https://gitee.com/rockey627/ascript/blob/master/LICENSE</PackageLicenseUrl>
 	  <PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
 	  <Description>
 		  <![CDATA[
-基于AScript扩展的javascript脚本语言；
+基于AScript扩展的JavaScript脚本语言，支持js基础语法及数据类型；
 快速开始：
-// 添加JavaScript脚本语言
+// 注册js脚本语言
 Script.Langs.Set("js", JavaScriptLang.Instance);
+// 执行js脚本
 string s = @"
-#lang js // 嵌入js脚本
-function sum(int a, int b) { 
+@lang js
+function sum(a, b) { 
 	return a+b;
 }
 var n=10;
 sum(n,5)
 ";
 var script = new Script();
+// 上下文中指定语言，或者脚本中使用@lang指定语言
+//script.Context.Langs = new [] { "js" };
 var result = script.Eval(s);
-Assert.AreEqual(15, result);
+Assert.AreEqual(15L, result);
 			]]>
 	  </Description>
-	  <Version>0.0.0.0</Version>
-	  <PackageReleaseNotes></PackageReleaseNotes>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <Version>0.0.1.0</Version>
+	  <PackageReleaseNotes>js基础语法</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

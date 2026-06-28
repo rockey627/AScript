@@ -36,6 +36,15 @@ namespace AScript.Lang.JavaScript.Extensions
 			return new LambdaExpression[] { expr1, expr2 };
 		}
 		public static Expression<Func<string, string, long>> search() => (s, p) => s.IndexOf(p);
+
+		public static long search(string s, JavaScriptRegexPattern p)
+		{
+			if (string.IsNullOrEmpty(s)) return -1L;
+			var match = Regex.Match(s, p.Pattern, p.Options);
+			if (!match.Success) return -1L;
+			return match.Index;
+		}
+
 		// substr扩展方法有多个重载方法
 		public static LambdaExpression[] substr()
 		{
@@ -123,14 +132,6 @@ namespace AScript.Lang.JavaScript.Extensions
 				return Regex.Replace(s, p.Pattern, value, p.Options);
 			}
 			return new Regex(p.Pattern, p.Options).Replace(s, value, 1);
-		}
-
-		public static long search(string s, JavaScriptRegexPattern p)
-		{
-			if (string.IsNullOrEmpty(s)) return -1L;
-			var match = Regex.Match(s, p.Pattern, p.Options);
-			if (!match.Success) return -1L;
-			return match.Index;
 		}
 
 		public static List<object> split(string s, string pattern)

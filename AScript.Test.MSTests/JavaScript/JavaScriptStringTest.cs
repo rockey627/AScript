@@ -150,6 +150,7 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual("ello", script.Eval("'hello'.substr(1)"));
 			Assert.AreEqual("hel", script.Eval("'hello'.substr(0, 3)"));
 			Assert.AreEqual("ll", script.Eval("'hello'.substr(2, 2)"));
+			Assert.AreEqual("lo", script.Eval("'hello'.substr(-2)"));
 		}
 
 		[TestMethod]
@@ -162,6 +163,7 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual("ello", script.Eval("'hello'.substr(1)"));
 			Assert.AreEqual("hel", script.Eval("'hello'.substr(0, 3)"));
 			Assert.AreEqual("ll", script.Eval("'hello'.substr(2, 2)"));
+			Assert.AreEqual("lo", script.Eval("'hello'.substr(-2)"));
 		}
 
 		// slice

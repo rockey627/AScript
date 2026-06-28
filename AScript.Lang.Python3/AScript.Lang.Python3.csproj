@@ -9,10 +9,11 @@
 		<PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
 		<Description>
 			<![CDATA[
-基于AScript扩展的python3脚本语言；
+基于AScript扩展的python3脚本语言，支持python3基础语法及数据类型；
 快速开始：
 // 注册Python3脚本语言
 Script.Langs.Set("python3", Python3Lang.Instance);
+// 执行python3脚本
 string s = @"
 @lang python3
 def sum(a, b) :
