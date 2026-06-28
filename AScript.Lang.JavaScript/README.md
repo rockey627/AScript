@@ -86,4 +86,29 @@ String.fromCharCode(65,66,67); // 'ABC'
 'hello'.search('el'); // 1
 'hello'.search(/el/gi); // 1
 'hello'.substr(-2); // 'lo'
+'hello'.substr(-2,1); // 'l'
+'hello'.substring(2); // 'llo'
+'hello'.substring(2,4); // 'll'
+'hello'.slice(2); // 'llo'
+'hello'.slice(2,4); // 'll'
+'hello'.slice(-3); // 'llo'
+'hello'.slice(-3,-1); // 'll'
+'Hello'.toLowerCase(); // 'hello'
+'Hello'.toUpperCase(); // 'HELLO'
+' hello '.trim(); // 'hello'
+' hello '.trimStart(); // 'hello '
+' hello '.trimEnd(); // ' hello'
+'hello'.padStart(7); // '  hello'
+'hello'.padStart(7, 'x'); // 'xxhello'
+'hello'.padEnd(7); // 'hello  '
+'hello'.padEnd(7, 'x'); // 'helloxx'
+'hello'.charAt(1); // 'e'
+'hello'.charCodeAt(1); // 101L
+'hello tom, I am Tony'.match('to'); // ['to']
+'hello tom, I am Tony'.match(/to/); // ['to']
+'hello tom, I am Tony'.match(/to/gi); // ['to', 'To']
+'hello tom, I am Tony'.replace('to', 'x'); // 替换第1项：'hello xm, I am Tony'
+'hello tom, I am Tony'.replaceAll('to', 'x'); // 替换所有项（区分大小写）：'hello xm, I am Tony'
+'hello tom, I am Tony'.replace(/to/g, 'x'); // 替换匹配项：'hello xm, I am Tony'
+'hello tom, I am Tony'.replace(/to/gi, 'x'); // 替换匹配项：'hello xm, I am xny'
 ```

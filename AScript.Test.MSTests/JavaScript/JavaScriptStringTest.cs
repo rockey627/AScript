@@ -126,6 +126,8 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual("ello", script.Eval("'hello'.substring(1)"));
 			Assert.AreEqual("hel", script.Eval("'hello'.substring(0, 3)"));
 			Assert.AreEqual("ell", script.Eval("'hello'.substring(1, 4)"));
+			Assert.AreEqual("llo", script.Eval("'hello'.substring(2)"));
+			Assert.AreEqual("ll", script.Eval("'hello'.substring(2, 4)"));
 		}
 
 		[TestMethod]
@@ -138,6 +140,8 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual("ello", script.Eval("'hello'.substring(1)"));
 			Assert.AreEqual("hel", script.Eval("'hello'.substring(0, 3)"));
 			Assert.AreEqual("ell", script.Eval("'hello'.substring(1, 4)"));
+			Assert.AreEqual("llo", script.Eval("'hello'.substring(2)"));
+			Assert.AreEqual("ll", script.Eval("'hello'.substring(2, 4)"));
 		}
 
 		// substr
@@ -177,6 +181,8 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual("hel", script.Eval("'hello'.slice(0, 3)"));
 			Assert.AreEqual("lo", script.Eval("'hello'.slice(-2)"));
 			Assert.AreEqual("ell", script.Eval("'hello'.slice(1, -1)"));
+			Assert.AreEqual("llo", script.Eval("'hello'.slice(-3)"));
+			Assert.AreEqual("ll", script.Eval("'hello'.slice(-3, -1)"));
 		}
 
 		[TestMethod]
@@ -190,6 +196,8 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual("hel", script.Eval("'hello'.slice(0, 3)"));
 			Assert.AreEqual("lo", script.Eval("'hello'.slice(-2)"));
 			Assert.AreEqual("ell", script.Eval("'hello'.slice(1, -1)"));
+			Assert.AreEqual("llo", script.Eval("'hello'.slice(-3)"));
+			Assert.AreEqual("ll", script.Eval("'hello'.slice(-3, -1)"));
 		}
 
 		// toLowerCase
@@ -269,6 +277,7 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual("hellx wOrld", script.Eval("'hello wOrld'.replace(/o/g, 'x')"));
 			Assert.AreEqual("hellx wxrld", script.Eval("'hello wOrld'.replace(/o/gi, 'x')"));
 			Assert.AreEqual("hellO wxrld", script.Eval("'hellO world'.replace('o', 'x')"));
+			Assert.AreEqual("hellO wxrld", script.Eval("'hellO world'.replaceAll('o', 'x')"));
 		}
 
 		[TestMethod]
@@ -288,6 +297,7 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual("hellx wOrld", script.Eval("'hello wOrld'.replace(/o/g, 'x')"));
 			Assert.AreEqual("hellx wxrld", script.Eval("'hello wOrld'.replace(/o/gi, 'x')"));
 			Assert.AreEqual("hellO wxrld", script.Eval("'hellO world'.replace('o', 'x')"));
+			Assert.AreEqual("hellO wxrld", script.Eval("'hellO world'.replaceAll('o', 'x')"));
 		}
 
 		// split
@@ -603,6 +613,7 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual("a", script.Eval("String.fromCharCode(97)"));
 			Assert.AreEqual("abc", script.Eval("String.fromCharCode(97, 98, 99)"));
+			Assert.AreEqual("ABC", script.Eval("String.fromCharCode(65,66,67)"));
 		}
 
 		[TestMethod]
@@ -613,6 +624,7 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual("a", script.Eval("String.fromCharCode(97)"));
 			Assert.AreEqual("abc", script.Eval("String.fromCharCode(97, 98, 99)"));
+			Assert.AreEqual("ABC", script.Eval("String.fromCharCode(65,66,67)"));
 		}
 
 		//// String.fromCodePoint
@@ -665,6 +677,11 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual(1, arr.Count);
 			Assert.AreEqual("world", arr[0]);
 
+			result = script.Eval("'hello world World'.match('world')");
+			arr = (List<object>)result;
+			Assert.AreEqual(1, arr.Count);
+			Assert.AreEqual("world", arr[0]);
+
 			// 全局匹配
 			result = script.Eval("'hello world world'.match(/world/g)");
 			arr = (List<object>)result;
@@ -699,6 +716,11 @@ namespace AScript.Test.MSTests.JavaScript
 			// 基本正则匹配
 			var result = script.Eval("'hello world'.match('world')");
 			var arr = (List<object>)result;
+			Assert.AreEqual(1, arr.Count);
+			Assert.AreEqual("world", arr[0]);
+
+			result = script.Eval("'hello world World'.match('world')");
+			arr = (List<object>)result;
 			Assert.AreEqual(1, arr.Count);
 			Assert.AreEqual("world", arr[0]);
 
