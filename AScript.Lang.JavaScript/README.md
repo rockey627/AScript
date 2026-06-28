@@ -111,4 +111,33 @@ String.fromCharCode(65,66,67); // 'ABC'
 'hello tom, I am Tony'.replaceAll('to', 'x'); // 替换所有项（区分大小写）：'hello xm, I am Tony'
 'hello tom, I am Tony'.replace(/to/g, 'x'); // 替换匹配项：'hello xm, I am Tony'
 'hello tom, I am Tony'.replace(/to/gi, 'x'); // 替换匹配项：'hello xm, I am xny'
+'a,b,c'.split(','); // ['a','b','c']
+'hello'.repeat(2); // 'hellohello'
+'hello'.concat(' ', 'world'); // 'hello world'
+```
+
+#### 创建数组
+```
+var s = @"
+var arr1 = [1,2,3];
+var arr2 = new Array(1,2,3);
+var arr3 = new Array(2);
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+script.Eval(s);
+var arr1 = script.Eval<List<object>>("arr1");
+Assert.AreEqual(3, arr1.Count);
+Assert.AreEqual(1L, arr1[0]);
+Assert.AreEqual(2L, arr1[1]);
+Assert.AreEqual(3L, arr1[2]);
+var arr3 = script.Eval<List<object>>("arr3");
+Assert.AreEqual(2, arr3.Count);
+Assert.IsNull(arr3[0]);
+Assert.IsNull(arr3[1]);
+```
+
+#### 数组函数
+```
+
 ```
