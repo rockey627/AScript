@@ -5,6 +5,7 @@ using AScript.Operators;
 using AScript.TokenHandlers;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AScript.Lang.JavaScript
 {
@@ -23,6 +24,7 @@ namespace AScript.Lang.JavaScript
 			AddType("Map", typeof(Dictionary<object, object>));
 			AddType("Date", typeof(DateTime));
 			AddType("Math", typeof(Math));
+			AddType("Promise", typeof(Task<object>));
 
 			AddFunc("=", AssignOperator.Instance);
 			AddFunc("+=", PlusAssignOperator.Instance);
@@ -79,6 +81,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc(typeof(JavaScriptArrayExtensions));
 			AddFunc(typeof(JavaScriptSetExtensions));
 			AddFunc(typeof(JavaScriptMapExtensions));
+			AddFunc(typeof(JavaScriptPromiseExtensions));
 
 			AddTokenHandler("var", VarTokenHandler.Instance);
 			AddTokenHandler("let", VarTokenHandler.Instance);
