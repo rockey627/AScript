@@ -2301,10 +2301,11 @@ namespace AScript
 			};
 			if (argTypesCount > 0)
 			{
+				var delTypes = delegateType?.GetMethod("Invoke").GetParameters();
 				for (int i = 0; i < argTypesCount; i++)
 				{
 					string name = argNames[i];
-					Type type = argTypes[i];
+					Type type = delTypes == null ? argTypes[i] : delTypes[i].ParameterType;
 					buildContext.Parameters.Add(name, Expression.Parameter(type, name));
 				}
 			}

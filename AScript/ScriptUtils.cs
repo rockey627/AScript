@@ -124,7 +124,7 @@ namespace AScript
 			return true;
 		}
 
-		public static bool IsMatchArgTypes(IList<Type> inArgTypes, MethodInfo method, out bool useScriptContext, out bool hasClosure, out int paramsIndex)
+		public static bool IsMatchArgTypes(IList<Type> inArgTypes, MethodBase method, out bool useScriptContext, out bool hasClosure, out int paramsIndex)
 		{
 			int argTypesCount = inArgTypes == null ? 0 : inArgTypes.Count;
 			var methodParameters = method.GetParameters();
@@ -190,7 +190,7 @@ namespace AScript
 			return true;
 		}
 
-		public static bool IsMatchArgTypes(IList<Expression> inArgs, MethodInfo method, out bool useScriptContext, out bool hasClosure, out int paramsIndex)
+		public static bool IsMatchArgTypes(IList<Expression> inArgs, MethodBase method, out bool useScriptContext, out bool hasClosure, out int paramsIndex)
 		{
 			int argTypesCount = inArgs == null ? 0 : inArgs.Count;
 			var methodParameters = method.GetParameters();

@@ -29,7 +29,7 @@ namespace AScript.Test.MSTests.JavaScript
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Promise((resolve, reject) => resolve(42)).then(x => x)");
+			var result = script.Eval("await new Promise((resolve, reject) => resolve(42)).then(x => x)");
 			Assert.AreEqual(42L, result);
 		}
 
@@ -39,7 +39,26 @@ namespace AScript.Test.MSTests.JavaScript
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Promise((resolve, reject) => resolve(42)).then(x => x)");
+			var result = script.Eval("await new Promise((resolve, reject) => resolve(42)).then(x => x)");
+			Assert.AreEqual(42L, result);
+		}
+
+		[TestMethod]
+		public void Test01_promiseResolve2()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval("await new Promise(function (resolve, reject) { resolve(42) }).then(x => x)");
+			Assert.AreEqual(42L, result);
+		}
+
+		[TestMethod]
+		public void Test01_promiseResolve2_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval("await new Promise(function (resolve, reject) { resolve(42) }).then(x => x)");
 			Assert.AreEqual(42L, result);
 		}
 

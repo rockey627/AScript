@@ -1407,6 +1407,26 @@ namespace AScript
 				if (result != null) return result;
 				tempBuildContext = tempBuildContext.Parent;
 			}
+			// 获取变量
+			if (buildContext.TryGetVariableOrParameter(name, out var v) && typeof(Delegate).IsAssignableFrom(v.Type))
+			{
+				if (args != null && args.Count > 0)
+				{
+					var parameters = v.Type.GetMethod("Invoke").GetParameters();
+					argExprs = new Expression[args.Count];
+					for (int i = 0; i < args.Count; i++)
+					{
+						var arg = args[i].Build(buildContext, this, options);
+						var p = parameters[i];
+						if (arg.Type != p.ParameterType)
+						{
+							arg = Expression.Convert(arg, p.ParameterType);
+						}
+						argExprs[i] = arg;
+					}
+				}
+				return Expression.Invoke(v, argExprs);
+			}
 
 			// 从脚本上下文环境中构建
 			var functionBuildArgs = FunctionBuildArgs.Create(buildContext, this, options, control, name, isPrefix, args);

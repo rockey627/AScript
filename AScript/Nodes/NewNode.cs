@@ -599,8 +599,17 @@ namespace AScript.Nodes
 				argTypes = new Type[this.Args.Count];
 				for (int i = 0; i < this.Args.Count; i++)
 				{
-					argValues[i] = this.Args[i].Eval(context, options, control, out var argType);
-					argTypes[i] = argType;
+					var arg = this.Args[i];
+					if (ScriptUtils.IsDefineFuncNode(arg))
+					{
+						argValues[i] = arg;
+						argTypes[i] = typeof(Delegate);
+					}
+					else
+					{
+						argValues[i] = this.Args[i].Eval(context, options, control, out var argType);
+						argTypes[i] = argType;
+					}
 				}
 			}
 

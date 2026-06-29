@@ -69,6 +69,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc("[]", IndexOperator.Instance);
 			AddFunc("[:]", IndexStartEndOperator.Instance);
 
+			AddFunc("await", new AwaitFunction());
 			AddFunc("eval", EvalFunction.Instance);
 			AddFunc("concat", ConcatFunction.Instance);
 			AddFunc("includes", new ContainsFunction());
@@ -93,6 +94,7 @@ namespace AScript.Lang.JavaScript
 			AddTokenHandler("null", NullTokenHandler.Instance);
 			AddTokenHandler("true", BoolTokenHandler.Instance);
 			AddTokenHandler("false", BoolTokenHandler.Instance);
+			AddTokenHandler("await", AwaitTokenHandler.Instance);
 			AddTokenHandler("new", NewTokenHandler.Instance);
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			AddTokenHandler("break", BreakTokenHandler.Instance);
