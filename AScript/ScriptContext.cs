@@ -23,6 +23,7 @@ namespace AScript
 
 		static ScriptContext()
 		{
+			Root.AddFunc<ScriptContext, object, string, object>("__GetValue__", ScriptUtils.GetValue);
 			Root.AddTokenHandler("#lang", new LangTokenHandler("#end"));
 			Root.AddTokenHandler("@lang", new LangTokenHandler("@end"));
 		}

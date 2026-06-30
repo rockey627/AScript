@@ -752,6 +752,49 @@ namespace AScript
 			}
 		}
 
+		public static object GetValue(ScriptContext context, object instance, string propertyOrFieldName)
+		{
+			var flags = BindingFlags.Public | BindingFlags.IgnoreCase;
+			// 实例属性
+			var target = instance;
+			var targetType = instance.GetType();
+			flags |= BindingFlags.Instance;
+
+			if (instance is DataRow dataRow)
+			{
+				//type = dataRow.Table.Columns[propertyOrFieldName].DataType;
+				return dataRow[propertyOrFieldName];
+			}
+
+			if (instance is ExpandoObject)
+			{
+				var dict = (IDictionary<string, object>)instance;
+				//var value = dict[propertyOrFieldName];
+				dict.TryGetValue(propertyOrFieldName, out var value);
+				//type = value?.GetType();
+				return value;
+			}
+
+			if (context.IsObjectMemberEnabled(targetType))
+			{
+				var p = targetType.GetProperty(propertyOrFieldName, flags);
+				if (p != null)
+				{
+					//type = p.PropertyType;
+					return p.GetValue(target);
+				}
+
+				var f = targetType.GetField(propertyOrFieldName, flags);
+				if (f != null)
+				{
+					//type = f.FieldType;
+					return f.GetValue(target);
+				}
+			}
+
+			return context.EvalFunc($"get_{propertyOrFieldName}", new[] { instance }, new[] { targetType }, out _);
+		}
+
 		public static object EvalNumber(string number)
 		{
 			return EvalNumber(number, false);

@@ -60,6 +60,11 @@ namespace AScript.Operators
 				return Expression.Property(d, ExpressionUtils.Property_IDictionary_String_Object_Item, Expression.Constant(propertyOrFieldName));
 			}
 
+			if (instance.Type == typeof(object))
+			{
+				return e.ScriptContext.BuildFunc(e.BuildContext, e.Options, e.Control, "__GetValue__", false, null, new[] { instance, Expression.Constant(propertyOrFieldName) });
+			}
+
 			// 变量的属性或字段
 			if (e.ScriptContext.IsObjectMemberEnabled(instance.Type))
 			{
