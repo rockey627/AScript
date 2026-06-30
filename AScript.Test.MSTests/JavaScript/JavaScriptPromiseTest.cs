@@ -66,19 +66,29 @@ namespace AScript.Test.MSTests.JavaScript
 		[TestMethod]
 		public void Test02_promiseReject()
 		{
+			var s = @"
+var errMsg;
+await new Promise((resolve, reject) => reject('error')).catch(e => { errMsg = e; return null; });
+errMsg;
+";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Promise((resolve, reject) => reject('error')).catch(e => e)");
+			var result = script.Eval(s);
 			Assert.AreEqual("error", result);
 		}
 
 		[TestMethod]
 		public void Test02_promiseReject_CompileAll()
 		{
+			var s = @"
+var errMsg;
+await new Promise((resolve, reject) => reject('error')).catch(e => { errMsg = e; return null; });
+errMsg;
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Promise((resolve, reject) => reject('error')).catch(e => e)");
+			var result = script.Eval(s);
 			Assert.AreEqual("error", result);
 		}
 
@@ -88,7 +98,7 @@ namespace AScript.Test.MSTests.JavaScript
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Promise((resolve, reject) => resolve(10)).then(x => x * 2)");
+			var result = script.Eval("await new Promise((resolve, reject) => resolve(10)).then(x => x * 2)");
 			Assert.AreEqual(20L, result);
 		}
 
@@ -98,7 +108,7 @@ namespace AScript.Test.MSTests.JavaScript
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Promise((resolve, reject) => resolve(10)).then(x => x * 2)");
+			var result = script.Eval("await new Promise((resolve, reject) => resolve(10)).then(x => x * 2)");
 			Assert.AreEqual(20L, result);
 		}
 
@@ -108,7 +118,7 @@ namespace AScript.Test.MSTests.JavaScript
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Promise((resolve, reject) => resolve(1)).then(x => x + 1).then(x => x + 2)");
+			var result = script.Eval("await new Promise((resolve, reject) => resolve(1)).then(x => x + 1).then(x => x + 2)");
 			Assert.AreEqual(4L, result);
 		}
 
@@ -118,7 +128,7 @@ namespace AScript.Test.MSTests.JavaScript
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Promise((resolve, reject) => resolve(1)).then(x => x + 1).then(x => x + 2)");
+			var result = script.Eval("await new Promise((resolve, reject) => resolve(1)).then(x => x + 1).then(x => x + 2)");
 			Assert.AreEqual(4L, result);
 		}
 
@@ -129,11 +139,13 @@ namespace AScript.Test.MSTests.JavaScript
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
 			var code = @"
-new Promise((resolve, reject) => {
+var errMsg;
+await new Promise((resolve, reject) => {
     resolve(10);
 }).then(x => {
     throw 'error in then';
-}).catch(e => e)
+}).catch(e => { errMsg = e; return null; });
+errMsg
 ";
 			var result = script.Eval(code);
 			Assert.AreEqual("error in then", result);
@@ -146,11 +158,13 @@ new Promise((resolve, reject) => {
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
 			var code = @"
-new Promise((resolve, reject) => {
+var errMsg;
+await new Promise((resolve, reject) => {
     resolve(10);
 }).then(x => {
     throw 'error in then';
-}).catch(e => e)
+}).catch(e => { errMsg = e; return null; });
+errMsg
 ";
 			var result = script.Eval(code);
 			Assert.AreEqual("error in then", result);
@@ -162,7 +176,7 @@ new Promise((resolve, reject) => {
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Promise((resolve, reject) => resolve({value: 42})).then(obj => obj.value)");
+			var result = script.Eval("await new Promise((resolve, reject) => resolve({value: 42})).then(obj => obj.value)");
 			Assert.AreEqual(42L, result);
 		}
 
@@ -172,7 +186,7 @@ new Promise((resolve, reject) => {
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Promise((resolve, reject) => resolve({value: 42})).then(obj => obj.value)");
+			var result = script.Eval("await new Promise((resolve, reject) => resolve({value: 42})).then(obj => obj.value)");
 			Assert.AreEqual(42L, result);
 		}
 
@@ -182,7 +196,7 @@ new Promise((resolve, reject) => {
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Promise((resolve, reject) => resolve([1, 2, 3])).then(arr => arr.length)");
+			var result = script.Eval("await new Promise((resolve, reject) => resolve([1, 2, 3])).then(arr => arr.length)");
 			Assert.AreEqual(3L, result);
 		}
 
@@ -192,7 +206,7 @@ new Promise((resolve, reject) => {
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Promise((resolve, reject) => resolve([1, 2, 3])).then(arr => arr.length)");
+			var result = script.Eval("await new Promise((resolve, reject) => resolve([1, 2, 3])).then(arr => arr.length)");
 			Assert.AreEqual(3L, result);
 		}
 
@@ -202,7 +216,7 @@ new Promise((resolve, reject) => {
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Promise((resolve, reject) => resolve(null)).then(x => x)");
+			var result = script.Eval("await new Promise((resolve, reject) => resolve(null)).then(x => x)");
 			Assert.AreEqual(null, result);
 		}
 
@@ -212,7 +226,7 @@ new Promise((resolve, reject) => {
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Promise((resolve, reject) => resolve(null)).then(x => x)");
+			var result = script.Eval("await new Promise((resolve, reject) => resolve(null)).then(x => x)");
 			Assert.AreEqual(null, result);
 		}
 
@@ -222,7 +236,7 @@ new Promise((resolve, reject) => {
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Promise((resolve, reject) => resolve('hello')).then(x => x + ' world')");
+			var result = script.Eval("await new Promise((resolve, reject) => resolve('hello')).then(x => x + ' world')");
 			Assert.AreEqual("hello world", result);
 		}
 
@@ -232,7 +246,7 @@ new Promise((resolve, reject) => {
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Promise((resolve, reject) => resolve('hello')).then(x => x + ' world')");
+			var result = script.Eval("await new Promise((resolve, reject) => resolve('hello')).then(x => x + ' world')");
 			Assert.AreEqual("hello world", result);
 		}
 
@@ -243,7 +257,7 @@ new Promise((resolve, reject) => {
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
 			var code = @"
-new Promise((resolve, reject) => resolve(10))
+await new Promise((resolve, reject) => resolve(10))
     .then(x => x * 2, e => 'error')
 ";
 			var result = script.Eval(code);
@@ -257,7 +271,7 @@ new Promise((resolve, reject) => resolve(10))
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
 			var code = @"
-new Promise((resolve, reject) => resolve(10))
+await new Promise((resolve, reject) => resolve(10))
     .then(x => x * 2, e => 'error')
 ";
 			var result = script.Eval(code);

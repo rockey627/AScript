@@ -95,6 +95,7 @@ namespace AScript.Lang.JavaScript
 			AddTokenHandler("true", BoolTokenHandler.Instance);
 			AddTokenHandler("false", BoolTokenHandler.Instance);
 			AddTokenHandler("await", AwaitTokenHandler.Instance);
+			AddTokenHandler("throw", ThrowTokenHandler.Instance);
 			AddTokenHandler("new", NewTokenHandler.Instance);
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			AddTokenHandler("break", BreakTokenHandler.Instance);
