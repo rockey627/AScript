@@ -179,9 +179,21 @@ namespace AScript.Nodes
 				argTypes = new Type[this.Args.Count];
 				for (int i = 0; i < this.Args.Count; i++)
 				{
-					var argValue = this.Args[i].Build(buildContext, scriptContext, options);
-					argValues[i] = argValue;
-					argTypes[i] = argValue.Type;
+					//var argValue = this.Args[i].Build(buildContext, scriptContext, options);
+					//argValues[i] = argValue;
+					//argTypes[i] = argValue.Type;
+					var arg = this.Args[i];
+					if (ScriptUtils.IsDefineFuncNode(arg))
+					{
+						argValues[i] = null;
+						argTypes[i] = typeof(Delegate);
+					}
+					else
+					{
+						var argValue = arg.Build(buildContext, scriptContext, options);
+						argValues[i] = argValue;
+						argTypes[i] = argValue.Type;
+					}
 				}
 			}
 
@@ -253,7 +265,7 @@ namespace AScript.Nodes
 			else if (!string.IsNullOrEmpty(this.Name))
 			{
 				// 调用方法：new_XXX
-				instance = scriptContext.BuildFunc(buildContext, options, null, $"new_{this.Name}", false, null, argValues, false);
+				instance = scriptContext.BuildFunc(buildContext, options, null, $"new_{this.Name}", false, this.Args, argValues, false);
 			}
 			else instance = null;
 			if (instance == null)
@@ -607,7 +619,7 @@ namespace AScript.Nodes
 					}
 					else
 					{
-						argValues[i] = this.Args[i].Eval(context, options, control, out var argType);
+						argValues[i] = arg.Eval(context, options, control, out var argType);
 						argTypes[i] = argType;
 					}
 				}

@@ -1824,7 +1824,7 @@ namespace AScript
 				argTypes = new Type[argExprs.Length];
 				for (int i = 0; i < argExprs.Length; i++)
 				{
-					argTypes[i] = argExprs[i].Type;
+					argTypes[i] = argExprs[i]?.Type ?? typeof(Delegate);
 				}
 			}
 

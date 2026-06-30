@@ -74,10 +74,14 @@ namespace AScript.Functions
 					var arg = argExprs[i];
 					if (arg == null && typeof(Delegate).IsAssignableFrom(p.ParameterType))
 					{
-						if (!p.ParameterType.Name.StartsWith("Func`"))
+						var invokeMethod = p.ParameterType.GetMethod("Invoke");
+						var ps = invokeMethod.GetParameters();
+						var defineFuncNode = (DefineFuncNode)e.Args[i];
+						for (int j = 0; j < ps.Length; j++)
 						{
-							((DefineFuncNode)e.Args[i]).ReturnSystemType = typeof(void);
+							defineFuncNode.Args[j].SystemType = ps[j].ParameterType;
 						}
+						defineFuncNode.ReturnSystemType = invokeMethod.ReturnType;
 						argExprs[i] = arg = e.Args[i].Build(e.BuildContext, e.ScriptContext, e.Options);
 					}
 					if (arg.Type != p.ParameterType)

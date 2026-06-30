@@ -226,13 +226,14 @@ namespace AScript.Functions
 					return;
 				}
 
-				if (paramType.Name.StartsWith("Func`") || paramType.Name == "Action" || paramType.Name.StartsWith("Action`"))
+				bool isFunc = paramType.Name.StartsWith("Func`");
+				bool isAction = isFunc ? false : paramType.Name == "Action" || paramType.Name.StartsWith("Action`");
+				if (isFunc || isAction)
 				{
 					if (!(e.Args[i] is DefineFuncNode defineFuncNode)) return;
 					// 比如：Func<TSource, TKey>，TSource已由前面的参数推导出来，TKey类型由defineFuncNode实际返回值来推导
 					var innerGens = paramType.GetGenericArguments();
 					int innerArgsCount = innerGens.Length;
-					bool isFunc = paramType.Name.StartsWith("Func`");
 					if (isFunc) innerArgsCount -= 1;
 					int defineArgsCount = defineFuncNode.Args == null ? 0 : defineFuncNode.Args.Length;
 					if (innerArgsCount != defineArgsCount) return;
@@ -320,6 +321,10 @@ namespace AScript.Functions
 						}
 					}
 					if (!isFunc) tempBuildContext.ReturnType = typeof(void);
+					else if (tempBuildContext.ReturnType == null && body.Type == typeof(void))
+					{
+						body = Expression.Block(body, ExpressionUtils.Constant_null);
+					}
 					var lambdaExpr = tempBuildContext.Build(e.ScriptContext, funcOptions, body);
 					argExpressions[i] = lambdaExpr;
 					if (returnGen.IsGenericParameter)
@@ -577,13 +582,15 @@ namespace AScript.Functions
 					return;
 				}
 
-				if (paramType.Name.StartsWith("Func`") || paramType.Name == "Action" || paramType.Name.StartsWith("Action`"))
+				bool isFunc = paramType.Name.StartsWith("Func`");
+				bool isAction = isFunc ? false : paramType.Name == "Action" || paramType.Name.StartsWith("Action`");
+				if (isFunc || isAction)
 				{
 					if (!(e.Args[i] is DefineFuncNode defineFuncNode)) return;
 					// 比如：Func<TSource, TKey>，TSource已由前面的参数推导出来，TKey类型由defineFuncNode实际返回值来推导
 					var innerGens = paramType.GetGenericArguments();
 					int innerArgsCount = innerGens.Length;
-					if (paramType.Name.StartsWith("Func`")) innerArgsCount -= 1;
+					if (isFunc) innerArgsCount -= 1;
 					int defineArgsCount = defineFuncNode.Args == null ? 0 : defineFuncNode.Args.Length;
 					if (innerArgsCount != defineArgsCount) return;
 					var types = new Type[innerArgsCount];
@@ -716,6 +723,11 @@ namespace AScript.Functions
 					if (returnType == typeof(object) && body.Type.IsValueType)
 					{
 						tempBuildContext.ReturnType = returnType;
+					}
+					if (isFunc && returnType == null && body.Type == typeof(void))
+					{
+						returnType = typeof(object);
+						body = Expression.Block(body, ExpressionUtils.Constant_null);
 					}
 					var lambdaExpr = tempBuildContext.Build(e.Context, funcOptions, body);
 					argValues[i] = lambdaExpr.Compile();

@@ -621,7 +621,7 @@ namespace AScript.Nodes
 
 		public ITreeNode EvalRoot(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control)
 		{
-			if (options.CreateFullTreeNode ?? false)
+			if (options.CreateFullTreeNode ?? false || _Root is DefineFuncNode)
 			{
 				var r = _Root;
 				_Root = _Current = _LastResult = null;
