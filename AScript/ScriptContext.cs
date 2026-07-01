@@ -17,7 +17,7 @@ namespace AScript
 	/// <summary>
 	/// 上下文
 	/// </summary>
-	public class ScriptContext
+	public class ScriptContext : BaseContext
 	{
 		public static readonly ScriptContext Root = new ScriptContext(null, true);
 
@@ -34,41 +34,6 @@ namespace AScript
 		public ScriptContext Parent { get; set; }
 
 		/// <summary>
-		/// 函数运算事件
-		/// </summary>
-		public event EventHandler<FunctionEvalArgs> FunctionEval;
-		/// <summary>
-		/// 函数编译事件
-		/// </summary>
-		public event EventHandler<FunctionBuildArgs> FunctionBuild;
-
-		private bool _ThreadSafely;
-
-		// 函数运算
-		private IDictionary<string, IList<IFunctionEvaluator>> _FunctionEvaluators;
-		// 语句处理
-		private IDictionary<string, ITokenHandler> _TokenHandlerDict;
-
-		private IList<ITokenHandler> _TokenHandlers;
-
-		/// <summary>
-		/// 程序集
-		/// </summary>
-		private IDictionary<string, Assembly> _Assemblies;
-		/// <summary>
-		/// 类型定义
-		/// </summary>
-		private IDictionary<string, Type> _Types;
-		/// <summary>
-		/// 全局变量
-		/// </summary>
-		private IDictionary<string, object> _Variables;
-		/// <summary>
-		/// 全局变量类型
-		/// </summary>
-		private IDictionary<string, Type> _VariableTypes;
-
-		/// <summary>
 		/// 表达式中的临时变量
 		/// </summary>
 		private IDictionary<string, object> _TempVariables;
@@ -77,8 +42,6 @@ namespace AScript
 		/// </summary>
 		private IDictionary<string, Type> _TempVariableTypes;
 
-		// 支持函数重载
-		private IDictionary<string, List<Delegate>> _Functions;
 		// 临时函数
 		private IDictionary<string, List<Delegate>> _TempFunctions;
 		// 临时函数
@@ -106,15 +69,11 @@ namespace AScript
 		/// 默认Parent为Root
 		/// </summary>
 		/// <param name="threadSafely"></param>
-		public ScriptContext(bool threadSafely) : this(Root, threadSafely)
-		{
-			this._ThreadSafely = threadSafely;
-		}
+		public ScriptContext(bool threadSafely) : this(Root, threadSafely) { }
 		public ScriptContext(ScriptContext parent) : this(parent, false) { }
-		public ScriptContext(ScriptContext parent, bool threadSafely)
+		public ScriptContext(ScriptContext parent, bool threadSafely) : base(threadSafely)
 		{
 			this.Parent = parent;
-			_ThreadSafely = threadSafely;
 		}
 
 		public static ScriptContext Create(bool threadSafely = false)
@@ -125,153 +84,6 @@ namespace AScript
 		public static ScriptContext Create(ScriptContext parent, bool threadSafely = false)
 		{
 			return new ScriptContext(parent, threadSafely);
-		}
-
-		private void Init_FunctionEvaluators()
-		{
-			if (_FunctionEvaluators == null)
-			{
-				if (_ThreadSafely)
-				{
-					lock (this)
-					{
-						if (_FunctionEvaluators == null)
-						{
-							_FunctionEvaluators = new ConcurrentDictionary<string, IList<IFunctionEvaluator>>();
-						}
-					}
-				}
-				else
-				{
-					_FunctionEvaluators = new Dictionary<string, IList<IFunctionEvaluator>>();
-				}
-			}
-		}
-
-		private void Init_TokenHandlerDict()
-		{
-			if (_TokenHandlerDict == null)
-			{
-				if (_ThreadSafely)
-				{
-					lock (this)
-					{
-						if (_TokenHandlerDict == null)
-						{
-							_TokenHandlerDict = new ConcurrentDictionary<string, ITokenHandler>();
-						}
-					}
-				}
-				else
-				{
-					_TokenHandlerDict = new Dictionary<string, ITokenHandler>();
-				}
-			}
-		}
-
-		private void Init_TokenHandlers()
-		{
-			if (_TokenHandlers == null)
-			{
-				if (_ThreadSafely)
-				{
-					lock (this)
-					{
-						if (_TokenHandlers == null)
-						{
-							_TokenHandlers = new List<ITokenHandler>();
-						}
-					}
-				}
-				else
-				{
-					_TokenHandlers = new List<ITokenHandler>();
-				}
-			}
-		}
-
-		private void Init_Assemblies()
-		{
-			if (_Assemblies == null)
-			{
-				if (_ThreadSafely)
-				{
-					lock (this)
-					{
-						if (_Assemblies == null)
-						{
-							_Assemblies = new ConcurrentDictionary<string, Assembly>();
-						}
-					}
-				}
-				else
-				{
-					_Assemblies = new Dictionary<string, Assembly>();
-				}
-			}
-		}
-
-		private void Init_Types()
-		{
-			if (_Types == null)
-			{
-				if (_ThreadSafely)
-				{
-					lock (this)
-					{
-						if (_Types == null)
-						{
-							_Types = new ConcurrentDictionary<string, Type>();
-						}
-					}
-				}
-				else
-				{
-					_Types = new Dictionary<string, Type>();
-				}
-			}
-		}
-
-		private void Init_Variables()
-		{
-			if (_Variables == null)
-			{
-				if (_ThreadSafely)
-				{
-					lock (this)
-					{
-						if (_Variables == null)
-						{
-							_Variables = new ConcurrentDictionary<string, object>();
-						}
-					}
-				}
-				else
-				{
-					_Variables = new Dictionary<string, object>();
-				}
-			}
-		}
-
-		private void Init_VariableTypes()
-		{
-			if (_VariableTypes == null)
-			{
-				if (_ThreadSafely)
-				{
-					lock (this)
-					{
-						if (_VariableTypes == null)
-						{
-							_VariableTypes = new ConcurrentDictionary<string, Type>();
-						}
-					}
-				}
-				else
-				{
-					_VariableTypes = new Dictionary<string, Type>();
-				}
-			}
 		}
 
 		private void Init_TempVariables()
@@ -312,27 +124,6 @@ namespace AScript
 				else
 				{
 					_TempVariableTypes = new Dictionary<string, Type>();
-				}
-			}
-		}
-
-		private void Init_Functions()
-		{
-			if (_Functions == null)
-			{
-				if (_ThreadSafely)
-				{
-					lock (this)
-					{
-						if (_Functions == null)
-						{
-							_Functions = new ConcurrentDictionary<string, List<Delegate>>();
-						}
-					}
-				}
-				else
-				{
-					_Functions = new Dictionary<string, List<Delegate>>();
 				}
 			}
 		}
@@ -597,14 +388,10 @@ namespace AScript
 		/// <summary>
 		/// 清空所有数据
 		/// </summary>
-		public void Clear()
+		public override void Clear()
 		{
 			ClearTemp();
-			this._Assemblies?.Clear();
-			this._Types?.Clear();
-			this._Variables?.Clear();
-			this._VariableTypes?.Clear();
-			this._Functions?.Clear();
+			base.Clear();
 		}
 
 		/// <summary>
@@ -2317,75 +2104,13 @@ namespace AScript
 		{
 			return (Action<T1, T2, T3, T4, T5>)GetFunc(name, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5));
 		}
-
-		public void AddType(string name, Type type)
-		{
-			Init_Types();
-			this._Types[name] = type;
-		}
-
-		public void AddType(Type type)
-		{
-			AddType(type.Name, type);
-		}
-
-		public void AddType<T>(string name)
-		{
-			AddType(name, typeof(T));
-		}
-
-		public void AddType<T>()
-		{
-			AddType(typeof(T));
-		}
-
-		public void RemoveType(string name)
-		{
-			this._Types?.Remove(name);
-		}
-
-		public void AddAssembly(string name, Assembly assembly)
-		{
-			Init_Assemblies();
-			this._Assemblies[name] = assembly;
-		}
-
-		public void AddAssembly(Assembly assembly)
-		{
-			AddAssembly(assembly.GetName().Name, assembly);
-		}
-
-		public void RemoveAssembly(string name)
-		{
-			this._Assemblies?.Remove(name);
-		}
-
-		/// <summary>
-		/// 设置变量
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="value"></param>
-		public void SetVar(string name, object value)
-		{
-			SetVar(name, value, null);
-		}
-
-		/// <summary>
-		/// 设置变量
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="value"></param>
-		/// <param name="valueType"></param>
-		public void SetVar(string name, object value, Type valueType)
+		public override void SetVar(string name, object value, Type valueType)
 		{
 			if (valueType == null)
 			{
 				valueType = value?.GetType() ?? typeof(object);
 			}
-			Init_Variables();
-			Init_VariableTypes();
-			this._Variables[name] = value;
-			this._VariableTypes[name] = valueType;
+			base.SetVar(name, value, valueType);
 			if (this._TempVariables != null && this._TempVariables.ContainsKey(name))
 			{
 				// 覆盖临时变量值
@@ -2394,26 +2119,12 @@ namespace AScript
 				this._TempVariableTypes[name] = valueType;
 			}
 		}
-
-		/// <summary>
-		/// 设置变量
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="name"></param>
-		/// <param name="value"></param>
-		public void SetVar<T>(string name, T value)
+		public override void RemoveVar(string name)
 		{
-			SetVar(name, value, typeof(T));
-		}
-
-		public void RemoveVar(string name)
-		{
-			this._Variables?.Remove(name);
-			this._VariableTypes?.Remove(name);
+			base.RemoveVar(name);
 			this._TempVariables?.Remove(name);
 			this._TempVariableTypes?.Remove(name);
 		}
-
 		public void RemoveTempVar(string name)
 		{
 			this._TempVariables?.Remove(name);
@@ -2579,18 +2290,6 @@ namespace AScript
 			}
 		}
 
-		public void AddTokenHandler(string name, ITokenHandler handler)
-		{
-			Init_TokenHandlerDict();
-			_TokenHandlerDict[name] = handler;
-		}
-
-		public void AddTokenHandler(ITokenHandler handler)
-		{
-			Init_TokenHandlers();
-			_TokenHandlers.Add(handler);
-		}
-
 		public void AddTempFunc(string name, Delegate d)
 		{
 			Init_TempFunctions();
@@ -2685,283 +2384,5 @@ namespace AScript
 			}
 		}
 
-		public void AddFunc(string name, IFunctionEvaluator func)
-		{
-			Init_FunctionEvaluators();
-			if (!_FunctionEvaluators.TryGetValue(name, out var list))
-			{
-				if (_FunctionEvaluators is ConcurrentDictionary<string, IList<IFunctionEvaluator>> condict)
-				{
-					list = condict.GetOrAdd(name, k => new List<IFunctionEvaluator>());
-				}
-				else
-				{
-					_FunctionEvaluators[name] = list = new List<IFunctionEvaluator>();
-				}
-			}
-			if (_FunctionEvaluators is ConcurrentDictionary<string, IList<IFunctionEvaluator>>)
-			{
-				lock (list)
-				{
-					list.Add(func);
-				}
-			}
-			else
-			{
-				list.Add(func);
-			}
-		}
-
-		public void AddLambda(string name, LambdaExpression lambda)
-		{
-			AddFunc(name, new LambdaFunction(lambda));
-		}
-
-		public void AddLambda<TFunc>(string name, Expression<TFunc> lambda) where TFunc : Delegate
-		{
-			AddFunc(name, new LambdaFunction(lambda));
-		}
-
-		/// <summary>
-		/// 添加类型中的所有公开静态方法
-		/// </summary>
-		/// <param name="type"></param>
-		public void AddFunc(Type type)
-		{
-			AddFunc(type, null, null);
-		}
-
-		/// <summary>
-		/// 如果target为null，则添加类型中的公开静态方法，否则添加实例公开方法
-		/// </summary>
-		/// <param name="type"></param>
-		/// <param name="target">实例对象</param>
-		public void AddFunc(Type type, object target)
-		{
-			AddFunc(type, target, null);
-		}
-
-		/// <summary>
-		/// 添加类型中的所有公开静态方法
-		/// </summary>
-		/// <param name="type"></param>
-		/// <param name="methodNameMap">方法名映射，如果返回名称为空则不添加该方法</param>
-		public void AddFunc(Type type, Func<MethodInfo, string> methodNameMap)
-		{
-			AddFunc(type, null, methodNameMap);
-		}
-
-		/// <summary>
-		/// 如果target为null，则添加类型中的公开静态方法，否则添加实例公开方法
-		/// </summary>
-		/// <param name="type"></param>
-		/// <param name="target">实例对象</param>
-		/// <param name="methodNameMap">方法名映射，如果返回名称为空则不添加该方法</param>
-		public void AddFunc(Type type, object target, Func<MethodInfo, string> methodNameMap)
-		{
-			var methods = target == null ? type.GetMethods(BindingFlags.Public | BindingFlags.Static) : type.GetMethods(BindingFlags.Public | BindingFlags.Instance);
-			foreach (var method in methods)
-			{
-				// 跳过属性访问器等特殊方法
-				if (method.IsSpecialName) continue;
-				// 方法名
-				string name;
-				if (methodNameMap == null) name = method.Name;
-				else
-				{
-					name = methodNameMap(method);
-					if (string.IsNullOrEmpty(name)) continue;
-				}
-				if (target == null && type.IsAbstract && type.IsSealed
-					&& (typeof(LambdaExpression).IsAssignableFrom(method.ReturnType) || typeof(IList<LambdaExpression>).IsAssignableFrom(method.ReturnType))
-					&& method.GetParameters().Length == 0)
-				{
-					var result = method.Invoke(null, null);
-					if (result is LambdaExpression lambda) AddLambda(name, lambda);
-					else if (result is IList<LambdaExpression> list)
-					{
-						foreach (var item in list)
-						{
-							AddLambda(name, item);
-						}
-					}
-				}
-				else
-				{
-					AddFunc(name, method, target);
-				}
-			}
-		}
-
-		/// <summary>
-		/// 添加类型中的所有公开静态方法
-		/// </summary>
-		/// <typeparam name="TType"></typeparam>
-		public void AddFunc<TType>()
-		{
-			AddFunc(typeof(TType));
-		}
-
-		/// <summary>
-		/// 添加类型中的所有公开实例方法
-		/// </summary>
-		/// <typeparam name="TType"></typeparam>
-		/// <param name="instance">实例</param>
-		public void AddFunc<TType>(TType instance)
-		{
-			AddFunc(typeof(TType), instance);
-		}
-
-		/// <summary>
-		/// 添加类型中的所有公开静态方法
-		/// </summary>
-		/// <typeparam name="TType"></typeparam>
-		/// <param name="methodNameMap">方法名映射</param>
-		public void AddFunc<TType>(Func<MethodInfo, string> methodNameMap)
-		{
-			AddFunc(typeof(TType), methodNameMap);
-		}
-
-		/// <summary>
-		/// 添加类型中的所有公开实例方法
-		/// </summary>
-		/// <typeparam name="TType"></typeparam>
-		/// <param name="instance">实例</param>
-		/// <param name="methodNameMap">方法名映射</param>
-		public void AddFunc<TType>(TType instance, Func<MethodInfo, string> methodNameMap)
-		{
-			AddFunc(typeof(TType), instance, methodNameMap);
-		}
-
-		/// <summary>
-		/// 添加方法
-		/// </summary>
-		/// <param name="method"></param>
-		/// <param name="target"></param>
-		public void AddFunc(MethodInfo method, object target = null)
-		{
-			AddFunc(method.Name, method, target);
-		}
-
-		/// <summary>
-		/// 添加方法
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="method"></param>
-		/// <param name="target"></param>
-		public void AddFunc(string name, MethodInfo method, object target = null)
-		{
-			if (string.IsNullOrEmpty(name)) name = method.Name;
-			if (method.IsGenericMethod)
-			{
-				// 泛型方法
-				AddFunc(name, new GenericFunction(method, target));
-			}
-			else
-			{
-				//var del = ScriptUtils.CreateDelegate(method, target);
-				//if (del != null) AddFunc(name, del);
-				AddFunc(name, new NonGenericFunction(method, target));
-			}
-		}
-
-		public void AddFunc(string name, Delegate d)
-		{
-			Init_Functions();
-			if (!_Functions.TryGetValue(name, out var list))
-			{
-				if (_Functions is ConcurrentDictionary<string, List<Delegate>> con)
-				{
-					list = con.GetOrAdd(name, key => new List<Delegate>());
-				}
-				else
-				{
-					_Functions[name] = list = new List<Delegate>();
-				}
-			}
-			if (_ThreadSafely)
-			{
-				lock (this)
-				{
-					list.Add(d);
-				}
-			}
-			else
-			{
-				list.Add(d);
-			}
-		}
-
-		public void AddFunc<TReturn>(string name, Func<TReturn> func)
-		{
-			AddFunc(name, (Delegate)func);
-		}
-
-		public void AddFunc<T1, TReturn>(string name, Func<T1, TReturn> func)
-		{
-			AddFunc(name, (Delegate)func);
-		}
-
-		public void AddFunc<T1, T2, TReturn>(string name, Func<T1, T2, TReturn> func)
-		{
-			AddFunc(name, (Delegate)func);
-		}
-
-		public void AddFunc<T1, T2, T3, TReturn>(string name, Func<T1, T2, T3, TReturn> func)
-		{
-			AddFunc(name, (Delegate)func);
-		}
-
-		public void AddFunc<T1, T2, T3, T4, TReturn>(string name, Func<T1, T2, T3, T4, TReturn> func)
-		{
-			AddFunc(name, (Delegate)func);
-		}
-
-		public void AddFunc<T1, T2, T3, T4, T5, TReturn>(string name, Func<T1, T2, T3, T4, T5, TReturn> func)
-		{
-			AddFunc(name, (Delegate)func);
-		}
-
-		public void AddAction(string name, Action func)
-		{
-			AddFunc(name, (Delegate)func);
-		}
-
-		public void AddAction<T1>(string name, Action<T1> action)
-		{
-			AddFunc(name, (Delegate)action);
-		}
-
-		public void AddAction<T1, T2>(string name, Action<T1, T2> action)
-		{
-			AddFunc(name, (Delegate)action);
-		}
-
-		public void AddAction<T1, T2, T3>(string name, Action<T1, T2, T3> action)
-		{
-			AddFunc(name, (Delegate)action);
-		}
-
-		public void AddAction<T1, T2, T3, T4>(string name, Action<T1, T2, T3, T4> action)
-		{
-			AddFunc(name, (Delegate)action);
-		}
-
-		public void AddAction<T1, T2, T3, T4, T5>(string name, Action<T1, T2, T3, T4, T5> action)
-		{
-			AddFunc(name, (Delegate)action);
-		}
-
-		protected virtual void OnFunctionEval(FunctionEvalArgs e)
-		{
-			if (e.IsHandled) return;
-			this.FunctionEval?.Invoke(this, e);
-		}
-
-		protected virtual void OnFunctionBuild(FunctionBuildArgs e)
-		{
-			if (e.Result != null) return;
-			this.FunctionBuild?.Invoke(this, e);
-		}
 	}
 }

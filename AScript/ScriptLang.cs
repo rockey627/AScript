@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace AScript
 {
-	public class ScriptLang
+	public class ScriptLang : BaseContext
 	{
 		/// <summary>
 		/// 函数运算事件
@@ -67,12 +67,12 @@ namespace AScript
 		/// <summary>
 		/// 
 		/// </summary>
-		public ScriptLang() { }
+		public ScriptLang() : base(true) { }
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="ignoreCase">关键字是否忽略大小写</param>
-		public ScriptLang(bool ignoreCase)
+		public ScriptLang(bool ignoreCase) : base(true)
 		{
 			this._IgnoreCase = ignoreCase;
 		}
