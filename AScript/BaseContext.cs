@@ -61,6 +61,10 @@ namespace AScript
 		{
 			this._ThreadSafely = threadSafely;
 		}
+		protected BaseContext(bool threadSafely, bool ignoreCase) : this(threadSafely)
+		{
+			this._IgnoreCase = ignoreCase;
+		}
 
 		private void Init_FunctionEvaluators()
 		{
@@ -72,13 +76,17 @@ namespace AScript
 					{
 						if (_FunctionEvaluators == null)
 						{
-							_FunctionEvaluators = new ConcurrentDictionary<string, IList<IFunctionEvaluator>>();
+							_FunctionEvaluators = _IgnoreCase ?
+								new ConcurrentDictionary<string, IList<IFunctionEvaluator>>(StringComparer.OrdinalIgnoreCase) :
+								new ConcurrentDictionary<string, IList<IFunctionEvaluator>>();
 						}
 					}
 				}
 				else
 				{
-					_FunctionEvaluators = new Dictionary<string, IList<IFunctionEvaluator>>();
+					_FunctionEvaluators = _IgnoreCase ?
+						new Dictionary<string, IList<IFunctionEvaluator>>(StringComparer.OrdinalIgnoreCase) :
+						new Dictionary<string, IList<IFunctionEvaluator>>();
 				}
 			}
 		}
@@ -93,13 +101,17 @@ namespace AScript
 					{
 						if (_TokenHandlerDict == null)
 						{
-							_TokenHandlerDict = new ConcurrentDictionary<string, ITokenHandler>();
+							_TokenHandlerDict = _IgnoreCase ?
+								new ConcurrentDictionary<string, ITokenHandler>(StringComparer.OrdinalIgnoreCase) :
+								new ConcurrentDictionary<string, ITokenHandler>();
 						}
 					}
 				}
 				else
 				{
-					_TokenHandlerDict = new Dictionary<string, ITokenHandler>();
+					_TokenHandlerDict = _IgnoreCase ?
+						new Dictionary<string, ITokenHandler>(StringComparer.Ordinal) :
+						new Dictionary<string, ITokenHandler>();
 				}
 			}
 		}
@@ -135,13 +147,17 @@ namespace AScript
 					{
 						if (_Assemblies == null)
 						{
-							_Assemblies = new ConcurrentDictionary<string, Assembly>();
+							_Assemblies = _IgnoreCase ?
+								new ConcurrentDictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase) :
+								new ConcurrentDictionary<string, Assembly>();
 						}
 					}
 				}
 				else
 				{
-					_Assemblies = new Dictionary<string, Assembly>();
+					_Assemblies = _IgnoreCase ?
+						new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase) :
+						new Dictionary<string, Assembly>();
 				}
 			}
 		}
@@ -156,13 +172,17 @@ namespace AScript
 					{
 						if (_Types == null)
 						{
-							_Types = new ConcurrentDictionary<string, Type>();
+							_Types = _IgnoreCase ?
+								new ConcurrentDictionary<string, Type>(StringComparer.OrdinalIgnoreCase) :
+								new ConcurrentDictionary<string, Type>();
 						}
 					}
 				}
 				else
 				{
-					_Types = new Dictionary<string, Type>();
+					_Types = _IgnoreCase ?
+						new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase) :
+						new Dictionary<string, Type>();
 				}
 			}
 		}
@@ -177,13 +197,17 @@ namespace AScript
 					{
 						if (_Variables == null)
 						{
-							_Variables = new ConcurrentDictionary<string, object>();
+							_Variables = _IgnoreCase ?
+								new ConcurrentDictionary<string, object>(StringComparer.OrdinalIgnoreCase) :
+								new ConcurrentDictionary<string, object>();
 						}
 					}
 				}
 				else
 				{
-					_Variables = new Dictionary<string, object>();
+					_Variables = _IgnoreCase ?
+						new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase) :
+						new Dictionary<string, object>();
 				}
 			}
 		}
@@ -198,13 +222,17 @@ namespace AScript
 					{
 						if (_VariableTypes == null)
 						{
-							_VariableTypes = new ConcurrentDictionary<string, Type>();
+							_VariableTypes = _IgnoreCase ?
+								new ConcurrentDictionary<string, Type>(StringComparer.OrdinalIgnoreCase) :
+								new ConcurrentDictionary<string, Type>();
 						}
 					}
 				}
 				else
 				{
-					_VariableTypes = new Dictionary<string, Type>();
+					_VariableTypes = _IgnoreCase ?
+						new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase) :
+						new Dictionary<string, Type>();
 				}
 			}
 		}
@@ -219,15 +247,24 @@ namespace AScript
 					{
 						if (_Functions == null)
 						{
-							_Functions = new ConcurrentDictionary<string, List<Delegate>>();
+							_Functions = _IgnoreCase ? 
+								new ConcurrentDictionary<string, List<Delegate>>(StringComparer.OrdinalIgnoreCase) :
+								new ConcurrentDictionary<string, List<Delegate>>();
 						}
 					}
 				}
 				else
 				{
-					_Functions = new Dictionary<string, List<Delegate>>();
+					_Functions = _IgnoreCase ?
+						new Dictionary<string, List<Delegate>>(StringComparer.OrdinalIgnoreCase) :
+						new Dictionary<string, List<Delegate>>();
 				}
 			}
+		}
+
+		public void AddExtension(IScriptExtensionObject obj)
+		{
+			obj?.Init(this);
 		}
 
 		/// <summary>
