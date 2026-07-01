@@ -34,7 +34,11 @@ Assert.AreEqual(15L, result);
 	  <PackageReleaseNotes>js基础语法</PackageReleaseNotes>
   </PropertyGroup>
 
-  <ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
     <ProjectReference Include="..\AScript\AScript.csproj" />
   </ItemGroup>
 

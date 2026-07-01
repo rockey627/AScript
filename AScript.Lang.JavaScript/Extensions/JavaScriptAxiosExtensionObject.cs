@@ -1,6 +1,7 @@
-﻿using System;
+﻿#if NETSTANDARD
+using System;
 
-namespace AScript.Extensions.JavaScriptAxios
+namespace AScript.Lang.JavaScript.Extensions
 {
 	public class JavaScriptAxiosExtensionObject : IScriptExtensionObject
 	{
@@ -11,3 +12,4 @@ namespace AScript.Extensions.JavaScriptAxios
 		}
 	}
 }
+#endif
