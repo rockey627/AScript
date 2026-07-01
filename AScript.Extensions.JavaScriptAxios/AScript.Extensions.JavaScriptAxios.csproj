@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+	  <GenerateDocumentationFile>true</GenerateDocumentationFile>
+	  <Authors>rockey627</Authors>
+	  <PackageTags>AScript JavaScript js axios</PackageTags>
+	  <PackageLicenseUrl>https://gitee.com/rockey627/ascript/blob/master/LICENSE</PackageLicenseUrl>
+	  <PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
+	  <Description>
+		  <![CDATA[
+js axios扩展；
+快速开始：
+// 方式1：在顶级上下文中添加扩展
+ScriptContext.Root.AddExtension(new JavaScriptAxiosExtensionObject());
+// 方式2：在指定语言中添加扩展
+JavaScriptLang.Instance.AddExtension(new JavaScriptAxiosExtensionObject());
+// 使用
+string s = @"
+var data = await axios.get('');
+";
+var script = new Script();
+script.Context.Langs = new [] { "js" };
+var result = script.Eval("await axios.get('http://127.0.0.1:8080/persons.json')");
+			]]>
+	  </Description>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <Version>1.0.0.0</Version>
+	  <PackageReleaseNotes></PackageReleaseNotes>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+    <ProjectReference Include="..\AScript\AScript.csproj" />
+  </ItemGroup>
+
+</Project>
