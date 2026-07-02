@@ -27,9 +27,8 @@ namespace AScript.Test.MSTests.JavaScript
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("JSON.parse('{\"a\":1}')");
-			var json = (JObject)result;
-			Assert.AreEqual(1L, json["a"].Value<long>());
+			var result = script.Eval<dynamic>("JSON.parse('{\"a\":1}')");
+			Assert.AreEqual(1L, result.a);
 		}
 
 		[TestMethod]
@@ -38,9 +37,27 @@ namespace AScript.Test.MSTests.JavaScript
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("JSON.parse('{\"a\":1}')");
-			var json = (JObject)result;
-			Assert.AreEqual(1L, json["a"].Value<long>());
+			var result = script.Eval<dynamic>("JSON.parse('{\"a\":1}')");
+			Assert.AreEqual(1L, result.a);
+		}
+
+		[TestMethod]
+		public void Test01_parse2()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval("var d = JSON.parse('{\"a\":1}'); d.a");
+			Assert.AreEqual(1L, result);
+		}
+
+		[TestMethod]
+		public void Test01_parse2_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval("var d = JSON.parse('{\"a\":1}'); d.a");
+			Assert.AreEqual(1L, result);
 		}
 
 		// json parse array
@@ -49,12 +66,11 @@ namespace AScript.Test.MSTests.JavaScript
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("JSON.parse('[1, 2, 3]')");
-			var arr = (JArray)result;
-			Assert.AreEqual(3, arr.Count);
-			Assert.AreEqual(1L, arr[0].Value<long>());
-			Assert.AreEqual(2L, arr[1].Value<long>());
-			Assert.AreEqual(3L, arr[2].Value<long>());
+			var result = script.Eval<List<object>>("JSON.parse('[1, 2, 3]')");
+			Assert.AreEqual(3, result.Count);
+			Assert.AreEqual(1L, result[0]);
+			Assert.AreEqual(2L, result[1]);
+			Assert.AreEqual(3L, result[2]);
 		}
 
 		[TestMethod]
@@ -63,12 +79,30 @@ namespace AScript.Test.MSTests.JavaScript
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("JSON.parse('[1, 2, 3]')");
-			var arr = (JArray)result;
-			Assert.AreEqual(3, arr.Count);
-			Assert.AreEqual(1L, arr[0].Value<long>());
-			Assert.AreEqual(2L, arr[1].Value<long>());
-			Assert.AreEqual(3L, arr[2].Value<long>());
+			var result = script.Eval<List<object>>("JSON.parse('[1, 2, 3]')");
+			Assert.AreEqual(3, result.Count);
+			Assert.AreEqual(1L, result[0]);
+			Assert.AreEqual(2L, result[1]);
+			Assert.AreEqual(3L, result[2]);
+		}
+
+		[TestMethod]
+		public void Test02_parseArray2()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval("var d=JSON.parse('[1, 2, 3]'); d[0]+d[1]+d[2]");
+			Assert.AreEqual(6L, result);
+		}
+
+		[TestMethod]
+		public void Test02_parseArray2_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval("var d=JSON.parse('[1, 2, 3]'); d[0]+d[1]+d[2]");
+			Assert.AreEqual(6L, result);
 		}
 
 		// json parse nested
@@ -77,12 +111,11 @@ namespace AScript.Test.MSTests.JavaScript
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("JSON.parse('{\"arr\":[1,2],\"obj\":{\"x\":1}}')");
-			var json = (JObject)result;
-			var arr = (JArray)json["arr"];
-			var obj = (JObject)json["obj"];
-			Assert.AreEqual(2, arr.Count);
-			Assert.AreEqual(1L, obj["x"].Value<long>());
+			var result = script.Eval<dynamic>("JSON.parse('{\"arr\":[1,2],\"obj\":{\"x\":1}}')");
+			Assert.AreEqual(2, result.arr.Count);
+			Assert.AreEqual(1L, result.arr[0]);
+			Assert.AreEqual(2L, result.arr[1]);
+			Assert.AreEqual(1L, result.obj.x);
 		}
 
 		[TestMethod]
@@ -91,12 +124,11 @@ namespace AScript.Test.MSTests.JavaScript
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("JSON.parse('{\"arr\":[1,2],\"obj\":{\"x\":1}}')");
-			var json = (JObject)result;
-			var arr = (JArray)json["arr"];
-			var obj = (JObject)json["obj"];
-			Assert.AreEqual(2, arr.Count);
-			Assert.AreEqual(1L, obj["x"].Value<long>());
+			var result = script.Eval<dynamic>("JSON.parse('{\"arr\":[1,2],\"obj\":{\"x\":1}}')");
+			Assert.AreEqual(2, result.arr.Count);
+			Assert.AreEqual(1L, result.arr[0]);
+			Assert.AreEqual(2L, result.arr[1]);
+			Assert.AreEqual(1L, result.obj.x);
 		}
 
 		[TestMethod]
@@ -104,7 +136,7 @@ namespace AScript.Test.MSTests.JavaScript
 		{
 			string s = @"
 var d = JSON.parse('{""arr"":[1,2],""obj"":{""x"":3}}');
-d.arr[0]+d.arr[1]+d.x
+d.arr[0]+d.arr[1]+d.obj.x
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -116,7 +148,7 @@ d.arr[0]+d.arr[1]+d.x
 		{
 			string s = @"
 var d = JSON.parse('{""arr"":[1,2],""obj"":{""x"":3}}');
-d.arr[0]+d.arr[1]+d.x
+d.arr[0]+d.arr[1]+d.obj.x
 ";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -188,9 +220,8 @@ d.arr[0]+d.arr[1]+d.x
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("JSON.parse('{ \"a\" : 1 }')");
-			var json = (JObject)result;
-			Assert.AreEqual(1L, json["a"].Value<long>());
+			var result = script.Eval<dynamic>("JSON.parse('{ \"a\" : 1 }')");
+			Assert.AreEqual(1L, result.a);
 		}
 
 		[TestMethod]
@@ -199,9 +230,8 @@ d.arr[0]+d.arr[1]+d.x
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("JSON.parse('{ \"a\" : 1 }')");
-			var json = (JObject)result;
-			Assert.AreEqual(1L, json["a"].Value<long>());
+			var result = script.Eval<dynamic>("JSON.parse('{ \"a\" : 1 }')");
+			Assert.AreEqual(1L, result.a);
 		}
 
 		[TestMethod]
