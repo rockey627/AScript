@@ -79,7 +79,7 @@ namespace AScript.Syntaxs
 			["."] = 200,
 			["?."] = 200,
 			// 索引器
-			["["] = 210
+			["["] = 200
 		};
 
 		public event EventHandler<TokenAnalyzingArgs> TokenAnalyzing;
