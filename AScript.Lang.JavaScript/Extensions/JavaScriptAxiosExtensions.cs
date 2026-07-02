@@ -1,6 +1,8 @@
 ﻿#if NETSTANDARD
+using Newtonsoft.Json;
 using System;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace AScript.Lang.JavaScript.Extensions
@@ -10,6 +12,20 @@ namespace AScript.Lang.JavaScript.Extensions
 		public static async Task<JavaScriptHttpResponse> get(HttpClient client, string url)
 		{
 			var response = await client.GetAsync(url).ConfigureAwait(false);
+			return new JavaScriptHttpResponse(response);
+		}
+
+		public static async Task<JavaScriptHttpResponse> post(HttpClient client, string url)
+		{
+			var content = new StringContent(null, Encoding.UTF8, "application/json");
+			var response = await client.PostAsync(url, content).ConfigureAwait(false);
+			return new JavaScriptHttpResponse(response);
+		}
+
+		public static async Task<JavaScriptHttpResponse> post(HttpClient client, string url, object data)
+		{
+			var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+			var response = await client.PostAsync(url, content).ConfigureAwait(false);
 			return new JavaScriptHttpResponse(response);
 		}
 	}
