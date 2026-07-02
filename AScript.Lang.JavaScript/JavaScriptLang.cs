@@ -77,6 +77,9 @@ namespace AScript.Lang.JavaScript
 			AddFunc("slice", IndexStartEndOperator.Instance);
 
 			AddExtension(new JavaScriptJsonExtensionObject());
+#if NETSTANDARD
+			AddExtension(new JavaScriptAxiosExtensionObject());
+#endif
 
 			AddFunc(typeof(JavaScriptDateExtensions));
 			AddFunc(typeof(JavaScriptMathExtensions));
