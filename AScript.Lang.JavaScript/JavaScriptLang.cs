@@ -76,6 +76,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc("get_length", new LengthFunction(typeof(long)));
 			AddFunc("slice", IndexStartEndOperator.Instance);
 
+			AddExtension(new JavaScriptConsoleExtensionObject());
 			AddExtension(new JavaScriptJsonExtensionObject());
 #if NETSTANDARD
 			AddExtension(new JavaScriptAxiosExtensionObject());
