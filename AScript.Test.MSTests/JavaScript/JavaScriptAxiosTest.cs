@@ -54,6 +54,31 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual(1L, result);
 		}
 
+		[TestMethod]
+		public void Test01_getObject2()
+		{
+			var handler = new MockHttpMessageHandler("{\"a\":1}", System.Net.HttpStatusCode.OK);
+			SetMockHandler(handler);
+
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com').catch(err=>{console.log(err)}); resp.data.a");
+			Assert.AreEqual(1L, result);
+		}
+
+		[TestMethod]
+		public void Test01_getObject2_CompileAll()
+		{
+			var handler = new MockHttpMessageHandler("{\"a\":1}", System.Net.HttpStatusCode.OK);
+			SetMockHandler(handler);
+
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com').catch(err=>{console.log(err)}); resp.data.a");
+			Assert.AreEqual(1L, result);
+		}
+
 		// axios.get - array response
 		[TestMethod]
 		public void Test02_getArray()

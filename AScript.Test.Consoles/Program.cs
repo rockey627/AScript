@@ -1,4 +1,5 @@
-﻿using AScript.Lang.Sql;
+﻿using AScript.Lang.JavaScript;
+using AScript.Lang.Sql;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using IronPython.Hosting;
@@ -56,11 +57,29 @@ namespace AScript.Test.Consoles
 			//Test21_ExpandoObject();
 			//Test22();
 			//Test23();
-			Test24_Sqlite();
+			//Test24_Sqlite();
+			Test25_js();
 			//var p = Expression.Constant(new Person());
 			//Console.WriteLine(Expression.PropertyOrField(p, "name"));
 			Console.WriteLine("end");
 			Console.ReadLine();
+		}
+
+		static void Test25_js()
+		{
+			Script.Langs.Set("js", JavaScriptLang.Instance);
+			var s = @"
+axios.get('https://www.runoob.com/try/ajax/json_demo.json')
+	.then(res=>{
+		console.log('result', res);
+	})
+	.catch(error=> {
+		console.log(error);
+    });
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			script.Eval(s);
 		}
 
 		static void Test24_Sqlite()

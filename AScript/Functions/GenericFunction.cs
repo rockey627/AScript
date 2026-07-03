@@ -321,9 +321,13 @@ namespace AScript.Functions
 						}
 					}
 					if (!isFunc) tempBuildContext.ReturnType = typeof(void);
-					else if (tempBuildContext.ReturnType == null && body.Type == typeof(void))
+					else if (body.Type == typeof(void))
 					{
-						body = Expression.Block(body, ExpressionUtils.Constant_null);
+						if (tempBuildContext.ReturnType == null)
+						{
+							tempBuildContext.ReturnType = typeof(object);
+						}
+						body = Expression.Block(body, Expression.Default(tempBuildContext.ReturnType));
 					}
 					var lambdaExpr = tempBuildContext.Build(e.ScriptContext, funcOptions, body);
 					argExpressions[i] = lambdaExpr;
@@ -724,10 +728,10 @@ namespace AScript.Functions
 					{
 						tempBuildContext.ReturnType = returnType;
 					}
-					if (isFunc && returnType == null && body.Type == typeof(void))
+					if (isFunc && body.Type == typeof(void))
 					{
-						returnType = typeof(object);
-						body = Expression.Block(body, ExpressionUtils.Constant_null);
+						if (returnType == null) returnType = typeof(object);
+						body = Expression.Block(body, Expression.Default(returnType));
 					}
 					var lambdaExpr = tempBuildContext.Build(e.Context, funcOptions, body);
 					argValues[i] = lambdaExpr.Compile();
