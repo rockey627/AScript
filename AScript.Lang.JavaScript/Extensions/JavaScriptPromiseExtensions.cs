@@ -118,7 +118,16 @@ namespace AScript.Lang.JavaScript.Extensions
 						throw new ScriptCustomException(er);
 					}
 				}
-				return t.Exception == null ? t.Result : default(T);
+				return t.Exception == null ? t.Result : default;
+			});
+		}
+
+		public static Task<T> @finally<T>(Task<T> task, Action onFinally)
+		{
+			return task.ContinueWith(t =>
+			{
+				onFinally?.Invoke();
+				return t.Exception == null ? t.Result : default;
 			});
 		}
 	}
