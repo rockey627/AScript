@@ -83,7 +83,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 			else if (caseList != null)
 			{
 				// switch语句
-				var switchNode = new CaseWhenNode { CaseValue = switchValue, ElseBody = defaultBody, Whens = caseList };
+				var switchNode = new CaseWhenNode { CaseValue = switchValue, DefaultBody = defaultBody, Whens = caseList };
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, switchNode);
 			}
 		}
