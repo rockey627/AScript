@@ -20,12 +20,12 @@ namespace AScript.Lang.JavaScript.Extensions
 
 		public static Task<object[]> Promise_all(IList<object> list)
 		{
-			return Task.WhenAll(list.Select(a => (Task<object>)a));
+			return Task.WhenAll(list.Select(a => a is Task<object> t ? t : Task.FromResult(a)));
 		}
 
 		public static Task<object> Promise_any(IList<object> list)
 		{
-			return Task.WhenAny(list.Select(a => (Task<object>)a)).Result;
+			return Task.WhenAny(list.Select(a => a is Task<object> t ? t : Task.FromResult(a))).Result;
 		}
 
 		public static Task<object> Promise_resolve(object value)

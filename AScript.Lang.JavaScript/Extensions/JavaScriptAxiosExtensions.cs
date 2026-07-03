@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +11,11 @@ namespace AScript.Lang.JavaScript.Extensions
 {
 	public static class JavaScriptAxiosExtensions
 	{
+		public static Task<JavaScriptHttpResponse[]> all(HttpClient client, IList<object> list)
+		{
+			return Task.WhenAll(list.Select(a => (Task<JavaScriptHttpResponse>)a));
+		}
+
 		public static async Task<JavaScriptHttpResponse> get(HttpClient client, string url)
 		{
 			var response = await client.GetAsync(url).ConfigureAwait(false);

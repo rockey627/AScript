@@ -385,6 +385,57 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual("mocked", result);
 		}
 
+		// axios.all - multiple concurrent requests
+		[TestMethod]
+		public void Test14_axiosAll()
+		{
+			var handler = new MockHttpMessageHandler("{\"value\":1}", System.Net.HttpStatusCode.OK);
+			SetMockHandler(handler);
+
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval("var resps = await axios.all([axios.get('http://test.com'), axios.get('http://test.com')]); resps[0].data.value + resps[1].data.value");
+			Assert.AreEqual(2L, result);
+		}
+
+		[TestMethod]
+		public void Test14_axiosAll_CompileAll()
+		{
+			var handler = new MockHttpMessageHandler("{\"value\":1}", System.Net.HttpStatusCode.OK);
+			SetMockHandler(handler);
+
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval("var resps = await axios.all([axios.get('http://test.com'), axios.get('http://test.com')]); resps[0].data.value + resps[1].data.value");
+			Assert.AreEqual(2L, result);
+		}
+
+		[TestMethod]
+		public void Test15_axiosAllThreeRequests()
+		{
+			var handler = new MockHttpMessageHandler("{\"value\":1}", System.Net.HttpStatusCode.OK);
+			SetMockHandler(handler);
+
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval("var resps = await axios.all([axios.get('http://test.com'), axios.get('http://test.com'), axios.get('http://test.com')]); resps.length");
+			Assert.AreEqual(3L, result);
+		}
+
+		[TestMethod]
+		public void Test15_axiosAllThreeRequests_CompileAll()
+		{
+			var handler = new MockHttpMessageHandler("{\"value\":1}", System.Net.HttpStatusCode.OK);
+			SetMockHandler(handler);
+
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval("var resps = await axios.all([axios.get('http://test.com'), axios.get('http://test.com'), axios.get('http://test.com')]); resps.length");
+			Assert.AreEqual(3L, result);
+		}
+
 	}
 
 	// Mock HttpMessageHandler for testing
