@@ -331,5 +331,52 @@ arr[0] + arr[1] + arr[2]
 			var result = script.Eval(s);
 			Assert.AreEqual(6L, result);
 		}
+
+		// Promise.any - returns the first resolved promise value
+		[TestMethod]
+		public void Test13_promiseAny()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval<long>("await Promise.any([Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)])");
+			Assert.AreEqual(1L, result);
+		}
+
+		[TestMethod]
+		public void Test13_promiseAny_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval<long>("await Promise.any([Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)])");
+			Assert.AreEqual(1L, result);
+		}
+
+		[TestMethod]
+		public void Test14_promiseAny()
+		{
+			var s = @"
+var result = await Promise.any([Promise.resolve(10), Promise.resolve(20)]);
+result
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval(s);
+			Assert.AreEqual(10L, result);
+		}
+
+		[TestMethod]
+		public void Test14_promiseAny_CompileAll()
+		{
+			var s = @"
+var result = await Promise.any([Promise.resolve(10), Promise.resolve(20)]);
+result
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval(s);
+			Assert.AreEqual(10L, result);
+		}
 	}
 }

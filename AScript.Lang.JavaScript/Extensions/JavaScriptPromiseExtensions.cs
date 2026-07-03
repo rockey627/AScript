@@ -18,9 +18,14 @@ namespace AScript.Lang.JavaScript.Extensions
 			return tcs.Task;
 		}
 
-		public static Task<object[]> Promise_all(List<object> list)
+		public static Task<object[]> Promise_all(IList<object> list)
 		{
 			return Task.WhenAll(list.Select(a => (Task<object>)a));
+		}
+
+		public static Task<object> Promise_any(IList<object> list)
+		{
+			return Task.WhenAny(list.Select(a => (Task<object>)a)).Result;
 		}
 
 		public static Task<object> Promise_resolve(object value)
