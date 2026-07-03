@@ -1,4 +1,3 @@
-#if NET7_0_OR_GREATER
 using AScript.Lang.JavaScript;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -385,4 +384,3 @@ namespace AScript.Test.MSTests.JavaScript
 		}
 	}
 }
-#endif

@@ -38,6 +38,10 @@ Assert.AreEqual(15L, result);
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+		<Reference Include="System.Net.Http" />
+	</ItemGroup>
+	
 	<ItemGroup>
     <ProjectReference Include="..\AScript\AScript.csproj" />
   </ItemGroup>

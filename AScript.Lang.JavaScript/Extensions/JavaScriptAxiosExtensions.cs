@@ -1,5 +1,4 @@
-﻿#if NETSTANDARD
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -74,6 +73,7 @@ namespace AScript.Lang.JavaScript.Extensions
 
 		private bool _IsDataParsed;
 		private bool _IsHeadersParsed;
+		private bool _disposed;
 		private object _Data;
 		private ExpandoObject _Headers;
 
@@ -106,6 +106,7 @@ namespace AScript.Lang.JavaScript.Extensions
 					var dict = (IDictionary<string, object>)headers;
 					foreach (var item in _Response.Headers)
 					{
+						if (item.Value == null) continue;
 						dict[item.Key] = string.Join(",", item.Value);
 					}
 				}
@@ -118,10 +119,29 @@ namespace AScript.Lang.JavaScript.Extensions
 			_Response = response;
 		}
 
+		~JavaScriptHttpResponse()
+		{
+			Dispose(false);
+		}
+
 		public void Dispose()
 		{
-			_Response.Dispose();
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposed)
+			{
+				if (disposing)
+				{
+					// 释放托管资源
+				}
+				// 释放非托管资源
+				try { _Response?.Dispose(); } catch { }
+				_disposed = true;
+			}
 		}
 	}
 }
-#endif

@@ -1,5 +1,4 @@
-﻿#if NETSTANDARD
-using System;
+﻿using System;
 
 namespace AScript.Lang.JavaScript.Extensions
 {
@@ -16,4 +15,3 @@ namespace AScript.Lang.JavaScript.Extensions
 		}
 	}
 }
-#endif

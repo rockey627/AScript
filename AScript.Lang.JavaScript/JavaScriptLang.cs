@@ -78,9 +78,7 @@ namespace AScript.Lang.JavaScript
 
 			AddExtension(new JavaScriptConsoleExtensionObject());
 			AddExtension(new JavaScriptJsonExtensionObject());
-#if NETSTANDARD
 			AddExtension(new JavaScriptAxiosExtensionObject());
-#endif
 
 			AddFunc(typeof(JavaScriptDateExtensions));
 			AddFunc(typeof(JavaScriptMathExtensions));
