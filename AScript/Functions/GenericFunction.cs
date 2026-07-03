@@ -56,7 +56,7 @@ namespace AScript.Functions
 				var paramType = parameters[i].ParameterType;
 				var argType = argTypes[i];
 
-				if (!paramType.IsGenericType && !paramType.IsGenericParameter)
+				if (paramType != typeof(Action) && !paramType.IsGenericType && !paramType.IsGenericParameter)
 				{
 					if (e.Args != null && e.Args[i] is DefineFuncNode) return;
 					if (paramType.IsAssignableFrom(argType)) continue;
@@ -74,156 +74,159 @@ namespace AScript.Functions
 					continue;
 				}
 
-				var paramGeneric = paramType.GetGenericTypeDefinition();
-				if (paramGeneric == typeof(Expression<>))
+				if (paramType.IsGenericType)
 				{
-					if (!(e.Args[i] is DefineFuncNode defineFuncNode)) return;
-					var innerType = paramType.GetGenericArguments()[0];
-					var innerDefinition = innerType.GetGenericTypeDefinition();
-					if (innerType.IsGenericType)
+					var paramGeneric = paramType.GetGenericTypeDefinition();
+					if (paramGeneric == typeof(Expression<>))
 					{
-						// 比如：Expression<Func<TSource, TKey>>，TSource已由前面的参数推导出来，TKey类型由defineFuncNode实际返回值来推导
-						var innerGens = innerType.GetGenericArguments();
-						int innerArgsCount = innerGens.Length;
-						if (innerType.Name.StartsWith("Func`")) innerArgsCount -= 1;
-						int defineArgsCount = defineFuncNode.Args == null ? 0 : defineFuncNode.Args.Length;
-						if (innerArgsCount != defineArgsCount) return;
-						var types = new Type[innerArgsCount];
-						for (int j = 0; j < innerArgsCount; j++)
+						if (!(e.Args[i] is DefineFuncNode defineFuncNode)) return;
+						var innerType = paramType.GetGenericArguments()[0];
+						var innerDefinition = innerType.GetGenericTypeDefinition();
+						if (innerType.IsGenericType)
 						{
-							var g = innerGens[j];
-							Type type;
-							if (g.IsGenericParameter)
+							// 比如：Expression<Func<TSource, TKey>>，TSource已由前面的参数推导出来，TKey类型由defineFuncNode实际返回值来推导
+							var innerGens = innerType.GetGenericArguments();
+							int innerArgsCount = innerGens.Length;
+							if (innerType.Name.StartsWith("Func`")) innerArgsCount -= 1;
+							int defineArgsCount = defineFuncNode.Args == null ? 0 : defineFuncNode.Args.Length;
+							if (innerArgsCount != defineArgsCount) return;
+							var types = new Type[innerArgsCount];
+							for (int j = 0; j < innerArgsCount; j++)
 							{
-								type = typeArguments[g.GenericParameterPosition];
-								if (type == null) return;
-							}
-							else if (g.IsGenericType)
-							{
-								var ggs = g.GetGenericArguments();
-								var ggTypes = new Type[ggs.Length];
-								for (int k = 0; k < ggs.Length; k++)
+								var g = innerGens[j];
+								Type type;
+								if (g.IsGenericParameter)
 								{
-									var gg = ggs[k];
-									if (gg.IsGenericParameter)
-									{
-										var type00 = typeArguments[gg.GenericParameterPosition];
-										ggTypes[k] = type00;
-									}
-									else ggTypes[k] = gg;
+									type = typeArguments[g.GenericParameterPosition];
+									if (type == null) return;
 								}
-								type = g.GetGenericTypeDefinition().MakeGenericType(ggTypes);
+								else if (g.IsGenericType)
+								{
+									var ggs = g.GetGenericArguments();
+									var ggTypes = new Type[ggs.Length];
+									for (int k = 0; k < ggs.Length; k++)
+									{
+										var gg = ggs[k];
+										if (gg.IsGenericParameter)
+										{
+											var type00 = typeArguments[gg.GenericParameterPosition];
+											ggTypes[k] = type00;
+										}
+										else ggTypes[k] = gg;
+									}
+									type = g.GetGenericTypeDefinition().MakeGenericType(ggTypes);
+								}
+								else type = g;
+								types[j] = type;
 							}
-							else type = g;
-							types[j] = type;
-						}
-						// 构建临时上下文
-						var tempBuildContext = new BuildContext(e.BuildContext)
-						{
-							ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
-							RewriteLocalVariables = false,
-							IsMain = true
-						};
-						var paramExprs = new ParameterExpression[types.Length];
-						for (int j = 0; j < types.Length; j++)
-						{
-							// 创建参数表达式
-							var defineArgName = defineFuncNode.Args[j].Name;
-							var paramExpr = Expression.Parameter(types[j], defineArgName);
-							tempBuildContext.Parameters[defineArgName] = paramExpr;
-							paramExprs[j] = paramExpr;
-						}
-						// 构建函数体
-						var funcOptions = new BuildOptions(e.Options) { CompileMode = ECompileMode.All };
-						var body = defineFuncNode.Body.Build(tempBuildContext, e.ScriptContext, funcOptions);
-						// 构建 Expression<Func<T, bool>>
-						var returnGen = innerGens[innerGens.Length - 1];
-						if (returnGen.IsGenericType)
-						{
-							var returnType0 = GetGenericType(returnGen, body.Type);
-							if (returnType0 == null) return;
-							var returnParamArgs = returnGen.GetGenericArguments();
-							var returnArgGenericArgs = returnType0.GetGenericArguments();
-							for (int j = 0; j < returnParamArgs.Length && j < returnArgGenericArgs.Length; j++)
+							// 构建临时上下文
+							var tempBuildContext = new BuildContext(e.BuildContext)
 							{
-								var p = returnParamArgs[j];
-								if (p.IsGenericParameter && typeArguments[p.GenericParameterPosition] == null)
+								ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
+								RewriteLocalVariables = false,
+								IsMain = true
+							};
+							var paramExprs = new ParameterExpression[types.Length];
+							for (int j = 0; j < types.Length; j++)
+							{
+								// 创建参数表达式
+								var defineArgName = defineFuncNode.Args[j].Name;
+								var paramExpr = Expression.Parameter(types[j], defineArgName);
+								tempBuildContext.Parameters[defineArgName] = paramExpr;
+								paramExprs[j] = paramExpr;
+							}
+							// 构建函数体
+							var funcOptions = new BuildOptions(e.Options) { CompileMode = ECompileMode.All };
+							var body = defineFuncNode.Body.Build(tempBuildContext, e.ScriptContext, funcOptions);
+							// 构建 Expression<Func<T, bool>>
+							var returnGen = innerGens[innerGens.Length - 1];
+							if (returnGen.IsGenericType)
+							{
+								var returnType0 = GetGenericType(returnGen, body.Type);
+								if (returnType0 == null) return;
+								var returnParamArgs = returnGen.GetGenericArguments();
+								var returnArgGenericArgs = returnType0.GetGenericArguments();
+								for (int j = 0; j < returnParamArgs.Length && j < returnArgGenericArgs.Length; j++)
+								{
+									var p = returnParamArgs[j];
+									if (p.IsGenericParameter && typeArguments[p.GenericParameterPosition] == null)
+									{
+										typeArgumentsFillCount++;
+										typeArguments[p.GenericParameterPosition] = returnArgGenericArgs[j];
+									}
+								}
+								//tempBuildContext.ReturnType = returnType0;
+							}
+							else if (!returnGen.IsGenericParameter)
+							{
+								if (!returnGen.IsAssignableFrom(body.Type)) return;
+								//if (returnGen != body.Type)
+								//{
+								//	tempBuildContext.ReturnType = returnGen;
+								//}
+							}
+							else if (returnGen.IsGenericParameter)
+							{
+								//var returnGenType = typeArguments[returnGen.GenericParameterPosition];
+								//if (returnGenType != null && returnGenType != body.Type)
+								//{
+								//	tempBuildContext.ReturnType = returnGenType;
+								//}
+							}
+							Type delegateType = null;
+							var innerTypes = new Type[innerGens.Length];
+							bool allHasType = true;
+							for (int j = 0; j < innerGens.Length; j++)
+							{
+								var g = innerGens[j];
+								if (g.IsGenericParameter)
+								{
+									var type = typeArguments[g.GenericParameterPosition];
+									if (type == null) { allHasType = false; break; }
+									innerTypes[j] = type;
+								}
+								else if (g.IsGenericType)
+								{
+									var ggs = g.GetGenericArguments();
+									var ggTypes = new Type[ggs.Length];
+									for (int k = 0; k < ggs.Length; k++)
+									{
+										var gg = ggs[k];
+										if (gg.IsGenericParameter)
+										{
+											var type = typeArguments[gg.GenericParameterPosition];
+											if (type == null) { allHasType = false; break; }
+											ggTypes[k] = type;
+										}
+										else ggTypes[k] = gg;
+									}
+									if (!allHasType) break;
+									innerTypes[j] = g.GetGenericTypeDefinition().MakeGenericType(ggTypes);
+								}
+								else
+								{
+									innerTypes[j] = g;
+								}
+							}
+							if (allHasType)
+							{
+								delegateType = innerType.GetGenericTypeDefinition().MakeGenericType(innerTypes);
+							}
+							tempBuildContext.DelegateType = delegateType;
+							var lambdaExpr = tempBuildContext.Build(e.ScriptContext, funcOptions, body);
+							argExpressions[i] = lambdaExpr;
+							if (returnGen.IsGenericParameter)
+							{
+								if (typeArguments[returnGen.GenericParameterPosition] == null)
 								{
 									typeArgumentsFillCount++;
-									typeArguments[p.GenericParameterPosition] = returnArgGenericArgs[j];
+									typeArguments[returnGen.GenericParameterPosition] = lambdaExpr.ReturnType;
 								}
 							}
-							//tempBuildContext.ReturnType = returnType0;
+							continue;
 						}
-						else if (!returnGen.IsGenericParameter)
-						{
-							if (!returnGen.IsAssignableFrom(body.Type)) return;
-							//if (returnGen != body.Type)
-							//{
-							//	tempBuildContext.ReturnType = returnGen;
-							//}
-						}
-						else if (returnGen.IsGenericParameter)
-						{
-							//var returnGenType = typeArguments[returnGen.GenericParameterPosition];
-							//if (returnGenType != null && returnGenType != body.Type)
-							//{
-							//	tempBuildContext.ReturnType = returnGenType;
-							//}
-						}
-						Type delegateType = null;
-						var innerTypes = new Type[innerGens.Length];
-						bool allHasType = true;
-						for (int j = 0; j < innerGens.Length; j++)
-						{
-							var g = innerGens[j];
-							if (g.IsGenericParameter)
-							{
-								var type = typeArguments[g.GenericParameterPosition];
-								if (type == null) { allHasType = false; break; }
-								innerTypes[j] = type;
-							}
-							else if (g.IsGenericType)
-							{
-								var ggs = g.GetGenericArguments();
-								var ggTypes = new Type[ggs.Length];
-								for (int k = 0; k < ggs.Length; k++)
-								{
-									var gg = ggs[k];
-									if (gg.IsGenericParameter)
-									{
-										var type = typeArguments[gg.GenericParameterPosition];
-										if (type == null) { allHasType = false; break; }
-										ggTypes[k] = type;
-									}
-									else ggTypes[k] = gg;
-								}
-								if (!allHasType) break;
-								innerTypes[j] = g.GetGenericTypeDefinition().MakeGenericType(ggTypes);
-							}
-							else
-							{
-								innerTypes[j] = g;
-							}
-						}
-						if (allHasType)
-						{
-							delegateType = innerType.GetGenericTypeDefinition().MakeGenericType(innerTypes);
-						}
-						tempBuildContext.DelegateType = delegateType;
-						var lambdaExpr = tempBuildContext.Build(e.ScriptContext, funcOptions, body);
-						argExpressions[i] = lambdaExpr;
-						if (returnGen.IsGenericParameter)
-						{
-							if (typeArguments[returnGen.GenericParameterPosition] == null)
-							{
-								typeArgumentsFillCount++;
-								typeArguments[returnGen.GenericParameterPosition] = lambdaExpr.ReturnType;
-							}
-						}
-						continue;
+						return;
 					}
-					return;
 				}
 
 				bool isFunc = paramType.Name.StartsWith("Func`");
@@ -284,10 +287,11 @@ namespace AScript.Functions
 					}
 					// 构建函数体
 					var funcOptions = new BuildOptions(e.Options) { CompileMode = ECompileMode.All };
-					var body = defineFuncNode.Body.Build(tempBuildContext, e.ScriptContext, funcOptions);
+					var body = defineFuncNode.Body?.Build(tempBuildContext, e.ScriptContext, funcOptions) ?? Expression.Empty();
 					// 构建 Expression<Func<T, bool>>
-					var returnGen = innerGens[innerGens.Length - 1];
-					if (returnGen.IsGenericType)
+					var returnGen = innerGens.Length == 0 ? null : innerGens[innerGens.Length - 1];
+					if (returnGen == null) { }
+					else if (returnGen.IsGenericType)
 					{
 						var returnType0 = GetGenericType(returnGen, body.Type);
 						if (returnType0 == null) return;
@@ -331,7 +335,7 @@ namespace AScript.Functions
 					}
 					var lambdaExpr = tempBuildContext.Build(e.ScriptContext, funcOptions, body);
 					argExpressions[i] = lambdaExpr;
-					if (returnGen.IsGenericParameter)
+					if (returnGen != null && returnGen.IsGenericParameter)
 					{
 						if (typeArguments[returnGen.GenericParameterPosition] == null)
 						{
@@ -417,7 +421,7 @@ namespace AScript.Functions
 				var paramType = parameters[i].ParameterType;
 				var argType = argTypes[i];
 
-				if (!paramType.IsGenericType && !paramType.IsGenericParameter)
+				if (paramType != typeof(Action) && !paramType.IsGenericType && !paramType.IsGenericParameter)
 				{
 					if (e.Args[i] is DefineFuncNode) return;
 					if (paramType.IsAssignableFrom(argType)) continue;
@@ -435,155 +439,158 @@ namespace AScript.Functions
 					continue;
 				}
 
-				var paramGeneric = paramType.GetGenericTypeDefinition();
-				if (paramGeneric == typeof(Expression<>))
+				if (paramType.IsGenericType)
 				{
-					if (!(e.Args[i] is DefineFuncNode defineFuncNode)) return;
-					var innerType = paramType.GetGenericArguments()[0];
-					if (innerType.IsGenericType)
+					var paramGeneric = paramType.GetGenericTypeDefinition();
+					if (paramGeneric == typeof(Expression<>))
 					{
-						// 比如：Expression<Func<TSource, TKey>>，TSource已由前面的参数推导出来，TKey类型由defineFuncNode实际返回值来推导
-						var innerGens = innerType.GetGenericArguments();
-						int innerArgsCount = innerGens.Length;
-						if (innerType.Name.StartsWith("Func`")) innerArgsCount -= 1;
-						int defineArgsCount = defineFuncNode.Args == null ? 0 : defineFuncNode.Args.Length;
-						if (innerArgsCount != defineArgsCount) return;
-						var types = new Type[innerArgsCount];
-						for (int j = 0; j < innerArgsCount; j++)
+						if (!(e.Args[i] is DefineFuncNode defineFuncNode)) return;
+						var innerType = paramType.GetGenericArguments()[0];
+						if (innerType.IsGenericType)
 						{
-							var g = innerGens[j];
-							Type type;
-							if (g.IsGenericParameter)
+							// 比如：Expression<Func<TSource, TKey>>，TSource已由前面的参数推导出来，TKey类型由defineFuncNode实际返回值来推导
+							var innerGens = innerType.GetGenericArguments();
+							int innerArgsCount = innerGens.Length;
+							if (innerType.Name.StartsWith("Func`")) innerArgsCount -= 1;
+							int defineArgsCount = defineFuncNode.Args == null ? 0 : defineFuncNode.Args.Length;
+							if (innerArgsCount != defineArgsCount) return;
+							var types = new Type[innerArgsCount];
+							for (int j = 0; j < innerArgsCount; j++)
 							{
-								type = typeArguments[g.GenericParameterPosition];
-								if (type == null) return;
-							}
-							else if (g.IsGenericType)
-							{
-								var ggs = g.GetGenericArguments();
-								var ggTypes = new Type[ggs.Length];
-								for (int k = 0; k < ggs.Length; k++)
+								var g = innerGens[j];
+								Type type;
+								if (g.IsGenericParameter)
 								{
-									var gg = ggs[k];
-									if (gg.IsGenericParameter)
-									{
-										var type00 = typeArguments[gg.GenericParameterPosition];
-										ggTypes[k] = type00;
-									}
-									else ggTypes[k] = gg;
+									type = typeArguments[g.GenericParameterPosition];
+									if (type == null) return;
 								}
-								type = g.GetGenericTypeDefinition().MakeGenericType(ggTypes);
+								else if (g.IsGenericType)
+								{
+									var ggs = g.GetGenericArguments();
+									var ggTypes = new Type[ggs.Length];
+									for (int k = 0; k < ggs.Length; k++)
+									{
+										var gg = ggs[k];
+										if (gg.IsGenericParameter)
+										{
+											var type00 = typeArguments[gg.GenericParameterPosition];
+											ggTypes[k] = type00;
+										}
+										else ggTypes[k] = gg;
+									}
+									type = g.GetGenericTypeDefinition().MakeGenericType(ggTypes);
+								}
+								else type = g;
+								types[j] = type;
 							}
-							else type = g;
-							types[j] = type;
-						}
-						// 构建临时上下文
-						var tempBuildContext = new BuildContext
-						{
-							ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
-							RewriteLocalVariables = false,
-							IsMain = true
-						};
-						var paramExprs = new ParameterExpression[types.Length];
-						for (int j = 0; j < types.Length; j++)
-						{
-							// 创建参数表达式
-							var defineArgName = defineFuncNode.Args[j].Name;
-							var paramExpr = Expression.Parameter(types[j], defineArgName);
-							tempBuildContext.Parameters[defineArgName] = paramExpr;
-							paramExprs[j] = paramExpr;
-						}
-						// 构建函数体
-						var funcOptions = new BuildOptions(e.Options) { CompileMode = ECompileMode.All };
-						var body = defineFuncNode.Body.Build(tempBuildContext, e.Context, funcOptions);
-						// 构建 Expression<Func<T, bool>>
-						var returnGen = innerGens[innerGens.Length - 1];
-						if (returnGen.IsGenericType)
-						{
-							var returnType0 = GetGenericType(returnGen, body.Type);
-							if (returnType0 == null) return;
-							var returnParamArgs = returnGen.GetGenericArguments();
-							var returnArgGenericArgs = returnType0.GetGenericArguments();
-							for (int j = 0; j < returnParamArgs.Length && j < returnArgGenericArgs.Length; j++)
+							// 构建临时上下文
+							var tempBuildContext = new BuildContext
 							{
-								var p = returnParamArgs[j];
-								if (p.IsGenericParameter && typeArguments[p.GenericParameterPosition] == null)
+								ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
+								RewriteLocalVariables = false,
+								IsMain = true
+							};
+							var paramExprs = new ParameterExpression[types.Length];
+							for (int j = 0; j < types.Length; j++)
+							{
+								// 创建参数表达式
+								var defineArgName = defineFuncNode.Args[j].Name;
+								var paramExpr = Expression.Parameter(types[j], defineArgName);
+								tempBuildContext.Parameters[defineArgName] = paramExpr;
+								paramExprs[j] = paramExpr;
+							}
+							// 构建函数体
+							var funcOptions = new BuildOptions(e.Options) { CompileMode = ECompileMode.All };
+							var body = defineFuncNode.Body.Build(tempBuildContext, e.Context, funcOptions);
+							// 构建 Expression<Func<T, bool>>
+							var returnGen = innerGens[innerGens.Length - 1];
+							if (returnGen.IsGenericType)
+							{
+								var returnType0 = GetGenericType(returnGen, body.Type);
+								if (returnType0 == null) return;
+								var returnParamArgs = returnGen.GetGenericArguments();
+								var returnArgGenericArgs = returnType0.GetGenericArguments();
+								for (int j = 0; j < returnParamArgs.Length && j < returnArgGenericArgs.Length; j++)
+								{
+									var p = returnParamArgs[j];
+									if (p.IsGenericParameter && typeArguments[p.GenericParameterPosition] == null)
+									{
+										typeArgumentsFillCount++;
+										typeArguments[p.GenericParameterPosition] = returnArgGenericArgs[j];
+									}
+								}
+								//tempBuildContext.ReturnType = returnType0;
+							}
+							else if (!returnGen.IsGenericParameter)
+							{
+								if (!returnGen.IsAssignableFrom(body.Type)) return;
+								//if (returnGen != body.Type)
+								//{
+								//	tempBuildContext.ReturnType = returnGen;
+								//}
+							}
+							else if (returnGen.IsGenericParameter)
+							{
+								//var returnGenType = typeArguments[returnGen.GenericParameterPosition];
+								//if (returnGenType != null && returnGenType != body.Type)
+								//{
+								//	tempBuildContext.ReturnType = returnGenType;
+								//}
+							}
+							Type delegateType = null;
+							var innerTypes = new Type[innerGens.Length];
+							bool allHasType = true;
+							for (int j = 0; j < innerGens.Length; j++)
+							{
+								var g = innerGens[j];
+								if (g.IsGenericParameter)
+								{
+									var type = typeArguments[g.GenericParameterPosition];
+									if (type == null) { allHasType = false; break; }
+									innerTypes[j] = type;
+								}
+								else if (g.IsGenericType)
+								{
+									var ggs = g.GetGenericArguments();
+									var ggTypes = new Type[ggs.Length];
+									for (int k = 0; k < ggs.Length; k++)
+									{
+										var gg = ggs[k];
+										if (gg.IsGenericParameter)
+										{
+											var type = typeArguments[gg.GenericParameterPosition];
+											if (type == null) { allHasType = false; break; }
+											ggTypes[k] = type;
+										}
+										else ggTypes[k] = gg;
+									}
+									if (!allHasType) break;
+									innerTypes[j] = g.GetGenericTypeDefinition().MakeGenericType(ggTypes);
+								}
+								else
+								{
+									innerTypes[j] = g;
+								}
+							}
+							if (allHasType)
+							{
+								delegateType = innerType.GetGenericTypeDefinition().MakeGenericType(innerTypes);
+							}
+							tempBuildContext.DelegateType = delegateType;
+							var lambdaExpr = tempBuildContext.Build(e.Context, funcOptions, body);
+							argValues[i] = lambdaExpr;
+							if (returnGen.IsGenericParameter)
+							{
+								if (typeArguments[returnGen.GenericParameterPosition] == null)
 								{
 									typeArgumentsFillCount++;
-									typeArguments[p.GenericParameterPosition] = returnArgGenericArgs[j];
+									typeArguments[returnGen.GenericParameterPosition] = lambdaExpr.ReturnType;
 								}
 							}
-							//tempBuildContext.ReturnType = returnType0;
+							continue;
 						}
-						else if (!returnGen.IsGenericParameter)
-						{
-							if (!returnGen.IsAssignableFrom(body.Type)) return;
-							//if (returnGen != body.Type)
-							//{
-							//	tempBuildContext.ReturnType = returnGen;
-							//}
-						}
-						else if (returnGen.IsGenericParameter)
-						{
-							//var returnGenType = typeArguments[returnGen.GenericParameterPosition];
-							//if (returnGenType != null && returnGenType != body.Type)
-							//{
-							//	tempBuildContext.ReturnType = returnGenType;
-							//}
-						}
-						Type delegateType = null;
-						var innerTypes = new Type[innerGens.Length];
-						bool allHasType = true;
-						for (int j = 0; j < innerGens.Length; j++)
-						{
-							var g = innerGens[j];
-							if (g.IsGenericParameter)
-							{
-								var type = typeArguments[g.GenericParameterPosition];
-								if (type == null) { allHasType = false; break; }
-								innerTypes[j] = type;
-							}
-							else if (g.IsGenericType)
-							{
-								var ggs = g.GetGenericArguments();
-								var ggTypes = new Type[ggs.Length];
-								for (int k = 0; k < ggs.Length; k++)
-								{
-									var gg = ggs[k];
-									if (gg.IsGenericParameter)
-									{
-										var type = typeArguments[gg.GenericParameterPosition];
-										if (type == null) { allHasType = false; break; }
-										ggTypes[k] = type;
-									}
-									else ggTypes[k] = gg;
-								}
-								if (!allHasType) break;
-								innerTypes[j] = g.GetGenericTypeDefinition().MakeGenericType(ggTypes);
-							}
-							else
-							{
-								innerTypes[j] = g;
-							}
-						}
-						if (allHasType)
-						{
-							delegateType = innerType.GetGenericTypeDefinition().MakeGenericType(innerTypes);
-						}
-						tempBuildContext.DelegateType = delegateType;
-						var lambdaExpr = tempBuildContext.Build(e.Context, funcOptions, body);
-						argValues[i] = lambdaExpr;
-						if (returnGen.IsGenericParameter)
-						{
-							if (typeArguments[returnGen.GenericParameterPosition] == null)
-							{
-								typeArgumentsFillCount++;
-								typeArguments[returnGen.GenericParameterPosition] = lambdaExpr.ReturnType;
-							}
-						}
-						continue;
+						return;
 					}
-					return;
 				}
 
 				bool isFunc = paramType.Name.StartsWith("Func`");
@@ -644,11 +651,12 @@ namespace AScript.Functions
 					}
 					// 构建函数体
 					var funcOptions = new BuildOptions(e.Options) { CompileMode = ECompileMode.All };
-					var body = defineFuncNode.Body.Build(tempBuildContext, e.Context, funcOptions);
+					var body = defineFuncNode.Body?.Build(tempBuildContext, e.Context, funcOptions) ?? Expression.Empty();
 					// 构建 Func<T, bool>
-					var returnGen = innerGens[innerGens.Length - 1];
+					var returnGen = innerGens.Length == 0 ? null : innerGens[innerGens.Length - 1];
 					Type returnType = null;
-					if (returnGen.IsGenericType)
+					if (returnGen == null) { }
+					else if (returnGen.IsGenericType)
 					{
 						var returnType0 = GetGenericType(returnGen, body.Type);
 						if (returnType0 == null) return;
@@ -721,7 +729,14 @@ namespace AScript.Functions
 					}
 					if (allHasType)
 					{
-						delegateType = paramType.GetGenericTypeDefinition().MakeGenericType(innerTypes);
+						if (paramType == typeof(Action))
+						{
+							delegateType = typeof(Action);
+						}
+						else
+						{
+							delegateType = paramType.GetGenericTypeDefinition().MakeGenericType(innerTypes);
+						}
 					}
 					tempBuildContext.DelegateType = delegateType;
 					if (returnType == typeof(object) && body.Type.IsValueType)
@@ -735,7 +750,7 @@ namespace AScript.Functions
 					}
 					var lambdaExpr = tempBuildContext.Build(e.Context, funcOptions, body);
 					argValues[i] = lambdaExpr.Compile();
-					if (returnGen.IsGenericParameter)
+					if (returnGen != null && returnGen.IsGenericParameter)
 					{
 						if (typeArguments[returnGen.GenericParameterPosition] == null)
 						{

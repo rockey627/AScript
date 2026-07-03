@@ -380,10 +380,10 @@ namespace AScript.Syntaxs
 				}
 				else if (t.Value.Value == "=>")
 				{
-					if (treeBuilder == null || treeBuilder.Current == null)
-					{
-						throw new Exceptions.ScriptAnalyzingException($"invalid expression '=>' at {t.Value.Line},{t.Value.Column}");
-					}
+					//if (treeBuilder == null || treeBuilder.Current == null)
+					//{
+					//	throw new Exceptions.ScriptAnalyzingException($"invalid expression '=>' at {t.Value.Line},{t.Value.Column}");
+					//}
 					//BuildOptions buildOptions;
 					//if (options.CreateFullTreeNode ?? false)
 					//{
@@ -398,7 +398,15 @@ namespace AScript.Syntaxs
 						options = new BuildOptions(options) { CreateFullTreeNode = true };
 					}
 					// a => body 语法：单个变量作为参数
-					if (treeBuilder.Current is DefineVarNode defineVarNode)
+					if (treeBuilder == null || treeBuilder.Current == null)
+					{
+						var funcHead = new CallFuncNode
+						{
+							Name = "_"
+						};
+						ParseFuncDefine(buildContext, scriptContext, options, tokenReader, control, treeBuilder, funcHead, ignore);
+					}
+					else if (treeBuilder.Current is DefineVarNode defineVarNode)
 					{
 						var funcHead = new CallFuncNode
 						{

@@ -378,5 +378,89 @@ result
 			var result = script.Eval(s);
 			Assert.AreEqual(10L, result);
 		}
+
+		// Promise.finally - callback runs regardless of promise outcome
+		[TestMethod]
+		public void Test15_promiseFinally()
+		{
+			var s = @"
+var flag = false;
+await Promise.resolve(42).finally(() => { flag = true; });
+flag
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval(s);
+			Assert.AreEqual(true, result);
+		}
+
+		[TestMethod]
+		public void Test15_promiseFinally_CompileAll()
+		{
+			var s = @"
+var flag = false;
+await Promise.resolve(42).finally(() => { flag = true; });
+flag
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval(s);
+			Assert.AreEqual(true, result);
+		}
+
+		[TestMethod]
+		public void Test16_promiseFinallyReturnValue()
+		{
+			var s = @"
+await Promise.resolve(10).finally(() => { });
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval(s);
+			Assert.AreEqual(10L, result);
+		}
+
+		[TestMethod]
+		public void Test16_promiseFinallyReturnValue_CompileAll()
+		{
+			var s = @"
+await Promise.resolve(10).finally(() => { });
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval(s);
+			Assert.AreEqual(10L, result);
+		}
+
+		[TestMethod]
+		public void Test17_promiseFinallyWithReject()
+		{
+			var s = @"
+var flag = false;
+await new Promise((resolve, reject) => reject('error')).catch(e => 'caught').finally(() => { flag = true; });
+flag
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval(s);
+			Assert.AreEqual(true, result);
+		}
+
+		[TestMethod]
+		public void Test17_promiseFinallyWithReject_CompileAll()
+		{
+			var s = @"
+var flag = false;
+await new Promise((resolve, reject) => reject('error')).catch(e => 'caught').finally(() => { flag = true; });
+flag
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval(s);
+			Assert.AreEqual(true, result);
+		}
 	}
 }
