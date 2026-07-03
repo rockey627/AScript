@@ -76,9 +76,9 @@ namespace AScript.Lang.JavaScript
 			AddFunc("get_length", new LengthFunction(typeof(long)));
 			AddFunc("slice", IndexStartEndOperator.Instance);
 
-			AddExtension(new JavaScriptConsoleExtensionObject());
-			AddExtension(new JavaScriptJsonExtensionObject());
-			AddExtension(new JavaScriptAxiosExtensionObject());
+			AddModule(new JavaScriptConsoleModule());
+			AddModule(new JavaScriptJsonModule());
+			AddModule(new JavaScriptAxiosModule());
 
 			AddFunc(typeof(JavaScriptDateExtensions));
 			AddFunc(typeof(JavaScriptMathExtensions));

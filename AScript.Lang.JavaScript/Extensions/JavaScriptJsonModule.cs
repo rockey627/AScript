@@ -4,13 +4,19 @@ using System;
 
 namespace AScript.Lang.JavaScript.Extensions
 {
-	public class JavaScriptJsonExtensionObject : IScriptExtensionObject
+	public class JavaScriptJsonModule : IScriptModule
 	{
-		public void Init(BaseContext context)
+		public void Install(BaseContext context)
 		{
 			context.FunctionEval += Context_FunctionEval;
 			context.AddType("JSON", typeof(JsonConvert));
 			context.AddFunc(typeof(JavaScriptJsonExtensions));
+		}
+
+		public void Uninstall(BaseContext context)
+		{
+			context.FunctionEval -= Context_FunctionEval;
+			context.RemoveType("JSON");
 		}
 
 		private void Context_FunctionEval(object sender, FunctionEvalArgs e)

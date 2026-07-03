@@ -262,9 +262,14 @@ namespace AScript
 			}
 		}
 
-		public void AddExtension(IScriptExtensionObject obj)
+		public void AddModule(IScriptModule obj)
 		{
-			obj?.Init(this);
+			obj?.Install(this);
+		}
+
+		public void RemoveModule(IScriptModule obj)
+		{
+			obj?.Uninstall(this);
 		}
 
 		/// <summary>
