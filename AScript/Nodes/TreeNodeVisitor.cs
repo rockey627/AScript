@@ -283,7 +283,7 @@ namespace AScript.Nodes
 		public virtual ITreeNode VisitCaseWhenNode(CaseWhenNode caseWhenNode)
 		{
 			caseWhenNode.CaseValue = Visit(caseWhenNode.CaseValue);
-			caseWhenNode.ElseBody = Visit(caseWhenNode.ElseBody);
+			caseWhenNode.DefaultBody = Visit(caseWhenNode.DefaultBody);
 			if (caseWhenNode.Whens != null && caseWhenNode.Whens.Count > 0)
 			{
 				for (int i = 0; i < caseWhenNode.Whens.Count; i++)

@@ -8,7 +8,7 @@ namespace AScript.Nodes
 	public class CaseWhenNode : TreeNode
 	{
 		public ITreeNode CaseValue { get; set; }
-		public ITreeNode ElseBody { get; set; }
+		public ITreeNode DefaultBody { get; set; }
 		/// <summary>
 		/// (testValue, body)
 		/// </summary>
@@ -16,13 +16,13 @@ namespace AScript.Nodes
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
-			var switchValue = this.CaseValue.Build(buildContext, scriptContext, options);
+			var caseValue = this.CaseValue.Build(buildContext, scriptContext, options);
 			var blockNode = new BlockNode();
 			Expression defaultBody;
-			if (this.ElseBody == null) defaultBody = null;
+			if (this.DefaultBody == null) defaultBody = null;
 			else
 			{
-				blockNode.Block = this.ElseBody;
+				blockNode.Block = this.DefaultBody;
 				defaultBody = blockNode.Build(buildContext, scriptContext, options);
 			}
 			if (this.Whens == null || this.Whens.Count == 0)
@@ -37,20 +37,20 @@ namespace AScript.Nodes
 			for (int i = this.Whens.Count - 1; i >= 0; i--)
 			{
 				var c = this.Whens[i];
-				// 生成 switchValue == testValue 条件
+				// 生成 caseValue == testValue 条件
 				var testExpressions = c.Item1.Select(a => a.Build(buildContext, scriptContext, options)).ToList();
 				Expression condition;
 				if (testExpressions.Count == 1)
 				{
-					condition = MakeEqualExpression(switchValue, testExpressions[0]);
+					condition = MakeEqualExpression(caseValue, testExpressions[0]);
 				}
 				else
 				{
-					// 多个测试值用 OR 连接: switchValue == v1 || switchValue == v2
+					// 多个测试值用 OR 连接: caseValue == v1 || caseValue == v2
 					condition = null;
 					foreach (var testExpr in testExpressions)
 					{
-						var eq = MakeEqualExpression(switchValue, testExpr);
+						var eq = MakeEqualExpression(caseValue, testExpr);
 						condition = condition == null ? eq : Expression.OrElse(condition, eq);
 					}
 				}
@@ -168,7 +168,7 @@ namespace AScript.Nodes
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
-			var switchValue = this.CaseValue.Eval(context, options, control, out _);
+			var caseValue = this.CaseValue.Eval(context, options, control, out _);
 			//var tempController = new EvalControl(control, true);
 			if (this.Whens != null)
 			{
@@ -181,7 +181,7 @@ namespace AScript.Nodes
 					{
 						set.Add(item);
 					}
-					if (set.Contains(switchValue))
+					if (set.Contains(caseValue))
 					{
 						return new BlockNode(c.Item2).Eval(context, options, control, out returnType);
 						//var v = c.Item2.Eval(context, options, control, out returnType);
@@ -192,9 +192,9 @@ namespace AScript.Nodes
 					}
 				}
 			}
-			if (this.ElseBody != null)
+			if (this.DefaultBody != null)
 			{
-				return new BlockNode(this.ElseBody).Eval(context, options, control, out returnType);
+				return new BlockNode(this.DefaultBody).Eval(context, options, control, out returnType);
 			}
 			returnType = null;
 			return null;

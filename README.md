@@ -365,6 +365,26 @@ var script = new Script();
 Assert.AreEqual(55, script.Eval(s));
 ```
 
+#### case when
+与C#中的switch语法不同，语句块中不需要break，并且整体语句返回对应when或default语句的值。
+```C#
+var s = @"
+var n=1;
+case(n) {
+when 0:
+when 1:
+	int m=6;
+	m+4;
+when 2: 20;
+default:
+	int m=9
+	m+21;
+}
+";
+var script = new Script();
+Assert.AreEqual(10, script.Eval(s));
+```
+
 #### LINQ
 * group
 ```C#
