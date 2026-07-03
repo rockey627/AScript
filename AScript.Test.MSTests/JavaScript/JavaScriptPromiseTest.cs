@@ -277,5 +277,59 @@ await new Promise((resolve, reject) => resolve(10))
 			var result = script.Eval(code);
 			Assert.AreEqual(20L, result);
 		}
+
+		// Promise.all with multiple promises
+		[TestMethod]
+		public void Test11_promiseAll()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval<IList<object>>("await Promise.all([Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)])");
+			Assert.AreEqual(3, result.Count);
+			Assert.AreEqual(1L, result[0]);
+			Assert.AreEqual(2L, result[1]);
+			Assert.AreEqual(3L, result[2]);
+		}
+
+		[TestMethod]
+		public void Test11_promiseAll_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval<IList<object>>("await Promise.all([Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)])");
+			Assert.AreEqual(3, result.Count);
+			Assert.AreEqual(1L, result[0]);
+			Assert.AreEqual(2L, result[1]);
+			Assert.AreEqual(3L, result[2]);
+		}
+
+		[TestMethod]
+		public void Test12_promiseAll()
+		{
+			var s = @"
+var arr = await Promise.all([Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)]);
+arr[0] + arr[1] + arr[2]
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval(s);
+			Assert.AreEqual(6L, result);
+		}
+
+		[TestMethod]
+		public void Test12_promiseAll_CompileAll()
+		{
+			var s = @"
+var arr = await Promise.all([Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)]);
+arr[0] + arr[1] + arr[2]
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			var result = script.Eval(s);
+			Assert.AreEqual(6L, result);
+		}
 	}
 }

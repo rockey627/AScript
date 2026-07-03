@@ -1,5 +1,7 @@
 ﻿using AScript.Exceptions;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AScript.Lang.JavaScript.Extensions
@@ -14,6 +16,16 @@ namespace AScript.Lang.JavaScript.Extensions
 				error => tcs.TrySetException(new[] { new ScriptCustomException(error) })
 			);
 			return tcs.Task;
+		}
+
+		public static Task<object[]> Promise_all(List<object> list)
+		{
+			return Task.WhenAll(list.Select(a => (Task<object>)a));
+		}
+
+		public static Task<object> Promise_resolve(object value)
+		{
+			return Task.FromResult(value);
 		}
 
 		public static Task<T2> then<T, T2>(Task<T> task, Func<T, T2> onSuccess)
