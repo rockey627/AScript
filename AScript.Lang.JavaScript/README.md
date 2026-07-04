@@ -139,5 +139,108 @@ Assert.IsNull(arr3[1]);
 
 #### 数组函数
 ```
+[1, 2].concat([3, 4]); // [1, 2, 3, 4]
+[1, 2, 3].join(','); // '1,2,3'
+[1, 2, 3].indexOf(2); // 1
+[1, 2, 3].includes(2); // true
+[1, 2, 3].reverse(); // [3, 2, 1]
+[1, 2, 3, 4, 5].filter(x => x % 2 == 0); // [2, 4]
+[1, 2, 3].map(x => x * 2); // [2, 4, 6]
+[1, 2, 3].reduce((acc, x) => acc + x); // 6
+[1, 2, 3].reduce((acc, x) => acc + x, 10); // 16
+[2, 4, 6].every(x => x % 2 == 0); // true
+[1, 3, 5].some(x => x % 2 == 0); // false
+[1, 2, 3].find(x => x > 1); // 2
+[1, 2, 3].findIndex(x => x > 1); // 1
+[1, 2, 3].fill(0); // [0, 0, 0]
+[1, 2, 3].forEach(x => { }); // 遍历数组
+[1, 2, 3].pop(); // 3
+[1, 2, 3].push(5, 6, 7); // 数组结尾处理添加元素
+[1, 2, 3].shift(); // 移除并返回首部元素
+[1, 2, 3].unshift(5, 9, 10); // 从首部插入3个元素
+[1, 2, 3, 4, 5].slice(2, 4); // 截取列表[2,4)：[3, 4]
+[1, 2, 3, 4, 5].splice(1, 2); // 截取并返回列表：[2, 3]
+```
+
+#### 时间
+```
+new Date(); // 当前时间
+Date.now(); // 当前时间戳
+new Date(2026, 6, 4); // 2026-07-04
+var time = new Date('2026-7-4');
+time.getYear(); // 获取年份-1900：126
+time.getMonth(); // 获取月份-1：6
+time.getDate(); // 获取月份中的天(1~31)：4
+time.getDay(); // 获取星期：6
+time.getHours();
+time.getMinutes();
+time.getSeconds();
+time.getMilliseconds();
+time.getTime(); // 获取时间戳
+time.toString('yyyy-MM-dd'); // '2026-07-04'
+time.setFullYear(2025);
+time.setFullYear(2025, 6);
+time.setFullYear(2025, 6, 4);
+time.setHours(21);
+time.setMinutes(36);
+time.setSeconds(15);
+time.setMilliseconds(238);
+```
+
+#### 字典Map
+```
+var m = new Map([['a', 1], ['b', 2], ['c', 3]]);
+m.set('d', 4);
+m.size; // 4
+m.get('a'); // 1
+m.has('a'); // true
+m.delete('c');
+m.clear();
+m.keys();
+m.values();
+m.entries();
+m.forEach(function(value, key) { });
+```
+
+#### 集合Set
+```
+var set = new Set([1, 2, 3]);
+set.add(4);
+set.has(2);
+set.delete(3);
+set.clear();
+set.size;
+set.forEach(x => { });
+```
+
+#### 异步Promise
+* then/catch/finally
+```
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+var result = script.Eval("await new Promise((resolve, reject) => resolve(1)).then(x => x + 1).then(x => x + 2)");
+Assert.AreEqual(4L, result);
+```
+* Promise.all
+```
+var s = @"
+var arr = await Promise.all([Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)]);
+arr[0] + arr[1] + arr[2]
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+var result = script.Eval(s);
+Assert.AreEqual(6L, result);
+```
+* Promise.any
+```
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+var result = script.Eval<long>("await Promise.any([Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)])");
+Assert.AreEqual(1L, result);
+```
+
+#### axios
+```
 
 ```

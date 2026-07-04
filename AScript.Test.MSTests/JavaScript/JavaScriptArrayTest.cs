@@ -634,7 +634,9 @@ s
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(6L, script.Eval("[1, 2, 3].reduce((acc, x) => acc + x)"));
 			Assert.AreEqual(6L, script.Eval("[1, 2, 3].reduce((acc, x) => acc + x, 0)"));
+			Assert.AreEqual(16L, script.Eval("[1, 2, 3].reduce((acc, x) => acc + x, 10)"));
 			Assert.AreEqual("123", script.Eval("[1, 2, 3].reduce((acc, x) => acc + x, '')"));
+			Assert.AreEqual("hi123", script.Eval("[1, 2, 3].reduce((acc, x) => acc + x, 'hi')"));
 			Assert.AreEqual(3L, script.Eval("[1, 2, 3].reduce((acc, x) => acc + x, '').length"));
 			Assert.AreEqual(10L, script.Eval("[1, 2, 3, 4].reduce((acc, x) => acc + x, 0)"));
 		}
@@ -647,7 +649,9 @@ s
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(6L, script.Eval("[1, 2, 3].reduce((acc, x) => acc + x)"));
 			Assert.AreEqual(6L, script.Eval("[1, 2, 3].reduce((acc, x) => acc + x, 0)"));
+			Assert.AreEqual(16L, script.Eval("[1, 2, 3].reduce((acc, x) => acc + x, 10)"));
 			Assert.AreEqual("123", script.Eval("[1, 2, 3].reduce((acc, x) => acc + x, '')"));
+			Assert.AreEqual("hi123", script.Eval("[1, 2, 3].reduce((acc, x) => acc + x, 'hi')"));
 			Assert.AreEqual(3L, script.Eval("[1, 2, 3].reduce((acc, x) => acc + x, '').length"));
 			Assert.AreEqual(10L, script.Eval("[1, 2, 3, 4].reduce((acc, x) => acc + x, 0)"));
 		}

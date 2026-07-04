@@ -202,8 +202,9 @@ namespace AScript.Test.MSTests.JavaScript
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Date(2024, 0, 15).getDay()");
-			Assert.IsNotNull(result);
+			var result = script.Eval("new Date(2026, 6, 4).getDay()");
+			Assert.AreEqual(6L, result);
+			Assert.AreEqual(6L, script.Eval("new Date('2026-7-4').getDay()"));
 		}
 
 		[TestMethod]
@@ -212,8 +213,9 @@ namespace AScript.Test.MSTests.JavaScript
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("new Date(2024, 0, 15).getDay()");
-			Assert.IsNotNull(result);
+			var result = script.Eval("new Date(2026, 6, 4).getDay()");
+			Assert.AreEqual(6L, result);
+			Assert.AreEqual(6L, script.Eval("new Date('2026-7-4').getDay()"));
 		}
 
 		// getFullYear

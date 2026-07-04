@@ -437,5 +437,10 @@ namespace AScript.Lang.JavaScript.Extensions
 		{
 			return time.ToString("ddd MMM dd yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 		}
+
+		public static string toString(DateTime time, string format)
+		{
+			return time.ToString(format);
+		}
 	}
 }
