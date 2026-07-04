@@ -581,3 +581,184 @@ await Assert.ThrowsExceptionAsync<TaskCanceledException>(async () =>
 	await script.EvalAsync("await Task.Delay(1000, @@CancellationToken)", cancellationToken: cts.Token);
 });
 ```
+
+#### 扩展构造函数
+方法名格式：new_{类型名称}_
+```
+string s = @"
+// 脚本中扩展构造函数
+Person new_Person(string firstName, string lastName) {
+	var name = firstName + lastName;
+	return new Person { Name = name };
+}
+// 调用脚本中扩展的构造函数
+var p1 = new Person('张', '三');
+// 调用外部扩展的构造函数
+var p2 = new Person('李四');
+";
+var script = new Script();
+script.Context.AddType<Person>();
+script.Context.AddFunc<string, Person>("new_Person", name => new Person { Name = name });
+script.Eval(s);
+var p1 = script.Eval<Person>("p1");
+var p2 = script.Eval<Person>("p2");
+Assert.AreEqual("张三", p1.Name);
+Assert.AreEqual("李四", p2.Name);
+```
+
+#### 扩展静态方法
+方法名格式：{类型名称}_{方法名}
+```
+string s = @"
+// 脚本中扩展静态方法
+Person Person_Create(string firstName, string lastName) {
+	var name = firstName + lastName;
+	return new Person { Name = name };
+}
+// 调用脚本中扩展的静态方法
+var p1 = Person.Create('张', '三');
+// 调用外部扩展的静态方法
+var p2 = Person.Create('李四');
+";
+var script = new Script();
+script.Context.AddType<Person>();
+script.Context.AddFunc<string, Person>("Person_Create", name => new Person { Name = name });
+script.Eval(s);
+var p1 = script.Eval<Person>("p1");
+var p2 = script.Eval<Person>("p2");
+Assert.AreEqual("张三", p1.Name);
+Assert.AreEqual("李四", p2.Name);
+```
+
+#### 扩展实例方法
+方法第1个参数为要扩展的实例类型参数
+```
+string s = @"
+// 脚本中扩展实例方法
+string SayHi(Person p, string yourName) {
+	var hi = $'hi {yourName}, my name is {p.Name}';
+	return hi;
+}
+var p = new Person('tom', 20);
+// 调用脚本中扩展的实例方法
+var hi = p.SayHi('john');
+// 调用外部扩展的实例方法
+var night = p.SayGoodNight('john');
+";
+var script = new Script();
+script.Context.AddType<Person>();
+script.Context.AddFunc<Person, string, string>("SayGoodNight", (p, yourName) => $"good night {yourName}, my name is {p.Name}");
+script.Eval(s);
+var hi = script.Eval<string>("hi");
+var night = script.Eval<string>("night");
+Assert.AreEqual("hi john, my name is tom", hi);
+Assert.AreEqual("good night john, my name is tom", night);
+```
+
+#### 扩展静态属性
+暂只支持扩展读属性，方法名格式：{类名}_get_{属性名}
+```
+string s = @"
+// 脚本中扩展静态属性
+string Person_get_DefaultName() {
+	return 'ABC';
+}
+Person.DefaultName;
+";
+var script = new Script();
+script.Context.AddType<Person>();
+Assert.AreEqual("ABC", script.Eval(s));
+```
+
+#### 扩展实例属性
+暂只支持扩展读属性，方法第1个参数为该类型参数，方法名格式：get_{属性名}
+```
+string s = @"
+// 脚本中扩展实例属性
+string get_FullInfo(Person p) {
+	var info = $'name:{p.Name},age:{p.Age}';
+	return info;
+}
+var p = new Person('tom', 20);
+// 调用脚本中扩展的实例属性
+var fullInfo = p.FullInfo;
+";
+var script = new Script();
+script.Context.AddType<Person>();
+Assert.AreEqual("name:tom,age:20", script.Eval(s));
+```
+
+#### 脚本模块
+接口IScriptModule定义脚本模块，集中管理变量、方法、类型等，这在自定义其他脚本语言时非常有用，比如js语言。
+* 定义扩展PersonExtensions
+```
+public static class PersonExtensions
+{
+	// 扩展构造函数
+	public static Person new_Person(string firstName, string lastName)
+	{
+		return new Person { Name = firstName + lastName, Age = 18 };
+	}
+
+	// 扩展静态方法
+	public static Person Person_Create(string firstName, string lastName)
+	{
+		var name = firstName + lastName;
+		return new Person { Name = name, Age = 18 };
+	}
+
+	// 扩展静态属性
+	public static string Person_get_DefaultName()
+	{
+		return "ABC";
+	}
+
+	// 扩展实例属性
+	public static string get_FullInfo(Person p)
+	{
+		return $"name:{p.Name},age:{p.Age}";
+	}
+
+	// 扩展实例方法
+	public static string SayHi(Person p, string yourName)
+	{
+		return $"hi {yourName}, my name is {p.Name}";
+	}
+}
+```
+* 定义模块PersonModule
+```
+public class PersonModule : IScriptModule
+{
+	public void Install(BaseContext context)
+	{
+		context.AddType<Person>();
+		context.AddFunc(typeof(PersonExtensions));
+	}
+
+	public void Uninstall(BaseContext context)
+	{
+	}
+}
+```
+* 向上下文或指定语言添加模块
+```
+var script = new Script();
+script.Context.AddModule(new PersonModule());
+// 或者指定语言添加模块
+// CSharpLang.Instance.AddModule(new PersonModule());
+```
+* 脚本中调用扩展
+```
+string s = @"
+var p1 = new Person('张', '三');
+var p2 = Person.Create('李', '四');
+var hi = p1.SayHi(Person.DefaultName);
+var info = p2.FullInfo;
+";
+script.Eval(s);
+var hi = script.Eval("hi");
+var info = script.Eval("info");
+Assert.AreEqual("hi ABC, my name is 张三", hi);
+Assert.AreEqual("name:李四,age:18", info);
+```
