@@ -14,6 +14,241 @@ namespace AScript.Test.MSTests
 	public class ScriptExtensionTest
 	{
 		[TestMethod]
+		public void Test13_Person_Module()
+		{
+			string s = @"
+var p1 = new Person('张', '三');
+var p2 = Person.Create('李', '四');
+var hi = p1.SayHi(Person.DefaultName);
+var info = p2.FullInfo;
+";
+			var script = new Script();
+			script.Context.AddModule(new PersonModule());
+			script.Eval(s);
+			var hi = script.Eval("hi");
+			var info = script.Eval("info");
+			Assert.AreEqual("hi ABC, my name is 张三", hi);
+			Assert.AreEqual("name:李四,age:18", info);
+		}
+
+		[TestMethod]
+		public void Test12_Person_DefaultName()
+		{
+			string s = @"
+// 脚本中扩展静态属性
+string Person_get_DefaultName() {
+	return 'ABC';
+}
+Person.DefaultName;
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			Assert.AreEqual("ABC", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test12_Person_DefaultName2()
+		{
+			string s = @"
+// 脚本中扩展静态属性
+string Person_get_DefaultName() {
+	return 'ABC';
+}
+Person.DefaultName;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			Assert.AreEqual("ABC", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test11_Person_FullInfo()
+		{
+			string s = @"
+// 脚本中扩展实例属性
+string get_FullInfo(Person p) {
+	var info = $'name:{p.Name},age:{p.Age}';
+	return info;
+}
+var p = new Person('tom', 20);
+// 调用脚本中扩展的实例属性
+var fullInfo = p.FullInfo;
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			Assert.AreEqual("name:tom,age:20", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test11_Person_FullInfo2()
+		{
+			string s = @"
+// 脚本中扩展实例属性
+string get_FullInfo(Person p) {
+	var info = $'name:{p.Name},age:{p.Age}';
+	return info;
+}
+var p = new Person('tom', 20);
+// 调用脚本中扩展的实例属性
+var fullInfo = p.FullInfo;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			Assert.AreEqual("name:tom,age:20", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test10_Person_SayHi()
+		{
+			string s = @"
+// 脚本中扩展实例方法
+string SayHi(Person p, string yourName) {
+	var hi = $'hi {yourName}, my name is {p.Name}';
+	return hi;
+}
+var p = new Person('tom', 20);
+// 调用脚本中扩展的实例方法
+var hi = p.SayHi('john');
+// 调用外部扩展的实例方法
+var night = p.SayGoodNight('john');
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			script.Context.AddFunc<Person, string, string>("SayGoodNight", (p, yourName) => $"good night {yourName}, my name is {p.Name}");
+			script.Eval(s);
+			var hi = script.Eval<string>("hi");
+			var night = script.Eval<string>("night");
+			Assert.AreEqual("hi john, my name is tom", hi);
+			Assert.AreEqual("good night john, my name is tom", night);
+		}
+
+		[TestMethod]
+		public void Test10_Person_SayHi2()
+		{
+			string s = @"
+// 脚本中扩展实例方法
+string SayHi(Person p, string yourName) {
+	var hi = $'hi {yourName}, my name is {p.Name}';
+	return hi;
+}
+var p = new Person('tom', 20);
+// 调用脚本中扩展的实例方法
+var hi = p.SayHi('john');
+// 调用外部扩展的实例方法
+var night = p.SayGoodNight('john');
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			script.Context.AddFunc<Person, string, string>("SayGoodNight", (p, yourName) => $"good night {yourName}, my name is {p.Name}");
+			script.Eval(s);
+			var hi = script.Eval<string>("hi");
+			var night = script.Eval<string>("night");
+			Assert.AreEqual("hi john, my name is tom", hi);
+			Assert.AreEqual("good night john, my name is tom", night);
+		}
+
+		[TestMethod]
+		public void Test09_Person_Create()
+		{
+			string s = @"
+// 脚本中扩展静态方法
+Person Person_Create(string firstName, string lastName) {
+	var name = firstName + lastName;
+	return new Person { Name = name };
+}
+// 调用脚本中扩展的静态方法
+var p1 = Person.Create('张', '三');
+// 调用外部扩展的静态方法
+var p2 = Person.Create('李四');
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			script.Context.AddFunc<string, Person>("Person_Create", name => new Person { Name = name });
+			script.Eval(s);
+			var p1 = script.Eval<Person>("p1");
+			var p2 = script.Eval<Person>("p2");
+			Assert.AreEqual("张三", p1.Name);
+			Assert.AreEqual("李四", p2.Name);
+		}
+
+		[TestMethod]
+		public void Test09_Person_Create2()
+		{
+			string s = @"
+// 脚本中扩展静态方法
+Person Person_Create(string firstName, string lastName) {
+	var name = firstName + lastName;
+	return new Person { Name = name };
+}
+// 调用脚本中扩展的静态方法
+var p1 = Person.Create('张', '三');
+// 调用外部扩展的静态方法
+var p2 = Person.Create('李四');
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			script.Context.AddFunc<string, Person>("Person_Create", name => new Person { Name = name });
+			script.Eval(s);
+			var p1 = script.Eval<Person>("p1");
+			var p2 = script.Eval<Person>("p2");
+			Assert.AreEqual("张三", p1.Name);
+			Assert.AreEqual("李四", p2.Name);
+		}
+
+		[TestMethod]
+		public void Test08_Person_Contruct()
+		{
+			string s = @"
+// 脚本中扩展构造函数
+Person new_Person(string firstName, string lastName) {
+	var name = firstName + lastName;
+	return new Person { Name = name };
+}
+// 调用脚本中扩展的构造函数
+var p1 = new Person('张', '三');
+// 调用外部扩展的构造函数
+var p2 = new Person('李四');
+";
+			var script = new Script();
+			script.Context.AddType<Person>();
+			script.Context.AddFunc<string, Person>("new_Person", name => new Person { Name = name });
+			script.Eval(s);
+			var p1 = script.Eval<Person>("p1");
+			var p2 = script.Eval<Person>("p2");
+			Assert.AreEqual("张三", p1.Name);
+			Assert.AreEqual("李四", p2.Name);
+		}
+
+		[TestMethod]
+		public void Test08_Person_Contruct2()
+		{
+			string s = @"
+// 脚本中扩展构造函数
+Person new_Person(string firstName, string lastName) {
+	var name = firstName + lastName;
+	return new Person { Name = name };
+}
+// 调用脚本中扩展的构造函数
+var p1 = new Person('张', '三');
+// 调用外部扩展的构造函数
+var p2 = new Person('李四');
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddType<Person>();
+			script.Context.AddFunc<string, Person>("new_Person", name => new Person { Name = name });
+			script.Eval(s);
+			var p1 = script.Eval<Person>("p1");
+			var p2 = script.Eval<Person>("p2");
+			Assert.AreEqual("张三", p1.Name);
+			Assert.AreEqual("李四", p2.Name);
+		}
+
+		[TestMethod]
 		public void Test07_2()
 		{
 			var p = new Person { Name = "san" };

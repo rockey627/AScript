@@ -823,6 +823,23 @@ namespace AScript
 			return Expression.Call(Method_Console_WriteLine, value);
 		}
 
+		public static MemberExpression PropertyOrField(Expression instance, string propertyOrFieldName)
+		{
+			var property = instance.Type.GetProperty(propertyOrFieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.FlattenHierarchy);
+			if (property != null) return Expression.Property(instance, property);
+
+			var field = instance.Type.GetField(propertyOrFieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.FlattenHierarchy);
+			if (field != null) return Expression.Field(instance, field);
+
+			property = instance.Type.GetProperty(propertyOrFieldName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.IgnoreCase | BindingFlags.FlattenHierarchy);
+			if (property != null) return Expression.Property(instance, property);
+
+			field = instance.Type.GetField(propertyOrFieldName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.IgnoreCase | BindingFlags.FlattenHierarchy);
+			if (field != null) return Expression.Field(instance, field);
+
+			return null;
+		}
+
 		private class DelegateImplBase
 		{
 			private readonly ScriptContext _context;

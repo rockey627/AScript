@@ -38,10 +38,10 @@ namespace AScript.Operators
 				var targetType = ((TypeWrapper)((ConstantExpression)instance).Value).Type;
 				if (e.ScriptContext.IsObjectMemberEnabled(targetType))
 				{
-					var property = targetType.GetProperty(propertyOrFieldName, BindingFlags.Static | BindingFlags.Public);
+					var property = targetType.GetProperty(propertyOrFieldName, BindingFlags.Static | BindingFlags.Public | BindingFlags.IgnoreCase);
 					if (property != null) return Expression.Property(null, property);
 
-					var field = targetType.GetField(propertyOrFieldName, BindingFlags.Static | BindingFlags.Public);
+					var field = targetType.GetField(propertyOrFieldName, BindingFlags.Static | BindingFlags.Public | BindingFlags.IgnoreCase);
 					if (field != null) return Expression.Field(null, field);
 				}
 				var staticExpr = e.ScriptContext.BuildFunc(e.BuildContext, e.Options, e.Control, $"{((VariableNode)e.Args[0]).Name}_get_{propertyOrFieldName}", false, null);
@@ -81,7 +81,22 @@ namespace AScript.Operators
 					var nullCheck = Expression.Equal(instance, Expression.Constant(null, instance.Type));
 					return Expression.Condition(nullCheck, Expression.Constant(null, propType), Expression.Convert(propOrField, propType));
 				}
-				return Expression.PropertyOrField(instance, propertyOrFieldName);
+				//return Expression.PropertyOrField(instance, propertyOrFieldName);
+
+				//var property = instance.Type.GetProperty(propertyOrFieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.FlattenHierarchy);
+				//if (property != null) return Expression.Property(instance, property);
+
+				//var field = instance.Type.GetField(propertyOrFieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.FlattenHierarchy);
+				//if (field != null) return Expression.Field(instance, field);
+
+				//property = instance.Type.GetProperty(propertyOrFieldName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.IgnoreCase | BindingFlags.FlattenHierarchy);
+				//if (property != null) return Expression.Property(instance, property);
+
+				//field = instance.Type.GetField(propertyOrFieldName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.IgnoreCase | BindingFlags.FlattenHierarchy);
+				//if (field != null) return Expression.Field(instance, field);
+
+				var memberExpr = ExpressionUtils.PropertyOrField(instance, propertyOrFieldName);
+				if (memberExpr != null) return memberExpr;
 			}
 
 			var expr = e.ScriptContext.BuildFunc(e.BuildContext, e.Options, e.Control, $"get_{propertyOrFieldName}", false, new[] { new ExpressionNode(instance) });
