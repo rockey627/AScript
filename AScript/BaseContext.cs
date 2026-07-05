@@ -347,6 +347,12 @@ namespace AScript
 			return true;
 		}
 
+		public object InstallModule(string name)
+		{
+			var module = GetModule(name);
+			return module?.Install(this);
+		}
+
 		public object InstallModule(IScriptModule module)
 		{
 			return module?.Install(this);
