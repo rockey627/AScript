@@ -14,8 +14,6 @@ namespace AScript
 {
 	public class ScriptLang : BaseContext
 	{
-		public ConcurrentDictionary<Type, bool> ObjectMemberEnabledDict { get; private set; } = new ConcurrentDictionary<Type, bool>();
-
 		/// <summary>
 		/// 
 		/// </summary>
@@ -68,58 +66,6 @@ namespace AScript
 		{
 			var dict = _TokenHandlerDict;
 			return dict != null && dict.ContainsKey(word);
-		}
-
-		/// <summary>
-		/// 对象内部成员（构造函数、属性、字段、方法）是否可用
-		/// </summary>
-		/// <returns></returns>
-		public virtual bool IsObjectMemberEnabled(Type objType)
-		{
-			if (this.ObjectMemberEnabledDict.TryGetValue(objType, out var enable))
-			{
-				return enable;
-			}
-			return true;
-		}
-
-		public object EvalVar(string name)
-		{
-			return EvalVar(name, out _);
-		}
-
-		public virtual object EvalVar(string name, out Type type)
-		{
-			if (_Variables != null && _Variables.TryGetValue(name, out var v))
-			{
-				if (_VariableTypes == null)
-				{
-					type = v?.GetType();
-				}
-				else if (!_VariableTypes.TryGetValue(name, out type))
-				{
-					type = v?.GetType();
-				}
-				return v;
-			}
-			// 没有变量，则查找类
-			var mytype = EvalType(name);
-			if (mytype != null)
-			{
-				type = typeof(TypeWrapper);
-				return new TypeWrapper(mytype);
-			}
-			type = null;
-			return null;
-		}
-
-		public virtual Type EvalType(string name)
-		{
-			if (_Types != null && _Types.TryGetValue(name, out var type))
-			{
-				return type;
-			}
-			return null;
 		}
 
 		//protected static Delegate GetFunc(List<Delegate> list, IList<Type> argTypes, out bool useScriptContext)
@@ -208,7 +154,7 @@ namespace AScript
 		public void AddType(string name, Type type, bool memberEnabled)
 		{
 			AddType(name, type);
-			this.ObjectMemberEnabledDict[type] = memberEnabled;
+			SetObjectMemberEnabled(type, memberEnabled);
 		}
 
 		public void AddType(Type type, bool memberEnabled)

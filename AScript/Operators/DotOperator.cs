@@ -36,7 +36,7 @@ namespace AScript.Operators
 			{
 				// 调用静态类属性或字段
 				var targetType = ((TypeWrapper)((ConstantExpression)instance).Value).Type;
-				if (e.ScriptContext.IsObjectMemberEnabled(targetType))
+				if (e.ScriptContext.IsObjectMemberEnabled(targetType) ?? true)
 				{
 					var property = targetType.GetProperty(propertyOrFieldName, BindingFlags.Static | BindingFlags.Public | BindingFlags.IgnoreCase);
 					if (property != null) return Expression.Property(null, property);
@@ -66,7 +66,7 @@ namespace AScript.Operators
 			}
 
 			// 变量的属性或字段
-			if (e.ScriptContext.IsObjectMemberEnabled(instance.Type))
+			if (e.ScriptContext.IsObjectMemberEnabled(instance.Type) ?? true)
 			{
 				if (nullable)
 				{
@@ -156,7 +156,7 @@ namespace AScript.Operators
 				return value;
 			}
 
-			if (e.Context.IsObjectMemberEnabled(targetType))
+			if (e.Context.IsObjectMemberEnabled(targetType) ?? true)
 			{
 				var p = targetType.GetProperty(propertyOrFieldName, flags);
 				if (p != null)

@@ -57,6 +57,9 @@ namespace AScript
 		// 支持函数重载
 		protected IDictionary<string, List<Delegate>> _Functions;
 
+		protected IDictionary<string, IScriptModule> _Modules;
+		protected IDictionary<Type, bool> _ObjectMemberEnabledDict;
+
 		protected BaseContext(bool threadSafely)
 		{
 			this._ThreadSafely = threadSafely;
@@ -247,7 +250,7 @@ namespace AScript
 					{
 						if (_Functions == null)
 						{
-							_Functions = _IgnoreCase ? 
+							_Functions = _IgnoreCase ?
 								new ConcurrentDictionary<string, List<Delegate>>(StringComparer.OrdinalIgnoreCase) :
 								new ConcurrentDictionary<string, List<Delegate>>();
 						}
@@ -262,14 +265,118 @@ namespace AScript
 			}
 		}
 
-		public void AddModule(IScriptModule obj)
+		private void Init_Modules()
 		{
-			obj?.Install(this);
+			if (_Modules == null)
+			{
+				if (_ThreadSafely)
+				{
+					lock (this)
+					{
+						if (_Modules == null)
+						{
+							_Modules = _IgnoreCase ?
+								new ConcurrentDictionary<string, IScriptModule>(StringComparer.OrdinalIgnoreCase) :
+								new ConcurrentDictionary<string, IScriptModule>();
+						}
+					}
+				}
+				else
+				{
+					_Modules = _IgnoreCase ?
+						new Dictionary<string, IScriptModule>(StringComparer.OrdinalIgnoreCase) :
+						new Dictionary<string, IScriptModule>();
+				}
+			}
 		}
 
-		public void RemoveModule(IScriptModule obj)
+		private void Init_ObjectMemberEnabledDict()
 		{
-			obj?.Uninstall(this);
+			if (_ObjectMemberEnabledDict == null)
+			{
+				if (_ThreadSafely)
+				{
+					lock (this)
+					{
+						if (_ObjectMemberEnabledDict == null)
+						{
+							_ObjectMemberEnabledDict = new ConcurrentDictionary<Type, bool>();
+						}
+					}
+				}
+				else
+				{
+					_ObjectMemberEnabledDict = new Dictionary<Type, bool>();
+				}
+			}
+		}
+
+		public void AddModule(string name, IScriptModule obj)
+		{
+			Init_Modules();
+			_Modules[name] = obj;
+		}
+
+		public void RemoveModule(string name)
+		{
+			_Modules?.Remove(name);
+		}
+
+		public virtual IScriptModule GetModule(string name)
+		{
+			var modules = _Modules;
+			if (modules == null) return null;
+			modules.TryGetValue(name, out var module);
+			return module;
+		}
+
+		public bool TryInstallModule(string name)
+		{
+			return TryInstallModule(name, out _);
+		}
+
+		public bool TryInstallModule(string name, out object obj)
+		{
+			var module = GetModule(name);
+			if (module == null)
+			{
+				obj = null;
+				return false;
+			}
+			obj = module.Install(this);
+			return true;
+		}
+
+		public object InstallModule(IScriptModule module)
+		{
+			return module?.Install(this);
+		}
+
+		public void SetObjectMemberEnabled(Type objType, bool? objectMemberEnabled)
+		{
+			if (!objectMemberEnabled.HasValue && _ObjectMemberEnabledDict != null)
+			{
+				_ObjectMemberEnabledDict.Remove(objType);
+			}
+			else
+			{
+				Init_ObjectMemberEnabledDict();
+				_ObjectMemberEnabledDict[objType] = objectMemberEnabled.Value;
+			}
+		}
+
+		/// <summary>
+		/// 对象内部成员（构造函数、属性、字段、方法）是否可用
+		/// </summary>
+		/// <returns></returns>
+		public virtual bool? IsObjectMemberEnabled(Type objType)
+		{
+			var dict = _ObjectMemberEnabledDict;
+			if (dict != null && dict.TryGetValue(objType, out var enable))
+			{
+				return enable;
+			}
+			return null;
 		}
 
 		/// <summary>
@@ -282,6 +389,8 @@ namespace AScript
 			this._Variables?.Clear();
 			this._VariableTypes?.Clear();
 			this._Functions?.Clear();
+			this._Modules?.Clear();
+			this._ObjectMemberEnabledDict.Clear();
 		}
 
 		public void AddType(string name, Type type)
@@ -369,6 +478,45 @@ namespace AScript
 		{
 			this._Variables?.Remove(name);
 			this._VariableTypes?.Remove(name);
+		}
+
+		public object EvalVar(string name)
+		{
+			return EvalVar(name, out _);
+		}
+
+		public virtual object EvalVar(string name, out Type type)
+		{
+			if (_Variables != null && _Variables.TryGetValue(name, out var v))
+			{
+				if (_VariableTypes == null)
+				{
+					type = v?.GetType();
+				}
+				else if (!_VariableTypes.TryGetValue(name, out type))
+				{
+					type = v?.GetType();
+				}
+				return v;
+			}
+			// 没有变量，则查找类
+			var mytype = EvalType(name);
+			if (mytype != null)
+			{
+				type = typeof(TypeWrapper);
+				return new TypeWrapper(mytype);
+			}
+			type = null;
+			return null;
+		}
+
+		public virtual Type EvalType(string name)
+		{
+			if (_Types != null && _Types.TryGetValue(name, out var type))
+			{
+				return type;
+			}
+			return null;
 		}
 
 		public void AddTokenHandler(string name, ITokenHandler handler)

@@ -253,7 +253,7 @@ namespace AScript.Nodes
 			}
 
 			ConstructorInfo con = null;
-			if (scriptContext.IsObjectMemberEnabled(type))
+			if (scriptContext.IsObjectMemberEnabled(type) ?? true)
 			{
 				con = type.GetConstructor(argTypes);
 			}
@@ -691,7 +691,7 @@ namespace AScript.Nodes
 			returnType = type;
 
 			ConstructorInfo con = null;
-			if (context.IsObjectMemberEnabled(type))
+			if (context.IsObjectMemberEnabled(type) ?? true)
 			{
 				con = type.GetConstructor(argTypes);
 			}

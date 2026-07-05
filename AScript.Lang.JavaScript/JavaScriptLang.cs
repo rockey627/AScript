@@ -76,9 +76,10 @@ namespace AScript.Lang.JavaScript
 			AddFunc("get_length", new LengthFunction(typeof(long)));
 			AddFunc("slice", IndexStartEndOperator.Instance);
 
-			AddModule(new JavaScriptConsoleModule());
-			AddModule(new JavaScriptJsonModule());
-			AddModule(new JavaScriptAxiosModule());
+			AddModule("axios", new JavaScriptAxiosModule());
+
+			InstallModule(new JavaScriptConsoleModule());
+			InstallModule(new JavaScriptJsonModule());
 
 			AddFunc(typeof(JavaScriptDateExtensions));
 			AddFunc(typeof(JavaScriptMathExtensions));
@@ -119,13 +120,10 @@ namespace AScript.Lang.JavaScript
 			return true;
 		}
 
-		public override bool IsObjectMemberEnabled(Type objType)
+		public override bool? IsObjectMemberEnabled(Type objType)
 		{
-			if (this.ObjectMemberEnabledDict.TryGetValue(objType, out var enable))
-			{
-				return enable;
-			}
-			return false;
+			var enabled = base.IsObjectMemberEnabled(objType);
+			return enabled ?? false;
 		}
 
 		public override ISyntaxAnalyzer GetSyntaxAnalyzer()

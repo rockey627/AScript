@@ -6,11 +6,13 @@ using AScript.TokenHandlers;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace AScript
 {
@@ -359,8 +361,19 @@ namespace AScript
 		/// </summary>
 		/// <param name="objType"></param>
 		/// <returns></returns>
-		public virtual bool IsObjectMemberEnabled(Type objType)
+		public virtual bool? IsObjectMemberEnabled(Type objType)
 		{
+			var context = this;
+			while (context != null)
+			{
+				var dict = context._ObjectMemberEnabledDict;
+				if (dict != null && dict.TryGetValue(objType, out var enabled))
+				{
+					return enabled;
+				}
+				context = context.Parent;
+			}
+
 			var langs = this.Langs;
 			if (langs == null || langs.Length == 0)
 			{
@@ -368,7 +381,8 @@ namespace AScript
 				{
 					if (Script.Langs.TryGetValue(item, out var lang))
 					{
-						return lang.IsObjectMemberEnabled(objType);
+						var enabled = lang.IsObjectMemberEnabled(objType);
+						if (enabled.HasValue) return enabled;
 					}
 				}
 			}
@@ -378,11 +392,51 @@ namespace AScript
 				{
 					if (Script.Langs.TryGetValue(langs[i], out var lang))
 					{
-						return lang.IsObjectMemberEnabled(objType);
+						var enabled = lang.IsObjectMemberEnabled(objType);
+						if (enabled.HasValue) return enabled;
 					}
 				}
 			}
-			return true;
+			return null;
+		}
+
+		public override IScriptModule GetModule(string name)
+		{
+			var context = this;
+			while (context != null)
+			{
+				var modules = context._Modules;
+				if (modules != null && modules.TryGetValue(name, out var module))
+				{
+					return module;
+				}
+				context = context.Parent;
+			}
+			// 从语言环境获取模块
+			var langs = this.Langs;
+			if (langs == null || langs.Length == 0)
+			{
+				foreach (var item in Script.Langs.GetDefaults())
+				{
+					if (Script.Langs.TryGetValue(item, out var lang))
+					{
+						var module = lang.GetModule(name);
+						if (module != null) return module;
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < langs.Length; i++)
+				{
+					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					{
+						var module = lang.GetModule(name);
+						if (module != null) return module;
+					}
+				}
+			}
+			return null;
 		}
 
 		/// <summary>
@@ -605,12 +659,7 @@ namespace AScript
 			return null;
 		}
 
-		public object EvalVar(string name)
-		{
-			return EvalVar(name, out _);
-		}
-
-		public object EvalVar(string name, out Type type)
+		public override object EvalVar(string name, out Type type)
 		{
 			var context = GetOwnerContext(name, out var value, out type, true);
 			//if (context == null)
@@ -1842,7 +1891,7 @@ namespace AScript
 			}
 		}
 
-		public Type EvalType(string name)
+		public override Type EvalType(string name)
 		{
 			if (string.IsNullOrEmpty(name)) return null;
 			if (name.EndsWith("[]"))

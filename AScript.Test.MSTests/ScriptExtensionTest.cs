@@ -23,7 +23,7 @@ var hi = p1.SayHi(Person.DefaultName);
 var info = p2.FullInfo;
 ";
 			var script = new Script();
-			script.Context.AddModule(new PersonModule());
+			script.Context.InstallModule(new PersonModule());
 			script.Eval(s);
 			var hi = script.Eval("hi");
 			var info = script.Eval("info");

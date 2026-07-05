@@ -4,7 +4,7 @@ namespace AScript
 {
 	public interface IScriptModule
 	{
-		void Install(BaseContext context);
+		object Install(BaseContext context);
 		void Uninstall(BaseContext context);
 	}
 }

@@ -81,7 +81,7 @@ namespace AScript.Nodes
 				if (t0 == typeof(TypeWrapper))
 				{
 					var type = ((TypeWrapper)v0).Type;
-					if (context.IsObjectMemberEnabled(type))
+					if (context.IsObjectMemberEnabled(type) ?? true)
 					{
 						var methodInfo = type.GetMethod(this.Name, argTypes);
 						if (methodInfo != null)
@@ -99,7 +99,7 @@ namespace AScript.Nodes
 				else
 				{
 					MethodInfo methodInfo = null;
-					if (context.IsObjectMemberEnabled(t0))
+					if (context.IsObjectMemberEnabled(t0) ?? true)
 					{
 						methodInfo = t0.GetMethod(this.Name, argTypes);
 						if (methodInfo == null)
@@ -259,7 +259,7 @@ namespace AScript.Nodes
 				if (t0 == typeof(TypeWrapper))
 				{
 					var type = ((TypeWrapper)v0).Type;
-					if (context.IsObjectMemberEnabled(type))
+					if (context.IsObjectMemberEnabled(type) ?? true)
 					{
 						var methodInfo = type.GetMethod(this.Name, argTypes);
 						if (methodInfo != null)
@@ -276,7 +276,7 @@ namespace AScript.Nodes
 				else
 				{
 					MethodInfo methodInfo = null;
-					if (context.IsObjectMemberEnabled(t0))
+					if (context.IsObjectMemberEnabled(t0) ?? true)
 					{
 						methodInfo = t0.GetMethod(this.Name, argTypes);
 						if (methodInfo == null)
@@ -424,7 +424,7 @@ namespace AScript.Nodes
 				if (v0.Type == typeof(TypeWrapper))
 				{
 					var type = ((TypeWrapper)((ConstantExpression)v0).Value).Type;
-					if (scriptContext.IsObjectMemberEnabled(type))
+					if (scriptContext.IsObjectMemberEnabled(type) ?? true)
 					{
 						var methodInfo = type.GetMethod(this.Name, argTypes);
 						if (methodInfo != null)
@@ -445,7 +445,7 @@ namespace AScript.Nodes
 				else
 				{
 					MethodInfo methodInfo = null;
-					if (scriptContext.IsObjectMemberEnabled(v0.Type))
+					if (scriptContext.IsObjectMemberEnabled(v0.Type) ?? true)
 					{
 						methodInfo = v0.Type.GetMethod(this.Name, argTypes);
 						if (methodInfo == null)

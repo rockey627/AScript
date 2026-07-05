@@ -23,9 +23,9 @@ namespace AScript.Test.MSTests.JavaScript
 			Script.Langs.TryRemove("js");
 		}
 
-		public static void SetMockHandler(HttpMessageHandler handler)
+		public static void SetMockHandler(BaseContext context, HttpMessageHandler handler)
 		{
-			JavaScriptLang.Instance.SetVar("axios", new HttpClient(handler));
+			context.SetVar("axios", new HttpClient(handler));
 		}
 
 		// axios.get - simple object response
@@ -33,10 +33,11 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test01_getObject()
 		{
 			var handler = new MockHttpMessageHandler("{\"a\":1}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
+			script.Context.TryInstallModule("axios");
+			SetMockHandler(script.Context, handler);
 			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com'); resp.data.a");
 			Assert.AreEqual(1L, result);
 		}
@@ -45,11 +46,12 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test01_getObject_CompileAll()
 		{
 			var handler = new MockHttpMessageHandler("{\"a\":1}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
+			script.Context.TryInstallModule("axios");
+			SetMockHandler(script.Context, handler);
 			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com'); resp.data.a");
 			Assert.AreEqual(1L, result);
 		}
@@ -58,7 +60,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test01_getObject2()
 		{
 			var handler = new MockHttpMessageHandler("{\"a\":1}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -70,7 +71,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test01_getObject2_CompileAll()
 		{
 			var handler = new MockHttpMessageHandler("{\"a\":1}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -84,7 +84,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test02_getArray()
 		{
 			var handler = new MockHttpMessageHandler("[1, 2, 3]", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -96,7 +95,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test02_getArray_CompileAll()
 		{
 			var handler = new MockHttpMessageHandler("[1, 2, 3]", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -110,7 +108,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test03_getNested()
 		{
 			var handler = new MockHttpMessageHandler("{\"arr\":[1,2],\"obj\":{\"x\":1}}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -122,7 +119,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test03_getNested_CompileAll()
 		{
 			var handler = new MockHttpMessageHandler("{\"arr\":[1,2],\"obj\":{\"x\":1}}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -136,7 +132,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test04_getString()
 		{
 			var handler = new MockHttpMessageHandler("{\"name\":\"test\",\"value\":\"hello\"}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -148,7 +143,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test04_getString_CompileAll()
 		{
 			var handler = new MockHttpMessageHandler("{\"name\":\"test\",\"value\":\"hello\"}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -162,7 +156,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test05_getBoolean()
 		{
 			var handler = new MockHttpMessageHandler("{\"enabled\":true,\"disabled\":false}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -174,7 +167,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test05_getBoolean_CompileAll()
 		{
 			var handler = new MockHttpMessageHandler("{\"enabled\":true,\"disabled\":false}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -188,7 +180,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test06_getNull()
 		{
 			var handler = new MockHttpMessageHandler("{\"value\":null}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -200,7 +191,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test06_getNull_CompileAll()
 		{
 			var handler = new MockHttpMessageHandler("{\"value\":null}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -214,7 +204,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test07_dataParsedOnce()
 		{
 			var handler = new MockHttpMessageHandler("{\"a\":1}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -226,7 +215,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test07_dataParsedOnce_CompileAll()
 		{
 			var handler = new MockHttpMessageHandler("{\"a\":1}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -240,7 +228,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test08_getDouble()
 		{
 			var handler = new MockHttpMessageHandler("{\"pi\":3.14,\"price\":19.99}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -252,7 +239,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test08_getDouble_CompileAll()
 		{
 			var handler = new MockHttpMessageHandler("{\"pi\":3.14,\"price\":19.99}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -266,7 +252,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test09_getEmptyObject()
 		{
 			var handler = new MockHttpMessageHandler("{}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -278,7 +263,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test09_getEmptyObject_CompileAll()
 		{
 			var handler = new MockHttpMessageHandler("{}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -292,7 +276,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test10_getEmptyArray()
 		{
 			var handler = new MockHttpMessageHandler("[]", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -304,7 +287,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test10_getEmptyArray_CompileAll()
 		{
 			var handler = new MockHttpMessageHandler("[]", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -338,7 +320,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test12_multipleRequests()
 		{
 			var handler = new MockHttpMessageHandler("{\"value\":1}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -350,7 +331,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test12_multipleRequests_CompileAll()
 		{
 			var handler = new MockHttpMessageHandler("{\"value\":1}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -364,7 +344,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test13_differentUrls()
 		{
 			var handler = new MockHttpMessageHandler("{\"url\":\"mocked\"}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -376,7 +355,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test13_differentUrls_CompileAll()
 		{
 			var handler = new MockHttpMessageHandler("{\"url\":\"mocked\"}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -390,7 +368,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test14_axiosAll()
 		{
 			var handler = new MockHttpMessageHandler("{\"value\":1}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -402,7 +379,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test14_axiosAll_CompileAll()
 		{
 			var handler = new MockHttpMessageHandler("{\"value\":1}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -415,7 +391,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test15_axiosAllThreeRequests()
 		{
 			var handler = new MockHttpMessageHandler("{\"value\":1}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -427,7 +402,6 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test15_axiosAllThreeRequests_CompileAll()
 		{
 			var handler = new MockHttpMessageHandler("{\"value\":1}", System.Net.HttpStatusCode.OK);
-			SetMockHandler(handler);
 
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;

@@ -6,11 +6,13 @@ namespace AScript.Lang.JavaScript.Extensions
 {
 	public class JavaScriptJsonModule : IScriptModule
 	{
-		public void Install(BaseContext context)
+		public object Install(BaseContext context)
 		{
+			if (context.EvalType("JSON") != null) return null;
 			context.FunctionEval += Context_FunctionEval;
 			context.AddType("JSON", typeof(JsonConvert));
 			context.AddFunc(typeof(JavaScriptJsonExtensions));
+			return null;
 		}
 
 		public void Uninstall(BaseContext context)

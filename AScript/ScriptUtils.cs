@@ -775,7 +775,7 @@ namespace AScript
 				return value;
 			}
 
-			if (context.IsObjectMemberEnabled(targetType))
+			if (context.IsObjectMemberEnabled(targetType) ?? true)
 			{
 				var p = targetType.GetProperty(propertyOrFieldName, flags);
 				if (p != null)
