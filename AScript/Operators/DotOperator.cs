@@ -35,7 +35,8 @@ namespace AScript.Operators
 			if (instance.Type == typeof(TypeWrapper))
 			{
 				// 调用静态类属性或字段
-				var targetType = ((TypeWrapper)((ConstantExpression)instance).Value).Type;
+				var wrapper = (TypeWrapper)((ConstantExpression)instance).Value;
+				var targetType = wrapper.Type;
 				if (e.ScriptContext.IsObjectMemberEnabled(targetType) ?? true)
 				{
 					var property = targetType.GetProperty(propertyOrFieldName, BindingFlags.Static | BindingFlags.Public | BindingFlags.IgnoreCase);
@@ -44,7 +45,7 @@ namespace AScript.Operators
 					var field = targetType.GetField(propertyOrFieldName, BindingFlags.Static | BindingFlags.Public | BindingFlags.IgnoreCase);
 					if (field != null) return Expression.Field(null, field);
 				}
-				var staticExpr = e.ScriptContext.BuildFunc(e.BuildContext, e.Options, e.Control, $"{((VariableNode)e.Args[0]).Name}_get_{propertyOrFieldName}", false, null);
+				var staticExpr = e.ScriptContext.BuildFunc(e.BuildContext, e.Options, e.Control, $"{wrapper.Name}_get_{propertyOrFieldName}", false, null);
 				if (staticExpr != null) return staticExpr;
 				throw new Exceptions.ScriptRuntimeException($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
 			}
@@ -126,11 +127,13 @@ namespace AScript.Operators
 			object target;
 			Type targetType;
 			var flags = BindingFlags.Public | BindingFlags.IgnoreCase;
+			TypeWrapper wrapper = null;
 			if (instance is TypeWrapper w)
 			{
 				// 静态属性
 				target = null;
 				targetType = w.Type;
+				wrapper = w;
 				flags |= BindingFlags.Static;
 			}
 			else
@@ -175,7 +178,7 @@ namespace AScript.Operators
 
 			if (target == null)
 			{
-				return e.Context.EvalFunc($"{((VariableNode)e.Args[0]).Name}_get_{propertyOrFieldName}", null, null, out type);
+				return e.Context.EvalFunc($"{wrapper.Name}_get_{propertyOrFieldName}", null, null, out type);
 			}
 			return e.Context.EvalFunc($"get_{propertyOrFieldName}", new[] { instance }, new[] { targetType }, out type);
 		}

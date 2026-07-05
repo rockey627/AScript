@@ -512,7 +512,7 @@ namespace AScript
 				if (searchType && types != null && types.TryGetValue(variable, out var c))
 				{
 					type = typeof(TypeWrapper);
-					value = new TypeWrapper(c);
+					value = new TypeWrapper(variable, c);
 					return context;
 				}
 				context = context.Parent;
@@ -532,7 +532,7 @@ namespace AScript
 				return null;
 			}
 			type = typeof(TypeWrapper);
-			value = new TypeWrapper(tt);
+			value = new TypeWrapper(variable, tt);
 			return null;
 		}
 

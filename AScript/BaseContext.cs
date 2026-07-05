@@ -510,7 +510,7 @@ namespace AScript
 			if (mytype != null)
 			{
 				type = typeof(TypeWrapper);
-				return new TypeWrapper(mytype);
+				return new TypeWrapper(name, mytype);
 			}
 			type = null;
 			return null;

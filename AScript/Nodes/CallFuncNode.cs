@@ -80,7 +80,8 @@ namespace AScript.Nodes
 				var v0 = ((ITreeNode)this.Target).Eval(context, options, null, out var t0);
 				if (t0 == typeof(TypeWrapper))
 				{
-					var type = ((TypeWrapper)v0).Type;
+					var wrapper = (TypeWrapper)v0;
+					var type = wrapper.Type;
 					if (context.IsObjectMemberEnabled(type) ?? true)
 					{
 						var methodInfo = type.GetMethod(this.Name, argTypes);
@@ -94,7 +95,7 @@ namespace AScript.Nodes
 						}
 					}
 					// 静态方法扩展
-					return context.EvalFunc($"{((VariableNode)this.Target).Name}_{this.Name}", argValues, argTypes, out returnType);
+					return context.EvalFunc($"{wrapper.Name}_{this.Name}", argValues, argTypes, out returnType);
 				}
 				else
 				{
@@ -258,7 +259,8 @@ namespace AScript.Nodes
 				var t0 = targetResult.Type;
 				if (t0 == typeof(TypeWrapper))
 				{
-					var type = ((TypeWrapper)v0).Type;
+					var wrapper = (TypeWrapper)v0;
+					var type = wrapper.Type;
 					if (context.IsObjectMemberEnabled(type) ?? true)
 					{
 						var methodInfo = type.GetMethod(this.Name, argTypes);
@@ -271,7 +273,7 @@ namespace AScript.Nodes
 						}
 					}
 					// 静态方法扩展
-					return await context.EvalFuncAsync($"{((VariableNode)this.Target).Name}_{this.Name}", argValues, argTypes).ConfigureAwait(false);
+					return await context.EvalFuncAsync($"{wrapper.Name}_{this.Name}", argValues, argTypes).ConfigureAwait(false);
 				}
 				else
 				{
@@ -423,7 +425,8 @@ namespace AScript.Nodes
 				var v0 = ((ITreeNode)this.Target).Build(buildContext, scriptContext, options);
 				if (v0.Type == typeof(TypeWrapper))
 				{
-					var type = ((TypeWrapper)((ConstantExpression)v0).Value).Type;
+					var wrapper = (TypeWrapper)((ConstantExpression)v0).Value;
+					var type = wrapper.Type;
 					if (scriptContext.IsObjectMemberEnabled(type) ?? true)
 					{
 						var methodInfo = type.GetMethod(this.Name, argTypes);
@@ -434,7 +437,7 @@ namespace AScript.Nodes
 							return Expression.Call(null, methodInfo, convertedArgs);
 						}
 					}
-					var result = scriptContext.BuildFunc(buildContext, options, null, $"{((VariableNode)this.Target).Name}_{this.Name}", false, null, argExprs, false);
+					var result = scriptContext.BuildFunc(buildContext, options, null, $"{wrapper.Name}_{this.Name}", false, null, argExprs, false);
 					if (result != null) return result;
 					if (argTypes == null || argTypes.Length == 0)
 					{
