@@ -374,11 +374,11 @@ namespace AScript.Test.MSTests
 		public void TestArrayLiteral_Int()
 		{
 			var script = new Script();
-			var result = (Array)script.Eval("[1,2,3,4,5]");
-			Assert.AreEqual(5, result.Length);
-			Assert.AreEqual(1, result.GetValue(0));
-			Assert.AreEqual(3, result.GetValue(2));
-			Assert.AreEqual(5, result.GetValue(4));
+			var result = script.Eval<List<int>>("[1,2,3,4,5]");
+			Assert.AreEqual(5, result.Count);
+			Assert.AreEqual(1, result[0]);
+			Assert.AreEqual(3, result[2]);
+			Assert.AreEqual(5, result[4]);
 		}
 
 		[TestMethod]
@@ -386,21 +386,21 @@ namespace AScript.Test.MSTests
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
-			var result = (Array)script.Eval("[1,2,3,4,5]");
-			Assert.AreEqual(5, result.Length);
-			Assert.AreEqual(1, result.GetValue(0));
-			Assert.AreEqual(3, result.GetValue(2));
-			Assert.AreEqual(5, result.GetValue(4));
+			var result = script.Eval<List<int>>("[1,2,3,4,5]");
+			Assert.AreEqual(5, result.Count);
+			Assert.AreEqual(1, result[0]);
+			Assert.AreEqual(3, result[2]);
+			Assert.AreEqual(5, result[4]);
 		}
 
 		[TestMethod]
 		public void TestArrayLiteral_String()
 		{
 			var script = new Script();
-			var result = (Array)script.Eval("['a','b','c']");
-			Assert.AreEqual(3, result.Length);
-			Assert.AreEqual("a", result.GetValue(0));
-			Assert.AreEqual("c", result.GetValue(2));
+			var result = script.Eval<List<string>>("['a','b','c']");
+			Assert.AreEqual(3, result.Count);
+			Assert.AreEqual("a", result[0]);
+			Assert.AreEqual("c", result[2]);
 		}
 
 		[TestMethod]
@@ -408,22 +408,22 @@ namespace AScript.Test.MSTests
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
-			var result = (Array)script.Eval("['a','b','c']");
-			Assert.AreEqual(3, result.Length);
-			Assert.AreEqual("a", result.GetValue(0));
-			Assert.AreEqual("c", result.GetValue(2));
+			var result = script.Eval<List<string>>("['a','b','c']");
+			Assert.AreEqual(3, result.Count);
+			Assert.AreEqual("a", result[0]);
+			Assert.AreEqual("c", result[2]);
 		}
 
 		[TestMethod]
 		public void TestArrayLiteral_Mixed()
 		{
 			var script = new Script();
-			var result = (Array)script.Eval("[1,'hello',3.14,true]");
-			Assert.AreEqual(4, result.Length);
-			Assert.AreEqual(1, result.GetValue(0));
-			Assert.AreEqual("hello", result.GetValue(1));
-			Assert.AreEqual(3.14, result.GetValue(2));
-			Assert.AreEqual(true, result.GetValue(3));
+			var result = script.Eval<List<object>>("[1,'hello',3.14,true]");
+			Assert.AreEqual(4, result.Count);
+			Assert.AreEqual(1, result[0]);
+			Assert.AreEqual("hello", result[1]);
+			Assert.AreEqual(3.14, result[2]);
+			Assert.AreEqual(true, result[3]);
 		}
 
 		[TestMethod]
@@ -431,20 +431,20 @@ namespace AScript.Test.MSTests
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
-			var result = (Array)script.Eval("[1,'hello',3.14,true]");
-			Assert.AreEqual(4, result.Length);
-			Assert.AreEqual(1, result.GetValue(0));
-			Assert.AreEqual("hello", result.GetValue(1));
-			Assert.AreEqual(3.14, result.GetValue(2));
-			Assert.AreEqual(true, result.GetValue(3));
+			var result = script.Eval<List<object>>("[1,'hello',3.14,true]");
+			Assert.AreEqual(4, result.Count);
+			Assert.AreEqual(1, result[0]);
+			Assert.AreEqual("hello", result[1]);
+			Assert.AreEqual(3.14, result[2]);
+			Assert.AreEqual(true, result[3]);
 		}
 
 		[TestMethod]
 		public void TestArrayLiteral_Empty()
 		{
 			var script = new Script();
-			var result = (Array)script.Eval("[]");
-			Assert.AreEqual(0, result.Length);
+			var result = script.Eval<List<object>>("[]");
+			Assert.AreEqual(0, result.Count);
 		}
 
 		[TestMethod]
@@ -452,17 +452,17 @@ namespace AScript.Test.MSTests
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
-			var result = (Array)script.Eval("[]");
-			Assert.AreEqual(0, result.Length);
+			var result = script.Eval<List<object>>("[]");
+			Assert.AreEqual(0, result.Count);
 		}
 
 		[TestMethod]
 		public void TestArrayLiteral_SingleElement()
 		{
 			var script = new Script();
-			var result = (Array)script.Eval("[42]");
-			Assert.AreEqual(1, result.Length);
-			Assert.AreEqual(42, result.GetValue(0));
+			var result = script.Eval<List<int>>("[42]");
+			Assert.AreEqual(1, result.Count);
+			Assert.AreEqual(42, result[0]);
 		}
 
 		[TestMethod]
@@ -470,9 +470,9 @@ namespace AScript.Test.MSTests
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
-			var result = (Array)script.Eval("[42]");
-			Assert.AreEqual(1, result.Length);
-			Assert.AreEqual(42, result.GetValue(0));
+			var result = script.Eval<List<int>>("[42]");
+			Assert.AreEqual(1, result.Count);
+			Assert.AreEqual(42, result[0]);
 		}
 
 		[TestMethod]
@@ -498,10 +498,10 @@ namespace AScript.Test.MSTests
 		public void TestArrayLiteral_NestedIndex()
 		{
 			var script = new Script();
-			var result = script.Eval("[[1,2],[3,4]][0]");
-			var arr = (Array)result;
-			Assert.AreEqual(1, arr.GetValue(0));
-			Assert.AreEqual(2, arr.GetValue(1));
+			var result = script.Eval<List<int>>("[[1,2],[3,4]][0]");
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual(1, result[0]);
+			Assert.AreEqual(2, result[1]);
 		}
 
 		[TestMethod]
@@ -509,10 +509,10 @@ namespace AScript.Test.MSTests
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
-			var result = script.Eval("[[1,2],[3,4]][0]");
-			var arr = (Array)result;
-			Assert.AreEqual(1, arr.GetValue(0));
-			Assert.AreEqual(2, arr.GetValue(1));
+			var result = script.Eval<List<int>>("[[1,2],[3,4]][0]");
+			Assert.AreEqual(2, result.Count);
+			Assert.AreEqual(1, result[0]);
+			Assert.AreEqual(2, result[1]);
 		}
 
 		[TestMethod]
@@ -521,10 +521,11 @@ namespace AScript.Test.MSTests
 			var script = new Script();
 			script.Context.SetVar("x", 100);
 			script.Context.SetVar("y", 200);
-			var result = (Array)script.Eval("[x, y, x + y]");
-			Assert.AreEqual(100, result.GetValue(0));
-			Assert.AreEqual(200, result.GetValue(1));
-			Assert.AreEqual(300, result.GetValue(2));
+			var result = script.Eval<List<int>>("[x, y, x + y]");
+			Assert.AreEqual(3, result.Count);
+			Assert.AreEqual(100, result[0]);
+			Assert.AreEqual(200, result[1]);
+			Assert.AreEqual(300, result[2]);
 		}
 
 		[TestMethod]
@@ -534,20 +535,20 @@ namespace AScript.Test.MSTests
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.SetVar("x", 100);
 			script.Context.SetVar("y", 200);
-			var result = (Array)script.Eval("[x, y, x + y]");
-			Assert.AreEqual(100, result.GetValue(0));
-			Assert.AreEqual(200, result.GetValue(1));
-			Assert.AreEqual(300, result.GetValue(2));
+			var result = script.Eval<List<int>>("[x, y, x + y]");
+			Assert.AreEqual(100, result[0]);
+			Assert.AreEqual(200, result[1]);
+			Assert.AreEqual(300, result[2]);
 		}
 
 		[TestMethod]
 		public void TestArrayLiteral_Double()
 		{
 			var script = new Script();
-			var result = (Array)script.Eval("[1.1, 2.2, 3.3]");
-			Assert.AreEqual(3, result.Length);
-			Assert.AreEqual(1.1, result.GetValue(0));
-			Assert.AreEqual(3.3, result.GetValue(2));
+			var result = script.Eval<List<double>>("[1.1, 2.2, 3.3]");
+			Assert.AreEqual(3, result.Count);
+			Assert.AreEqual(1.1, result[0]);
+			Assert.AreEqual(3.3, result[2]);
 		}
 
 		[TestMethod]
@@ -555,21 +556,21 @@ namespace AScript.Test.MSTests
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
-			var result = (Array)script.Eval("[1.1, 2.2, 3.3]");
-			Assert.AreEqual(3, result.Length);
-			Assert.AreEqual(1.1, result.GetValue(0));
-			Assert.AreEqual(3.3, result.GetValue(2));
+			var result = script.Eval<List<double>>("[1.1, 2.2, 3.3]");
+			Assert.AreEqual(3, result.Count);
+			Assert.AreEqual(1.1, result[0]);
+			Assert.AreEqual(3.3, result[2]);
 		}
 
 		[TestMethod]
 		public void TestArrayLiteral_Bool()
 		{
 			var script = new Script();
-			var result = (Array)script.Eval("[true, false, true]");
-			Assert.AreEqual(3, result.Length);
-			Assert.AreEqual(true, result.GetValue(0));
-			Assert.AreEqual(false, result.GetValue(1));
-			Assert.AreEqual(true, result.GetValue(2));
+			var result = script.Eval<List<bool>>("[true, false, true]");
+			Assert.AreEqual(3, result.Count);
+			Assert.AreEqual(true, result[0]);
+			Assert.AreEqual(false, result[1]);
+			Assert.AreEqual(true, result[2]);
 		}
 
 		[TestMethod]
@@ -577,11 +578,11 @@ namespace AScript.Test.MSTests
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
-			var result = (Array)script.Eval("[true, false, true]");
-			Assert.AreEqual(3, result.Length);
-			Assert.AreEqual(true, result.GetValue(0));
-			Assert.AreEqual(false, result.GetValue(1));
-			Assert.AreEqual(true, result.GetValue(2));
+			var result = script.Eval<List<bool>>("[true, false, true]");
+			Assert.AreEqual(3, result.Count);
+			Assert.AreEqual(true, result[0]);
+			Assert.AreEqual(false, result[1]);
+			Assert.AreEqual(true, result[2]);
 		}
 
 		#endregion

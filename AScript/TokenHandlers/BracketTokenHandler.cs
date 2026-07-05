@@ -10,14 +10,11 @@ namespace AScript.TokenHandlers
 	/// </summary>
 	public class BracketTokenHandler : ITokenHandler
 	{
-		public static readonly BracketTokenHandler Instance = new BracketTokenHandler();
-
 		private static readonly HashSet<string> _EndTokens = new HashSet<string> { ":" };
 		private static readonly HashSet<string> _EndTokens2 = new HashSet<string> { "for", "foreach" };
 
-		private readonly Type _CollectionType = typeof(Array);
+		private readonly Type _CollectionType;
 
-		public BracketTokenHandler() { }
 		public BracketTokenHandler(Type collectionType)
 		{
 			_CollectionType = collectionType;
