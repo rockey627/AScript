@@ -76,11 +76,6 @@ namespace AScript.Lang.JavaScript
 			AddFunc("get_length", new LengthFunction(typeof(long)));
 			AddFunc("slice", IndexStartEndOperator.Instance);
 
-			AddModule("axios", new JavaScriptAxiosModule());
-
-			InstallModule(new JavaScriptConsoleModule());
-			InstallModule(new JavaScriptJsonModule());
-
 			AddFunc(typeof(JavaScriptDateExtensions));
 			AddFunc(typeof(JavaScriptMathExtensions));
 			AddFunc(typeof(JavaScriptStringExtensions));
@@ -88,6 +83,13 @@ namespace AScript.Lang.JavaScript
 			AddFunc(typeof(JavaScriptSetExtensions));
 			AddFunc(typeof(JavaScriptMapExtensions));
 			AddFunc(typeof(JavaScriptPromiseExtensions));
+
+			AddFunc<ScriptContext, string, object>("require", (context, name) => context.InstallModule(name));
+
+			AddModule("axios", new JavaScriptAxiosModule());
+
+			InstallModule(new JavaScriptConsoleModule());
+			InstallModule(new JavaScriptJsonModule());
 
 			AddTokenHandler("var", VarTokenHandler.Instance);
 			AddTokenHandler("let", VarTokenHandler.Instance);

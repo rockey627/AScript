@@ -16,6 +16,17 @@ namespace AScript.Lang.JavaScript.Extensions
 			return Task.WhenAll(list.Select(a => (Task<JavaScriptHttpResponse>)a));
 		}
 
+		public static HttpClient create(HttpClient client)
+		{
+			return create(client, null);
+		}
+
+		public static HttpClient create(HttpClient client, dynamic config)
+		{
+			var instance = new HttpClient();
+			return instance;
+		}
+
 		public static async Task<JavaScriptHttpResponse> get(HttpClient client, string url)
 		{
 			var response = await client.GetAsync(url).ConfigureAwait(false);
