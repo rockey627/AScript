@@ -5,26 +5,78 @@ using System.Dynamic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AScript.Lang.JavaScript.Extensions
 {
 	public static class JavaScriptAxiosExtensions
 	{
-		public static Task<JavaScriptHttpResponse[]> all(HttpClient client, IList<object> list)
+		public static Task<JavaScriptHttpResponse[]> all(IHttpClientFactory factory, IList<object> list)
 		{
 			return Task.WhenAll(list.Select(a => (Task<JavaScriptHttpResponse>)a));
 		}
 
-		public static HttpClient create(HttpClient client)
+		public static HttpClient create(IHttpClientFactory factory)
 		{
-			return create(client, null);
+			return factory.CreateClient(JavaScriptAxiosModule.ClientName);
 		}
 
-		public static HttpClient create(HttpClient client, dynamic config)
+		public static HttpClient create(IHttpClientFactory factory, IDictionary<string, object> config)
 		{
-			var instance = new HttpClient();
-			return instance;
+			var client = factory.CreateClient(JavaScriptAxiosModule.ClientName);
+			return client;
+		}
+
+		public static HttpClient create(IHttpClientFactory factory, HttpMessageHandler messageHandler)
+		{
+			return new HttpClient(messageHandler);
+		}
+
+		public static HttpClient createMock(IHttpClientFactory factory, object responseBody)
+		{
+			return new HttpClient(new MockHttpMessageHandler(responseBody, 200));
+		}
+
+		public static HttpClient createMock(IHttpClientFactory factory, object responseBody, int statusCode)
+		{
+			return new HttpClient(new MockHttpMessageHandler(responseBody, statusCode));
+		}
+
+		public static Task<JavaScriptHttpResponse> get(IHttpClientFactory factory, string url)
+		{
+			var client = create(factory);
+			return get(client, url);
+		}
+
+		public static Task<JavaScriptHttpResponse> delete(IHttpClientFactory factory, string url)
+		{
+			var client = create(factory);
+			return delete(client, url);
+		}
+
+		public static Task<JavaScriptHttpResponse> post(IHttpClientFactory factory, string url)
+		{
+			var client = create(factory);
+			return post(client, url);
+		}
+
+		public static Task<JavaScriptHttpResponse> post(IHttpClientFactory factory, string url, object data)
+		{
+			var client = create(factory);
+			return post(client, url, data);
+		}
+
+		public static Task<JavaScriptHttpResponse> put(IHttpClientFactory factory, string url)
+		{
+			var client = create(factory);
+			return put(client, url);
+		}
+
+		public static Task<JavaScriptHttpResponse> put(IHttpClientFactory factory, string url, object data)
+		{
+			var client = create(factory);
+			return put(client, url, data);
 		}
 
 		public static async Task<JavaScriptHttpResponse> get(HttpClient client, string url)
@@ -68,6 +120,18 @@ namespace AScript.Lang.JavaScript.Extensions
 		}
 
 #if NETSTANDARD2_1_OR_GREATER
+		public static Task<JavaScriptHttpResponse> patch(IHttpClientFactory factory, string url)
+		{
+			var client = create(factory);
+			return patch(client, url);
+		}
+
+		public static Task<JavaScriptHttpResponse> patch(IHttpClientFactory factory, string url, object data)
+		{
+			var client = create(factory);
+			return patch(client, url, data);
+		}
+
 		public static async Task<JavaScriptHttpResponse> patch(HttpClient client, string url)
 		{
 			var content = new StringContent(null, Encoding.UTF8, "application/json");
@@ -82,6 +146,33 @@ namespace AScript.Lang.JavaScript.Extensions
 			return new JavaScriptHttpResponse(response);
 		}
 #endif
+		private class MockHttpMessageHandler : HttpMessageHandler
+		{
+			private readonly string _responseBody;
+			private readonly System.Net.HttpStatusCode _statusCode;
+
+			public MockHttpMessageHandler(object responseBody, int statusCode)
+			{
+				if (responseBody is string s)
+				{
+					_responseBody = s;
+				}
+				else if (responseBody != null)
+				{
+					_responseBody = JsonConvert.SerializeObject(responseBody);
+				}
+				_statusCode = (System.Net.HttpStatusCode)statusCode;
+			}
+
+			protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+			{
+				var response = new HttpResponseMessage(_statusCode)
+				{
+					Content = new StringContent(_responseBody, Encoding.UTF8, "application/json")
+				};
+				return Task.FromResult(response);
+			}
+		}
 	}
 
 	public class JavaScriptHttpResponse : IDisposable

@@ -1,5 +1,6 @@
 using AScript.Lang.JavaScript;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using System;
 using System.Net.Http;
 using System.Text;
@@ -23,59 +24,64 @@ namespace AScript.Test.MSTests.JavaScript
 			Script.Langs.TryRemove("js");
 		}
 
-		public static void SetMockHandler(BaseContext context, HttpMessageHandler handler)
-		{
-			context.SetVar("axios", new HttpClient(handler));
-		}
-
 		// axios.get - simple object response
 		[TestMethod]
 		public void Test01_getObject()
 		{
-			var handler = new MockHttpMessageHandler("{\"a\":1}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var req = axios.createMock({a:1});
+var resp = await req.get('http://test.com'); 
+resp.data.a
+";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
 			script.Context.TryInstallModule("axios");
-			SetMockHandler(script.Context, handler);
-			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com'); resp.data.a");
+			var result = script.Eval<dynamic>(s);
 			Assert.AreEqual(1L, result);
 		}
 
 		[TestMethod]
 		public void Test01_getObject_CompileAll()
 		{
-			var handler = new MockHttpMessageHandler("{\"a\":1}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var req = axios.createMock({a:1});
+var resp = await req.get('http://test.com'); 
+resp.data.a
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
 			script.Context.TryInstallModule("axios");
-			SetMockHandler(script.Context, handler);
-			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com'); resp.data.a");
+			var result = script.Eval<dynamic>(s);
 			Assert.AreEqual(1L, result);
 		}
 
 		[TestMethod]
 		public void Test01_getObject2()
 		{
-			var handler = new MockHttpMessageHandler("{\"a\":1}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({a:1});
+var resp = await axios.get('http://test.com').catch(err=>{console.log(err)}); 
+resp.data.a
+";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com').catch(err=>{console.log(err)}); resp.data.a");
+			var result = script.Eval<dynamic>(s);
 			Assert.AreEqual(1L, result);
 		}
 
 		[TestMethod]
 		public void Test01_getObject2_CompileAll()
 		{
-			var handler = new MockHttpMessageHandler("{\"a\":1}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({a:1});
+var resp = await axios.get('http://test.com').catch(err=>{console.log(err)}); 
+resp.data.a
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com').catch(err=>{console.log(err)}); resp.data.a");
+			var result = script.Eval<dynamic>(s);
 			Assert.AreEqual(1L, result);
 		}
 
@@ -83,23 +89,29 @@ namespace AScript.Test.MSTests.JavaScript
 		[TestMethod]
 		public void Test02_getArray()
 		{
-			var handler = new MockHttpMessageHandler("[1, 2, 3]", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock([1, 2, 3]);
+var resp = await axios.get('http://test.com'); 
+resp.data[0] + resp.data[1] + resp.data[2]
+";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com'); resp.data[0] + resp.data[1] + resp.data[2]");
+			var result = script.Eval<dynamic>(s);
 			Assert.AreEqual(6L, result);
 		}
 
 		[TestMethod]
 		public void Test02_getArray_CompileAll()
 		{
-			var handler = new MockHttpMessageHandler("[1, 2, 3]", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock([1, 2, 3]);
+var resp = await axios.get('http://test.com'); 
+resp.data[0] + resp.data[1] + resp.data[2]
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com'); resp.data[0] + resp.data[1] + resp.data[2]");
+			var result = script.Eval<dynamic>(s);
 			Assert.AreEqual(6L, result);
 		}
 
@@ -107,23 +119,29 @@ namespace AScript.Test.MSTests.JavaScript
 		[TestMethod]
 		public void Test03_getNested()
 		{
-			var handler = new MockHttpMessageHandler("{\"arr\":[1,2],\"obj\":{\"x\":1}}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({arr:[1,2],obj:{x:1}});
+var resp = await axios.get('http://test.com'); 
+resp.data.arr[0] + resp.data.arr[1] + resp.data.obj.x
+";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com'); resp.data.arr[0] + resp.data.arr[1] + resp.data.obj.x");
+			var result = script.Eval<dynamic>("");
 			Assert.AreEqual(4L, result);
 		}
 
 		[TestMethod]
 		public void Test03_getNested_CompileAll()
 		{
-			var handler = new MockHttpMessageHandler("{\"arr\":[1,2],\"obj\":{\"x\":1}}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({arr:[1,2],obj:{x:1}});
+var resp = await axios.get('http://test.com'); 
+resp.data.arr[0] + resp.data.arr[1] + resp.data.obj.x
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com'); resp.data.arr[0] + resp.data.arr[1] + resp.data.obj.x");
+			var result = script.Eval<dynamic>(s);
 			Assert.AreEqual(4L, result);
 		}
 
@@ -131,23 +149,29 @@ namespace AScript.Test.MSTests.JavaScript
 		[TestMethod]
 		public void Test04_getString()
 		{
-			var handler = new MockHttpMessageHandler("{\"name\":\"test\",\"value\":\"hello\"}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({name:'test',value:'hello'});
+var resp = await axios.get('http://test.com'); 
+resp.data.name + resp.data.value
+";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("var resp = await axios.get('http://test.com'); resp.data.name + resp.data.value");
+			var result = script.Eval(s);
 			Assert.AreEqual("testhello", result);
 		}
 
 		[TestMethod]
 		public void Test04_getString_CompileAll()
 		{
-			var handler = new MockHttpMessageHandler("{\"name\":\"test\",\"value\":\"hello\"}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({name:'test',value:'hello'});
+var resp = await axios.get('http://test.com'); 
+resp.data.name + resp.data.value
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("var resp = await axios.get('http://test.com'); resp.data.name + resp.data.value");
+			var result = script.Eval(s);
 			Assert.AreEqual("testhello", result);
 		}
 
@@ -155,23 +179,29 @@ namespace AScript.Test.MSTests.JavaScript
 		[TestMethod]
 		public void Test05_getBoolean()
 		{
-			var handler = new MockHttpMessageHandler("{\"enabled\":true,\"disabled\":false}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({enabled:true,disabled:false});
+var resp = await axios.get('http://test.com'); 
+resp.data.enabled && !resp.data.disabled
+";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("var resp = await axios.get('http://test.com'); resp.data.enabled && !resp.data.disabled");
+			var result = script.Eval(s);
 			Assert.AreEqual(true, result);
 		}
 
 		[TestMethod]
 		public void Test05_getBoolean_CompileAll()
 		{
-			var handler = new MockHttpMessageHandler("{\"enabled\":true,\"disabled\":false}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({enabled:true,disabled:false});
+var resp = await axios.get('http://test.com'); 
+resp.data.enabled && !resp.data.disabled
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("var resp = await axios.get('http://test.com'); resp.data.enabled && !resp.data.disabled");
+			var result = script.Eval(s);
 			Assert.AreEqual(true, result);
 		}
 
@@ -179,23 +209,29 @@ namespace AScript.Test.MSTests.JavaScript
 		[TestMethod]
 		public void Test06_getNull()
 		{
-			var handler = new MockHttpMessageHandler("{\"value\":null}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({value:null});
+var resp = await axios.get('http://test.com'); 
+resp.data.value
+";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com'); resp.data.value");
+			var result = script.Eval<dynamic>(s);
 			Assert.IsNull(result);
 		}
 
 		[TestMethod]
 		public void Test06_getNull_CompileAll()
 		{
-			var handler = new MockHttpMessageHandler("{\"value\":null}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({value:null});
+var resp = await axios.get('http://test.com'); 
+resp.data.value
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com'); resp.data.value");
+			var result = script.Eval<dynamic>(s);
 			Assert.IsNull(result);
 		}
 
@@ -203,23 +239,33 @@ namespace AScript.Test.MSTests.JavaScript
 		[TestMethod]
 		public void Test07_dataParsedOnce()
 		{
-			var handler = new MockHttpMessageHandler("{\"a\":1}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({a:1});
+var resp = await axios.get('http://test.com'); 
+var d1 = resp.data; 
+var d2 = resp.data; 
+d1.a + d2.a
+";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("var resp = await axios.get('http://test.com'); var d1 = resp.data; var d2 = resp.data; d1.a + d2.a");
+			var result = script.Eval(s);
 			Assert.AreEqual(2L, result);
 		}
 
 		[TestMethod]
 		public void Test07_dataParsedOnce_CompileAll()
 		{
-			var handler = new MockHttpMessageHandler("{\"a\":1}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({a:1});
+var resp = await axios.get('http://test.com'); 
+var d1 = resp.data; 
+var d2 = resp.data; 
+d1.a + d2.a
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("var resp = await axios.get('http://test.com'); var d1 = resp.data; var d2 = resp.data; d1.a + d2.a");
+			var result = script.Eval(s);
 			Assert.AreEqual(2L, result);
 		}
 
@@ -227,23 +273,29 @@ namespace AScript.Test.MSTests.JavaScript
 		[TestMethod]
 		public void Test08_getDouble()
 		{
-			var handler = new MockHttpMessageHandler("{\"pi\":3.14,\"price\":19.99}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({pi:3.14,price:19.99});
+var resp = await axios.get('http://test.com'); 
+resp.data.pi + resp.data.price
+";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com'); resp.data.pi + resp.data.price");
+			var result = script.Eval<dynamic>(s);
 			Assert.AreEqual(23.13, (double)result, 0.001);
 		}
 
 		[TestMethod]
 		public void Test08_getDouble_CompileAll()
 		{
-			var handler = new MockHttpMessageHandler("{\"pi\":3.14,\"price\":19.99}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({pi:3.14,price:19.99});
+var resp = await axios.get('http://test.com'); 
+resp.data.pi + resp.data.price
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com'); resp.data.pi + resp.data.price");
+			var result = script.Eval<dynamic>(s);
 			Assert.AreEqual(23.13, (double)result, 0.001);
 		}
 
@@ -251,23 +303,29 @@ namespace AScript.Test.MSTests.JavaScript
 		[TestMethod]
 		public void Test09_getEmptyObject()
 		{
-			var handler = new MockHttpMessageHandler("{}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({});
+var resp = await axios.get('http://test.com'); 
+resp.data != null
+";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("var resp = await axios.get('http://test.com'); resp.data != null");
+			var result = script.Eval(s);
 			Assert.AreEqual(true, result);
 		}
 
 		[TestMethod]
 		public void Test09_getEmptyObject_CompileAll()
 		{
-			var handler = new MockHttpMessageHandler("{}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({});
+var resp = await axios.get('http://test.com'); 
+resp.data != null
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("var resp = await axios.get('http://test.com'); resp.data != null");
+			var result = script.Eval(s);
 			Assert.AreEqual(true, result);
 		}
 
@@ -275,23 +333,29 @@ namespace AScript.Test.MSTests.JavaScript
 		[TestMethod]
 		public void Test10_getEmptyArray()
 		{
-			var handler = new MockHttpMessageHandler("[]", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock([]);
+var resp = await axios.get('http://test.com'); 
+resp.data.length
+";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com'); resp.data.length");
+			var result = script.Eval<dynamic>(s);
 			Assert.AreEqual(0L, result);
 		}
 
 		[TestMethod]
 		public void Test10_getEmptyArray_CompileAll()
 		{
-			var handler = new MockHttpMessageHandler("[]", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock([]);
+var resp = await axios.get('http://test.com'); 
+resp.data.length
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval<dynamic>("var resp = await axios.get('http://test.com'); resp.data.length");
+			var result = script.Eval<dynamic>(s);
 			Assert.AreEqual(0L, result);
 		}
 
@@ -319,23 +383,31 @@ namespace AScript.Test.MSTests.JavaScript
 		[TestMethod]
 		public void Test12_multipleRequests()
 		{
-			var handler = new MockHttpMessageHandler("{\"value\":1}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({value:1});
+var r1 = await axios.get('http://test.com'); 
+var r2 = await axios.get('http://test.com'); 
+r1.data.value + r2.data.value
+";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("var r1 = await axios.get('http://test.com'); var r2 = await axios.get('http://test.com'); r1.data.value + r2.data.value");
+			var result = script.Eval(s);
 			Assert.AreEqual(2L, result);
 		}
 
 		[TestMethod]
 		public void Test12_multipleRequests_CompileAll()
 		{
-			var handler = new MockHttpMessageHandler("{\"value\":1}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({value:1});
+var r1 = await axios.get('http://test.com'); 
+var r2 = await axios.get('http://test.com'); 
+r1.data.value + r2.data.value
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("var r1 = await axios.get('http://test.com'); var r2 = await axios.get('http://test.com'); r1.data.value + r2.data.value");
+			var result = script.Eval(s);
 			Assert.AreEqual(2L, result);
 		}
 
@@ -343,23 +415,29 @@ namespace AScript.Test.MSTests.JavaScript
 		[TestMethod]
 		public void Test13_differentUrls()
 		{
-			var handler = new MockHttpMessageHandler("{\"url\":\"mocked\"}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({url:'mocked'});
+var resp = await axios.get('http://example.com/api/data'); 
+resp.data.url
+";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("var resp = await axios.get('http://example.com/api/data'); resp.data.url");
+			var result = script.Eval(s);
 			Assert.AreEqual("mocked", result);
 		}
 
 		[TestMethod]
 		public void Test13_differentUrls_CompileAll()
 		{
-			var handler = new MockHttpMessageHandler("{\"url\":\"mocked\"}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios').createMock({url:'mocked'});
+var resp = await axios.get('http://example.com/api/data'); 
+resp.data.url
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("var resp = await axios.get('http://example.com/api/data'); resp.data.url");
+			var result = script.Eval(s);
 			Assert.AreEqual("mocked", result);
 		}
 
@@ -367,70 +445,63 @@ namespace AScript.Test.MSTests.JavaScript
 		[TestMethod]
 		public void Test14_axiosAll()
 		{
-			var handler = new MockHttpMessageHandler("{\"value\":1}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios');
+var req = axios.createMock({value:1});
+var resps = await axios.all([req.get('http://test.com'), req.get('http://test.com')]); 
+resps[0].data.value + resps[1].data.value
+";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("var resps = await axios.all([axios.get('http://test.com'), axios.get('http://test.com')]); resps[0].data.value + resps[1].data.value");
+			var result = script.Eval("");
 			Assert.AreEqual(2L, result);
 		}
 
 		[TestMethod]
 		public void Test14_axiosAll_CompileAll()
 		{
-			var handler = new MockHttpMessageHandler("{\"value\":1}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios');
+var req = axios.createMock({value:1});
+var resps = await axios.all([req.get('http://test.com'), req.get('http://test.com')]); 
+resps[0].data.value + resps[1].data.value
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("var resps = await axios.all([axios.get('http://test.com'), axios.get('http://test.com')]); resps[0].data.value + resps[1].data.value");
+			var result = script.Eval(s);
 			Assert.AreEqual(2L, result);
 		}
 
 		[TestMethod]
 		public void Test15_axiosAllThreeRequests()
 		{
-			var handler = new MockHttpMessageHandler("{\"value\":1}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios');
+var req = axios.createMock({value:1});
+var resps = await axios.all([req.get('http://test.com'), req.get('http://test.com'), req.get('http://test.com')]); 
+resps.length
+";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("var resps = await axios.all([axios.get('http://test.com'), axios.get('http://test.com'), axios.get('http://test.com')]); resps.length");
+			var result = script.Eval(s);
 			Assert.AreEqual(3L, result);
 		}
 
 		[TestMethod]
 		public void Test15_axiosAllThreeRequests_CompileAll()
 		{
-			var handler = new MockHttpMessageHandler("{\"value\":1}", System.Net.HttpStatusCode.OK);
-
+			string s = @"
+var axios = require('axios');
+var req = axios.createMock({value:1});
+var resps = await axios.all([req.get('http://test.com'), req.get('http://test.com'), req.get('http://test.com')]); 
+resps.length
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("var resps = await axios.all([axios.get('http://test.com'), axios.get('http://test.com'), axios.get('http://test.com')]); resps.length");
+			var result = script.Eval(s);
 			Assert.AreEqual(3L, result);
-		}
-
-	}
-
-	// Mock HttpMessageHandler for testing
-	internal class MockHttpMessageHandler : HttpMessageHandler
-	{
-		private readonly string _responseBody;
-		private readonly System.Net.HttpStatusCode _statusCode;
-
-		public MockHttpMessageHandler(string responseBody, System.Net.HttpStatusCode statusCode)
-		{
-			_responseBody = responseBody;
-			_statusCode = statusCode;
-		}
-
-		protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-		{
-			var response = new HttpResponseMessage(_statusCode)
-			{
-				Content = new StringContent(_responseBody, Encoding.UTF8, "application/json")
-			};
-			return Task.FromResult(response);
 		}
 	}
 }

@@ -1,14 +1,19 @@
 ﻿using System;
+using System.Net.Http;
 
 namespace AScript.Lang.JavaScript.Extensions
 {
 	public class JavaScriptAxiosModule : IScriptModule
 	{
+		public const string ClientName = "AScript.JavaScript.Axios";
+
+		public static IHttpClientFactory HttpClientFactory = new DefaultHttpClientFactory();
+
 		public object Install(BaseContext context)
 		{
-			var axios = (System.Net.Http.HttpClient)context.EvalVar("axios");
+			var axios = (IHttpClientFactory)context.EvalVar("axios");
 			if (axios != null) return axios;
-			axios = new System.Net.Http.HttpClient();
+			axios = HttpClientFactory;
 			context.SetVar("axios", axios);
 			context.SetObjectMemberEnabled(typeof(JavaScriptHttpResponse), true);
 			context.AddFunc(typeof(JavaScriptAxiosExtensions));
@@ -19,6 +24,16 @@ namespace AScript.Lang.JavaScript.Extensions
 		{
 			context.RemoveVar("axios");
 			context.SetObjectMemberEnabled(typeof(JavaScriptHttpResponse), null);
+		}
+
+		private class DefaultHttpClientFactory : IHttpClientFactory
+		{
+			private readonly HttpClientHandler _Handler = new HttpClientHandler();
+
+			public HttpClient CreateClient(string name)
+			{
+				return new HttpClient(_Handler, false);
+			}
 		}
 	}
 }
