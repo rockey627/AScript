@@ -72,12 +72,14 @@ namespace AScript.Nodes
 						}
 						else
 						{
-							argValues[i] = this.Args[i].Eval(context, options, null, out var argType);
-							argTypes[i] = argType;
+							var argValue = this.Args[i].Eval(context, options, null, out var argType);
+							argValues[i] = argValue;
+							argTypes[i] = argValue?.GetType() ?? argType;
 						}
 					}
 				}
 				var v0 = ((ITreeNode)this.Target).Eval(context, options, null, out var t0);
+				if (v0 != null) t0 = v0.GetType();
 				if (t0 == typeof(TypeWrapper))
 				{
 					var wrapper = (TypeWrapper)v0;
@@ -497,7 +499,7 @@ namespace AScript.Nodes
 								args = new ITreeNode[this.Args.Length + 1];
 								Array.Copy(this.Args, 0, args, 1, this.Args.Length);
 							}
-							var expr2 = scriptContext.BuildFunc(buildContext, options, null, this.Name, false, args, argValues2, buildEvalEnabled: false);
+							var expr2 = scriptContext.BuildFunc(buildContext, options, null, this.Name, false, args, argValues2, buildEvalEnabled: true);
 							if (expr2 != null)
 							{
 								return expr2;
