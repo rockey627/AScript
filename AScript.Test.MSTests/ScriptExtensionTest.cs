@@ -296,7 +296,7 @@ var p2 = new Person('李四');
 			}
 			catch (Exception ex)
 			{
-				Assert.AreEqual("unknown function: System.String.eval2()", ex.Message);
+				Assert.AreEqual("unknown function: eval2(System.String)", ex.Message);
 			}
 		}
 

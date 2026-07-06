@@ -69,6 +69,7 @@ namespace AScript.Test.Consoles
 		{
 			Script.Langs.Set("js", JavaScriptLang.Instance);
 			var s = @"
+var axios = require('axios');
 axios.get('https://www.runoob.com/try/ajax/json_demo.json')
 	.then(res=>{
 		console.log('result', res);

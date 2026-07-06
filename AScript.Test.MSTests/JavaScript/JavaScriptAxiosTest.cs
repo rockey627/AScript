@@ -126,7 +126,7 @@ resp.data.arr[0] + resp.data.arr[1] + resp.data.obj.x
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval<dynamic>("");
+			var result = script.Eval<dynamic>(s);
 			Assert.AreEqual(4L, result);
 		}
 
@@ -359,26 +359,6 @@ resp.data.length
 			Assert.AreEqual(0L, result);
 		}
 
-		// axios extension object registration
-		[TestMethod]
-		public void Test11_axiosRegistered()
-		{
-			var script = new Script();
-			script.Context.Langs = new[] { "js" };
-			var axios = script.Eval("axios");
-			Assert.IsNotNull(axios);
-		}
-
-		[TestMethod]
-		public void Test11_axiosRegistered_CompileAll()
-		{
-			var script = new Script();
-			script.Options.CompileMode = ECompileMode.All;
-			script.Context.Langs = new[] { "js" };
-			var axios = script.Eval("axios");
-			Assert.IsNotNull(axios);
-		}
-
 		// axios.get - multiple sequential requests
 		[TestMethod]
 		public void Test12_multipleRequests()
@@ -453,7 +433,7 @@ resps[0].data.value + resps[1].data.value
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			var result = script.Eval("");
+			var result = script.Eval(s);
 			Assert.AreEqual(2L, result);
 		}
 
