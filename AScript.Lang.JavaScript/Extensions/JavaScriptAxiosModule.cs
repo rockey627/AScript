@@ -5,7 +5,7 @@ namespace AScript.Lang.JavaScript.Extensions
 {
 	public class JavaScriptAxiosModule : IScriptModule, IScriptModuleType
 	{
-		public const string ClientName = "AScript.JavaScript.Axios";
+		public static readonly string ClientName = "AScript.JavaScript.Axios";
 
 		public static IHttpClientFactory HttpClientFactory = new DefaultHttpClientFactory();
 

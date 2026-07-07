@@ -35,7 +35,7 @@ resp.data.a
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			script.Context.TryInstallModule("axios");
+			script.Context.InstallModule("axios");
 			var result = script.Eval<dynamic>(s);
 			Assert.AreEqual(1L, result);
 		}
@@ -51,7 +51,7 @@ resp.data.a
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			script.Context.TryInstallModule("axios");
+			script.Context.InstallModule("axios");
 			var result = script.Eval<dynamic>(s);
 			Assert.AreEqual(1L, result);
 		}
@@ -60,8 +60,8 @@ resp.data.a
 		public void Test01_getObject2()
 		{
 			string s = @"
-var axios = require('axios').createMock({a:1});
-var resp = await axios.get('http://test.com').catch(err=>{console.log(err)}); 
+var req = require('axios').createMock({a:1});
+var resp = await req.get('http://test.com').catch(err=>{console.log(err)}); 
 resp.data.a
 ";
 			var script = new Script();
@@ -74,8 +74,8 @@ resp.data.a
 		public void Test01_getObject2_CompileAll()
 		{
 			string s = @"
-var axios = require('axios').createMock({a:1});
-var resp = await axios.get('http://test.com').catch(err=>{console.log(err)}); 
+var req = require('axios').createMock({a:1});
+var resp = await req.get('http://test.com').catch(err=>{console.log(err)}); 
 resp.data.a
 ";
 			var script = new Script();
@@ -90,8 +90,8 @@ resp.data.a
 		public void Test02_getArray()
 		{
 			string s = @"
-var axios = require('axios').createMock([1, 2, 3]);
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock([1, 2, 3]);
+var resp = await req.get('http://test.com'); 
 resp.data[0] + resp.data[1] + resp.data[2]
 ";
 			var script = new Script();
@@ -104,8 +104,8 @@ resp.data[0] + resp.data[1] + resp.data[2]
 		public void Test02_getArray_CompileAll()
 		{
 			string s = @"
-var axios = require('axios').createMock([1, 2, 3]);
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock([1, 2, 3]);
+var resp = await req.get('http://test.com'); 
 resp.data[0] + resp.data[1] + resp.data[2]
 ";
 			var script = new Script();
@@ -120,8 +120,8 @@ resp.data[0] + resp.data[1] + resp.data[2]
 		public void Test03_getNested()
 		{
 			string s = @"
-var axios = require('axios').createMock({arr:[1,2],obj:{x:1}});
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock({arr:[1,2],obj:{x:1}});
+var resp = await req.get('http://test.com'); 
 resp.data.arr[0] + resp.data.arr[1] + resp.data.obj.x
 ";
 			var script = new Script();
@@ -134,8 +134,8 @@ resp.data.arr[0] + resp.data.arr[1] + resp.data.obj.x
 		public void Test03_getNested_CompileAll()
 		{
 			string s = @"
-var axios = require('axios').createMock({arr:[1,2],obj:{x:1}});
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock({arr:[1,2],obj:{x:1}});
+var resp = await req.get('http://test.com'); 
 resp.data.arr[0] + resp.data.arr[1] + resp.data.obj.x
 ";
 			var script = new Script();
@@ -150,8 +150,8 @@ resp.data.arr[0] + resp.data.arr[1] + resp.data.obj.x
 		public void Test04_getString()
 		{
 			string s = @"
-var axios = require('axios').createMock({name:'test',value:'hello'});
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock({name:'test',value:'hello'});
+var resp = await req.get('http://test.com'); 
 resp.data.name + resp.data.value
 ";
 			var script = new Script();
@@ -164,8 +164,8 @@ resp.data.name + resp.data.value
 		public void Test04_getString_CompileAll()
 		{
 			string s = @"
-var axios = require('axios').createMock({name:'test',value:'hello'});
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock({name:'test',value:'hello'});
+var resp = await req.get('http://test.com'); 
 resp.data.name + resp.data.value
 ";
 			var script = new Script();
@@ -180,8 +180,8 @@ resp.data.name + resp.data.value
 		public void Test05_getBoolean()
 		{
 			string s = @"
-var axios = require('axios').createMock({enabled:true,disabled:false});
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock({enabled:true,disabled:false});
+var resp = await req.get('http://test.com'); 
 resp.data.enabled && !resp.data.disabled
 ";
 			var script = new Script();
@@ -194,8 +194,8 @@ resp.data.enabled && !resp.data.disabled
 		public void Test05_getBoolean_CompileAll()
 		{
 			string s = @"
-var axios = require('axios').createMock({enabled:true,disabled:false});
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock({enabled:true,disabled:false});
+var resp = await req.get('http://test.com'); 
 resp.data.enabled && !resp.data.disabled
 ";
 			var script = new Script();
@@ -210,8 +210,8 @@ resp.data.enabled && !resp.data.disabled
 		public void Test06_getNull()
 		{
 			string s = @"
-var axios = require('axios').createMock({value:null});
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock({value:null});
+var resp = await req.get('http://test.com'); 
 resp.data.value
 ";
 			var script = new Script();
@@ -224,8 +224,8 @@ resp.data.value
 		public void Test06_getNull_CompileAll()
 		{
 			string s = @"
-var axios = require('axios').createMock({value:null});
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock({value:null});
+var resp = await req.get('http://test.com'); 
 resp.data.value
 ";
 			var script = new Script();
@@ -240,8 +240,8 @@ resp.data.value
 		public void Test07_dataParsedOnce()
 		{
 			string s = @"
-var axios = require('axios').createMock({a:1});
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock({a:1});
+var resp = await req.get('http://test.com'); 
 var d1 = resp.data; 
 var d2 = resp.data; 
 d1.a + d2.a
@@ -256,8 +256,8 @@ d1.a + d2.a
 		public void Test07_dataParsedOnce_CompileAll()
 		{
 			string s = @"
-var axios = require('axios').createMock({a:1});
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock({a:1});
+var resp = await req.get('http://test.com'); 
 var d1 = resp.data; 
 var d2 = resp.data; 
 d1.a + d2.a
@@ -274,8 +274,8 @@ d1.a + d2.a
 		public void Test08_getDouble()
 		{
 			string s = @"
-var axios = require('axios').createMock({pi:3.14,price:19.99});
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock({pi:3.14,price:19.99});
+var resp = await req.get('http://test.com'); 
 resp.data.pi + resp.data.price
 ";
 			var script = new Script();
@@ -288,8 +288,8 @@ resp.data.pi + resp.data.price
 		public void Test08_getDouble_CompileAll()
 		{
 			string s = @"
-var axios = require('axios').createMock({pi:3.14,price:19.99});
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock({pi:3.14,price:19.99});
+var resp = await req.get('http://test.com'); 
 resp.data.pi + resp.data.price
 ";
 			var script = new Script();
@@ -304,8 +304,8 @@ resp.data.pi + resp.data.price
 		public void Test09_getEmptyObject()
 		{
 			string s = @"
-var axios = require('axios').createMock({});
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock({});
+var resp = await req.get('http://test.com'); 
 resp.data != null
 ";
 			var script = new Script();
@@ -318,8 +318,8 @@ resp.data != null
 		public void Test09_getEmptyObject_CompileAll()
 		{
 			string s = @"
-var axios = require('axios').createMock({});
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock({});
+var resp = await req.get('http://test.com'); 
 resp.data != null
 ";
 			var script = new Script();
@@ -334,8 +334,8 @@ resp.data != null
 		public void Test10_getEmptyArray()
 		{
 			string s = @"
-var axios = require('axios').createMock([]);
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock([]);
+var resp = await req.get('http://test.com'); 
 resp.data.length
 ";
 			var script = new Script();
@@ -348,8 +348,8 @@ resp.data.length
 		public void Test10_getEmptyArray_CompileAll()
 		{
 			string s = @"
-var axios = require('axios').createMock([]);
-var resp = await axios.get('http://test.com'); 
+var req = require('axios').createMock([]);
+var resp = await req.get('http://test.com'); 
 resp.data.length
 ";
 			var script = new Script();
@@ -364,9 +364,9 @@ resp.data.length
 		public void Test12_multipleRequests()
 		{
 			string s = @"
-var axios = require('axios').createMock({value:1});
-var r1 = await axios.get('http://test.com'); 
-var r2 = await axios.get('http://test.com'); 
+var req = require('axios').createMock({value:1});
+var r1 = await req.get('http://test.com'); 
+var r2 = await req.get('http://test.com'); 
 r1.data.value + r2.data.value
 ";
 			var script = new Script();
@@ -379,9 +379,9 @@ r1.data.value + r2.data.value
 		public void Test12_multipleRequests_CompileAll()
 		{
 			string s = @"
-var axios = require('axios').createMock({value:1});
-var r1 = await axios.get('http://test.com'); 
-var r2 = await axios.get('http://test.com'); 
+var req = require('axios').createMock({value:1});
+var r1 = await req.get('http://test.com'); 
+var r2 = await req.get('http://test.com'); 
 r1.data.value + r2.data.value
 ";
 			var script = new Script();
@@ -396,8 +396,8 @@ r1.data.value + r2.data.value
 		public void Test13_differentUrls()
 		{
 			string s = @"
-var axios = require('axios').createMock({url:'mocked'});
-var resp = await axios.get('http://example.com/api/data'); 
+var req = require('axios').createMock({url:'mocked'});
+var resp = await req.get('http://example.com/api/data'); 
 resp.data.url
 ";
 			var script = new Script();
@@ -410,8 +410,8 @@ resp.data.url
 		public void Test13_differentUrls_CompileAll()
 		{
 			string s = @"
-var axios = require('axios').createMock({url:'mocked'});
-var resp = await axios.get('http://example.com/api/data'); 
+var req = require('axios').createMock({url:'mocked'});
+var resp = await req.get('http://example.com/api/data'); 
 resp.data.url
 ";
 			var script = new Script();
