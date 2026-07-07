@@ -53,17 +53,6 @@ var script = new Script();
 Assert.AreEqual(230, script.Eval(s));
 ```
 
-#### 字符串插值
-```
-var s = @"
-name='tom'; 
-`hello {name}, 5+8={5+8}`
-";
-var script = new Script();
-script.Context.Langs = new [] { "js" };
-Assert.AreEqual("hello tom, 5+8=13", script.Eval(s));
-```
-
 #### 正则表达式
 ```
 var script = new Script();
@@ -72,6 +61,39 @@ var result = script.Eval<List<object>>("'hello world World'.match(/world/gi)");
 Assert.AreEqual(2, result.Count);
 Assert.AreEqual("world", result[0]);
 Assert.AreEqual("World", result[1]);
+```
+
+#### 解构
+* 对象解构
+```
+var {name, age} = {name: 'Alice', age: 25};
+var {a, b = 100} = {a: 10};
+var {inner: {name}} = {inner: {name: 'Tom', age: 20}};
+var {name: aliasName} = {name: 'Bob'};
+```
+
+* 数组解构
+```
+var [x, y, z] = [10, 20, 30];
+var [x, , z] = [1, 2, 3];
+var [a = 5, b = 10] = [3];
+var [[inner], outer] = [[10], 20];
+```
+
+* 对象/数组混合解构
+```
+var [first, {name}] = [1, {name: 'John'}];
+```
+
+#### 字符串插值
+```
+var s = @"
+name='tom'; 
+`hello ${name}, 5+8=${5+8}`
+";
+var script = new Script();
+script.Context.Langs = new [] { "js" };
+Assert.AreEqual("hello tom, 5+8=13", script.Eval(s));
 ```
 
 #### 字符串函数
@@ -162,7 +184,7 @@ Assert.IsNull(arr3[1]);
 [1, 2, 3, 4, 5].splice(1, 2); // 截取并返回列表：[2, 3]
 ```
 
-#### 时间
+#### 时间Date
 ```
 new Date(); // 当前时间
 Date.now(); // 当前时间戳
@@ -213,7 +235,7 @@ set.size;
 set.forEach(x => { });
 ```
 
-#### 异步Promise
+#### Promise
 * then/catch/finally
 ```
 var script = new Script();

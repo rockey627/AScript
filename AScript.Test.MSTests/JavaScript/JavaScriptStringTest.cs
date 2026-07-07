@@ -770,6 +770,7 @@ namespace AScript.Test.MSTests.JavaScript
 			// 转义字符
 			Assert.AreEqual("$\n", script.Eval("`$\\n`"));
 			Assert.AreEqual("$\t", script.Eval("`$\\t`"));
+			Assert.AreEqual("hello tom, 5+8=13", script.Eval("var name='tom';`hello ${name}, 5+8=${5+8}`"));
 		}
 
 		[TestMethod]
@@ -793,6 +794,7 @@ namespace AScript.Test.MSTests.JavaScript
 			// 转义字符
 			Assert.AreEqual("$\n", script.Eval("`$\\n`"));
 			Assert.AreEqual("$\t", script.Eval("`$\\t`"));
+			Assert.AreEqual("hello tom, 5+8=13", script.Eval("var name='tom';`hello ${name}, 5+8=${5+8}`"));
 		}
 	}
 }
