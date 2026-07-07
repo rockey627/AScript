@@ -94,7 +94,15 @@ namespace AScript
 				this.ArgExprs = new Expression[this.Args.Count];
 				for (int i = 0; i < this.Args.Count; i++)
 				{
-					this.ArgExprs[i] = this.Args[i]?.Build(this.BuildContext, this.ScriptContext, this.Options);
+					var arg = this.Args[i];
+					if (arg is DefineFuncNode)
+					{
+						this.ArgExprs[i] = null;
+					}
+					else
+					{
+						this.ArgExprs[i] = arg?.Build(this.BuildContext, this.ScriptContext, this.Options);
+					}
 				}
 			}
 			return this.ArgExprs;

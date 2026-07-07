@@ -213,18 +213,18 @@ namespace AScript.Nodes
 			//return ExpressionUtils.BuildEval(buildContext, options, null, this);
 		}
 
-		public override void Clear()
-		{
-			base.Clear();
+		//public override void Clear()
+		//{
+		//	base.Clear();
 
-			PoolManage.Return(this.Args);
-			//PoolManage.Return(this.Body);
+		//	PoolManage.Return(this.Args);
+		//	//PoolManage.Return(this.Body);
 
-			this.Name = null;
-			this.ReturnType = null;
-			this.ReturnSystemType = null;
-			this.Args = null;
-			this.Body = null;
-		}
+		//	this.Name = null;
+		//	this.ReturnType = null;
+		//	this.ReturnSystemType = null;
+		//	this.Args = null;
+		//	this.Body = null;
+		//}
 	}
 }

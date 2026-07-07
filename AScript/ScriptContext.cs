@@ -1758,7 +1758,7 @@ namespace AScript
 				}
 				else
 				{
-					args[i] = PoolManage.CreateObjectNode(argValue, argTypes[i]);
+					args[i] = PoolManage.CreateObjectNode(argValue, argValue?.GetType() ?? argTypes[i]);
 				}
 			}
 			var result = EvalFunc(options ?? new BuildOptions(Script.DefaultOptions), null, name, isPrefix, args, out returnType);

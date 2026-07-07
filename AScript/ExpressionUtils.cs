@@ -6,7 +6,6 @@ using System.Runtime.CompilerServices;
 using Microsoft.CSharp.RuntimeBinder;
 using AScript.Nodes;
 using System.Linq;
-using System.Collections;
 using System.Dynamic;
 using System.Data;
 
@@ -30,7 +29,7 @@ namespace AScript
 		public static readonly MethodInfo Method_ScriptContext_Create2 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(ScriptContext), typeof(bool) });
 		public static readonly MethodInfo Method_ScriptContext_EvalVar = typeof(ScriptContext).GetMethod("EvalVar", new Type[] { typeof(string) });
 		public static readonly MethodInfo Method_ScriptContext_SetTempVar = typeof(ScriptContext).GetMethod("SetTempVar", new Type[] { typeof(string), typeof(object), typeof(Type), typeof(bool) });
-		public static readonly MethodInfo Method_ScriptContext_EvalFunc = typeof(ScriptContext).GetMethod("EvalFunc", new Type[] { typeof(string), typeof(IList<object>), typeof(IList<Type>) });
+		public static readonly MethodInfo Method_ScriptContext_EvalFunc_Values = typeof(ScriptContext).GetMethod("EvalFunc", new Type[] { typeof(string), typeof(IList<object>), typeof(IList<Type>) });
 		public static readonly MethodInfo Method_ScriptContext_AddTempFunc = typeof(ScriptContext).GetMethod("AddTempFunc", new Type[] { typeof(string), typeof(Delegate) });
 
 		public static readonly MethodInfo Method_ITreeNode_Eval = typeof(ITreeNode).GetMethod("Eval", new Type[] { typeof(ScriptContext), typeof(BuildOptions), typeof(EvalControl), typeof(Type).MakeByRefType() });
@@ -271,13 +270,22 @@ namespace AScript
 				argTypes = new Expression[args.Count];
 				for (int i = 0; i < args.Count; i++)
 				{
-					var arg = args[i].Build(buildContext, scriptContext, options);
-					argExprs[i] = Expression.Convert(arg, typeof(object));
-					argTypes[i] = Expression.Constant(arg.Type);
+					var arg = args[i];
+					if (arg is DefineFuncNode)
+					{
+						argExprs[i] = Expression.Convert(Expression.Constant(arg), typeof(object));
+						argTypes[i] = Expression.Constant(typeof(Delegate));
+					}
+					else
+					{
+						var value = arg.Build(buildContext, scriptContext, options);
+						argExprs[i] = Expression.Convert(value, typeof(object));
+						argTypes[i] = Expression.Constant(value.Type);
+					}
 				}
 			}
 			return Expression.Call(buildContext.GetScriptContextParameter(),
-				Method_ScriptContext_EvalFunc,
+				Method_ScriptContext_EvalFunc_Values,
 				Expression.Constant(name, typeof(string)),
 				Expression.NewArrayInit(typeof(object), argExprs),
 				Expression.NewArrayInit(typeof(Type), argTypes));
@@ -301,7 +309,7 @@ namespace AScript
 				argTypes[i] = Expression.Constant(arg.Type);
 			}
 			return Expression.Call(buildContext.GetScriptContextParameter(),
-				Method_ScriptContext_EvalFunc,
+				Method_ScriptContext_EvalFunc_Values,
 				Expression.Constant(name, typeof(string)),
 				Expression.NewArrayInit(typeof(object), args),
 				Expression.NewArrayInit(typeof(Type), argTypes));

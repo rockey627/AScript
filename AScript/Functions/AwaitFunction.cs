@@ -9,6 +9,7 @@ namespace AScript.Functions
 	public class AwaitFunction : IFunctionEvaluator, IAsyncFunctionEvaluator, IFunctionBuilder
 	{
 		private static readonly MethodInfo Method_Task_Wait = typeof(Task).GetMethod("Wait", Type.EmptyTypes);
+		private static readonly MethodInfo Method_EvalValue = typeof(AwaitFunction).GetMethod("EvalValue", BindingFlags.Static | BindingFlags.NonPublic);
 
 		public void Build(FunctionBuildArgs e)
 		{
@@ -24,9 +25,30 @@ namespace AScript.Functions
 					e.Result = Expression.Call(value, Method_Task_Wait);
 				}
 			}
+			else if (value.Type == typeof(object))
+			{
+				e.Result = Expression.Call(Method_EvalValue, value);
+			}
 			else
 			{
 				e.Result = value;
+			}
+		}
+
+		private static object EvalValue(object value)
+		{
+			if (value == null || !(value is Task task)) return value;
+			var type = value.GetType();
+			if (type.IsGenericType)
+			{
+				// Task<TResult>
+				dynamic t = task;
+				return t.Result;
+			}
+			else
+			{
+				task.Wait();
+				return null;
 			}
 		}
 

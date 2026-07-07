@@ -479,27 +479,41 @@ namespace AScript.Nodes
 					}
 					if (methodInfo == null)
 					{
-						var argValues2 = new Expression[argExprs == null ? 1 : argExprs.Length + 1];
-						argValues2[0] = v0;
-						if (argExprs != null && argExprs.Length > 0)
-						{
-							Array.Copy(argExprs, 0, argValues2, 1, argExprs.Length);
-						}
-						var argTypes2 = new Type[argTypes == null ? 1 : argTypes.Length + 1];
-						argTypes2[0] = v0.Type;
-						if (argTypes != null && argTypes.Length > 0)
-						{
-							Array.Copy(argTypes, 0, argTypes2, 1, argTypes.Length);
-						}
+						//var argValues2 = new Expression[argExprs == null ? 1 : argExprs.Length + 1];
+						//argValues2[0] = v0;
+						//if (argExprs != null && argExprs.Length > 0)
+						//{
+						//	Array.Copy(argExprs, 0, argValues2, 1, argExprs.Length);
+						//}
+						//var argTypes2 = new Type[argTypes == null ? 1 : argTypes.Length + 1];
+						//argTypes2[0] = v0.Type;
+						//if (argTypes != null && argTypes.Length > 0)
+						//{
+						//	Array.Copy(argTypes, 0, argTypes2, 1, argTypes.Length);
+						//}
 						try
 						{
-							ITreeNode[] args = null;
-							if (this.Args != null && this.Args.Length > 0)
+							int argsLength = this.Args == null ? 0 : this.Args.Length;
+							ITreeNode[] args = new ITreeNode[argsLength + 1];
+							args[0] = PoolManage.CreateExpressionNode(v0);
+							if (argsLength > 0)
 							{
-								args = new ITreeNode[this.Args.Length + 1];
-								Array.Copy(this.Args, 0, args, 1, this.Args.Length);
+								//Array.Copy(this.Args, 0, args, 1, this.Args.Length);
+								for (int i = 0; i < argExprs.Length; i++)
+								{
+									var expr = argExprs[i];
+									if (expr == null)
+									{
+										args[i + 1] = this.Args[i];
+									}
+									else
+									{
+										args[i + 1] = PoolManage.CreateExpressionNode(expr);
+									}
+								}
 							}
-							var expr2 = scriptContext.BuildFunc(buildContext, options, null, this.Name, false, args, argValues2, buildEvalEnabled: true);
+							//var expr2 = scriptContext.BuildFunc(buildContext, options, null, this.Name, false, args, argValues2, buildEvalEnabled: true);
+							var expr2 = scriptContext.BuildFunc(buildContext, options, null, this.Name, false, args);
 							if (expr2 != null)
 							{
 								return expr2;
