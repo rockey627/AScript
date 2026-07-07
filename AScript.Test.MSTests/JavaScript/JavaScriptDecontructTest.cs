@@ -364,5 +364,46 @@ first + name.length;
 ";
 			Assert.AreEqual(5L, script.Eval(code));
 		}
+
+		[TestMethod]
+		public void Test01()
+		{
+			string code = @"
+// 创建一个对象
+const person = {
+  firstName: ""Bill"",
+  lastName: ""Gates"",
+  age: 50
+};
+
+// 解构
+let {lastName, firstName} = person;
+firstName + ' ' + lastName;
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual("Bill Gates", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test01_CompileAll()
+		{
+			string code = @"
+// 创建一个对象
+const person = {
+  firstName: ""Bill"",
+  lastName: ""Gates"",
+  age: 50
+};
+
+// 解构
+let {lastName, firstName} = person;
+firstName + ' ' + lastName;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual("Bill Gates", script.Eval(code));
+		}
 	}
 }
