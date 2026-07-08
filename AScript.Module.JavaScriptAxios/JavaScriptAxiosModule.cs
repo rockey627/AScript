@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 
-namespace AScript.Lang.JavaScript.Extensions
+namespace AScript.Module.JavaScriptAxios
 {
 	public class JavaScriptAxiosModule : IScriptModule, IScriptModuleType
 	{
@@ -13,18 +13,13 @@ namespace AScript.Lang.JavaScript.Extensions
 
 		public object Install(BaseContext context)
 		{
-			var axios = (IHttpClientFactory)context.EvalVar("axios");
-			if (axios != null) return axios;
-			axios = HttpClientFactory;
-			context.SetVar("axios", axios);
 			context.SetObjectMemberEnabled(typeof(JavaScriptHttpResponse), true);
 			context.AddFunc(typeof(JavaScriptAxiosExtensions));
-			return axios;
+			return HttpClientFactory;
 		}
 
 		public void Uninstall(BaseContext context)
 		{
-			context.RemoveVar("axios");
 			context.SetObjectMemberEnabled(typeof(JavaScriptHttpResponse), null);
 		}
 

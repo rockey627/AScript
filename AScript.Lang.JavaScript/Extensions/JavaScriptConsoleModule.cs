@@ -6,7 +6,6 @@ namespace AScript.Lang.JavaScript.Extensions
 	{
 		public object Install(BaseContext context)
 		{
-			if (context.EvalType("console") != null) return null;
 			context.AddType("console", typeof(Console));
 			context.AddFunc(typeof(JavaScriptConsoleExtensions));
 			return null;

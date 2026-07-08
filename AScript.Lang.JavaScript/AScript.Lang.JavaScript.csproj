@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	  <TargetFrameworks>netstandard2.0;netstandard2.1;net45</TargetFrameworks>
-	  <GenerateDocumentationFile>true</GenerateDocumentationFile>
-	  <Authors>rockey627</Authors>
-	  <PackageTags>C# JavaScript js Expression Eval Evaluator Execute Function Compile Compiler Script Scripting 脚本执行 动态脚本 表达式 计算</PackageTags>
-	  <PackageLicenseUrl>https://gitee.com/rockey627/ascript/blob/master/LICENSE</PackageLicenseUrl>
-	  <PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
-	  <Description>
-		  <![CDATA[
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net45</TargetFrameworks>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<Authors>rockey627</Authors>
+		<PackageTags>C# JavaScript js Expression Eval Evaluator Execute Function Compile Compiler Script Scripting 脚本执行 动态脚本 表达式 计算</PackageTags>
+		<PackageLicenseUrl>https://gitee.com/rockey627/ascript/blob/master/LICENSE</PackageLicenseUrl>
+		<PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
+		<Description>
+			<![CDATA[
 基于AScript扩展的JavaScript脚本语言，支持js基础语法及数据类型；
 快速开始：
 // 注册js脚本语言
@@ -28,34 +28,18 @@ var script = new Script();
 var result = script.Eval(s);
 Assert.AreEqual(15L, result);
 			]]>
-	  </Description>
-	  <PackageReadmeFile>README.md</PackageReadmeFile>
-	  <Version>0.0.1.0</Version>
-	  <PackageReleaseNotes>js基础语法</PackageReleaseNotes>
-  </PropertyGroup>
+		</Description>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<Version>0.0.1.0</Version>
+		<PackageReleaseNotes>js基础语法</PackageReleaseNotes>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'net45'">
-		<Reference Include="System.Net.Http" />
-	</ItemGroup>
-	
 	<ItemGroup>
-    <ProjectReference Include="..\AScript\AScript.csproj" />
-  </ItemGroup>
-	
-	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-	  <PackageReference Include="Microsoft.Extensions.Http">
-	    <Version>2.1.0</Version>
-	  </PackageReference>
-	</ItemGroup>
-	
-	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
-	  <PackageReference Include="Microsoft.Extensions.Http">
-	    <Version>2.1.0</Version>
-	  </PackageReference>
+		<ProjectReference Include="..\AScript\AScript.csproj" />
 	</ItemGroup>
 
 </Project>

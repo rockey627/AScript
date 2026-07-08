@@ -1,6 +1,5 @@
 ﻿using AScript.Functions;
 using AScript.Lang.JavaScript.Extensions;
-using AScript.Lang.JavaScript.Functions;
 using AScript.Lang.JavaScript.TokenHandlers;
 using AScript.Operators;
 using AScript.TokenHandlers;
@@ -76,9 +75,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc("includes", new ContainsFunction());
 			AddFunc("get_length", new LengthFunction(typeof(long)));
 			AddFunc("slice", IndexStartEndOperator.Instance);
-			AddFunc("require", JavaScriptRequireFunction.Instance);
-
-			//AddFunc<ScriptContext, string, object>("require", (context, name) => context.InstallModule(name));
+			AddFunc("require", InstallModuleFunction.Instance);
 
 			AddFunc(typeof(JavaScriptDateExtensions));
 			AddFunc(typeof(JavaScriptMathExtensions));
@@ -87,8 +84,6 @@ namespace AScript.Lang.JavaScript
 			AddFunc(typeof(JavaScriptSetExtensions));
 			AddFunc(typeof(JavaScriptMapExtensions));
 			AddFunc(typeof(JavaScriptPromiseExtensions));
-
-			AddModule("axios", new JavaScriptAxiosModule());
 
 			InstallModule(new JavaScriptConsoleModule());
 			InstallModule(new JavaScriptJsonModule());

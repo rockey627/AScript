@@ -1,5 +1,6 @@
 ﻿using AScript.Lang.JavaScript;
 using AScript.Lang.Sql;
+using AScript.Module.JavaScriptAxios;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using IronPython.Hosting;
@@ -68,6 +69,7 @@ namespace AScript.Test.Consoles
 		static void Test25_js()
 		{
 			Script.Langs.Set("js", JavaScriptLang.Instance);
+			JavaScriptLang.Instance.AddModule("axios", new JavaScriptAxiosModule());
 			var s = @"
 var axios = require('axios');
 axios.get('https://www.runoob.com/try/ajax/json_demo.json')

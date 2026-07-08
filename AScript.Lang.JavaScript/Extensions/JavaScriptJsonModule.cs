@@ -8,7 +8,7 @@ namespace AScript.Lang.JavaScript.Extensions
 	{
 		public object Install(BaseContext context)
 		{
-			if (context.EvalType("JSON") != null) return null;
+			context.FunctionEval -= Context_FunctionEval;
 			context.FunctionEval += Context_FunctionEval;
 			context.AddType("JSON", typeof(JsonConvert));
 			context.AddFunc(typeof(JavaScriptJsonExtensions));

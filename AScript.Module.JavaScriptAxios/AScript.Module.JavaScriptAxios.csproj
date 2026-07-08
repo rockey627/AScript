@@ -1,0 +1,66 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net45</TargetFrameworks>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<Authors>rockey627</Authors>
+		<PackageTags>C# JavaScript js axios http scripting</PackageTags>
+		<PackageLicenseUrl>https://gitee.com/rockey627/ascript/blob/master/LICENSE</PackageLicenseUrl>
+		<PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
+		<Description>
+			<![CDATA[
+js axios模块；
+快速开始：
+// 注册js脚本语言
+Script.Langs.Set("js", JavaScriptLang.Instance);
+// 语言环境中注册axios模块
+JavaScriptLang.Instance.AddModule("axios", new JavaScriptAxiosModule());
+// 引入axios并调用相关方法
+string s = @"
+var axios = require('axios');
+axios.get('https://www.runoob.com/try/ajax/json_demo.json')
+	.then(res=>{
+		console.log('result', res);
+	})
+	.catch(error=> {
+		console.log(error);
+    });
+";
+var script = new Script();
+script.Context.Langs = new [] { "js" };
+// 或者在当前上下文环境中注册axios模块
+//script.Context.AddModule("axios", new JavaScriptAxiosModule());
+script.Eval(s);
+			]]>
+		</Description>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<Version>0.0.1.0</Version>
+		<PackageReleaseNotes>js axios</PackageReleaseNotes>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+		<Reference Include="System.Net.Http" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="Microsoft.Extensions.Http">
+			<Version>2.1.0</Version>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+		<PackageReference Include="Microsoft.Extensions.Http">
+			<Version>2.1.0</Version>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AScript.Lang.JavaScript\AScript.Lang.JavaScript.csproj" />
+		<ProjectReference Include="..\AScript\AScript.csproj" />
+	</ItemGroup>
+
+</Project>

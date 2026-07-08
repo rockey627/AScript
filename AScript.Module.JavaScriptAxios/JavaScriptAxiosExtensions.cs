@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using AScript.Lang.JavaScript.Extensions;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -8,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AScript.Lang.JavaScript.Extensions
+namespace AScript.Module.JavaScriptAxios
 {
 	public static class JavaScriptAxiosExtensions
 	{

@@ -18,6 +18,7 @@
     <ProjectReference Include="..\AScript.Lang.JavaScript\AScript.Lang.JavaScript.csproj" />
     <ProjectReference Include="..\AScript.Lang.Python3\AScript.Lang.Python3.csproj" />
     <ProjectReference Include="..\AScript.Lang.Sql\AScript.Lang.Sql.csproj" />
+    <ProjectReference Include="..\AScript.Module.JavaScriptAxios\AScript.Module.JavaScriptAxios.csproj" />
     <ProjectReference Include="..\AScript\AScript.csproj" />
   </ItemGroup>
 

@@ -1,4 +1,5 @@
 using AScript.Lang.JavaScript;
+using AScript.Module.JavaScriptAxios;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;
@@ -16,6 +17,7 @@ namespace AScript.Test.MSTests.JavaScript
 		public static void Init(TestContext context)
 		{
 			Script.Langs["js"] = JavaScriptLang.Instance;
+			JavaScriptLang.Instance.AddModule("axios", new JavaScriptAxiosModule());
 		}
 
 		[ClassCleanup]
@@ -29,6 +31,7 @@ namespace AScript.Test.MSTests.JavaScript
 		public void Test01_getObject()
 		{
 			string s = @"
+var axios = require('axios');
 var req = axios.createMock({a:1});
 var resp = await req.get('http://test.com'); 
 resp.data.a
@@ -44,6 +47,7 @@ resp.data.a
 		public void Test01_getObject_CompileAll()
 		{
 			string s = @"
+var axios = require('axios');
 var req = axios.createMock({a:1});
 var resp = await req.get('http://test.com'); 
 resp.data.a
