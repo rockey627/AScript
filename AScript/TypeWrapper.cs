@@ -13,4 +13,9 @@ namespace AScript
 			this.Type = type;
 		}
 	}
+
+	public class TypeWrapper<T> : TypeWrapper
+	{
+		public TypeWrapper(string name) : base(name, typeof(T)) { }
+	}
 }
