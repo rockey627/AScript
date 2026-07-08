@@ -343,19 +343,58 @@ namespace AScript
 				obj = null;
 				return false;
 			}
-			obj = module.Install(this);
+			obj = InstallModule(name, module);
 			return true;
 		}
 
+		/// <summary>
+		/// 安装模块，如果父级上下文或者所在语言环境已安装则不会重复安装
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
 		public object InstallModule(string name)
 		{
 			var module = GetModule(name);
-			return module?.Install(this);
+			if (module == null) return null;
+			return InstallModule(name, module);
+		}
+
+		public void UninstallModule(string name)
+		{
+			var module = GetModule(name);
+			if (module == null) return;
+			UninstallModule(name, module);
+		}
+
+		public object InstallModule(string name, IScriptModule module)
+		{
+			string key = $"__module_{name}__";
+			var instance = this.EvalVar(key, out var type);
+			if (type == null)
+			{
+				instance = module.Install(this);
+				type = instance?.GetType() ?? typeof(object);
+				this.SetVar(key, instance, type);
+			}
+			return instance;
+		}
+
+		public virtual void UninstallModule(string name, IScriptModule module)
+		{
+			this.RemoveVar($"__module_{name}__");
+			module.Uninstall(this);
 		}
 
 		public object InstallModule(IScriptModule module)
 		{
-			return module?.Install(this);
+			if (module == null) return null;
+			return InstallModule(module.GetType().Name, module);
+		}
+
+		public void UninstallModule(IScriptModule module)
+		{
+			if (module == null) return;
+			UninstallModule(module.GetType().Name, module);
 		}
 
 		public void SetObjectMemberEnabled(Type objType, bool? objectMemberEnabled)
