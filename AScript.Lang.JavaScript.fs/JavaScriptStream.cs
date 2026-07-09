@@ -10,20 +10,17 @@ namespace AScript.Lang.JavaScript.fs
 	/// </summary>
 	public abstract class JavaScriptStream : IDisposable
 	{
-		private bool _disposed;
-		protected readonly Stream _stream;
+		protected bool _disposed;
 		protected Encoding _encoding;
 		protected readonly IDictionary<string, object> _options;
 		protected readonly Dictionary<string, List<Delegate>> _events = new Dictionary<string, List<Delegate>>(StringComparer.OrdinalIgnoreCase);
 
-		protected JavaScriptStream(Stream stream)
+		protected JavaScriptStream()
 		{
-			_stream = stream;
 			_encoding = Encoding.UTF8;
 		}
-		protected JavaScriptStream(Stream stream, IDictionary<string, object> options)
+		protected JavaScriptStream(IDictionary<string, object> options)
 		{
-			_stream = stream;
 			_options = options;
 			if (options != null && options.TryGetValue("encoding", out var encodingOption))
 			{
@@ -91,7 +88,6 @@ namespace AScript.Lang.JavaScript.fs
 
 			}
 			// 释放非托管资源
-			try { _stream?.Dispose(); } catch { }
 
 			this._disposed = true;
 		}

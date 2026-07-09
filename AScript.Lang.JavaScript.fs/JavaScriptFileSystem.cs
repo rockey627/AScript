@@ -142,22 +142,22 @@ namespace AScript.Lang.JavaScript.fs
 
 		public JavaScriptReadStream createReadStream(string path)
 		{
-			return new JavaScriptReadStream(File.OpenRead(path));
+			return new JavaScriptReadStream(path);
 		}
 
 		public JavaScriptReadStream createReadStream(string path, IDictionary<string, object> options)
 		{
-			return new JavaScriptReadStream(File.OpenRead(path), options);
+			return new JavaScriptReadStream(path, options);
 		}
 
 		public JavaScriptWriteStream createWriteStream(string path)
 		{
-			return new JavaScriptWriteStream(File.OpenWrite(path));
+			return new JavaScriptWriteStream(path);
 		}
 
 		public JavaScriptWriteStream createWriteStream(string path, IDictionary<string, object> options)
 		{
-			return new JavaScriptWriteStream(File.OpenWrite(path), options);
+			return new JavaScriptWriteStream(path, options);
 		}
 	}
 }
