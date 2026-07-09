@@ -262,6 +262,33 @@ var result = script.Eval<long>("await Promise.any([Promise.resolve(1), Promise.r
 Assert.AreEqual(1L, result);
 ```
 
+#### fs文件操作
+注：服务端项目请谨慎添加文件模块，避免脚本中恶意删除、修改文件。
+
+* 添加fs模块
+```
+// 添加nuget包
+install-package AScript.Lang.JavaScript.fs
+
+// 添加fs模块
+JavaScriptLang.Instance.AddModule("fs", new JavaScriptFileSystemModule());
+```
+* 读取文件
+```
+File.WriteAllText("test.txt", "hello world", System.Text.Encoding.UTF8);
+string s = @"
+var fs = require('fs');
+fs.readFileSync('test.txt', 'utf-8')
+";
+var script = new Script();
+var result = script.Eval(s);
+Assert.AreEqual("hello world", result);
+```
+* 文件操作相关方法
+```
+
+```
+
 #### axios
 ```
 
