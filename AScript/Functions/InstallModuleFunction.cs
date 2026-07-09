@@ -8,24 +8,29 @@ namespace AScript.Functions
 	{
 		public static readonly InstallModuleFunction Instance = new InstallModuleFunction();
 
-		private static readonly MethodInfo Method_BaseContext_InstallModule_string = typeof(BaseContext).GetMethod("InstallModule", new[] { typeof(string) });
+		//private static readonly MethodInfo Method_BaseContext_InstallModule_string = typeof(BaseContext).GetMethod("InstallModule", new[] { typeof(string) });
 
 		public void Build(FunctionBuildArgs e)
 		{
 			e.BuildArgs();
 			var nameExpr = e.ArgExprs[0];
-			Type moduleType = null;
+			//Type moduleType = null;
 			if (nameExpr is ConstantExpression constantExpression)
 			{
-				var module = e.ScriptContext.GetModule((string)constantExpression.Value);
-				moduleType = (module as IScriptModuleType)?.ModuleType;
+				var moduleName = (string)constantExpression.Value;
+				//var module = e.ScriptContext.GetModule(moduleName);
+				//moduleType = (module as IScriptModuleType)?.ModuleType;
+				var instance = e.ScriptContext.InstallModule(moduleName);
+				e.Result = Expression.Constant(instance, instance?.GetType() ?? typeof(object));
+				return;
 			}
-			Expression result = Expression.Call(e.BuildContext.GetScriptContextParameter(), Method_BaseContext_InstallModule_string, nameExpr);
-			if (moduleType != null)
-			{
-				result = Expression.Convert(result, moduleType);
-			}
-			e.Result = result;
+			throw new Exceptions.ScriptRuntimeException($"{e.Name} need const string arg");
+			//Expression result = Expression.Call(e.BuildContext.GetScriptContextParameter(), Method_BaseContext_InstallModule_string, nameExpr);
+			//if (moduleType != null)
+			//{
+			//	result = Expression.Convert(result, moduleType);
+			//}
+			//e.Result = result;
 		}
 
 		public void Eval(FunctionEvalArgs e)

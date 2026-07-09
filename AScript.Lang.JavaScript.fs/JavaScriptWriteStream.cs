@@ -83,7 +83,7 @@ namespace AScript.Lang.JavaScript.fs
 
 		private void OpenSync()
 		{
-			_stream = File.OpenWrite(_path);
+			_stream = File.Open(_path, FileMode.Create, FileAccess.Write);
 			TriggerEvent("open");
 		}
 

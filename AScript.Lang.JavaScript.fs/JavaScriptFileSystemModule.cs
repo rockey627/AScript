@@ -2,13 +2,13 @@
 
 namespace AScript.Lang.JavaScript.fs
 {
-	public class JavaScriptFileSystemModule : IScriptModule, IScriptModuleType
+	public class JavaScriptFileSystemModule : IScriptModule//, IScriptModuleType
 	{
-		public Type ModuleType => typeof(JavaScriptFileSystem);
+		//public Type ModuleType => typeof(JavaScriptFileSystem);
 
 		public object Install(BaseContext context)
 		{
-			context.SetObjectMemberEnabled(this.ModuleType, true);
+			context.SetObjectMemberEnabled(typeof(JavaScriptFileSystem), true);
 			context.SetObjectMemberEnabled(typeof(JavaScriptReadStream), true);
 			context.SetObjectMemberEnabled(typeof(JavaScriptWriteStream), true);
 			return new JavaScriptFileSystem();
@@ -16,7 +16,7 @@ namespace AScript.Lang.JavaScript.fs
 
 		public void Uninstall(BaseContext context)
 		{
-			context.SetObjectMemberEnabled(this.ModuleType, null);
+			context.SetObjectMemberEnabled(typeof(JavaScriptFileSystem), null);
 			context.SetObjectMemberEnabled(typeof(JavaScriptReadStream), null);
 			context.SetObjectMemberEnabled(typeof(JavaScriptWriteStream), null);
 		}

@@ -92,7 +92,7 @@ namespace AScript.Lang.JavaScript.fs
 
 		public void copyFileSync(string sourcePath, string targetPath)
 		{
-			File.Copy(sourcePath, targetPath);
+			File.Copy(sourcePath, targetPath, true);
 		}
 
 		public async Task copyFile(string sourcePath, string targetPath)
@@ -100,7 +100,7 @@ namespace AScript.Lang.JavaScript.fs
 			var buffer = new byte[1024];
 			using (var sourceStream = File.OpenRead(sourcePath))
 			{
-				using (var targetStream = File.OpenWrite(targetPath))
+				using (var targetStream = File.Open(targetPath, FileMode.Create, FileAccess.Write))
 				{
 					while (true)
 					{
