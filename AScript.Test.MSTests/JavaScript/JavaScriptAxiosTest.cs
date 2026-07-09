@@ -1,5 +1,5 @@
 using AScript.Lang.JavaScript;
-using AScript.Module.JavaScriptAxios;
+using AScript.Lang.JavaScript.axios;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;

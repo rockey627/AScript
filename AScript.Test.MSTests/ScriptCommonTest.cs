@@ -806,24 +806,24 @@ fib(10);  // 55
 		[TestMethod]
 		public void Test26_null_2()
 		{
-			string s = "FileInfo a = null;a==null";
+			string s = "string a = null;a==null";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Options.ThrowIfVariableNotExists = true;
 			Assert.AreEqual(true, script.Eval(s));
 			Assert.IsNull(script.Eval("a", out var type));
-			Assert.AreEqual(typeof(FileInfo), type);
+			Assert.AreEqual(typeof(string), type);
 		}
 
 		[TestMethod]
 		public void Test26_null()
 		{
-			string s = "FileInfo a = null;a==null";
+			string s = "string a = null;a==null";
 			var script = new Script();
 			script.Options.ThrowIfVariableNotExists = true;
 			Assert.AreEqual(true, script.Eval(s));
 			Assert.IsNull(script.Eval("a", out var type));
-			Assert.AreEqual(typeof(FileInfo), type);
+			Assert.AreEqual(typeof(string), type);
 		}
 
 		[TestMethod]

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Net.Http;
 
-namespace AScript.Module.JavaScriptAxios
+namespace AScript.Lang.JavaScript.axios
 {
 	public class JavaScriptAxiosModule : IScriptModule, IScriptModuleType
 	{
-		public static readonly string ClientName = "AScript.JavaScript.Axios";
+		public static readonly string ClientName = "AScript.Lang.JavaScript.axios";
 
 		public static IHttpClientFactory HttpClientFactory = new DefaultHttpClientFactory();
 

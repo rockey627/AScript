@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AScript.Module.JavaScriptAxios
+namespace AScript.Lang.JavaScript.axios
 {
 	public static class JavaScriptAxiosExtensions
 	{

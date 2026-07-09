@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AScript.Lang.JavaScript.Extensions
+namespace AScript.Lang.JavaScript.fs
 {
 	public class JavaScriptFileSystemModule : IScriptModule, IScriptModuleType
 	{

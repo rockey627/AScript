@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AScript.Lang.JavaScript.Extensions
+namespace AScript.Lang.JavaScript.fs
 {
 	public class JavaScriptFileSystem
 	{
@@ -47,10 +48,10 @@ namespace AScript.Lang.JavaScript.Extensions
 #if NETSTANDARD2_1_OR_GREATER
 			await File.WriteAllTextAsync(path, data, Encoding.GetEncoding(encodeName)).ConfigureAwait(false);
 #else
-				using (var writer = new StreamWriter(path, append: false, Encoding.GetEncoding(encodeName)))
-				{
-					await writer.WriteAsync(data).ConfigureAwait(false);
-				}
+			using (var writer = new StreamWriter(path, append: false, Encoding.GetEncoding(encodeName)))
+			{
+				await writer.WriteAsync(data).ConfigureAwait(false);
+			}
 #endif
 		}
 
@@ -97,9 +98,9 @@ namespace AScript.Lang.JavaScript.Extensions
 		public async Task copyFile(string sourcePath, string targetPath)
 		{
 			var buffer = new byte[1024];
-			using(var sourceStream = File.OpenRead(sourcePath))
+			using (var sourceStream = File.OpenRead(sourcePath))
 			{
-				using(var targetStream = File.OpenWrite(targetPath))
+				using (var targetStream = File.OpenWrite(targetPath))
 				{
 					while (true)
 					{
@@ -139,14 +140,24 @@ namespace AScript.Lang.JavaScript.Extensions
 			});
 		}
 
-		public Stream createReadStream(string path)
+		public JavaScriptReadStream createReadStream(string path)
 		{
-			return File.OpenRead(path);
+			return new JavaScriptReadStream(File.OpenRead(path));
 		}
 
-		public Stream createWriteStream(string path)
+		public JavaScriptReadStream createReadStream(string path, IDictionary<string, object> options)
 		{
-			return File.OpenWrite(path);
+			return new JavaScriptReadStream(File.OpenRead(path), options);
+		}
+
+		public JavaScriptWriteStream createWriteStream(string path)
+		{
+			return new JavaScriptWriteStream(File.OpenWrite(path));
+		}
+
+		public JavaScriptWriteStream createWriteStream(string path, IDictionary<string, object> options)
+		{
+			return new JavaScriptWriteStream(File.OpenWrite(path), options);
 		}
 	}
 }

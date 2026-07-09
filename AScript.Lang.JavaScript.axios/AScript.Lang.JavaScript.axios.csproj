@@ -38,10 +38,6 @@ script.Eval(s);
 		<PackageReleaseNotes>js axios</PackageReleaseNotes>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-	</ItemGroup>
-
 	<ItemGroup Condition="'$(TargetFramework)' == 'net45'">
 		<Reference Include="System.Net.Http" />
 	</ItemGroup>

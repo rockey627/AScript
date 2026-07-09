@@ -15,7 +15,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AScript.Lang.Sql", "AScript
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AScript.Lang.Python3", "AScript.Lang.Python3\AScript.Lang.Python3.csproj", "{1544317A-8F2A-43F0-BCF5-99F016F2697D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AScript.Module.JavaScriptAxios", "AScript.Module.JavaScriptAxios\AScript.Module.JavaScriptAxios.csproj", "{2116E330-39EE-41E4-A461-50046BF2BBF3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AScript.Lang.JavaScript.axios", "AScript.Lang.JavaScript.axios\AScript.Lang.JavaScript.axios.csproj", "{2116E330-39EE-41E4-A461-50046BF2BBF3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AScript.Lang.JavaScript.fs", "AScript.Lang.JavaScript.fs\AScript.Lang.JavaScript.fs.csproj", "{E467941A-4B8A-48C4-B15F-7B4C8F269CF3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{2116E330-39EE-41E4-A461-50046BF2BBF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2116E330-39EE-41E4-A461-50046BF2BBF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2116E330-39EE-41E4-A461-50046BF2BBF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E467941A-4B8A-48C4-B15F-7B4C8F269CF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E467941A-4B8A-48C4-B15F-7B4C8F269CF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E467941A-4B8A-48C4-B15F-7B4C8F269CF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E467941A-4B8A-48C4-B15F-7B4C8F269CF3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

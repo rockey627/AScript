@@ -1,6 +1,6 @@
 ﻿using AScript.Lang.JavaScript;
+using AScript.Lang.JavaScript.axios;
 using AScript.Lang.Sql;
-using AScript.Module.JavaScriptAxios;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using IronPython.Hosting;

@@ -85,8 +85,6 @@ namespace AScript.Lang.JavaScript
 			AddFunc(typeof(JavaScriptMapExtensions));
 			AddFunc(typeof(JavaScriptPromiseExtensions));
 
-			AddModule("fs", new JavaScriptFileSystemModule());
-
 			InstallModule(new JavaScriptConsoleModule());
 			InstallModule(new JavaScriptJsonModule());
 

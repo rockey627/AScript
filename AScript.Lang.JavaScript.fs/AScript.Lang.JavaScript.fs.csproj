@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net45</TargetFrameworks>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<Authors>rockey627</Authors>
+		<PackageTags>C# JavaScript js fs file stream</PackageTags>
+		<PackageLicenseUrl>https://gitee.com/rockey627/ascript/blob/master/LICENSE</PackageLicenseUrl>
+		<PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
+		<Description>
+			<![CDATA[
+js fs模块；
+快速开始：
+// 注册js脚本语言
+Script.Langs.Set("js", JavaScriptLang.Instance);
+// 语言环境中注册axios模块
+JavaScriptLang.Instance.AddModule("fs", new JavaScriptFileSystemModule());
+// 引入fs并调用相关方法
+string s = @"
+var fs = require('fs');
+
+";
+var script = new Script();
+script.Context.Langs = new [] { "js" };
+// 或者在当前上下文环境中注册fs模块
+//script.Context.AddModule("fs", new JavaScriptFileSystemModule());
+script.Eval(s);
+			]]>
+		</Description>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<Version>0.0.1.0</Version>
+		<PackageReleaseNotes>js fs文件模块</PackageReleaseNotes>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AScript.Lang.JavaScript\AScript.Lang.JavaScript.csproj" />
+		<ProjectReference Include="..\AScript\AScript.csproj" />
+	</ItemGroup>
+
+</Project>
