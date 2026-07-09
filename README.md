@@ -38,7 +38,7 @@ C#动态脚本解析编译执行引擎
 * 支持continue/break/return
 * 支持自定义语法解析（自定义关键字）
 * 支持流式读取表达式
-* 支持自定义脚本语言，已实现CSharp/Python3/SQL三种语言
+* 支持自定义脚本语言，已实现CSharp/Python3/SQL/JavaScript四种语言
 * 支持2种执行模式：
 1. 解析执行：解析过程中计算结果，对于非循环语句有较高的性能及低内存，有循环语句则建议使用第2种编译执行方式
 ```C#
@@ -749,12 +749,13 @@ public class PersonModule : IScriptModule
 	}
 }
 ```
-* 向上下文或指定语言添加模块
+* 向上下文或指定语言安装模块
 ```
+// 当前上下文中安装模块
 var script = new Script();
-script.Context.AddModule(new PersonModule());
-// 或者指定语言添加模块
-// CSharpLang.Instance.AddModule(new PersonModule());
+script.Context.InstallModule(new PersonModule());
+// 或者指定语言安装模块
+// CSharpLang.Instance.InstallModule(new PersonModule());
 ```
 * 脚本中调用扩展
 ```
