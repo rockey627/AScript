@@ -101,6 +101,10 @@ namespace AScript.Nodes
 			{
 				return VisitFuncObjectNode(funcObjectNode);
 			}
+			if (node is MultiNode multiNode)
+			{
+				return VisitMultiNode(multiNode);
+			}
 			return node;
 		}
 
@@ -303,6 +307,12 @@ namespace AScript.Nodes
 		public virtual ITreeNode VisitFuncObjectNode(FuncObjectNode funcObjectNode)
 		{
 			return funcObjectNode;
+		}
+
+		public virtual ITreeNode VisitMultiNode(MultiNode multiNode)
+		{
+			Visit(multiNode.Nodes);
+			return multiNode;
 		}
 	}
 }
