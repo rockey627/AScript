@@ -566,6 +566,7 @@ fs.readFile(testFile, 'utf-8', function(e, d) {
     err = e;
     data = d;
 });
+await delay(50);
 data
 ";
 			var script = CreateScript();
@@ -584,6 +585,7 @@ fs.readFile(testFile, 'utf-8', function(e, d) {
     err = e;
     data = d;
 });
+await delay(50);
 data
 ";
 			var script = CreateScriptCompileAll();
@@ -639,6 +641,7 @@ var err;
 fs.copyFile(testFile, testFile2, function(e) {
     err = e;
 });
+sleep(50);
 err == null
 ";
 			var script = CreateScript();
@@ -657,6 +660,7 @@ var err;
 fs.copyFile(testFile, testFile2, function(e) {
     err = e;
 });
+sleep(50);
 err == null
 ";
 			var script = CreateScriptCompileAll();
@@ -677,6 +681,7 @@ var err;
 fs.unlink(testFile, function(e) {
     err = e;
 });
+await delay(50);
 err == null
 ";
 			var script = CreateScript();
@@ -695,6 +700,7 @@ var err;
 fs.unlink(testFile, function(e) {
     err = e;
 });
+await delay(50);
 err == null
 ";
 			var script = CreateScriptCompileAll();

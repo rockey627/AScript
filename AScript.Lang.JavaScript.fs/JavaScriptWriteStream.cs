@@ -21,25 +21,25 @@ namespace AScript.Lang.JavaScript.fs
 			_path = path;
 		}
 
-		public bool write(long value)
-		{
-			return write(value.ToString());
-		}
+		//public bool write(long value)
+		//{
+		//	return write(value.ToString());
+		//}
 
-		public bool write(double value)
-		{
-			return write(value.ToString());
-		}
+		//public bool write(double value)
+		//{
+		//	return write(value.ToString());
+		//}
 
-		public bool write(bool value)
-		{
-			return write(value.ToString());
-		}
+		//public bool write(bool value)
+		//{
+		//	return write(value.ToString());
+		//}
 
-		public bool write(DateTime value)
-		{
-			return write(value.ToString());
-		}
+		//public bool write(DateTime value)
+		//{
+		//	return write(value.ToString());
+		//}
 
 		public bool write(string value)
 		{
@@ -127,29 +127,29 @@ namespace AScript.Lang.JavaScript.fs
 			Dispose();
 		}
 
-		public void end(long value)
-		{
-			write(value);
-			end();
-		}
+		//public void end(long value)
+		//{
+		//	write(value);
+		//	end();
+		//}
 
-		public void end(double value)
-		{
-			write(value);
-			end();
-		}
+		//public void end(double value)
+		//{
+		//	write(value);
+		//	end();
+		//}
 
-		public void end(bool value)
-		{
-			write(value);
-			end();
-		}
+		//public void end(bool value)
+		//{
+		//	write(value);
+		//	end();
+		//}
 
-		public void end(DateTime value)
-		{
-			write(value);
-			end();
-		}
+		//public void end(DateTime value)
+		//{
+		//	write(value);
+		//	end();
+		//}
 
 		public void end(string value)
 		{

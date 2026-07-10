@@ -5,6 +5,7 @@ using AScript.Operators;
 using AScript.TokenHandlers;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AScript.Lang.JavaScript
@@ -76,6 +77,10 @@ namespace AScript.Lang.JavaScript
 			AddFunc("get_length", new LengthFunction(typeof(long)));
 			AddFunc("slice", IndexStartEndOperator.Instance);
 			AddFunc("require", InstallModuleFunction.Instance);
+
+			AddFunc<long, Task>("delay", ms => Task.Delay((int)ms));
+			AddAction<long>("sleep", ms => Thread.Sleep((int)ms));
+			//AddAction<Action, long>("setTimeout", (action, ms) => Task.Delay((int)ms).ContinueWith(t => action()));
 
 			AddFunc(typeof(JavaScriptDateExtensions));
 			AddFunc(typeof(JavaScriptMathExtensions));
