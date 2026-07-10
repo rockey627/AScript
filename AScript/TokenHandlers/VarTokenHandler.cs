@@ -16,10 +16,53 @@ namespace AScript.TokenHandlers
 			var nextToken = analyzer.ValidateNextToken(e.TokenReader);
 			if (nextToken.Value.Type == ETokenType.Word)
 			{
-				if (!e.Ignore)
+				e.End = true;
+				e.TokenReader.Push(nextToken.Value);
+				var list = e.Ignore ? null : new List<ITreeNode>();
+				while (true)
 				{
-					var defineVarNode = PoolManage.CreateDefineVarNode(nextToken.Value.Value, null, systemType: typeof(object));
-					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, defineVarNode);
+					nextToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+					string varName = nextToken.Value.Value;
+
+					nextToken = e.TokenReader.Read();
+					if (!nextToken.HasValue)
+					{
+						list?.Add(PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object)));
+						break;
+					}
+					if (nextToken.Value.IsSymbol("="))
+					{
+						var value = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+						if (list != null)
+						{
+							var opNode = PoolManage.CreateOperatorNode("=", 2, DefaultSyntaxAnalyzer.OperatorPriorities["="]);
+							opNode.Left = PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object));
+							opNode.Right = value;
+							list.Add(opNode);
+						}
+						nextToken = e.TokenReader.Read();
+						if (!nextToken.HasValue) break;
+						if (nextToken.Value.IsSymbol(",")) continue;
+						e.TokenReader.Push(nextToken.Value);
+						break;
+					}
+					list?.Add(PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object)));
+					if (nextToken.Value.IsSymbol(",")) continue;
+					e.TokenReader.Push(nextToken.Value);
+					break;
+				}
+
+				if (list != null && list.Count > 0)
+				{
+					if (list.Count == 1)
+					{
+						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, list[0]);
+					}
+					else
+					{
+						var multiNode = new MultiNode { Nodes = list };
+						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, multiNode);
+					}
 				}
 				return;
 			}
