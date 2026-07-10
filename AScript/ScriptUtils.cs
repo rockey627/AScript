@@ -424,6 +424,107 @@ namespace AScript
 			return method.Invoke(target, argValues);
 		}
 
+		public static object DynamicInvoke(ScriptContext context, BuildOptions options, EvalControl control, MethodInfo method, object target, object[] argValues, Type[] argTypes, bool useScriptContext, bool hasClosure, int paramsIndex)
+		{
+			if (argValues != null && argValues.Length > 0)
+			{
+				ParameterInfo[] parameters = null;
+				for (int i = 0; i < argValues.Length; i++)
+				{
+					var arg = argValues[i];
+					if (IsDefineFuncNode(arg))
+					{
+						if (parameters == null) parameters = method.GetParameters();
+						argValues[i] = TryParseDelegateArg(context, options, control, arg, parameters[i].ParameterType);
+					}
+				}
+			}
+			if (paramsIndex >= 0)
+			{
+				var parameters = method.GetParameters();
+				var itemType = parameters[parameters.Length - 1].ParameterType.GetElementType();
+				var paramsValues = new object[argValues.Length - paramsIndex];
+				Array.Copy(argValues, paramsIndex, paramsValues, 0, paramsValues.Length);
+				var paramsArr = Array.CreateInstance(itemType, paramsValues.Length);
+				for (int i = 0; i < paramsValues.Length; i++)
+				{
+					paramsArr.SetValue(System.Convert.ChangeType(paramsValues[i], itemType), i);
+				}
+				var newValues = new object[paramsIndex + 1];
+				var newTypes = new Type[newValues.Length];
+				Array.Copy(argValues, 0, newValues, 0, paramsIndex);
+				Array.Copy(argTypes, 0, newTypes, 0, paramsIndex);
+				newValues[paramsIndex] = paramsArr;
+				newTypes[paramsIndex] = paramsArr.GetType();
+				argValues = newValues;
+				argTypes = newTypes;
+			}
+			return DynamicInvoke(context, method, target, argValues, argTypes, useScriptContext, hasClosure);
+		}
+
+		public static Expression BuildInvoke(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, MethodInfo method, object target, IList<ITreeNode> argNodes, Expression[] argExprs, bool useScriptContext, bool hasClosure, int paramsIndex)
+		{
+			if (useScriptContext)
+			{
+				if (argExprs == null || argExprs.Length == 0)
+				{
+					argExprs = new Expression[] { Expression.Constant(scriptContext) };
+				}
+				else
+				{
+					var argExprs2 = new Expression[argExprs.Length + 1];
+					argExprs2[0] = Expression.Constant(scriptContext);
+					Array.Copy(argExprs, 0, argExprs2, 1, argExprs.Length);
+					argExprs = argExprs2;
+				}
+			}
+			var parameters = method.GetParameters();
+			if (paramsIndex >= 0)
+			{
+				var itemType = parameters[parameters.Length - 1].ParameterType.GetElementType();
+				var paramsExprs = new Expression[argExprs.Length - paramsIndex];
+				Array.Copy(argExprs, paramsIndex, paramsExprs, 0, paramsExprs.Length);
+				for (int i = 0; i < paramsExprs.Length; i++)
+				{
+					var p = paramsExprs[i];
+					if (p.Type != itemType)
+					{
+						paramsExprs[i] = Expression.Convert(p, itemType);
+					}
+				}
+				var paramsArr = Expression.NewArrayInit(itemType, paramsExprs);
+				var newExprs = new Expression[paramsIndex + 1];
+				Array.Copy(argExprs, 0, newExprs, 0, paramsIndex);
+				newExprs[paramsIndex] = paramsArr;
+				argExprs = newExprs;
+			}
+			if (argExprs != null && argExprs.Length > 0)
+			{
+				for (int i = 0; i < argExprs.Length; i++)
+				{
+					var p = parameters[hasClosure ? i + 1 : i];
+					var arg = argExprs[i];
+					if (arg == null && typeof(Delegate).IsAssignableFrom(p.ParameterType))
+					{
+						var invokeMethod = p.ParameterType.GetMethod("Invoke");
+						var ps = invokeMethod.GetParameters();
+						var defineFuncNode = (DefineFuncNode)argNodes[i];
+						for (int j = 0; j < ps.Length; j++)
+						{
+							defineFuncNode.Args[j].SystemType = ps[j].ParameterType;
+						}
+						defineFuncNode.ReturnSystemType = invokeMethod.ReturnType;
+						argExprs[i] = arg = argNodes[i].Build(buildContext, scriptContext, options);
+					}
+					if (arg.Type != p.ParameterType)
+					{
+						argExprs[i] = Expression.Convert(arg, p.ParameterType);
+					}
+				}
+			}
+			return target == null ? Expression.Call(method, argExprs) : Expression.Call(target is Expression targetExpr ? targetExpr : Expression.Constant(target), method, argExprs);
+		}
+
 		public static object TryParseDelegateArg(ScriptContext context, BuildOptions options, EvalControl control, object arg, Type delegateType)
 		{
 			if (arg is DefineFuncNode node)
