@@ -506,17 +506,20 @@ namespace AScript
 					var arg = argExprs[i];
 					if (arg == null && typeof(Delegate).IsAssignableFrom(p.ParameterType))
 					{
-						var invokeMethod = p.ParameterType.GetMethod("Invoke");
-						var ps = invokeMethod.GetParameters();
 						var defineFuncNode = (DefineFuncNode)argNodes[i];
-						for (int j = 0; j < ps.Length; j++)
+						if (p.ParameterType != typeof(Delegate))
 						{
-							defineFuncNode.Args[j].SystemType = ps[j].ParameterType;
+							var invokeMethod = p.ParameterType.GetMethod("Invoke");
+							var ps = invokeMethod.GetParameters();
+							for (int j = 0; j < ps.Length; j++)
+							{
+								defineFuncNode.Args[j].SystemType = ps[j].ParameterType;
+							}
+							defineFuncNode.ReturnSystemType = invokeMethod.ReturnType;
 						}
-						defineFuncNode.ReturnSystemType = invokeMethod.ReturnType;
-						argExprs[i] = arg = argNodes[i].Build(buildContext, scriptContext, options);
+						argExprs[i] = arg = defineFuncNode.Build(buildContext, scriptContext, options) ?? Expression.Constant(null, p.ParameterType);
 					}
-					if (arg.Type != p.ParameterType)
+					else if (arg != null && arg.Type != p.ParameterType)
 					{
 						argExprs[i] = Expression.Convert(arg, p.ParameterType);
 					}

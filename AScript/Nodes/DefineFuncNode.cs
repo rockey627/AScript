@@ -154,14 +154,24 @@ namespace AScript.Nodes
 #if NET45
 			// NET45框架下，如果Lambda有闭包参数直接Invoke会报错：System.Security.VerificationException:操作可能会破坏运行时稳定性
 			// 需要Expression.Quote来包装
-			var dExpr = Expression.Quote(d);
-			var ps = new ParameterExpression[d.Parameters.Count];
-			for (int i = 0; i < ps.Length; i++)
+			Expression dExpr;
+			ParameterExpression[] ps;
+			if (d == null)
 			{
-				ps[i] = Expression.Parameter(d.Parameters[i].Type);
+				dExpr = null;
+				ps = null;
+			}
+			else
+			{
+				dExpr = Expression.Quote(d);
+				ps = new ParameterExpression[d.Parameters.Count];
+				for (int i = 0; i < ps.Length; i++)
+				{
+					ps[i] = Expression.Parameter(d.Parameters[i].Type);
+				}
 			}
 			var inner = tempBuildContext.DelegateType == null ?
-				Expression.Lambda(Expression.Invoke(dExpr, ps), ps) :
+				Expression.Lambda(dExpr == null ? (Expression)Expression.Empty() : Expression.Invoke(dExpr, ps), ps) :
 				Expression.Lambda(tempBuildContext.DelegateType, Expression.Invoke(dExpr, ps), ps);
 			if (!string.IsNullOrEmpty(this.Name) && this.Name != "_")
 			{

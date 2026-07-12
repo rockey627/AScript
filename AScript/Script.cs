@@ -2293,6 +2293,11 @@ namespace AScript
 				throw new Exceptions.ScriptAnalyzingException($"argTypes数量[{argTypesCount}]与argNames数量[{argNamesCount}]不一致");
 			}
 
+			if (delegateType == typeof(Delegate))
+			{
+				delegateType = null;
+			}
+
 			var buildContext = new BuildContext(null)
 			{
 				ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),

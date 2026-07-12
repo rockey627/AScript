@@ -686,6 +686,11 @@ namespace AScript
 			}
 			// 
 			var block = BuildBlock(scriptContext, options, body);
+			if (block == null)
+			{
+				if (parameters.Length == 0) return null;
+				block = Expression.Empty();
+			}
 			return this.DelegateType == null ? Expression.Lambda(block, parameters) : Expression.Lambda(this.DelegateType, block, parameters);
 		}
 
