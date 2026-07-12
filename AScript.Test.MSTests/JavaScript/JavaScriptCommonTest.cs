@@ -1162,12 +1162,40 @@ var h3 = setTimeout(function() { addResult(3); }, 90);
 			await script.EvalAsync<object>(code);
 
 			await Task.Delay(50);
-			var results30 = script.Eval("results.slice()");
-			Assert.AreEqual(1L, ((List<object>)results30).Count);
+			var results30 = script.Eval<List<object>>("results");
+			Assert.AreEqual(1L, results30.Count);
 
 			await Task.Delay(60);
-			var results90 = script.Eval("results.slice()");
-			Assert.AreEqual(3L, ((List<object>)results90).Count);
+			var results90 = script.Eval<List<object>>("results");
+			Assert.AreEqual(3L, results90.Count);
+		}
+
+		[TestMethod]
+		public async Task TestSetTimeout_MultipleTimeouts2()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var results = [];
+function addResult(val) {
+	results.push(val);
+}
+var h1 = setTimeout(function() { addResult(1); }, 30);
+var h2 = setTimeout(function() { addResult(2); }, 60);
+var h3 = setTimeout(function() { addResult(3); }, 90);
+[h1, h2, h3];
+";
+			await script.EvalAsync<object>(code);
+
+			await Task.Delay(50);
+			var results30 = script.Eval<List<object>>("results");
+			Assert.AreEqual(1L, results30.Count);
+
+			await Task.Delay(60);
+			var results90 = script.Eval<List<object>>("results");
+			Assert.AreEqual(3L, results90.Count);
 		}
 
 		[TestMethod]
