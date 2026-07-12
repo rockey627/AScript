@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 
 namespace AScript.Lang.JavaScript.fs
@@ -58,18 +57,73 @@ namespace AScript.Lang.JavaScript.fs
 			if (!_events.TryGetValue(name, out var list))
 			{
 				list = new List<Delegate>();
+				_events[name] = list;
 			}
 			list.Add(@event);
 		}
 
 		protected virtual void TriggerEvent(string name)
 		{
-
+			if (_events.TryGetValue(name, out var list) && list.Count > 0)
+			{
+				foreach (var item in list)
+				{
+					DynamicInvoke(item, null);
+				}
+			}
 		}
 
 		protected virtual void TriggerEvent(string name, object data)
 		{
+			if (_events.TryGetValue(name, out var list) && list.Count > 0)
+			{
+				var datas = new[] { data };
+				foreach (var item in list)
+				{
+					DynamicInvoke(item, datas);
+				}
+			}
+		}
 
+		private void DynamicInvoke(Delegate del, params object[] datas)
+		{
+			if (del == null) return;
+			int datasLength = datas == null ? 0 : datas.Length;
+			var parameters = del.Method.GetParameters();
+			int parametersLength = parameters.Length;
+			bool hasClosure = false;
+			if (parameters[0].ParameterType.FullName == "System.Runtime.CompilerServices.Closure")
+			{
+				hasClosure = true;
+				parametersLength -= 1;
+			}
+			if (parametersLength == 0)
+			{
+				del.DynamicInvoke();
+			}
+			else if (parametersLength == datasLength)
+			{
+				del.DynamicInvoke(datas);
+			}
+			else
+			{
+				var args = new object[parametersLength];
+				int count;
+				if (datasLength > 0)
+				{
+					count = Math.Min(parametersLength, datasLength);
+					Array.Copy(datas, args, count);
+				}
+				else
+				{
+					count = 0;
+				}
+				for (int i = count; i < parametersLength; i++)
+				{
+					args[i] = ScriptUtils.GetDefaultValue(parameters[i + (hasClosure ? 1 : 0)].ParameterType);
+				}
+				del.DynamicInvoke(args);
+			}
 		}
 
 		public void Dispose()

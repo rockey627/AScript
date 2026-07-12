@@ -415,6 +415,7 @@ reader.on('data', function(chunk) {
 reader.on('end', function() {
     // nothing
 });
+sleep(50);
 result
 ";
 			var script = CreateScript();
@@ -436,6 +437,7 @@ reader.on('data', function(chunk) {
 reader.on('end', function() {
     // nothing
 });
+sleep(50);
 result
 ";
 			var script = CreateScriptCompileAll();
@@ -494,6 +496,7 @@ var result = '';
 reader.on('data', function(chunk) {
     result = result + chunk;
 });
+sleep(50)
 result
 ";
 			var script = CreateScript();
@@ -512,6 +515,7 @@ var result = '';
 reader.on('data', function(chunk) {
     result = result + chunk;
 });
+sleep(50);
 result
 ";
 			var script = CreateScriptCompileAll();
@@ -604,6 +608,7 @@ var err;
 fs.writeFile(testFile, 'callback write', 'utf-8', function(e) {
     err = e;
 });
+sleep(50);
 err == null
 ";
 			var script = CreateScript();
@@ -621,6 +626,7 @@ var err;
 fs.writeFile(testFile, 'callback write', 'utf-8', function(e) {
     err = e;
 });
+sleep(50);
 err == null
 ";
 			var script = CreateScriptCompileAll();

@@ -63,7 +63,7 @@ namespace AScript.Lang.JavaScript.fs
 			await OpenAsync().ConfigureAwait(false);
 			// 异步读取文件
 			int size = 1024;
-			if (_options.TryGetValue("highWaterMark", out var op))
+			if (_options != null && _options.TryGetValue("highWaterMark", out var op))
 			{
 				if (op is long opl) size = (int)opl;
 				else if (op is int opi) size = opi;
@@ -90,13 +90,13 @@ namespace AScript.Lang.JavaScript.fs
 				if (count == 0) break;
 				TriggerEvent("data", new string(buffer, 0, count));
 			}
+			// 关闭流
+			try { _reader.Dispose(); } catch { }
+			_reader = null;
 			if (!isError)
 			{
 				TriggerEvent("end");
 			}
-			// 关闭流
-			try { _reader.Dispose(); } catch { }
-			_reader = null;
 			TriggerEvent("close");
 		}
 
