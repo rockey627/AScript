@@ -1078,5 +1078,280 @@ obj.x + obj.y;
 			Assert.AreEqual(30L, script.Eval(code));
 		}
 
+		[TestMethod]
+		public async Task TestSetTimeout_Basic()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var result = 0;
+function onTimeout() {
+	result = 42;
+}
+var handle = setTimeout(onTimeout, 50);
+handle;
+";
+			var handle = await script.EvalAsync<object>(code);
+			Assert.IsNotNull(handle);
+
+			// Wait for the timeout to fire
+			await Task.Delay(100);
+			Assert.AreEqual(42L, script.Eval("result"));
+		}
+
+		[TestMethod]
+		public async Task TestSetTimeout_WithArgs()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var result = 0;
+function onTimeout(a, b) {
+	result = a + b;
+}
+var handle = setTimeout(onTimeout, 50, 10, 20);
+handle;
+";
+			await script.EvalAsync<object>(code);
+			await Task.Delay(100);
+			Assert.AreEqual(30L, script.Eval("result"));
+		}
+
+		[TestMethod]
+		public async Task TestSetTimeout_ClearBeforeFire()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var result = 0;
+function onTimeout() {
+	result = 42;
+}
+var handle = setTimeout(onTimeout, 100);
+clearTimeout(handle);
+result;
+";
+			// clearTimeout should prevent the callback from firing
+			var initialResult = await script.EvalAsync<object>(code);
+			Assert.AreEqual(0L, initialResult);
+
+			// Wait longer than the original timeout, result should still be 0
+			await Task.Delay(200);
+			Assert.AreEqual(0L, script.Eval("result"));
+		}
+
+		[TestMethod]
+		public async Task TestSetTimeout_MultipleTimeouts()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var results = [];
+function addResult(val) {
+	results.push(val);
+}
+var h1 = setTimeout(function() { addResult(1); }, 30);
+var h2 = setTimeout(function() { addResult(2); }, 60);
+var h3 = setTimeout(function() { addResult(3); }, 90);
+[h1, h2, h3];
+";
+			await script.EvalAsync<object>(code);
+
+			await Task.Delay(50);
+			var results30 = script.Eval("results.slice()");
+			Assert.AreEqual(1L, ((List<object>)results30).Count);
+
+			await Task.Delay(60);
+			var results90 = script.Eval("results.slice()");
+			Assert.AreEqual(3L, ((List<object>)results90).Count);
+		}
+
+		[TestMethod]
+		public async Task TestSetInterval_Basic()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var count = 0;
+function onInterval() {
+	count = count + 1;
+}
+var handle = setInterval(onInterval, 30);
+handle;
+";
+			var handle = await script.EvalAsync<object>(code);
+			Assert.IsNotNull(handle);
+
+			await Task.Delay(110);
+			script.Eval("clearInterval(handle)");
+
+			// Should have fired at least 3 times (30ms interval, waited 110ms)
+			var count = script.Eval("count");
+			Assert.IsTrue((long)count >= 3, $"Expected at least 3 fires, got {count}");
+		}
+
+		[TestMethod]
+		public async Task TestSetInterval_WithArgs()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var result = 0;
+function onInterval(a, b) {
+	result = result + a + b;
+}
+var handle = setInterval(onInterval, 30, 1, 2);
+handle;
+";
+			var handle = await script.EvalAsync<object>(code);
+			Assert.IsNotNull(handle);
+
+			await Task.Delay(100);
+			script.Eval("clearInterval(handle)");
+
+			// Each fire adds 1+2=3, at least 3 fires = at least 9
+			var result = script.Eval("result");
+			Assert.IsTrue((long)result >= 9, $"Expected at least 9, got {result}");
+		}
+
+		[TestMethod]
+		public async Task TestSetInterval_ClearStopsFiring()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var count = 0;
+function onInterval() {
+	count = count + 1;
+}
+var handle = setInterval(onInterval, 30);
+handle;
+";
+			var handle = await script.EvalAsync<object>(code);
+
+			await Task.Delay(80);
+			script.Eval("clearInterval(handle)");
+			var countAfterClear = script.Eval("count");
+
+			await Task.Delay(100);
+			var countAfterWait = script.Eval("count");
+
+			// Count should not increase after clearInterval
+			Assert.AreEqual(countAfterClear, countAfterWait);
+		}
+
+		[TestMethod]
+		public async Task TestSetInterval_ReturnsTimer()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var count = 0;
+function handler() { count = 1; }
+var timer = setInterval(handler, 50);
+timer;
+";
+			var timerObj = await script.EvalAsync<object>(code);
+			Assert.IsNotNull(timerObj);
+			Assert.AreEqual("Timer", timerObj.GetType().Name);
+
+			script.Eval("clearInterval(timer)");
+			await Task.Delay(60);
+			Assert.AreEqual(1L, script.Eval("count"));
+		}
+
+		[TestMethod]
+		public async Task TestClearTimeout_InvalidHandle()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			// clearTimeout with null or already cancelled source should not throw
+			string code = @"
+var result = 'ok';
+try {
+	clearTimeout(null);
+} catch(e) {
+	result = 'error';
+}
+result;
+";
+			var result = await script.EvalAsync<object>(code);
+			Assert.AreEqual("ok", result);
+		}
+
+		[TestMethod]
+		public async Task TestClearInterval_InvalidHandle()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var result = 'ok';
+try {
+	clearInterval(null);
+} catch(e) {
+	result = 'error';
+}
+result;
+";
+			var result = await script.EvalAsync<object>(code);
+			Assert.AreEqual("ok", result);
+		}
+
+		[TestMethod]
+		public async Task TestSetTimeout_ZeroDelay()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var result = 0;
+function onTimeout() {
+	result = 99;
+}
+var handle = setTimeout(onTimeout, 0);
+handle;
+";
+			await script.EvalAsync<object>(code);
+			// Even with 0 delay, the callback is scheduled asynchronously
+			await Task.Delay(10);
+			Assert.AreEqual(99L, script.Eval("result"));
+		}
+
+		[TestMethod]
+		public async Task TestSetInterval_ZeroInterval()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var count = 0;
+function onInterval() {
+	count = count + 1;
+}
+var handle = setInterval(onInterval, 0);
+handle;
+";
+			var handle = await script.EvalAsync<object>(code);
+			Assert.IsNotNull(handle);
+
+			// With 0 interval, it should fire rapidly - let it run briefly then clear
+			await Task.Delay(50);
+			script.Eval("clearInterval(handle)");
+
+			// Should have fired many times
+			var count = script.Eval("count");
+			Assert.IsTrue((long)count > 10, $"Expected many fires with 0 interval, got {count}");
+		}
+
 	}
 }

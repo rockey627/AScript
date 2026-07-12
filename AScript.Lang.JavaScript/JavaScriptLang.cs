@@ -80,7 +80,8 @@ namespace AScript.Lang.JavaScript
 
 			AddFunc<long, Task>("delay", ms => Task.Delay((int)ms));
 			AddAction<long>("sleep", ms => Thread.Sleep((int)ms));
-			//AddAction<Action, long>("setTimeout", (action, ms) => Task.Delay((int)ms).ContinueWith(t => action()));
+
+			AddFunc(typeof(CommonFunctions));
 
 			AddFunc(typeof(JavaScriptDateExtensions));
 			AddFunc(typeof(JavaScriptMathExtensions));
@@ -133,6 +134,37 @@ namespace AScript.Lang.JavaScript
 		public override ISyntaxAnalyzer GetSyntaxAnalyzer()
 		{
 			return JavaScriptSyntaxAnalyzer.Instance;
+		}
+
+		private static class CommonFunctions
+		{
+			public static CancellationTokenSource setTimeout(Delegate del, long ms, params object[] args)
+			{
+				var source = new CancellationTokenSource();
+				var token = source.Token;
+				Task.Delay((int)ms, token).ContinueWith(t => del.DynamicInvoke(args), token);
+				return source;
+			}
+
+			public static void clearTimeout(CancellationTokenSource source)
+			{
+				source.Cancel();
+			}
+
+			public static Timer setInterval(Delegate del, long ms, params object[] args)
+			{
+				var timer = new Timer(new TimerCallback(obj =>
+				{
+					del.DynamicInvoke(args);
+				}), null, 0, ms);
+				return timer;
+			}
+
+			public static void clearInterval(Timer timer)
+			{
+				try { timer.Change(0, 0); } catch { }
+				try { timer.Dispose(); } catch { }
+			}
 		}
 	}
 }
