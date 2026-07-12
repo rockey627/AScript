@@ -168,7 +168,8 @@ namespace AScript
 				index++;
 				useScriptContext = true;
 			}
-			if (methodParameters.Length - argTypesCount > index)
+			if (!hasParams && methodParameters.Length - argTypesCount > index
+				|| hasParams && methodParameters.Length - argTypesCount - 1 > index)
 			{
 				paramsIndex = -1;
 				return false;
@@ -183,10 +184,8 @@ namespace AScript
 					break;
 				}
 			}
-			paramsIndex = -1;
+			paramsIndex = hasParams ? j : -1;
 			if (matched || !hasParams || j + index < methodParameters.Length - 1) return matched;
-
-			paramsIndex = j;
 			return true;
 		}
 
@@ -388,8 +387,28 @@ namespace AScript
 			return d.DynamicInvoke(argValues);
 		}
 
-		public static object DynamicInvoke(ScriptContext context, MethodInfo method, object target, object[] argValues, IList<Type> argTypes, bool useScriptContext, bool hasClosure)
+		public static object DynamicInvoke(ScriptContext context, MethodInfo method, object target, object[] argValues, Type[] argTypes, bool useScriptContext, bool hasClosure, int paramsIndex)
 		{
+			if (paramsIndex >= 0)
+			{
+				var parameters = method.GetParameters();
+				var itemType = parameters[parameters.Length - 1].ParameterType.GetElementType();
+				var paramsValues = new object[argValues.Length - paramsIndex];
+				Array.Copy(argValues, paramsIndex, paramsValues, 0, paramsValues.Length);
+				var paramsArr = Array.CreateInstance(itemType, paramsValues.Length);
+				for (int i = 0; i < paramsValues.Length; i++)
+				{
+					paramsArr.SetValue(System.Convert.ChangeType(paramsValues[i], itemType), i);
+				}
+				var newValues = new object[paramsIndex + 1];
+				var newTypes = new Type[newValues.Length];
+				Array.Copy(argValues, 0, newValues, 0, paramsIndex);
+				Array.Copy(argTypes, 0, newTypes, 0, paramsIndex);
+				newValues[paramsIndex] = paramsArr;
+				newTypes[paramsIndex] = paramsArr.GetType();
+				argValues = newValues;
+				argTypes = newTypes;
+			}
 			if (useScriptContext)
 			{
 				var datas2 = new object[(argValues?.Length ?? 0) + 1];
@@ -439,27 +458,7 @@ namespace AScript
 					}
 				}
 			}
-			if (paramsIndex >= 0)
-			{
-				var parameters = method.GetParameters();
-				var itemType = parameters[parameters.Length - 1].ParameterType.GetElementType();
-				var paramsValues = new object[argValues.Length - paramsIndex];
-				Array.Copy(argValues, paramsIndex, paramsValues, 0, paramsValues.Length);
-				var paramsArr = Array.CreateInstance(itemType, paramsValues.Length);
-				for (int i = 0; i < paramsValues.Length; i++)
-				{
-					paramsArr.SetValue(System.Convert.ChangeType(paramsValues[i], itemType), i);
-				}
-				var newValues = new object[paramsIndex + 1];
-				var newTypes = new Type[newValues.Length];
-				Array.Copy(argValues, 0, newValues, 0, paramsIndex);
-				Array.Copy(argTypes, 0, newTypes, 0, paramsIndex);
-				newValues[paramsIndex] = paramsArr;
-				newTypes[paramsIndex] = paramsArr.GetType();
-				argValues = newValues;
-				argTypes = newTypes;
-			}
-			return DynamicInvoke(context, method, target, argValues, argTypes, useScriptContext, hasClosure);
+			return DynamicInvoke(context, method, target, argValues, argTypes, useScriptContext, hasClosure, paramsIndex);
 		}
 
 		public static Expression BuildInvoke(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, MethodInfo method, object target, IList<ITreeNode> argNodes, Expression[] argExprs, bool useScriptContext, bool hasClosure, int paramsIndex)
