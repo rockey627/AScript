@@ -150,6 +150,7 @@ namespace AScript.Lang.CSharp
 			AddTokenHandler("from", FromTokenHandler.Instance);
 			AddTokenHandler("await", AwaitTokenHandler.Instance);
 			AddTokenHandler("throw", ThrowTokenHandler.Instance);
+			AddTokenHandler("try", TryTokenHandler.Instance);
 			AddTokenHandler("@@CancellationToken", CancellationTokenHandler.Instance);
 		}
 	}
