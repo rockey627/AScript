@@ -69,6 +69,7 @@ namespace AScript.Lang.CSharp
 			AddType<ArgumentException>();
 			AddType<ArgumentNullException>();
 			AddType<FormatException>();
+			AddType<InvalidOperationException>();
 
 			AddFunc("=", AssignOperator.Instance);
 			AddFunc("+=", PlusAssignOperator.Instance);

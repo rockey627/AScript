@@ -76,28 +76,34 @@ namespace AScript.Nodes
 					if (catchNode.Item2 != null)
 					{
 						var catchBodyExpr = catchNode.Item2.Build(catchContext, scriptContext, options);
-						catchBody = catchContext.BuildBlock(scriptContext, options, catchBodyExpr);
+						if (!string.IsNullOrEmpty(exVarName))
+						{
+							// Expression.Catch会自动设置异常变量，编译上下文中的异常变量要移除
+							catchContext.Variables.Remove(exVarName);
+							catchContext.LocalVariables.Remove(exVarName);
+						}
+						// catch返回值类型要与try返回值类型一致
+						if (tryExpr.Type == typeof(void) 
+							|| tryExpr.Type.IsAssignableFrom(catchBodyExpr.Type)
+							|| catchBodyExpr.Type.IsAssignableFrom(tryExpr.Type))
+						{
+							catchContext.ReturnType = tryExpr.Type;
+							catchBody = catchContext.BuildBlock(scriptContext, options, catchBodyExpr);
+						}
+						else
+						{
+							catchBody = catchContext.BuildBlock(scriptContext, options, catchBodyExpr, Expression.Default(tryExpr.Type));
+						}
 					}
 					else
 					{
-						catchBody = Expression.Empty();
+						catchBody = tryExpr.Type == typeof(void) ? Expression.Empty() : Expression.Default(tryExpr.Type);
 					}
 
 					var catchBlock = exVar == null ? Expression.Catch(exVarType, catchBody) : Expression.Catch(exVar, catchBody);
 					catchBlocks[i] = catchBlock;
 				}
 			}
-
-			//// If no catch nodes, add a general catch for Exception
-			//if (catchBlocks.Count == 0)
-			//{
-			//	var catchContext = new BuildContext(buildContext);
-			//	var exVar = Expression.Variable(typeof(Exception), "ex");
-			//	catchContext.Variables["ex"] = exVar;
-			//	catchContext.LocalVariables.Add("ex");
-			//	var catchBlock = Expression.Catch(exVar, Expression.Empty());
-			//	catchBlocks.Add(catchBlock);
-			//}
 
 			// Build finally body
 			Expression finallyExpr;
