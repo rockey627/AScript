@@ -73,15 +73,15 @@ namespace AScript.Nodes
 
 		public ParameterExpression BuildForAssign(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, out BuildContext ownerBuildContext, out Type lastType)
 		{
+			if (buildContext.TryGetVariableOrParameter(this.Name, out var varExpr, out ownerBuildContext, out _, out lastType))
+			{
+				return varExpr;
+			}
 			// 是否在执行上下文中存在变量
 			var ownerContext = scriptContext.GetOwnerContext(this.Name, out _, out var type);
 			if (ownerContext == null)
 			{
 				buildContext.LocalVariables.Add(this.Name);
-			}
-			if (buildContext.TryGetVariableOrParameter(this.Name, out var varExpr, out ownerBuildContext, out _, out lastType))
-			{
-				return varExpr;
 			}
 			if (type == null)
 			{

@@ -65,6 +65,10 @@ namespace AScript.Lang.CSharp
 			AddType(typeof(ExpandoObject));
 			AddType(typeof(Task));
 			AddType(typeof(Thread));
+			AddType<Exception>();
+			AddType<ArgumentException>();
+			AddType<ArgumentNullException>();
+			AddType<FormatException>();
 
 			AddFunc("=", AssignOperator.Instance);
 			AddFunc("+=", PlusAssignOperator.Instance);

@@ -26,7 +26,7 @@ namespace AScript.TokenHandlers
 
 			// try {
 			analyzer.ValidateNextToken(e.TokenReader, "{");
-			var tryBody = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, createFullTreeNodeOptions, e.TokenReader, e.Control, e.Ignore, noblock: true);
+			var tryBody = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullTreeNodeOptions, e.TokenReader, e.Control, e.Ignore);
 			analyzer.ValidateNextToken(e.TokenReader, "}");
 
 			// Parse catch/finally blocks
@@ -46,7 +46,7 @@ namespace AScript.TokenHandlers
 				if (t.Value.IsSymbol("finally"))
 				{
 					analyzer.ValidateNextToken(e.TokenReader, "{");
-					finallyBody = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, createFullTreeNodeOptions, e.TokenReader, e.Control, false, noblock: true);
+					finallyBody = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullTreeNodeOptions, e.TokenReader, e.Control, false);
 					analyzer.ValidateNextToken(e.TokenReader, "}");
 					break;
 				}
@@ -69,33 +69,49 @@ namespace AScript.TokenHandlers
 
 		private Tuple<DefineVarNode, ITreeNode> BuildCatch(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullTreeNodeOptions)
 		{
-			// catch (
-			analyzer.ValidateNextToken(e.TokenReader, "(");
-
 			DefineVarNode exVarNode = null;
-			var nextToken = e.TokenReader.Read();
-			if (!nextToken.HasValue)
-			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid catch expression at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}), expect exception type or variable name");
-			}
-			if (nextToken.Value.Type == ETokenType.Word)
-			{
-				var exTypeName = nextToken.Value.Value;
-				var peekToken = e.TokenReader.Peek();
-				string exVarName = null;
-				if (peekToken.HasValue && peekToken.Value.Type == ETokenType.Word)
-				{
-					e.TokenReader.Read();
-					exVarName = peekToken.Value.Value;
-				}
-				exVarNode = PoolManage.CreateDefineVarNode(exVarName, exTypeName);
-			}
 
-			analyzer.ValidateNextToken(e.TokenReader, ")");
+			var nextToken = e.TokenReader.Peek();
+			if (nextToken.HasValue && nextToken.Value.IsSymbol("{"))
+			{
+				// catch{}
+				//e.TokenReader.Read();
+			}
+			else
+			{
+				// catch(...) or catch(...)
+				analyzer.ValidateNextToken(e.TokenReader, "(");
+				nextToken = e.TokenReader.Peek();
+				if (!nextToken.HasValue)
+				{
+					throw new Exceptions.ScriptAnalyzingException($"invalid catch expression at ({e.TokenReader.CharReader.CurrentLine},{e.TokenReader.CharReader.CurrentColumn}), expect ')' or exception type");
+				}
+
+				if (!nextToken.Value.IsSymbol(")"))
+				{
+					// catch(Exception) or catch(Exception ex)
+					if (nextToken.Value.Type == ETokenType.Word)
+					{
+						e.TokenReader.Read();
+						var exTypeName = nextToken.Value.Value;
+
+						var peekToken = e.TokenReader.Peek();
+						string exVarName = null;
+						if (peekToken.HasValue && peekToken.Value.Type == ETokenType.Word)
+						{
+							e.TokenReader.Read();
+							exVarName = peekToken.Value.Value;
+						}
+						exVarNode = PoolManage.CreateDefineVarNode(exVarName, exTypeName);
+					}
+				}
+
+				analyzer.ValidateNextToken(e.TokenReader, ")");
+			}
 
 			// catch body
 			analyzer.ValidateNextToken(e.TokenReader, "{");
-			var catchBody = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, createFullTreeNodeOptions, e.TokenReader, e.Control, e.Ignore, noblock: true);
+			var catchBody = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullTreeNodeOptions, e.TokenReader, e.Control, e.Ignore);
 			analyzer.ValidateNextToken(e.TokenReader, "}");
 
 			return Tuple.Create(exVarNode, catchBody);

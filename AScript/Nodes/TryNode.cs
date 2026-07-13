@@ -18,6 +18,10 @@ namespace AScript.Nodes
 			if (this.TryBody != null)
 			{
 				var bodyContext = new BuildContext(buildContext);
+				//{
+				//	ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
+				//	RewriteLocalVariables = false,
+				//};
 				var bodyExpr = this.TryBody.Build(bodyContext, scriptContext, options);
 				tryExpr = bodyContext.BuildBlock(scriptContext, options, bodyExpr);
 			}
@@ -38,12 +42,12 @@ namespace AScript.Nodes
 					{
 						if (catchNode.Item1.SystemType == null)
 						{
-							if (!string.IsNullOrEmpty(catchNode.Item1.Name))
+							if (!string.IsNullOrEmpty(catchNode.Item1.Type))
 							{
-								exVarType = scriptContext.EvalType(catchNode.Item1.Name);
+								exVarType = scriptContext.EvalType(catchNode.Item1.Type);
 								if (exVarType == null)
 								{
-									throw new Exceptions.ScriptRuntimeException($"unkown exception type '{catchNode.Item1.Name}'");
+									throw new Exceptions.ScriptRuntimeException($"unkown exception type '{catchNode.Item1.Type}'");
 								}
 							}
 						}
@@ -56,6 +60,10 @@ namespace AScript.Nodes
 
 					// Create a new context for the catch block to isolate variables
 					var catchContext = new BuildContext(buildContext);
+					//{
+					//	ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
+					//	RewriteLocalVariables = false,
+					//};
 					ParameterExpression exVar = null;
 					if (!string.IsNullOrEmpty(exVarName))
 					{
@@ -96,6 +104,10 @@ namespace AScript.Nodes
 			if (this.FinallyBody != null)
 			{
 				var finallyContext = new BuildContext(buildContext);
+				//{
+				//	ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
+				//	RewriteLocalVariables = false,
+				//};
 				var finallyBody = this.FinallyBody.Build(finallyContext, scriptContext, options);
 				finallyExpr = finallyContext.BuildBlock(scriptContext, options, finallyBody);
 			}
@@ -135,7 +147,7 @@ namespace AScript.Nodes
 					if (catchNode.Item2 != null)
 					{
 						var catchContext = ScriptContext.Create(context);
-						if (!string.IsNullOrEmpty(catchNode.Item1.Name))
+						if (!string.IsNullOrEmpty(catchNode.Item1?.Name))
 						{
 							catchContext.SetVar(catchNode.Item1.Name, caughtException);
 						}
@@ -159,6 +171,7 @@ namespace AScript.Nodes
 
 		private bool IsMatched(ScriptContext context, DefineVarNode exNode, Exception ex)
 		{
+			if (exNode == null) return true;
 			if (exNode.SystemType != null)
 			{
 				return exNode.SystemType.IsAssignableFrom(ex.GetType());
@@ -170,7 +183,7 @@ namespace AScript.Nodes
 				{
 					return systemType.IsAssignableFrom(ex.GetType());
 				}
-				return ex.GetType().Name == ex.GetType().Name;
+				return ex.GetType().Name == exNode.Type;
 			}
 			return true;
 		}
