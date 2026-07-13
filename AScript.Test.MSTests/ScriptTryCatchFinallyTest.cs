@@ -369,6 +369,51 @@ n;
 		}
 
 		[TestMethod]
+		public void Test10_MultipleCatch_SecondMatch2()
+		{
+			string s = @"
+int n=0;
+try {
+	throw new FormatException(""error"");
+} catch(ArgumentException) {
+	n=1;
+} catch(FormatException) {
+	n=2;
+} catch(Exception) {
+	n=10;
+} finally {
+	n+=100;
+}
+n;
+";
+			var script = new Script();
+			Assert.AreEqual(102, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test10_MultipleCatch_SecondMatch2_CompileAll()
+		{
+			string s = @"
+int n=0;
+try {
+	throw new FormatException(""error"");
+} catch(ArgumentException) {
+	n=1;
+} catch(FormatException) {
+	n=2;
+} catch(Exception) {
+	n=10;
+} finally {
+	n+=100;
+}
+n;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(102, script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test11_MultipleCatch_LastMatch()
 		{
 			string s = @"

@@ -67,7 +67,7 @@ namespace AScript.TokenHandlers
 			}
 		}
 
-		private Tuple<DefineVarNode, ITreeNode> BuildCatch(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullTreeNodeOptions)
+		protected virtual Tuple<DefineVarNode, ITreeNode> BuildCatch(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullTreeNodeOptions)
 		{
 			DefineVarNode exVarNode = null;
 

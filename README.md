@@ -36,6 +36,8 @@ C#动态脚本解析编译执行引擎
 * 支持if/else语句
 * 支持for/while/foreach语句
 * 支持continue/break/return
+* 支持throw语句
+* 支持try-catch-finally语句
 * 支持自定义语法解析（自定义关键字）
 * 支持流式读取表达式
 * 支持自定义脚本语言，已实现CSharp/Python3/SQL/JavaScript四种语言
@@ -391,6 +393,27 @@ default:
 ";
 var script = new Script();
 Assert.AreEqual(10, script.Eval(s));
+```
+
+#### 异常处理
+```
+string s = @"
+int n=0;
+try {
+	throw new FormatException('error');
+} catch(ArgumentException) {
+	n=1;
+} catch(FormatException) {
+	n=2;
+} catch(Exception) {
+	n=10;
+} finally {
+	n+=100
+}
+n;
+";
+var script = new Script();
+Assert.AreEqual(102, script.Eval(s));
 ```
 
 #### LINQ
