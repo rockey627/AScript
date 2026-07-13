@@ -1,3 +1,4 @@
+using AScript.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -137,6 +138,10 @@ namespace AScript.Nodes
 				try
 				{
 					result = this.TryBody.Eval(context, options, control, out returnType);
+				}
+				catch (ScriptException)
+				{
+					throw;
 				}
 				catch (Exception ex)
 				{
