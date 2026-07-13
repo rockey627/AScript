@@ -106,6 +106,7 @@ namespace AScript.Lang.JavaScript
 			AddTokenHandler("false", BoolTokenHandler.Instance);
 			AddTokenHandler("await", AwaitTokenHandler.Instance);
 			AddTokenHandler("throw", ThrowTokenHandler.Instance);
+			AddTokenHandler("try", JavaScriptTryTokenHandler.Instance);
 			AddTokenHandler("new", NewTokenHandler.Instance);
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			AddTokenHandler("break", BreakTokenHandler.Instance);
@@ -146,9 +147,12 @@ namespace AScript.Lang.JavaScript
 				return source;
 			}
 
-			public static void clearTimeout(CancellationTokenSource source)
+			public static void clearTimeout(object timeoutObj)
 			{
-				source.Cancel();
+				if (timeoutObj is CancellationTokenSource cancellationTokenSource)
+				{
+					cancellationTokenSource.Cancel();
+				}
 			}
 
 			public static Timer setInterval(Delegate del, long ms, params object[] args)
@@ -160,10 +164,13 @@ namespace AScript.Lang.JavaScript
 				return timer;
 			}
 
-			public static void clearInterval(Timer timer)
+			public static void clearInterval(object intervalObj)
 			{
-				try { timer.Change(0, 0); } catch { }
-				try { timer.Dispose(); } catch { }
+				if (intervalObj is Timer time)
+				{
+					try { time.Change(0, 0); } catch { }
+					try { time.Dispose(); } catch { }
+				}
 			}
 		}
 	}

@@ -1317,9 +1317,50 @@ result;
 		}
 
 		[TestMethod]
+		public async Task TestClearTimeout_InvalidHandle_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			// clearTimeout with null or already cancelled source should not throw
+			string code = @"
+var result = 'ok';
+try {
+	clearTimeout(null);
+} catch(e) {
+	result = 'error';
+}
+result;
+";
+			var result = await script.EvalAsync<object>(code);
+			Assert.AreEqual("ok", result);
+		}
+
+		[TestMethod]
 		public async Task TestClearInterval_InvalidHandle()
 		{
 			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var result = 'ok';
+try {
+	clearInterval(null);
+} catch(e) {
+	result = 'error';
+}
+result;
+";
+			var result = await script.EvalAsync<object>(code);
+			Assert.AreEqual("ok", result);
+		}
+
+		[TestMethod]
+		public async Task TestClearInterval_InvalidHandle_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
 
 			string code = @"
