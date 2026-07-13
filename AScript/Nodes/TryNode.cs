@@ -1,9 +1,7 @@
-using AScript.Exceptions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AScript.Nodes
 {
@@ -19,8 +17,9 @@ namespace AScript.Nodes
 			Expression tryExpr;
 			if (this.TryBody != null)
 			{
-				tryExpr = this.TryBody.Build(buildContext, scriptContext, options);
-				tryExpr = buildContext.BuildBlock(scriptContext, options, tryExpr);
+				var bodyContext = new BuildContext(buildContext);
+				var bodyExpr = this.TryBody.Build(bodyContext, scriptContext, options);
+				tryExpr = bodyContext.BuildBlock(scriptContext, options, bodyExpr);
 			}
 			else
 			{
@@ -28,60 +27,84 @@ namespace AScript.Nodes
 			}
 
 			// Build catch blocks
-			var catchBlocks = new List<CatchBlock>();
+			var catchBlocks = new CatchBlock[this.CatchNodes == null ? 0 : this.CatchNodes.Count];
 			if (this.CatchNodes != null)
 			{
-				foreach (var catchNode in this.CatchNodes)
+				for (int i = 0; i < this.CatchNodes.Count; i++)
 				{
-					var exVarType = catchNode.Item1?.SystemType ?? typeof(Exception);
-					var exVarName = catchNode.Item1?.Name ?? "ex";
+					var catchNode = this.CatchNodes[i];
+					var exVarType = typeof(Exception);
+					if (catchNode.Item1 != null)
+					{
+						if (catchNode.Item1.SystemType == null)
+						{
+							if (!string.IsNullOrEmpty(catchNode.Item1.Name))
+							{
+								exVarType = scriptContext.EvalType(catchNode.Item1.Name);
+								if (exVarType == null)
+								{
+									throw new Exceptions.ScriptRuntimeException($"unkown exception type '{catchNode.Item1.Name}'");
+								}
+							}
+						}
+						else
+						{
+							exVarType = catchNode.Item1.SystemType;
+						}
+					}
+					var exVarName = catchNode.Item1?.Name;
 
 					// Create a new context for the catch block to isolate variables
 					var catchContext = new BuildContext(buildContext);
-					var exVar = Expression.Variable(exVarType, exVarName);
-					catchContext.Variables[exVarName] = exVar;
-					catchContext.LocalVariables.Add(exVarName);
+					ParameterExpression exVar = null;
+					if (!string.IsNullOrEmpty(exVarName))
+					{
+						exVar = Expression.Variable(exVarType, exVarName);
+						catchContext.Variables[exVarName] = exVar;
+						catchContext.LocalVariables.Add(exVarName);
+					}
 
 					Expression catchBody;
 					if (catchNode.Item2 != null)
 					{
-						catchBody = catchNode.Item2.Build(catchContext, scriptContext, options);
-						catchBody = catchContext.BuildBlock(scriptContext, options, catchBody);
+						var catchBodyExpr = catchNode.Item2.Build(catchContext, scriptContext, options);
+						catchBody = catchContext.BuildBlock(scriptContext, options, catchBodyExpr);
 					}
 					else
 					{
 						catchBody = Expression.Empty();
 					}
 
-					var catchBlock = Expression.Catch(exVar, catchBody);
-					catchBlocks.Add(catchBlock);
+					var catchBlock = exVar == null ? Expression.Catch(exVarType, catchBody) : Expression.Catch(exVar, catchBody);
+					catchBlocks[i] = catchBlock;
 				}
 			}
 
-			// If no catch nodes, add a general catch for Exception
-			if (catchBlocks.Count == 0)
-			{
-				var catchContext = new BuildContext(buildContext);
-				var exVar = Expression.Variable(typeof(Exception), "ex");
-				catchContext.Variables["ex"] = exVar;
-				catchContext.LocalVariables.Add("ex");
-				var catchBlock = Expression.Catch(exVar, Expression.Empty());
-				catchBlocks.Add(catchBlock);
-			}
+			//// If no catch nodes, add a general catch for Exception
+			//if (catchBlocks.Count == 0)
+			//{
+			//	var catchContext = new BuildContext(buildContext);
+			//	var exVar = Expression.Variable(typeof(Exception), "ex");
+			//	catchContext.Variables["ex"] = exVar;
+			//	catchContext.LocalVariables.Add("ex");
+			//	var catchBlock = Expression.Catch(exVar, Expression.Empty());
+			//	catchBlocks.Add(catchBlock);
+			//}
 
 			// Build finally body
 			Expression finallyExpr;
 			if (this.FinallyBody != null)
 			{
-				finallyExpr = this.FinallyBody.Build(buildContext, scriptContext, options);
-				finallyExpr = buildContext.BuildBlock(scriptContext, options, finallyExpr);
+				var finallyContext = new BuildContext(buildContext);
+				var finallyBody = this.FinallyBody.Build(finallyContext, scriptContext, options);
+				finallyExpr = finallyContext.BuildBlock(scriptContext, options, finallyBody);
 			}
 			else
 			{
 				finallyExpr = Expression.Empty();
 			}
 
-			return Expression.TryCatchFinally(tryExpr, finallyExpr, catchBlocks.ToArray());
+			return Expression.TryCatchFinally(tryExpr, finallyExpr, catchBlocks);
 		}
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
@@ -91,48 +114,39 @@ namespace AScript.Nodes
 			Exception caughtException = null;
 
 			// Execute try body
-			try
+			if (this.TryBody != null)
 			{
-				if (this.TryBody != null)
+				try
 				{
 					result = this.TryBody.Eval(context, options, control, out returnType);
 				}
-			}
-			catch (Exception ex)
-			{
-				caughtException = ex;
+				catch (Exception ex)
+				{
+					caughtException = ex;
+				}
 			}
 
 			// Execute catch handlers if exception occurred
 			if (caughtException != null && this.CatchNodes != null)
 			{
-				foreach (var catchNode in this.CatchNodes)
+				var catchNode = this.CatchNodes.FirstOrDefault(a => IsMatched(context, a.Item1, caughtException));
+				if (catchNode != null)
 				{
-					var catchExType = catchNode.Item1?.SystemType ?? typeof(Exception);
-					if (catchExType.IsAssignableFrom(caughtException.GetType()))
+					if (catchNode.Item2 != null)
 					{
 						var catchContext = ScriptContext.Create(context);
-						var exVarName = catchNode.Item1?.Name ?? "ex";
-						var exVarType = catchNode.Item1?.SystemType ?? typeof(Exception);
-						catchContext.SetTempVar(exVarName, caughtException, exVarType, false);
-
-						if (catchNode.Item2 != null)
+						if (!string.IsNullOrEmpty(catchNode.Item1.Name))
 						{
-							result = catchNode.Item2.Eval(catchContext, options, control, out returnType);
+							catchContext.SetVar(catchNode.Item1.Name, caughtException);
 						}
-						caughtException = null; // Exception was caught
-						break;
+						result = catchNode.Item2.Eval(catchContext, options, control, out returnType);
 					}
+					caughtException = null;
 				}
 			}
 
 			// Execute finally body
-			object finallyResult = null;
-			Type finallyReturnType = null;
-			if (this.FinallyBody != null)
-			{
-				finallyResult = this.FinallyBody.Eval(context, options, control, out finallyReturnType);
-			}
+			this.FinallyBody?.Eval(context, options, control, out _);
 
 			// If an exception occurred but was not caught, rethrow it
 			if (caughtException != null)
@@ -140,69 +154,25 @@ namespace AScript.Nodes
 				throw caughtException;
 			}
 
-			// Finally's result doesn't override the try/catch result
 			return result;
 		}
 
-		public override async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
+		private bool IsMatched(ScriptContext context, DefineVarNode exNode, Exception ex)
 		{
-			object result = null;
-			Type returnType = null;
-			Exception caughtException = null;
-
-			// Execute try body
-			try
+			if (exNode.SystemType != null)
 			{
-				if (this.TryBody != null)
+				return exNode.SystemType.IsAssignableFrom(ex.GetType());
+			}
+			if (!string.IsNullOrEmpty(exNode.Type))
+			{
+				var systemType = context.EvalType(exNode.Type);
+				if (systemType != null)
 				{
-					var evalResult = await this.TryBody.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
-					result = evalResult.Value;
-					returnType = evalResult.Type;
+					return systemType.IsAssignableFrom(ex.GetType());
 				}
+				return ex.GetType().Name == ex.GetType().Name;
 			}
-			catch (Exception ex)
-			{
-				caughtException = ex;
-			}
-
-			// Execute catch handlers if exception occurred
-			if (caughtException != null && this.CatchNodes != null)
-			{
-				foreach (var catchNode in this.CatchNodes)
-				{
-					var catchExType = catchNode.Item1?.SystemType ?? typeof(Exception);
-					if (catchExType.IsAssignableFrom(caughtException.GetType()))
-					{
-						var catchContext = ScriptContext.Create(context);
-						var exVarName = catchNode.Item1?.Name ?? "ex";
-						var exVarType = catchNode.Item1?.SystemType ?? typeof(Exception);
-						catchContext.SetTempVar(exVarName, caughtException, exVarType, false);
-
-						if (catchNode.Item2 != null)
-						{
-							var evalResult = await catchNode.Item2.EvalAsync(catchContext, options, control, cancellationToken).ConfigureAwait(false);
-							result = evalResult.Value;
-							returnType = evalResult.Type;
-						}
-						caughtException = null; // Exception was caught
-						break;
-					}
-				}
-			}
-
-			// Execute finally body
-			if (this.FinallyBody != null)
-			{
-				await this.FinallyBody.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
-			}
-
-			// If an exception occurred but was not caught, rethrow it
-			if (caughtException != null)
-			{
-				throw caughtException;
-			}
-
-			return new EvalResult(result, returnType);
+			return true;
 		}
 
 		public override void Clear()
@@ -211,13 +181,13 @@ namespace AScript.Nodes
 
 			if (this.TryBody != null)
 			{
-				this.TryBody.Clear();
+				PoolManage.Return(this.TryBody);
 				this.TryBody = null;
 			}
 
 			if (this.FinallyBody != null)
 			{
-				this.FinallyBody.Clear();
+				PoolManage.Return(this.FinallyBody);
 				this.FinallyBody = null;
 			}
 
@@ -225,15 +195,10 @@ namespace AScript.Nodes
 			{
 				foreach (var catchNode in this.CatchNodes)
 				{
-					if (catchNode.Item1 != null)
-					{
-						catchNode.Item1.Clear();
-					}
-					if (catchNode.Item2 != null)
-					{
-						catchNode.Item2.Clear();
-					}
+					PoolManage.Return(catchNode.Item1);
+					PoolManage.Return(catchNode.Item2);
 				}
+				this.CatchNodes.Clear();
 				this.CatchNodes = null;
 			}
 		}
