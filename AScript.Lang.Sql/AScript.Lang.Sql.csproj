@@ -25,9 +25,9 @@ Assert.AreEqual("tony", list[0].name);
 Assert.AreEqual(10, list[0].age);
 			]]>
 		</Description>
-		<Version>0.0.2.1</Version>
+		<Version>0.0.3.0</Version>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>修复创建表字段默认值问题</PackageReleaseNotes>
+		<PackageReleaseNotes>AScript1.0.4</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
