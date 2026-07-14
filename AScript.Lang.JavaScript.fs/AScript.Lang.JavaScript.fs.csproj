@@ -18,13 +18,15 @@ JavaScriptLang.Instance.AddModule("fs", new JavaScriptFileSystemModule());
 // 引入fs并调用相关方法
 string s = @"
 var fs = require('fs');
-
+fs.writeFileSync('test.txt', 'hello world', 'utf-8');
+fs.readFileSync('test.txt', 'utf-8');
 ";
 var script = new Script();
 script.Context.Langs = new [] { "js" };
 // 或者在当前上下文环境中注册fs模块
 //script.Context.AddModule("fs", new JavaScriptFileSystemModule());
-script.Eval(s);
+var result = script.Eval(s);
+Assert.AreEqual("hello world", result);
 			]]>
 		</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
