@@ -1101,6 +1101,29 @@ handle;
 		}
 
 		[TestMethod]
+		public async Task TestSetTimeout_Basic_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var result = 0;
+function onTimeout() {
+	result = 42;
+}
+var handle = setTimeout(onTimeout, 50);
+handle;
+";
+			var handle = await script.EvalAsync<object>(code);
+			Assert.IsNotNull(handle);
+
+			// Wait for the timeout to fire
+			await Task.Delay(100);
+			Assert.AreEqual(42L, script.Eval("result"));
+		}
+
+		[TestMethod]
 		public async Task TestSetTimeout_WithArgs()
 		{
 			var script = new Script();
@@ -1414,7 +1437,7 @@ handle;
 			Assert.IsNotNull(handle);
 
 			// With 0 interval, it should fire rapidly - let it run briefly then clear
-			await Task.Delay(50);
+			await Task.Delay(1250);
 			script.Eval("clearInterval(handle)");
 
 			// Should have fired many times

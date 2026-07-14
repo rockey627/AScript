@@ -1060,34 +1060,37 @@ namespace AScript
 			//}
 			//var result = d.DynamicInvoke(argValues);
 			ParameterInfo[] parameters = null;
-			for (int i = 0; i < e.ArgValues.Length; i++)
+			if (e.ArgValues != null)
 			{
-				var arg = e.ArgValues[i];
-				if (ScriptUtils.IsDefineFuncNode(arg))
+				for (int i = 0; i < e.ArgValues.Length; i++)
 				{
-					if (parameters == null) parameters = d.Method.GetParameters();
-					e.ArgValues[i] = ScriptUtils.TryParseDelegateArg(e.Context, e.Options, e.Control, arg, parameters[i].ParameterType);
+					var arg = e.ArgValues[i];
+					if (ScriptUtils.IsDefineFuncNode(arg))
+					{
+						if (parameters == null) parameters = d.Method.GetParameters();
+						e.ArgValues[i] = ScriptUtils.TryParseDelegateArg(e.Context, e.Options, e.Control, arg, parameters[i].ParameterType);
+					}
+					//if (arg is DefineFuncNode node)
+					//{
+					//	var f = node.Eval(e.Context, e.Options, e.Control, out _);
+					//	if (f is CustomFunctionObject cfo)
+					//	{
+					//		if (parameters == null) parameters = d.Method.GetParameters();
+					//		f = cfo.Compile(parameters[i].ParameterType, e.Options);
+					//	}
+					//	e.ArgValues[i] = f;
+					//}
+					//else if (arg is CustomFunction func)
+					//{
+					//	if (parameters == null) parameters = d.Method.GetParameters();
+					//	e.ArgValues[i] = func.Compile(parameters[i].ParameterType, e.Context, e.Options);
+					//}
+					//else if (arg is CustomFunctionObject cfo)
+					//{
+					//	if (parameters == null) parameters = d.Method.GetParameters();
+					//	e.ArgValues[i] = cfo.Compile(parameters[i].ParameterType, e.Options);
+					//}
 				}
-				//if (arg is DefineFuncNode node)
-				//{
-				//	var f = node.Eval(e.Context, e.Options, e.Control, out _);
-				//	if (f is CustomFunctionObject cfo)
-				//	{
-				//		if (parameters == null) parameters = d.Method.GetParameters();
-				//		f = cfo.Compile(parameters[i].ParameterType, e.Options);
-				//	}
-				//	e.ArgValues[i] = f;
-				//}
-				//else if (arg is CustomFunction func)
-				//{
-				//	if (parameters == null) parameters = d.Method.GetParameters();
-				//	e.ArgValues[i] = func.Compile(parameters[i].ParameterType, e.Context, e.Options);
-				//}
-				//else if (arg is CustomFunctionObject cfo)
-				//{
-				//	if (parameters == null) parameters = d.Method.GetParameters();
-				//	e.ArgValues[i] = cfo.Compile(parameters[i].ParameterType, e.Options);
-				//}
 			}
 			var argValues = e.ArgValues;
 			var argTypes = e.ArgTypes;
@@ -1758,7 +1761,7 @@ namespace AScript
 				}
 				else
 				{
-					args[i] = PoolManage.CreateObjectNode(argValue, argValue?.GetType() ?? argTypes[i]);
+					args[i] = PoolManage.CreateObjectNode(argValue, argValue?.GetType() ?? argTypes?[i]);
 				}
 			}
 			var result = EvalFunc(options ?? new BuildOptions(Script.DefaultOptions), null, name, isPrefix, args, out returnType);
@@ -1940,6 +1943,22 @@ namespace AScript
 				}
 			}
 			return null;
+		}
+
+		public override bool HasFunc(string name)
+		{
+			var context = this;
+			while (context != null)
+			{
+				var customFunctions = context._CustomFunctions;
+				if (customFunctions != null && customFunctions.ContainsKey(name)) return true;
+				var tempFunctions = context._TempFunctions;
+				if (tempFunctions != null && tempFunctions.ContainsKey(name)) return true;
+				var functions = context._Functions;
+				if (functions != null && functions.ContainsKey(name)) return true;
+				context = context.Parent;
+			}
+			return false;
 		}
 
 		private static CustomFunction GetFunc(IList<CustomFunction> list, IList<Type> argTypes)

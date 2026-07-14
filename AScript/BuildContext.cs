@@ -316,6 +316,21 @@ namespace AScript
 			list.Add(d);
 		}
 
+		public bool HasFunc(string name)
+		{
+			var context = this;
+			do
+			{
+				if (context.TempFunctions != null
+					&& context.TempFunctions.ContainsKey(name))
+				{
+					return true;
+				}
+				context = context.Parent;
+			} while (context != null);
+			return false;
+		}
+
 		public Expression GetEvent(ScriptContext scriptContext, string name, Type delegateType)
 		{
 			string eventKey = $"{name}_{delegateType.GetHashCode()}";

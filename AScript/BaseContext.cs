@@ -576,6 +576,13 @@ namespace AScript
 			_TokenHandlers.Add(handler);
 		}
 
+		public virtual bool HasFunc(string name)
+		{
+			var functions = _Functions;
+			if (functions == null) return false;
+			return functions.ContainsKey(name);
+		}
+
 		public void AddFunc(string name, IFunctionEvaluator func)
 		{
 			Init_FunctionEvaluators();

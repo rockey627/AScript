@@ -1,6 +1,7 @@
 ﻿using AScript.Exceptions;
 using System;
 using System.Linq.Expressions;
+using System.Runtime.InteropServices;
 
 namespace AScript.Nodes
 {
@@ -17,6 +18,12 @@ namespace AScript.Nodes
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
 			var value = context.EvalVar(this.Name, out returnType);
+			if (returnType == null && context.HasFunc(this.Name))
+			{
+				value = new ScriptFunctionObject(context, this.Name);
+				returnType = value.GetType();
+				return value;
+			}
 			if (returnType == null && (options.ThrowIfVariableNotExists ?? false))
 			{
 				throw new ScriptAnalyzingException($"variable {this.Name} is not exists");
@@ -45,6 +52,10 @@ namespace AScript.Nodes
 			var value = scriptContext.EvalVar(this.Name, out var type);
 			if (type == null)
 			{
+				if (buildContext.HasFunc(this.Name) || scriptContext.HasFunc(this.Name))
+				{
+					return Expression.Constant(new ScriptFunctionObject(scriptContext, this.Name));
+				}
 				if (options.ThrowIfVariableNotExists ?? false)
 				{
 					throw new ScriptAnalyzingException($"variable {this.Name} is not exists");

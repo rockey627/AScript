@@ -147,6 +147,14 @@ namespace AScript.Lang.JavaScript
 				return source;
 			}
 
+			public static CancellationTokenSource setTimeout(IFunctionObject del, long ms, params object[] args)
+			{
+				var source = new CancellationTokenSource();
+				var token = source.Token;
+				Task.Delay((int)ms, token).ContinueWith(t => del.DynamicInvoke(args), token);
+				return source;
+			}
+
 			public static void clearTimeout(object timeoutObj)
 			{
 				if (timeoutObj is CancellationTokenSource cancellationTokenSource)
@@ -160,7 +168,16 @@ namespace AScript.Lang.JavaScript
 				var timer = new Timer(new TimerCallback(obj =>
 				{
 					del.DynamicInvoke(args);
-				}), null, 0, ms);
+				}), null, 0, ms <= 0 ? 1 : ms);
+				return timer;
+			}
+
+			public static Timer setInterval(IFunctionObject del, long ms, params object[] args)
+			{
+				var timer = new Timer(new TimerCallback(obj =>
+				{
+					del.DynamicInvoke(args);
+				}), null, 0, ms <= 0 ? 1 : ms);
 				return timer;
 			}
 
