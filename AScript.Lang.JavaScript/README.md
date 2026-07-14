@@ -262,6 +262,87 @@ var result = script.Eval<long>("await Promise.any([Promise.resolve(1), Promise.r
 Assert.AreEqual(1L, result);
 ```
 
+#### 数学函数
+```
+Math.abs(-5); // 5
+Math.acos(0.5);
+Math.acosh(2);
+Math.asin(0.5);
+Math.asinh(2);
+Math.atan(1);
+Math.atan2(1, 1);
+Math.atanh(0.5);
+Math.tan(0);
+Math.tanh(0);
+Math.sign(5);
+Math.sin(0);
+Math.sinh(0);
+Math.cbrt(27);
+Math.ceil(5.1);
+Math.clz32(1);
+Math.cos(0);
+Math.cosh(0);
+Math.exp(1);
+Math.expm1(1);
+Math.floor(5.9); // 5.0
+Math.fround(5.5);
+Math.hypot(3, 4);
+Math.imul(2, 3);
+Math.log(1);
+Math.log10(100);
+Math.log1p(1);
+Math.log2(8);
+Math.max(1, 10, 5); // 10.0
+Math.min(1, 10, 5); // 1.0
+Math.pow(2, 3); // 8.0
+Math.random(); // [0,1)
+Math.round(5.4); // 5.0
+Math.sqrt(4); // 2.0
+Math.pow(3, 2); // 9.0
+Math.trunc(5.9); // 5.0
+Math.E;
+Math.PI;
+Math.SQRT2;
+Math.SQRT1_2;
+Math.LN2;
+Math.LN10;
+Math.LOG2E;
+Math.LOG10E;
+```
+
+#### setTimeout/clearTimeout
+```
+string code = @"
+var result = 0;
+function onTimeout(a, b) {
+result = a + b;
+}
+var handle = setTimeout(onTimeout, 50, 10, 20);
+handle;
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+script.Eval<object>(code);
+Thread.Sleep(100);
+Assert.AreEqual(30L, script.Eval("result"));
+```
+
+#### setInterval/clearInterval
+```
+string code = @"
+var count = 0;
+function handler() { count = 1; }
+var timer = setInterval(handler, 40);
+timer;
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+var timerObj = script.Eval<object>(code);
+Thread.Sleep(70);
+script.Eval("clearInterval(timer)");
+Assert.AreEqual(1L, script.Eval("count"));
+```
+
 #### fs文件操作
 注：服务端项目请谨慎添加文件模块，避免脚本中恶意删除、修改文件。
 
