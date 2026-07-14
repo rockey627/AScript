@@ -273,7 +273,7 @@ install-package AScript.Lang.JavaScript.fs
 // 添加fs模块
 JavaScriptLang.Instance.AddModule("fs", new JavaScriptFileSystemModule());
 ```
-* 读取文件
+* 同步读文件
 ```
 File.WriteAllText("test.txt", "hello world", System.Text.Encoding.UTF8);
 string s = @"
@@ -281,15 +281,120 @@ var fs = require('fs');
 fs.readFileSync('test.txt', 'utf-8')
 ";
 var script = new Script();
+script.Context.Langs = new[] { "js" };
 var result = script.Eval(s);
 Assert.AreEqual("hello world", result);
 ```
-* 文件操作相关方法
+* 异步读文件
 ```
-
+File.WriteAllText("test.txt", "async content", System.Text.Encoding.UTF8);
+string s = @"
+var fs = require('fs');
+await fs.readFile('test.txt', 'utf-8')
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+var result = await script.EvalAsync<string>(s);
+Assert.AreEqual("async content", result);
+```
+* 同步写文件
+```
+string s = @"
+var fs = require('fs');
+fs.writeFileSync('test.txt', 'hello world', 'utf-8');
+true
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+var result = script.Eval(s);
+Assert.AreEqual(true, result);
+Assert.AreEqual("hello world", File.ReadAllText("test.txt", System.Text.Encoding.UTF8));
+```
+* 异步写文件
+```
+string s = @"
+var fs = require('fs');
+await fs.writeFile('test.txt', 'async write', 'utf-8');
+true
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+var result = await script.EvalAsync<bool>(s);
+Assert.AreEqual(true, result);
+Assert.AreEqual("async write", File.ReadAllText("test.txt", System.Text.Encoding.UTF8));
+```
+* 其他方法
+```
+var fs = require('fs');
+fs.appendFileSync('test.txt', 'append content', 'utf-8'); // 同步追加文件
+fs.appendFile('test.txt', 'append context', 'utf-8'); // 异步追加文件
+fs.copyFileSync('test.txt', 'test_copy.txt'); // 同步拷贝文件
+fs.copyFile('test.txt', 'test_copy.txt'); // 异步拷贝文件
+fs.unlinkSync('test.txt'); // 同步删除文件
+fs.unlink('test.txt'); // 异步删除文件
+var reader = fs.createReadStream('test.txt'); // 读文件流
+var writer = fs.createWriteStream('test2.txt'); // 写文件流
+reader.pipe(writer); // 读取文件流并写入目标文件流
+// 读文件流事件：open/data/error/end/close
+reader.on('data', function(chunk) {
+    console.log(chunk);
+});
+reader.on('end', function() {
+    console.log('end');
+});
+// 写文件流事件：open/error/finish/close
+writer.on('open', ()=>console.log('open'));
+writer.on('close', ()=>console.log('close'));
+writer.write('hello');
+writer.end();
 ```
 
 #### axios
-```
+http网络模块。
 
+* 添加axios模块
+```
+// 添加nuget包
+install-package AScript.Lang.JavaScript.axios
+
+// 添加axios模块
+JavaScriptLang.Instance.AddModule("axios", new JavaScriptAxiosModule());
+```
+* get
+```
+string s = @"
+var axios = require('axios');
+await axios.get('http://test.com/api/user/list'); 
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+var result = script.Eval<dynamic>(s);
+var data = result.data;
+```
+* post
+```
+string s = @"
+var axios = require('axios');
+await axios.post('http://test.com/api/user/update', {code:'123',name:'tom'}); 
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+var result = script.Eval<dynamic>(s);
+var data = result.data;
+```
+* 其他方法
+```
+var axios = require('axios');
+var instance = axios.create({baseURL:'http://test.com'});
+instance.get('/api/user/list')
+	.then(res=>{})
+	.catch(err=>{});
+instance.post('/api/user/update', {code:'123',name:'tom'})
+	.then(res=>{})
+	.catch(err=>{});
+instance.put('/api/user', {});
+instance.delete('/api/user', {});
+// mock
+var mockInstance = axios.createMock([{code:'123',name:'tom'}, {code:'124',name:'john'}]);
+var resp = await mockInstance.get('http://test.com/api/user/list'); // resp.data: [{code:'123',name:'tom'}, {code:'124',name:'john'}]
 ```

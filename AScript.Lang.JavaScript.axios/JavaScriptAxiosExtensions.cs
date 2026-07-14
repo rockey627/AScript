@@ -26,6 +26,34 @@ namespace AScript.Lang.JavaScript.axios
 		public static HttpClient create(IHttpClientFactory factory, IDictionary<string, object> config)
 		{
 			var client = factory.CreateClient(JavaScriptAxiosModule.ClientName);
+			if (config != null)
+			{
+				if (config.TryGetValue("baseURL", out var url) && url != null)
+				{
+					client.BaseAddress = new Uri(url.ToString());
+				}
+				if (config.TryGetValue("timeout", out var timeout))
+				{
+					client.Timeout = TimeSpan.FromMilliseconds(Convert.ToInt32(timeout));
+				}
+				if (config.TryGetValue("headers", out var headers))
+				{
+					if (headers is IDictionary<string, object> dict1)
+					{
+						foreach (var item in dict1)
+						{
+							client.DefaultRequestHeaders.Add(item.Key, item.Value?.ToString());
+						}
+					}
+					else if (headers is IDictionary<string, string> dict2)
+					{
+						foreach (var item in dict2)
+						{
+							client.DefaultRequestHeaders.Add(item.Key, item.Value);
+						}
+					}
+				}
+			}
 			return client;
 		}
 
