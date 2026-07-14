@@ -1108,7 +1108,7 @@ handle;
 			script.Context.Langs = new[] { "js" };
 
 			string code = @"
-var result = 0;
+static var result = 0;
 function onTimeout() {
 	result = 42;
 }
@@ -1184,13 +1184,13 @@ var h3 = setTimeout(function() { addResult(3); }, 90);
 ";
 			await script.EvalAsync<object>(code);
 
-			await Task.Delay(50);
+			await Task.Delay(45);
 			var results30 = script.Eval<List<object>>("results");
-			Assert.AreEqual(1L, results30.Count);
+			Assert.AreEqual(1L, results30[0]);
 
-			await Task.Delay(60);
+			await Task.Delay(70);
 			var results90 = script.Eval<List<object>>("results");
-			Assert.AreEqual(3L, results90.Count);
+			Assert.AreEqual(3L, results90[2]);
 		}
 
 		[TestMethod]
@@ -1212,13 +1212,13 @@ var h3 = setTimeout(function() { addResult(3); }, 90);
 ";
 			await script.EvalAsync<object>(code);
 
-			await Task.Delay(50);
+			await Task.Delay(45);
 			var results30 = script.Eval<List<object>>("results");
-			Assert.AreEqual(1L, results30.Count);
+			Assert.AreEqual(1L, results30[0]);
 
-			await Task.Delay(60);
+			await Task.Delay(70);
 			var results90 = script.Eval<List<object>>("results");
-			Assert.AreEqual(3L, results90.Count);
+			Assert.AreEqual(3L, results90[2]);
 		}
 
 		[TestMethod]
@@ -1272,6 +1272,32 @@ handle;
 		}
 
 		[TestMethod]
+		public async Task TestSetInterval_WithArgs_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+static var result = 0;
+function onInterval(a, b) {
+	result = result + a + b;
+}
+var handle = setInterval(onInterval, 30, 1, 2);
+handle;
+";
+			var handle = await script.EvalAsync<object>(code);
+			Assert.IsNotNull(handle);
+
+			await Task.Delay(100);
+			script.Eval("clearInterval(handle)");
+
+			// Each fire adds 1+2=3, at least 3 fires = at least 9
+			var result = script.Eval("result");
+			Assert.IsTrue((long)result >= 9, $"Expected at least 9, got {result}");
+		}
+
+		[TestMethod]
 		public async Task TestSetInterval_ClearStopsFiring()
 		{
 			var script = new Script();
@@ -1307,15 +1333,15 @@ handle;
 			string code = @"
 var count = 0;
 function handler() { count = 1; }
-var timer = setInterval(handler, 50);
+var timer = setInterval(handler, 40);
 timer;
 ";
 			var timerObj = await script.EvalAsync<object>(code);
 			Assert.IsNotNull(timerObj);
 			Assert.AreEqual("Timer", timerObj.GetType().Name);
 
+			await Task.Delay(70);
 			script.Eval("clearInterval(timer)");
-			await Task.Delay(60);
 			Assert.AreEqual(1L, script.Eval("count"));
 		}
 

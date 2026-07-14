@@ -94,6 +94,7 @@ namespace AScript.Lang.JavaScript
 			InstallModule(new JavaScriptConsoleModule());
 			InstallModule(new JavaScriptJsonModule());
 
+			AddTokenHandler("static", StaticTokenHandler.Instance);
 			AddTokenHandler("var", VarTokenHandler.Instance);
 			AddTokenHandler("let", VarTokenHandler.Instance);
 			AddTokenHandler("const", VarTokenHandler.Instance);
@@ -168,7 +169,7 @@ namespace AScript.Lang.JavaScript
 				var timer = new Timer(new TimerCallback(obj =>
 				{
 					del.DynamicInvoke(args);
-				}), null, 0, ms <= 0 ? 1 : ms);
+				}), null, 0, ms < 10 ? 10 : ms);
 				return timer;
 			}
 
@@ -177,7 +178,7 @@ namespace AScript.Lang.JavaScript
 				var timer = new Timer(new TimerCallback(obj =>
 				{
 					del.DynamicInvoke(args);
-				}), null, 0, ms <= 0 ? 1 : ms);
+				}), null, 0, ms < 10 ? 10 : ms);
 				return timer;
 			}
 
