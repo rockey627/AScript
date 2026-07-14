@@ -13,7 +13,7 @@ js fs模块；
 快速开始：
 // 注册js脚本语言
 Script.Langs.Set("js", JavaScriptLang.Instance);
-// 语言环境中注册axios模块
+// 语言环境中注册fs模块
 JavaScriptLang.Instance.AddModule("fs", new JavaScriptFileSystemModule());
 // 引入fs并调用相关方法
 string s = @"
@@ -42,7 +42,10 @@ Assert.AreEqual("hello world", result);
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\AScript.Lang.JavaScript\AScript.Lang.JavaScript.csproj" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\AScript\AScript.csproj" />
 	</ItemGroup>
 
