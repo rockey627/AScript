@@ -1,6 +1,5 @@
 ﻿using AScript.Functions;
 using AScript.Lang.JavaScript.Extensions;
-using AScript.Lang.JavaScript.Operators;
 using AScript.Lang.JavaScript.TokenHandlers;
 using AScript.Operators;
 using AScript.TokenHandlers;
@@ -65,7 +64,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc("==", EqualOperator.Instance);
 			AddFunc("!=", NotEqualOperator.Instance);
 			AddFunc("&&", AndAlsoOperator.Instance);
-			AddFunc("||", JavaScriptOrElseOperator.Instance);
+			AddFunc("||", OrElseOperator.Instance);
 			AddFunc(".", DotOperator.Instance);
 			AddFunc("?.", new DotOperator(true));
 			AddFunc("[]", IndexOperator.Instance);
@@ -141,7 +140,7 @@ namespace AScript.Lang.JavaScript
 			return JavaScriptSyntaxAnalyzer.Instance;
 		}
 
-		public static bool IsTrue(object obj)
+		public override bool IsTrue(object obj)
 		{
 			if (obj == null) return false;
 			if (obj == JavaScriptUndefined.Instance) return false;

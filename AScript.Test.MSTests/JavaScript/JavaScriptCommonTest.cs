@@ -1649,7 +1649,7 @@ a || (b+='hello')
 		{
 			string code = @"
 var a = 'abc';
-var b = 'b';
+var b = 'ok';
 a || (b+='hello')
 ";
 			var script = new Script();
@@ -1658,5 +1658,60 @@ a || (b+='hello')
 			Assert.AreEqual("abc", script.Eval(code));
 			Assert.AreEqual("ok", script.Eval("b"));
 		}
+
+		[TestMethod]
+		public void Test64_AndAlso()
+		{
+			string code = @"
+var a = '';
+a && 'hello'
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(false, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test64_AndAlso_CompileAll()
+		{
+			string code = @"
+var a = '';
+a && 'hello'
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(false, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test64_AndAlso2()
+		{
+			string code = @"
+var a = 'abc';
+var b = 'ok';
+a && (b+='hello')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(true, script.Eval(code));
+			Assert.AreEqual("okhello", script.Eval("b"));
+		}
+
+		[TestMethod]
+		public void Test64_AndAlso2_CompileAll()
+		{
+			string code = @"
+var a = 'abc';
+var b = 'ok';
+a && (b+='hello')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(true, script.Eval(code));
+			Assert.AreEqual("okhello", script.Eval("b"));
+		}
+
 	}
 }

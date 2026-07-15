@@ -357,6 +357,36 @@ namespace AScript
 		}
 
 		/// <summary>
+		/// 当前语言判断对象是否为真
+		/// </summary>
+		/// <returns></returns>
+		public bool IsTrue(object obj)
+		{
+			var langs = this.Langs;
+			if (langs == null || langs.Length == 0)
+			{
+				foreach (var item in Script.Langs.GetDefaults())
+				{
+					if (Script.Langs.TryGetValue(item, out var lang))
+					{
+						return lang.IsTrue(obj);
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < langs.Length; i++)
+				{
+					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					{
+						return lang.IsTrue(obj);
+					}
+				}
+			}
+			return (bool)obj;
+		}
+
+		/// <summary>
 		/// 对象内部成员（构造函数、属性、字段、方法）是否可用
 		/// </summary>
 		/// <param name="objType"></param>

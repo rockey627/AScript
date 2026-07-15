@@ -31,6 +31,7 @@ namespace AScript
 		public static readonly MethodInfo Method_ScriptContext_SetTempVar = typeof(ScriptContext).GetMethod("SetTempVar", new Type[] { typeof(string), typeof(object), typeof(Type), typeof(bool) });
 		public static readonly MethodInfo Method_ScriptContext_EvalFunc_Values = typeof(ScriptContext).GetMethod("EvalFunc", new Type[] { typeof(string), typeof(IList<object>), typeof(IList<Type>) });
 		public static readonly MethodInfo Method_ScriptContext_AddTempFunc = typeof(ScriptContext).GetMethod("AddTempFunc", new Type[] { typeof(string), typeof(Delegate) });
+		public static readonly MethodInfo Method_ScriptContext_IsTrue = typeof(ScriptContext).GetMethod("IsTrue", new Type[] { typeof(object) });
 
 		public static readonly MethodInfo Method_ITreeNode_Eval = typeof(ITreeNode).GetMethod("Eval", new Type[] { typeof(ScriptContext), typeof(BuildOptions), typeof(EvalControl), typeof(Type).MakeByRefType() });
 

@@ -68,46 +68,10 @@ namespace AScript
 			return dict != null && dict.ContainsKey(word);
 		}
 
-		//protected static Delegate GetFunc(List<Delegate> list, IList<Type> argTypes, out bool useScriptContext)
-		//{
-		//	for (int i = list.Count - 1; i >= 0; i--)
-		//	{
-		//		var d = list[i];
-		//		if (ScriptUtils.IsMatchArgTypes(argTypes, d.Method, out useScriptContext, out _))
-		//		{
-		//			return d;
-		//		}
-		//		//var defineArgTypes = d.Method.GetParameters()
-		//		//	.Where(a => a.ParameterType.FullName != "System.Runtime.CompilerServices.Closure")
-		//		//	.Select(a => a.ParameterType).ToArray();
-		//		//if (ScriptUtils.IsMatchArgTypes(argTypes, defineArgTypes))
-		//		//{
-		//		//	useScriptContext = false;
-		//		//	return d;
-		//		//}
-		//		//if (defineArgTypes.Length > 0
-		//		//	&& argTypes.Count == defineArgTypes.Length - 1
-		//		//	&& ScriptUtils.IsMatchArgType(defineArgTypes[0], typeof(ScriptContext))
-		//		//	&& ScriptUtils.IsMatchArgTypes(argTypes, defineArgTypes, 1))
-		//		//{
-		//		//	// ScriptContext开头的参数匹配
-		//		//	useScriptContext = true;
-		//		//	return d;
-		//		//}
-		//	}
-		//	useScriptContext = false;
-		//	return null;
-		//}
-
-		//public Delegate GetFunc(string name, IList<Type> argTypes, out bool useScriptContext)
-		//{
-		//	if (Functions.TryGetValue(name, out var list))
-		//	{
-		//		return GetFunc(list, argTypes, out useScriptContext);
-		//	}
-		//	useScriptContext = false;
-		//	return null;
-		//}
+		public virtual bool IsTrue(object obj)
+		{
+			return (bool)obj;
+		}
 
 		public void EvalFunc(FunctionEvalArgs e)
 		{
