@@ -383,7 +383,8 @@ namespace AScript
 					}
 				}
 			}
-			return (bool)obj;
+			if (obj is bool b) return b;
+			throw new Exceptions.ScriptRuntimeException($"invalid object of type '{obj?.GetType()}', expect bool type");
 		}
 
 		/// <summary>

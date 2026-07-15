@@ -1713,5 +1713,39 @@ a && (b+='hello')
 			Assert.AreEqual("okhello", script.Eval("b"));
 		}
 
+		[TestMethod]
+		public void Test65_if_object()
+		{
+			var s = @"
+var a = null;
+var b = 0;
+var c = 1;
+if (a) return 1;
+if (b) return 2;
+if (c) return 3;
+return 4;
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(3L, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test65_if_object_CompileAll()
+		{
+			var s = @"
+var a = null;
+var b = 0;
+var c = 1;
+if (a) return 1;
+if (b) return 2;
+if (c) return 3;
+return 4;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(3L, script.Eval(s));
+		}
 	}
 }

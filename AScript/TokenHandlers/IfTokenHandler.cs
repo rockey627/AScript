@@ -72,7 +72,10 @@ namespace AScript.TokenHandlers
 
 			var conditionResult = conditionBuilder.Eval(e.ScriptContext, e.Options, e.Control, out _);
 			PoolManage.Return(conditionBuilder);
-			if (!(conditionResult is bool b)) throw new Exceptions.ScriptRuntimeException("condition must be bool type");
+			bool b;
+			if (conditionResult is bool cr) b = cr;
+			else b = e.ScriptContext.IsTrue(conditionResult);
+			//if (!(conditionResult is bool b)) throw new Exceptions.ScriptRuntimeException("condition must be bool type");
 			if (b)
 			{
 				// 执行if语句
@@ -119,7 +122,10 @@ namespace AScript.TokenHandlers
 
 			var conditionResult = await conditionBuilder.EvalAsync(e.ScriptContext, e.Options, e.Control, cancellationToken).ConfigureAwait(false);
 			PoolManage.Return(conditionBuilder);
-			if (!(conditionResult.Value is bool b)) throw new Exceptions.ScriptRuntimeException("condition must be bool type");
+			bool b;
+			if (conditionResult.Value is bool cr) b = cr;
+			else b = e.ScriptContext.IsTrue(conditionResult.Value);
+			//if (!(conditionResult.Value is bool b)) throw new Exceptions.ScriptRuntimeException("condition must be bool type");
 			if (b)
 			{
 				// 执行if语句

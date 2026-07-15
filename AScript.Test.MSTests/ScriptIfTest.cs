@@ -12,6 +12,39 @@ namespace AScript.Test.MSTests
 	public class ScriptIfTest
 	{
 		[TestMethod]
+		public void Test21_if_return()
+		{
+			var s = @"
+var a = false;
+var b = false;
+var c = true;
+if (a) return 1;
+if (b) return 2;
+if (c) return 3;
+return 4;
+";
+			var script = new Script();
+			Assert.AreEqual(3, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test21_if_return_CompileAll()
+		{
+			var s = @"
+var a = false;
+var b = false;
+var c = true;
+if (a) return 1;
+if (b) return 2;
+if (c) return 3;
+return 4;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(3, script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test20_4()
 		{
 			string s = @"

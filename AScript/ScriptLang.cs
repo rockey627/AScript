@@ -70,7 +70,8 @@ namespace AScript
 
 		public virtual bool IsTrue(object obj)
 		{
-			return (bool)obj;
+			if (obj is bool b) return b;
+			throw new Exceptions.ScriptRuntimeException($"invalid object of type '{obj?.GetType()}', expect bool type");
 		}
 
 		public void EvalFunc(FunctionEvalArgs e)

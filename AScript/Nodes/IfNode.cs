@@ -53,11 +53,8 @@ namespace AScript.Nodes
 		{
 			if (this.Condition == null) return true;
 			var conditionResult = this.Condition.Eval(context, null, null, out var conditionType);
-			if (!(conditionResult is bool b))
-			{
-				throw new ScriptAnalyzingException($"invalid if condition type {conditionType}");
-			}
-			return b;
+			if (conditionResult is bool b) return b;
+			return context.IsTrue(conditionResult);
 		}
 
 		private async Task<bool> EvalConditionAsync(ScriptContext context, CancellationToken cancellationToken)
@@ -65,16 +62,18 @@ namespace AScript.Nodes
 			if (this.Condition == null) return true;
 			var result = await this.Condition.EvalAsync(context, null, null, cancellationToken).ConfigureAwait(false);
 			var conditionResult = result.Value;
-			if (!(conditionResult is bool b))
-			{
-				throw new ScriptAnalyzingException($"invalid if condition type {result.Type}");
-			}
-			return b;
+			if (conditionResult is bool b) return b;
+			return context.IsTrue(conditionResult);
 		}
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
 			var testExpr = this.Condition.Build(buildContext, scriptContext, options);
+			if (testExpr.Type != typeof(bool))
+			{
+				var isTrue0 = Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_IsTrue, testExpr);
+				testExpr = isTrue0;
+			}
 			var ifTrueExpr = this.Body.Build(buildContext, scriptContext, options);
 			if (this.Else == null)
 			{
