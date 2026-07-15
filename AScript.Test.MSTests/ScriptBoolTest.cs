@@ -11,6 +11,114 @@ namespace AScript.Test.MSTests
 	public class ScriptBoolTest
 	{
 		[TestMethod]
+		public void Test05_AndAlso2()
+		{
+			var s = @"
+var a = 'ok';
+true && (a+='hello')=='hello'
+";
+			var script = new Script();
+			Assert.IsFalse(script.Eval<bool>(s));
+			Assert.AreEqual("okhello", script.Eval("a"));
+		}
+
+		[TestMethod]
+		public void Test05_AndAlso2_CompileAll()
+		{
+			var s = @"
+var a = 'ok';
+true && (a+='hello')=='hello'
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.IsFalse(script.Eval<bool>(s));
+			Assert.AreEqual("okhello", script.Eval("a"));
+		}
+
+		[TestMethod]
+		public void Test05_AndAlso()
+		{
+			var a = "ok";
+			Assert.IsFalse(false && (a += "hello") == "hello");
+			Assert.AreEqual("ok", a);
+
+			var s = @"
+var a = 'ok';
+false && (a+='hello')=='hello'
+";
+			var script = new Script();
+			Assert.IsFalse(script.Eval<bool>(s));
+			Assert.AreEqual("ok", script.Eval("a"));
+		}
+
+		[TestMethod]
+		public void Test05_AndAlso_CompileAll()
+		{
+			var s = @"
+var a = 'ok';
+false && (a+='hello')=='hello'
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.IsFalse(script.Eval<bool>(s));
+			Assert.AreEqual("ok", script.Eval("a"));
+		}
+
+		[TestMethod]
+		public void Test04_OrElse2()
+		{
+			var s = @"
+var a = 'ok';
+false || (a+='hello')=='okhello'
+";
+			var script = new Script();
+			Assert.IsTrue(script.Eval<bool>(s));
+			Assert.AreEqual("okhello", script.Eval("a"));
+		}
+
+		[TestMethod]
+		public void Test04_OrElse2_CompileAll()
+		{
+			var s = @"
+var a = 'ok';
+false || (a+='hello')=='okhello'
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.IsTrue(script.Eval<bool>(s));
+			Assert.AreEqual("okhello", script.Eval("a"));
+		}
+
+		[TestMethod]
+		public void Test04_OrElse()
+		{
+			var a = "ok";
+			Assert.IsTrue(true || (a += "hello") == "hello");
+			Assert.AreEqual("ok", a);
+
+			var s = @"
+var a = 'ok';
+true || (a+='hello')=='hello'
+";
+			var script = new Script();
+			Assert.IsTrue(script.Eval<bool>(s));
+			Assert.AreEqual("ok", script.Eval("a"));
+		}
+
+		[TestMethod]
+		public void Test04_OrElse_CompileAll()
+		{
+			var s = @"
+var a = 'ok';
+true || (a+='hello')=='hello'
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.IsTrue(script.Eval<bool>(s));
+			Assert.AreEqual("ok", script.Eval("a"));
+		}
+
+		[TestMethod]
 		public void Test03()
 		{
 			Assert.IsTrue(!true == false);

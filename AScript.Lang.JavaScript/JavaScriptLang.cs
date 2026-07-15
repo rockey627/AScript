@@ -1,5 +1,6 @@
 ﻿using AScript.Functions;
 using AScript.Lang.JavaScript.Extensions;
+using AScript.Lang.JavaScript.Operators;
 using AScript.Lang.JavaScript.TokenHandlers;
 using AScript.Operators;
 using AScript.TokenHandlers;
@@ -64,7 +65,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc("==", EqualOperator.Instance);
 			AddFunc("!=", NotEqualOperator.Instance);
 			AddFunc("&&", AndAlsoOperator.Instance);
-			AddFunc("||", OrElseOperator.Instance);
+			AddFunc("||", JavaScriptOrElseOperator.Instance);
 			AddFunc(".", DotOperator.Instance);
 			AddFunc("?.", new DotOperator(true));
 			AddFunc("[]", IndexOperator.Instance);
@@ -100,6 +101,8 @@ namespace AScript.Lang.JavaScript
 			AddTokenHandler("const", VarTokenHandler.Instance);
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);
+			AddTokenHandler("||", LazyTokenHandler.Instance);
+			AddTokenHandler("&&", LazyTokenHandler.Instance);
 			AddTokenHandler("?", QuestionIIFTokenHandler.Instance);
 			AddTokenHandler("[", new BracketTokenHandler(typeof(List<object>)));
 			AddTokenHandler("null", NullTokenHandler.Instance);
@@ -136,6 +139,33 @@ namespace AScript.Lang.JavaScript
 		public override ISyntaxAnalyzer GetSyntaxAnalyzer()
 		{
 			return JavaScriptSyntaxAnalyzer.Instance;
+		}
+
+		public static bool IsTrue(object obj)
+		{
+			if (obj == null) return false;
+			if (obj == JavaScriptUndefined.Instance) return false;
+			if (obj is bool bo) return bo;
+			if (obj is string s) return !string.IsNullOrEmpty(s);
+			if (obj is long l) return l != 0L;
+			if (obj is ulong ul) return ul != 0L;
+			if (obj is float f) return f != 0F;
+			if (obj is decimal de) return de != 0M;
+			if (obj is double d) return d != 0D;
+			if (obj is byte b) return b != 0;
+			if (obj is int i) return i != 0;
+			if (obj is uint ui) return ui != 0;
+			if (obj is short sh) return sh != 0;
+			if (obj is ushort ush) return ush != 0;
+			var type = obj.GetType();
+			if (type.IsValueType)
+			{
+				if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+				{
+					return ((dynamic)obj).HasValue;
+				}
+			}
+			return true;
 		}
 
 		private static class CommonFunctions

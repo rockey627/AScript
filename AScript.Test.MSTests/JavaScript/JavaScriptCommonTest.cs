@@ -22,7 +22,7 @@ namespace AScript.Test.MSTests.JavaScript
 		}
 
 		[TestMethod]
-		public void TestFunction_Basic()
+		public void Test01_Function_Basic()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -38,7 +38,7 @@ add(3, 5);
 		}
 
 		[TestMethod]
-		public void TestFunction_NoArgs()
+		public void Test02_Function_NoArgs()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -54,7 +54,7 @@ getValue();
 		}
 
 		[TestMethod]
-		public void TestFunction_MultiArgs()
+		public void Test03_Function_MultiArgs()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -70,7 +70,7 @@ sum(1, 2, 3, 4, 5);
 		}
 
 		[TestMethod]
-		public void TestFunction_NestedCall()
+		public void Test04_Function_NestedCall()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -89,7 +89,7 @@ double(addFive(3));
 		}
 
 		[TestMethod]
-		public void TestFunction_Recursive()
+		public void Test05_Function_Recursive()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -108,7 +108,7 @@ factorial(5);
 		}
 
 		[TestMethod]
-		public void TestFunction_Recursive2()
+		public void Test06_Function_Recursive2()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -127,7 +127,7 @@ fib(10);
 		}
 
 		[TestMethod]
-		public void TestFunction_CompileMode()
+		public void Test07_Function_CompileMode()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -143,7 +143,7 @@ multiply(7, 8);
 		}
 
 		[TestMethod]
-		public void TestFunction_Variable()
+		public void Test08_Function_Variable()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -160,7 +160,7 @@ message;
 		}
 
 		[TestMethod]
-		public void TestFunction_ReturnString()
+		public void Test09_Function_ReturnString()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -175,7 +175,7 @@ getName();
 		}
 
 		[TestMethod]
-		public void TestFunction_ReturnBool()
+		public void Test10_Function_ReturnBool()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -190,7 +190,7 @@ isAdult(20);
 		}
 
 		[TestMethod]
-		public void TestArithmetic_Operators()
+		public void Test11_Arithmetic_Operators()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -204,7 +204,7 @@ isAdult(20);
 		}
 
 		[TestMethod]
-		public void TestArithmetic_CompoundAssign()
+		public void Test12_Arithmetic_CompoundAssign()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -217,7 +217,7 @@ isAdult(20);
 		}
 
 		[TestMethod]
-		public void TestLogic_Operators()
+		public void Test13_Logic_Operators()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -227,10 +227,26 @@ isAdult(20);
 			Assert.AreEqual(true, script.Eval("true || false"));
 			Assert.AreEqual(false, script.Eval("false || false"));
 			Assert.AreEqual(false, script.Eval("!true"));
+			Assert.AreEqual(false, script.Eval("var a=false;var b=false; a||b"));
 		}
 
 		[TestMethod]
-		public void TestComparison_Operators()
+		public void Test13_Logic_Operators_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			Assert.AreEqual(true, script.Eval("true && true"));
+			Assert.AreEqual(false, script.Eval("true && false"));
+			Assert.AreEqual(true, script.Eval("true || false"));
+			Assert.AreEqual(false, script.Eval("false || false"));
+			Assert.AreEqual(false, script.Eval("!true"));
+			Assert.AreEqual(false, script.Eval("var a=false;var b=false; a||b"));
+		}
+
+		[TestMethod]
+		public void Test14_Comparison_Operators()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -245,7 +261,7 @@ isAdult(20);
 		}
 
 		[TestMethod]
-		public void TestString_Operations()
+		public void Test15_String_Operations()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -256,7 +272,7 @@ isAdult(20);
 		}
 
 		[TestMethod]
-		public void TestArray_Basic()
+		public void Test16_Array_Basic()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -270,7 +286,7 @@ isAdult(20);
 		}
 
 		[TestMethod]
-		public void TestArray_Index()
+		public void Test17_Array_Index()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -281,7 +297,7 @@ isAdult(20);
 		}
 
 		[TestMethod]
-		public void TestArray_Length()
+		public void Test18_Array_Length()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -291,7 +307,7 @@ isAdult(20);
 		}
 
 		[TestMethod]
-		public void TestNull()
+		public void Test19_Null()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -300,7 +316,7 @@ isAdult(20);
 		}
 
 		[TestMethod]
-		public void TestBool()
+		public void Test20_Bool()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -310,7 +326,7 @@ isAdult(20);
 		}
 
 		[TestMethod]
-		public void TestIf_Condition()
+		public void Test21_If_Condition()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -328,11 +344,8 @@ result;
 		}
 
 		[TestMethod]
-		public void TestIf_ElseIf()
+		public void Test22_If_ElseIf()
 		{
-			var script = new Script();
-			script.Context.Langs = new[] { "js" };
-
 			string code = @"
 var n = 15;
 var result = '';
@@ -345,11 +358,34 @@ if (n < 10) {
 }
 result;
 ";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual("less than 20", script.Eval(code));
 		}
 
 		[TestMethod]
-		public void TestWhile_Loop()
+		public void Test22_If_ElseIf_CompileAll()
+		{
+			string code = @"
+var n = 15;
+var result = '';
+if (n < 10) {
+	result = 'less than 10';
+} else if (n < 20) {
+	result = 'less than 20';
+} else {
+	result = '20 or more';
+}
+result;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual("less than 20", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test23_While_Loop()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -367,10 +403,77 @@ sum;
 		}
 
 		[TestMethod]
-		public void TestFor_Loop()
+		public void Test23_While_Loop_CompileAll()
 		{
 			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
+
+			string code = @"
+var i = 0;
+var sum = 0;
+while (i < 5) {
+	sum = sum + i;
+	i = i + 1;
+}
+sum;
+";
+			Assert.AreEqual(10L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test23_While_Loop2()
+		{
+			string code = @"
+var i = 0;
+var sum = 0;
+while (i < 5) {
+	sum += i;
+	i++;
+}
+sum;
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(10L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test23_While_Loop2_CompileAll()
+		{
+			string code = @"
+var i = 0;
+var sum = 0;
+while (i < 5) {
+	sum += i;
+	i++;
+}
+sum;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(10L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test24_For_Loop()
+		{
+			string code = @"
+var sum = 0;
+for (var i = 0; i < 5; i = i + 1) {
+	sum = sum + i;
+}
+sum;
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(10L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test24_For_Loop_CompileAll()
+		{
 
 			string code = @"
 var sum = 0;
@@ -379,11 +482,46 @@ for (var i = 0; i < 5; i = i + 1) {
 }
 sum;
 ";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(10L, script.Eval(code));
 		}
 
 		[TestMethod]
-		public void TestReturn_Statement()
+		public void Test24_For_Loop2()
+		{
+			string code = @"
+var sum = 0;
+for (var i = 0; i < 5; i++) {
+	sum += i;
+}
+sum;
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(10L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test24_For_Loop2_CompileAll()
+		{
+
+			string code = @"
+var sum = 0;
+for (var i = 0; i < 5; i++) {
+	sum += i;
+}
+sum;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(10L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test25_Return_Statement()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -398,7 +536,7 @@ test();
 		}
 
 		[TestMethod]
-		public void TestReturn_InFunction()
+		public void Test25_Return_InFunction()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -416,7 +554,7 @@ calculate(5);
 		}
 
 		[TestMethod]
-		public void TestBreak_Statement()
+		public void Test26_Break_Statement()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -437,7 +575,7 @@ sum;
 		}
 
 		[TestMethod]
-		public void TestContinue_Statement()
+		public void Test27_Continue_Statement()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -457,7 +595,7 @@ sum;
 		}
 
 		[TestMethod]
-		public void TestVariableDeclaration_Var()
+		public void Test28_VariableDeclaration_Var()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -471,7 +609,7 @@ x + y;
 		}
 
 		[TestMethod]
-		public void TestVariableDeclaration_Let()
+		public void Test29_VariableDeclaration_Let()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -485,7 +623,7 @@ a + b;
 		}
 
 		[TestMethod]
-		public void TestVariableDeclaration_Const()
+		public void Test30_VariableDeclaration_Const()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -499,7 +637,7 @@ PI * RADIUS * RADIUS;
 		}
 
 		[TestMethod]
-		public void TestIncrement_Decrement()
+		public void Test31_Increment_Decrement()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -509,7 +647,7 @@ PI * RADIUS * RADIUS;
 		}
 
 		[TestMethod]
-		public void TestTernary_Operator()
+		public void Test32_Ternary_Operator()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -519,7 +657,7 @@ PI * RADIUS * RADIUS;
 		}
 
 		[TestMethod]
-		public void TestNullCoalescing()
+		public void Test33_NullCoalescing()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -529,7 +667,7 @@ PI * RADIUS * RADIUS;
 		}
 
 		[TestMethod]
-		public void TestOptional_Chaining()
+		public void Test34_Optional_Chaining()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -542,7 +680,7 @@ obj?.name;
 		}
 
 		[TestMethod]
-		public void TestFunction_MultipleStatements()
+		public void Test35_Function_MultipleStatements()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -561,7 +699,7 @@ calculate(10);
 		}
 
 		[TestMethod]
-		public void TestFunction_CallAfterDefine()
+		public void Test36_Function_CallAfterDefine()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -578,7 +716,7 @@ result;
 		}
 
 		[TestMethod]
-		public void TestFunction_ReuseDefine()
+		public void Test37_Function_ReuseDefine()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -593,7 +731,7 @@ add(1, 2) + add(3, 4);
 		}
 
 		[TestMethod]
-		public void TestFunction_ClosureLike()
+		public void Test38_Function_ClosureLike()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -613,7 +751,7 @@ outer(5);
 		}
 
 		[TestMethod]
-		public void TestFunction_CallAnotherFunction()
+		public void Test39_Function_CallAnotherFunction()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -631,7 +769,7 @@ second();
 		}
 
 		[TestMethod]
-		public void TestMultipleFunction_Definitions()
+		public void Test40_MultipleFunction_Definitions()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -653,7 +791,7 @@ add(5, 3) + multiply(2, 4) + subtract(10, 3);
 		}
 
 		[TestMethod]
-		public void TestFunction_ReDefine()
+		public void Test41_Function_ReDefine()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -672,7 +810,7 @@ test();
 		}
 
 		[TestMethod]
-		public void TestFunction_EmptyArgs()
+		public void Test42_Function_EmptyArgs()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -687,7 +825,7 @@ identity();
 		}
 
 		[TestMethod]
-		public void TestFunction_ComplexExpression()
+		public void Test43_Function_ComplexExpression()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -706,7 +844,7 @@ abs(-5) + abs(3) + abs(0);
 		}
 
 		[TestMethod]
-		public async Task TestFunction_AsyncCompileMode()
+		public async Task Test44_Function_AsyncCompileMode()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -723,7 +861,7 @@ asyncAdd(100, 200);
 		}
 
 		[TestMethod]
-		public void TestFunction_AssignToVariable()
+		public void Test45_Function_AssignToVariable()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -738,7 +876,7 @@ fn(5);
 		}
 
 		[TestMethod]
-		public void TestFunction_AssignToVariable_2()
+		public void Test46_Function_AssignToVariable_2()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -754,12 +892,25 @@ fn(5);
 		}
 
 		[TestMethod]
-		public void Test_for_of_2()
+		public void Test47_for_of_CompileAll()
 		{
+			string code = @"
+var list = ['tom', 'jim', 'john'];
+var s = '';
+for(var item of list) {
+	s += item + ',';
+}
+s
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual("tom,jim,john,", script.Eval(code));
+		}
 
+		[TestMethod]
+		public void Test47_for_of()
+		{
 			string code = @"
 var list = ['tom', 'jim', 'john'];
 var s = '';
@@ -768,28 +919,13 @@ for(var item of list) {
 }
 s
 ";
-			Assert.AreEqual("tom,jim,john,", script.Eval(code));
-		}
-
-		[TestMethod]
-		public void Test_for_of()
-		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-
-			string code = @"
-var list = ['tom', 'jim', 'john'];
-var s = '';
-for(var item of list) {
-	s += item + ',';
-}
-s
-";
 			Assert.AreEqual("tom,jim,john,", script.Eval(code));
 		}
 
 		[TestMethod]
-		public void Test_for_in_4()
+		public void Test48_for_in_4()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -807,7 +943,7 @@ s
 		}
 
 		[TestMethod]
-		public void Test_for_in_3()
+		public void Test48_for_in_3()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -824,12 +960,25 @@ s
 		}
 
 		[TestMethod]
-		public void Test_for_in_2()
+		public void Test48_for_in_CompileAll()
 		{
+			string code = @"
+var person = { 'name': 'Bob', age: 25 };
+var s = '';
+for(var key in person) {
+	s += key + ':' + person[key] + ',';
+}
+s
+";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual("name:Bob,age:25,", script.Eval(code));
+		}
 
+		[TestMethod]
+		public void Test48_for_in()
+		{
 			string code = @"
 var person = { 'name': 'Bob', age: 25 };
 var s = '';
@@ -838,28 +987,13 @@ for(var key in person) {
 }
 s
 ";
-			Assert.AreEqual("name:Bob,age:25,", script.Eval(code));
-		}
-
-		[TestMethod]
-		public void Test_for_in()
-		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-
-			string code = @"
-var person = { 'name': 'Bob', age: 25 };
-var s = '';
-for(var key in person) {
-	s += key + ':' + person[key] + ',';
-}
-s
-";
 			Assert.AreEqual("name:Bob,age:25,", script.Eval(code));
 		}
 
 		[TestMethod]
-		public void TestObject_Basic_8()
+		public void Test49_Object_Basic_8()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -873,7 +1007,7 @@ person['name 2'] + person.age;
 		}
 
 		[TestMethod]
-		public void TestObject_Basic_7()
+		public void Test49_Object_Basic_7()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -886,7 +1020,7 @@ person['name 2'] + person.age;
 		}
 
 		[TestMethod]
-		public void TestObject_Basic_6()
+		public void Test49_Object_Basic_6()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -900,7 +1034,7 @@ person['name+2'] + person.age;
 		}
 
 		[TestMethod]
-		public void TestObject_Basic_5()
+		public void Test49_Object_Basic_5()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -913,7 +1047,7 @@ person['name+2'] + person.age;
 		}
 
 		[TestMethod]
-		public void TestObject_Basic_4()
+		public void Test49_Object_Basic_4()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -927,7 +1061,7 @@ person['name'] + person.age;
 		}
 
 		[TestMethod]
-		public void TestObject_Basic_3()
+		public void Test49_Object_Basic_3()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -940,7 +1074,7 @@ person['name'] + person.age;
 		}
 
 		[TestMethod]
-		public void TestObject_Basic_2()
+		public void Test49_Object_Basic_2()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -954,7 +1088,7 @@ person.name;
 		}
 
 		[TestMethod]
-		public void TestObject_Basic()
+		public void Test49_Object_Basic()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -967,7 +1101,7 @@ person.name;
 		}
 
 		[TestMethod]
-		public void TestObject_PropertyAccess_8()
+		public void Test50_Object_PropertyAccess_8()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -982,7 +1116,7 @@ obj.x + obj['y'] + obj['z'];
 		}
 
 		[TestMethod]
-		public void TestObject_PropertyAccess_7()
+		public void Test50_Object_PropertyAccess_7()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -996,7 +1130,7 @@ obj.x + obj['y'] + obj['z'];
 		}
 
 		[TestMethod]
-		public void TestObject_PropertyAccess_6()
+		public void Test50_Object_PropertyAccess_6()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -1011,7 +1145,7 @@ obj.x + obj['y'] + obj.z;
 		}
 
 		[TestMethod]
-		public void TestObject_PropertyAccess_5()
+		public void Test50_Object_PropertyAccess_5()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -1025,7 +1159,7 @@ obj.x + obj['y'] + obj.z;
 		}
 
 		[TestMethod]
-		public void TestObject_PropertyAccess_4()
+		public void Test50_Object_PropertyAccess_4()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -1039,7 +1173,7 @@ obj.x + obj['y'];
 		}
 
 		[TestMethod]
-		public void TestObject_PropertyAccess_3()
+		public void Test50_Object_PropertyAccess_3()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -1052,7 +1186,7 @@ obj.x + obj['y'];
 		}
 
 		[TestMethod]
-		public void TestObject_PropertyAccess_2()
+		public void Test50_Object_PropertyAccess_2()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -1066,7 +1200,7 @@ obj.x + obj.y;
 		}
 
 		[TestMethod]
-		public void TestObject_PropertyAccess()
+		public void Test50_Object_PropertyAccess()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -1079,7 +1213,7 @@ obj.x + obj.y;
 		}
 
 		[TestMethod]
-		public async Task TestSetTimeout_Basic()
+		public async Task Test51_SetTimeout_Basic()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -1101,7 +1235,7 @@ handle;
 		}
 
 		[TestMethod]
-		public async Task TestSetTimeout_Basic_CompileAll()
+		public async Task Test51_SetTimeout_Basic_CompileAll()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -1124,7 +1258,7 @@ handle;
 		}
 
 		[TestMethod]
-		public async Task TestSetTimeout_WithArgs()
+		public async Task Test52_SetTimeout_WithArgs()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -1143,7 +1277,7 @@ handle;
 		}
 
 		[TestMethod]
-		public async Task TestSetTimeout_ClearBeforeFire()
+		public async Task Test53_SetTimeout_ClearBeforeFire()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -1167,7 +1301,7 @@ result;
 		}
 
 		[TestMethod]
-		public async Task TestSetTimeout_MultipleTimeouts()
+		public async Task Test54_SetTimeout_MultipleTimeouts()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -1184,7 +1318,7 @@ var h3 = setTimeout(function() { addResult(3); }, 90);
 ";
 			await script.EvalAsync<object>(code);
 
-			await Task.Delay(45);
+			await Task.Delay(50);
 			var results30 = script.Eval<List<object>>("results");
 			Assert.AreEqual(1L, results30[0]);
 
@@ -1194,7 +1328,7 @@ var h3 = setTimeout(function() { addResult(3); }, 90);
 		}
 
 		[TestMethod]
-		public async Task TestSetTimeout_MultipleTimeouts2()
+		public async Task Test54_SetTimeout_MultipleTimeouts2()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -1222,7 +1356,7 @@ var h3 = setTimeout(function() { addResult(3); }, 90);
 		}
 
 		[TestMethod]
-		public async Task TestSetInterval_Basic()
+		public async Task Test55_SetInterval_Basic()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -1247,7 +1381,7 @@ handle;
 		}
 
 		[TestMethod]
-		public async Task TestSetInterval_WithArgs()
+		public async Task Test56_SetInterval_WithArgs()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -1272,7 +1406,7 @@ handle;
 		}
 
 		[TestMethod]
-		public async Task TestSetInterval_WithArgs_CompileAll()
+		public async Task Test56_SetInterval_WithArgs_CompileAll()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -1298,7 +1432,7 @@ handle;
 		}
 
 		[TestMethod]
-		public async Task TestSetInterval_ClearStopsFiring()
+		public async Task Test57_SetInterval_ClearStopsFiring()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -1325,7 +1459,7 @@ handle;
 		}
 
 		[TestMethod]
-		public async Task TestSetInterval_ReturnsTimer()
+		public async Task Test58_SetInterval_ReturnsTimer()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -1346,7 +1480,7 @@ timer;
 		}
 
 		[TestMethod]
-		public async Task TestClearTimeout_InvalidHandle()
+		public async Task Test59_ClearTimeout_InvalidHandle()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -1366,7 +1500,7 @@ result;
 		}
 
 		[TestMethod]
-		public async Task TestClearTimeout_InvalidHandle_CompileAll()
+		public async Task Test59_ClearTimeout_InvalidHandle_CompileAll()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -1387,7 +1521,7 @@ result;
 		}
 
 		[TestMethod]
-		public async Task TestClearInterval_InvalidHandle()
+		public async Task Test60_ClearInterval_InvalidHandle()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -1406,7 +1540,7 @@ result;
 		}
 
 		[TestMethod]
-		public async Task TestClearInterval_InvalidHandle_CompileAll()
+		public async Task Test60_ClearInterval_InvalidHandle_CompileAll()
 		{
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -1426,7 +1560,7 @@ result;
 		}
 
 		[TestMethod]
-		public async Task TestSetTimeout_ZeroDelay()
+		public async Task Test61_SetTimeout_ZeroDelay()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -1446,7 +1580,7 @@ handle;
 		}
 
 		[TestMethod]
-		public async Task TestSetInterval_ZeroInterval()
+		public async Task Test62_SetInterval_ZeroInterval()
 		{
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
@@ -1471,5 +1605,58 @@ handle;
 			Assert.IsTrue((long)count > 10, $"Expected many fires with 0 interval, got {count}");
 		}
 
+		[TestMethod]
+		public void Test63_OrElse()
+		{
+			string code = @"
+var a = '';
+a || 'hello'
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual("hello", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test63_OrElse_CompileAll()
+		{
+			string code = @"
+var a = '';
+a || 'hello'
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual("hello", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test63_OrElse2()
+		{
+			string code = @"
+var a = 'abc';
+var b = 'ok';
+a || (b+='hello')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual("abc", script.Eval(code));
+			Assert.AreEqual("ok", script.Eval("b"));
+		}
+
+		[TestMethod]
+		public void Test63_OrElse2_CompileAll()
+		{
+			string code = @"
+var a = 'abc';
+var b = 'b';
+a || (b+='hello')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual("abc", script.Eval(code));
+			Assert.AreEqual("ok", script.Eval("b"));
+		}
 	}
 }
