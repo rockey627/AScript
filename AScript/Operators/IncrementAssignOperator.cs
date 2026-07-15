@@ -17,9 +17,10 @@ namespace AScript.Operators
 
 			var arg0 = e.Args[0];
 			Expression left;
+			Type lastType = null;
 			if (arg0 is VariableNode leftVar)
 			{
-				left = leftVar.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out _, out var lastType);
+				left = leftVar.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out _, out lastType);
 				if (left == null)
 				{
 					throw new Exceptions.ScriptAnalyzingException($"invalid expression: {leftVar.Name} is not exists");
@@ -31,11 +32,28 @@ namespace AScript.Operators
 			}
 			if (e.IsPrefix)
 			{
-				e.Result = Expression.PreIncrementAssign(left);
+				if (left.Type == typeof(object))
+				{
+					e.Result = ExpressionUtils.PlusAssign(left, Expression.Constant(1), lastType);
+				}
+				else
+				{
+					e.Result = Expression.PreIncrementAssign(left);
+				}
 			}
 			else
 			{
-				e.Result = Expression.PostIncrementAssign(left);
+				if (left.Type == typeof(object))
+				{
+					var tmp = Expression.Variable(left.Type);
+					var tmpAssign = Expression.Assign(tmp, left);
+					var expr = ExpressionUtils.PlusAssign(left, Expression.Constant(1), lastType);
+					e.Result = Expression.Block(new[] { tmp }, tmpAssign, expr, tmp);
+				}
+				else
+				{
+					e.Result = Expression.PostIncrementAssign(left);
+				}
 			}
 		}
 

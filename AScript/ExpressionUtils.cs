@@ -848,6 +848,88 @@ namespace AScript
 			return null;
 		}
 
+		public static Expression PlusAssign(Expression left, Expression right, Type leftRealType = null)
+		{
+			Expression leftExpr = left;
+			Expression rightExpr = right;
+			Expression result;
+			if (leftRealType != null && leftRealType != typeof(object))
+			{
+				leftExpr = Expression.Convert(leftExpr, leftRealType);
+			}
+			if (!ConvertMaxType(ref leftExpr, ref rightExpr))
+			{
+				// dynamic方式作用+=无效
+				//e.Result = Expression.Dynamic(ExpressionUtils.Binder_AddAssign, typeof(object), left, right);
+				result = Expression.Dynamic(Binder_Add, typeof(object), leftExpr, rightExpr);
+			}
+			else if (leftExpr.Type == typeof(string))
+			{
+				// 字符串相加使用string.Concat方法
+				if (rightExpr.Type == typeof(string))
+				{
+					result = Expression.Call(Method_String_Concat2, leftExpr, rightExpr);
+				}
+				else
+				{
+					if (rightExpr.Type != typeof(object))
+					{
+						rightExpr = Expression.Convert(rightExpr, typeof(object));
+					}
+					result = Expression.Call(Method_String_Concat2_object, leftExpr, rightExpr);
+				}
+			}
+			else if (left.Type == typeof(object))
+			{
+				result = Expression.Add(leftExpr, rightExpr);
+			}
+			else
+			{
+				return Expression.AddAssign(left, rightExpr);
+			}
+
+			if (result.Type != left.Type)
+			{
+				return Expression.Assign(left, Expression.Convert(result, left.Type));
+			}
+			else
+			{
+				return Expression.Assign(left, result);
+			}
+		}
+
+		public static Expression SubtractAssign(Expression left, Expression right, Type leftRealType = null)
+		{
+			Expression leftExpr = left;
+			Expression rightExpr = right;
+			Expression result;
+			if (leftRealType != null && leftRealType != typeof(object))
+			{
+				leftExpr = Expression.Convert(leftExpr, leftRealType);
+			}
+			if (!ConvertMaxType(ref leftExpr, ref rightExpr))
+			{
+				result = Expression.Dynamic(Binder_Subtract, typeof(object), leftExpr, rightExpr);
+			}
+			else if (left.Type == typeof(object))
+			{
+				result = Expression.Subtract(leftExpr, rightExpr);
+			}
+			else
+			{
+				return Expression.SubtractAssign(left, rightExpr);
+			}
+
+			if (result.Type != left.Type)
+			{
+				return Expression.Assign(left, Expression.Convert(result, left.Type));
+			}
+			else
+			{
+				return Expression.Assign(left, result);
+			}
+		}
+
 		private class DelegateImplBase
 		{
 			private readonly ScriptContext _context;

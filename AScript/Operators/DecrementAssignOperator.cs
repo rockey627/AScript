@@ -18,9 +18,10 @@ namespace AScript.Operators
 
 			var arg0 = e.Args[0];
 			Expression left;
+			Type lastType = null;
 			if (arg0 is VariableNode leftVar)
 			{
-				left = leftVar.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out _, out var lastType);
+				left = leftVar.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out _, out lastType);
 				if (left == null)
 				{
 					throw new ScriptAnalyzingException($"invalid expression: {leftVar.Name} is not exists");
@@ -33,11 +34,28 @@ namespace AScript.Operators
 
 			if (e.IsPrefix)
 			{
-				e.Result = Expression.PreDecrementAssign(left);
+				if (left.Type == typeof(object))
+				{
+					e.Result = ExpressionUtils.SubtractAssign(left, Expression.Constant(1), lastType);
+				}
+				else
+				{
+					e.Result = Expression.PreDecrementAssign(left);
+				}
 			}
 			else
 			{
-				e.Result = Expression.PostDecrementAssign(left);
+				if (left.Type == typeof(object))
+				{
+					var tmp = Expression.Variable(left.Type);
+					var tmpAssign = Expression.Assign(tmp, left);
+					var expr = ExpressionUtils.SubtractAssign(left, Expression.Constant(1), lastType);
+					e.Result = Expression.Block(new[] { tmp }, tmpAssign, expr, tmp);
+				}
+				else
+				{
+					e.Result = Expression.PostDecrementAssign(left);
+				}
 			}
 		}
 
@@ -91,7 +109,7 @@ namespace AScript.Operators
 
 					//// 根据obj类型处理索引器赋值
 					object v2 = null;
-					var v = ScriptUtils.GetAndSetValue(obj, idx, v1 => { v2 = v1; return (dynamic)v1 - 1; }); 
+					var v = ScriptUtils.GetAndSetValue(obj, idx, v1 => { v2 = v1; return (dynamic)v1 - 1; });
 
 					e.SetResult(e.IsPrefix ? v : v2);
 					return;

@@ -18,9 +18,10 @@ namespace AScript.Operators
 			if (e.Args.Count != 2) return;
 			var arg0 = e.Args[0];
 			Expression left;
+			Type lastType = null;
 			if (arg0 is VariableNode leftVar)
 			{
-				left = leftVar.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out _, out var lastType);
+				left = leftVar.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out _, out lastType);
 				if (left == null)
 				{
 					throw new Exceptions.ScriptAnalyzingException($"invalid expression: {leftVar.Name} is not exists");
@@ -75,43 +76,44 @@ namespace AScript.Operators
 				throw new Exceptions.ScriptAnalyzingException($"invalid expression near event +=, expect Delegate");
 			}
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-			Expression leftExpr = left;
-			Expression rightExpr = right;
-			if (left.Type == typeof(object)
-				|| !ExpressionUtils.ConvertMaxType(ref leftExpr, ref rightExpr))
-			{
-				// dynamic方式作用+=无效
-				//e.Result = Expression.Dynamic(ExpressionUtils.Binder_AddAssign, typeof(object), left, right);
-				var addExpr = Expression.Dynamic(ExpressionUtils.Binder_Add, typeof(object), leftExpr, rightExpr);
-				if (addExpr.Type != left.Type)
-				{
-					e.Result = Expression.Assign(left, Expression.Convert(addExpr, left.Type));
-				}
-				else
-				{
-					e.Result = Expression.Assign(left, addExpr);
-				}
-			}
-			else if (left.Type == typeof(string))
-			{
-				// 字符串相加使用string.Concat方法
-				if (right.Type == typeof(string))
-				{
-					e.Result = Expression.Assign(left, Expression.Call(ExpressionUtils.Method_String_Concat2, left, right));
-				}
-				else
-				{
-					if (right.Type != typeof(object))
-					{
-						right = Expression.Convert(right, typeof(object));
-					}
-					e.Result = Expression.Assign(left, Expression.Call(ExpressionUtils.Method_String_Concat2_object, left, right));
-				}
-			}
-			else
-			{
-				e.Result = Expression.AddAssign(left, right);
-			}
+			e.Result = ExpressionUtils.PlusAssign(left, right, lastType);
+			//Expression leftExpr = left;
+			//Expression rightExpr = right;
+			//if (left.Type == typeof(object)
+			//	|| !ExpressionUtils.ConvertMaxType(ref leftExpr, ref rightExpr))
+			//{
+			//	// dynamic方式作用+=无效
+			//	//e.Result = Expression.Dynamic(ExpressionUtils.Binder_AddAssign, typeof(object), left, right);
+			//	var addExpr = Expression.Dynamic(ExpressionUtils.Binder_Add, typeof(object), leftExpr, rightExpr);
+			//	if (addExpr.Type != left.Type)
+			//	{
+			//		e.Result = Expression.Assign(left, Expression.Convert(addExpr, left.Type));
+			//	}
+			//	else
+			//	{
+			//		e.Result = Expression.Assign(left, addExpr);
+			//	}
+			//}
+			//else if (left.Type == typeof(string))
+			//{
+			//	// 字符串相加使用string.Concat方法
+			//	if (right.Type == typeof(string))
+			//	{
+			//		e.Result = Expression.Assign(left, Expression.Call(ExpressionUtils.Method_String_Concat2, left, right));
+			//	}
+			//	else
+			//	{
+			//		if (right.Type != typeof(object))
+			//		{
+			//			right = Expression.Convert(right, typeof(object));
+			//		}
+			//		e.Result = Expression.Assign(left, Expression.Call(ExpressionUtils.Method_String_Concat2_object, left, right));
+			//	}
+			//}
+			//else
+			//{
+			//	e.Result = Expression.AddAssign(left, right);
+			//}
 		}
 
 		public void Eval(FunctionEvalArgs e)

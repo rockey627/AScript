@@ -13,9 +13,10 @@ namespace AScript.Operators
 		{
 			var arg0 = e.Args[0];
 			Expression left;
+			Type lastType = null;
 			if (arg0 is VariableNode leftVar)
 			{
-				left = leftVar.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out _, out var lastType);
+				left = leftVar.BuildForAssign(e.BuildContext, e.ScriptContext, e.Options, out _, out lastType);
 				if (left == null)
 				{
 					throw new Exceptions.ScriptRuntimeException($"invalid expression: {leftVar.Name} is not exists");
@@ -43,25 +44,26 @@ namespace AScript.Operators
 				throw new Exceptions.ScriptRuntimeException($"invalid expression near event -=, expect Delegate");
 			}
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-			if (left.Type == typeof(object) || right.Type == typeof(object))
-			{
-				// dynamic方式作用-=无效
-				//e.Result = Expression.Dynamic(ExpressionUtils.Binder_SubtractAssign, typeof(object), left, right);
-				var expr = Expression.Dynamic(ExpressionUtils.Binder_Subtract, typeof(object), left, right);
-				//e.Result = Expression.Assign(left, expr);
-				if (expr.Type != left.Type)
-				{
-					e.Result = Expression.Assign(left, Expression.Convert(expr, left.Type));
-				}
-				else
-				{
-					e.Result = Expression.Assign(left, expr);
-				}
-			}
-			else
-			{
-				e.Result = Expression.SubtractAssign(left, right);
-			}
+			e.Result = ExpressionUtils.SubtractAssign(left, right, lastType);
+			//if (left.Type == typeof(object) || right.Type == typeof(object))
+			//{
+			//	// dynamic方式作用-=无效
+			//	//e.Result = Expression.Dynamic(ExpressionUtils.Binder_SubtractAssign, typeof(object), left, right);
+			//	var expr = Expression.Dynamic(ExpressionUtils.Binder_Subtract, typeof(object), left, right);
+			//	//e.Result = Expression.Assign(left, expr);
+			//	if (expr.Type != left.Type)
+			//	{
+			//		e.Result = Expression.Assign(left, Expression.Convert(expr, left.Type));
+			//	}
+			//	else
+			//	{
+			//		e.Result = Expression.Assign(left, expr);
+			//	}
+			//}
+			//else
+			//{
+			//	e.Result = Expression.SubtractAssign(left, right);
+			//}
 		}
 
 		public void Eval(FunctionEvalArgs e)
