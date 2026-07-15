@@ -235,6 +235,105 @@ set.size;
 set.forEach(x => { });
 ```
 
+#### if/else if/else
+```
+string code = @"
+var n = 15;
+var result = '';
+if (n < 10) {
+	result = 'less than 10';
+} else if (n < 20) {
+	result = 'less than 20';
+} else {
+	result = '20 or more';
+}
+result;
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+Assert.AreEqual("less than 20", script.Eval(code));
+```
+
+#### for循环
+循环中支持continue/break/return控制
+```
+string code = @"
+var sum = 0;
+for (var i = 0; i < 5; i++) {
+	sum += i;
+}
+sum;
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+Assert.AreEqual(10L, script.Eval(code));
+```
+
+#### for of
+遍历值，循环中支持continue/break/return控制
+```
+string code = @"
+var list = ['tom', 'jim', 'john'];
+var s = '';
+for(var item of list) {
+	s += item + ',';
+}
+s
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+Assert.AreEqual("tom,jim,john,", script.Eval(code));
+```
+
+#### for in遍历数组或集合
+循环中支持continue/break/return控制
+```
+string code = @"
+var list = ['tom', 'jim', 'john'];
+var s = '';
+for(var i in list) {
+	s += list[i] + ',';
+}
+s
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+Assert.AreEqual("tom,jim,john,", script.Eval(code));
+```
+
+#### for in遍历对象或字典
+循环中支持continue/break/return控制
+```
+string code = @"
+var person = { 'name': 'Bob', age: 25 };
+var s = '';
+for(var key in person) {
+	s += key + ':' + person[key] + ',';
+}
+s
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+Assert.AreEqual("name:Bob,age:25,", script.Eval(code));
+```
+
+#### while循环
+循环中支持continue/break/return控制
+```
+string code = @"
+var i = 0;
+var sum = 0;
+while (i < 5) {
+	sum += i;
+	i++;
+}
+sum;
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+Assert.AreEqual(10L, script.Eval(code));
+```
+
 #### Promise
 * then/catch/finally
 ```
