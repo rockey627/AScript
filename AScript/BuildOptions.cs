@@ -7,6 +7,7 @@ namespace AScript
 		private ECompileMode? _CompileMode;
 		private bool? _ThrowIfVariableNotExists;
 		private bool? _CreateFullTreeNode;
+		private bool? _CreateFullStatement;
 		private bool? _RewriteVariables;
 		private bool? _RewriteFunctions;
 		private bool? _Dynamic;
@@ -21,8 +22,13 @@ namespace AScript
 		/// </summary>
 		public bool? CreateFullTreeNode
 		{
-			get => _CreateFullTreeNode ?? this.Parent?.CreateFullTreeNode;
+			get => _CreateFullStatement ?? _CreateFullTreeNode ?? this.Parent?.CreateFullTreeNode;
 			set => _CreateFullTreeNode = value;
+		}
+		public bool? CreateFullStatement
+		{
+			get => _CreateFullStatement ?? this.Parent?.CreateFullStatement;
+			set => _CreateFullStatement = value;
 		}
 		/// <summary>
 		/// <para>编译模式</para>

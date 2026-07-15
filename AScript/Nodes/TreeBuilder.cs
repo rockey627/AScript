@@ -88,7 +88,12 @@ namespace AScript.Nodes
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
 			TryEvalRoot(buildContext, scriptContext, options, null);
-			if (_Expressions == null || _Expressions.Count == 0) return null;
+			var rootExpr = _Root?.Build(buildContext, scriptContext, options);
+			if (_Expressions == null || _Expressions.Count == 0)
+			{
+				return rootExpr;
+			}
+			if (rootExpr != null) _Expressions.Add(rootExpr);
 			if (_Expressions.Count == 1) return _Expressions[0];
 			return Expression.Block(_Expressions);
 		}

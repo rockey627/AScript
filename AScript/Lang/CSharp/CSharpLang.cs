@@ -132,6 +132,8 @@ namespace AScript.Lang.CSharp
 
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);
+			AddTokenHandler("||", LazyTokenHandler.Instance);
+			AddTokenHandler("&&", LazyTokenHandler.Instance);
 			AddTokenHandler("?", QuestionIIFTokenHandler.Instance);
 			AddTokenHandler("[", new BracketTokenHandler(typeof(List<>)));
 			AddTokenHandler("null", NullTokenHandler.Instance);

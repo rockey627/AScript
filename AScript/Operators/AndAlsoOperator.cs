@@ -12,8 +12,18 @@ namespace AScript.Operators
 			if (e.Args.Count == 2)
 			{
 				var arg0 = (bool)e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
+				if (!arg0)
+				{
+					e.SetResult(false);
+					return;
+				}
 				var arg1 = (bool)e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
-				e.SetResult(arg0 && arg1);
+				if (!arg1)
+				{
+					e.SetResult(false);
+					return;
+				}
+				e.SetResult(true);
 			}
 		}
 

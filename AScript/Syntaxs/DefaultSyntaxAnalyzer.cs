@@ -104,6 +104,7 @@ namespace AScript.Syntaxs
 					treeBuilder.TryEvalRoot(buildContext, scriptContext, options, control);
 				}
 				var statement = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens: endTokens);
+				options.CreateFullStatement = null;
 				if (treeBuilder != null && statement != null)
 				{
 					treeBuilder.Add(buildContext, scriptContext, options, control, statement);
