@@ -46,6 +46,8 @@ namespace AScript.Operators
 					e.Result = Expression.AndAlso(arg0, arg1);
 					return;
 				}
+				if (arg0.Type.IsValueType) arg0 = Expression.Convert(arg0, typeof(object));
+				if (arg1.Type.IsValueType) arg1 = Expression.Convert(arg1, typeof(object));
 				var isTrue0 = Expression.Call(e.BuildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_IsTrue, arg0);
 				var isTrue1 = Expression.Call(e.BuildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_IsTrue, arg1);
 				e.Result = Expression.AndAlso(isTrue0, isTrue1);

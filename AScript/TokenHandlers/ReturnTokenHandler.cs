@@ -22,12 +22,9 @@ namespace AScript.TokenHandlers
 
 			var returnBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, null, e.Ignore);
 
-			if (e.Ignore)
-			{
-				return;
-			}
+			if (e.Ignore) return;
 
-			if (e.Options.CreateFullTreeNode ?? false)
+			if (e.Options.CreateFullTreeNode ?? false || (e.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var returnNode = new ReturnNode { Body = returnBuilder };
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, returnNode);
@@ -59,7 +56,7 @@ namespace AScript.TokenHandlers
 				return;
 			}
 
-			if (e.Options.CreateFullTreeNode ?? false)
+			if (e.Options.CreateFullTreeNode ?? false || (e.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var returnNode = new ReturnNode { Body = returnBuilder };
 				await e.TreeBuilder.AddDataAsync(e.BuildContext, e.ScriptContext, e.Options, e.Control, returnNode, cancellationToken).ConfigureAwait(false);

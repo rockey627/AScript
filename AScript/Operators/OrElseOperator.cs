@@ -18,9 +18,14 @@ namespace AScript.Operators
 					e.Result = Expression.OrElse(arg0, arg1);
 					return;
 				}
-				var isTrue0 = Expression.Call(e.BuildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_IsTrue, arg0);
-				var isTrue1 = Expression.Call(e.BuildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_IsTrue, arg1);
-				if (arg0.Type != arg1.Type)
+				var expr0 = arg0;
+				var expr1 = arg1;
+				if (expr0.Type.IsValueType) expr0 = Expression.Convert(expr0, typeof(object));
+				if (expr1.Type.IsValueType) expr1 = Expression.Convert(expr1, typeof(object));
+				var isTrue0 = Expression.Call(e.BuildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_IsTrue, expr0);
+				var isTrue1 = Expression.Call(e.BuildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_IsTrue, expr1);
+				if (!ExpressionUtils.ConvertMaxType(ref arg0, ref arg1))
+				//if (arg0.Type != arg1.Type)
 				{
 					if (arg0.Type != typeof(object))
 					{

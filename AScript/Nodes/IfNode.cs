@@ -71,6 +71,7 @@ namespace AScript.Nodes
 			var testExpr = this.Condition.Build(buildContext, scriptContext, options);
 			if (testExpr.Type != typeof(bool))
 			{
+				if (testExpr.Type.IsValueType) testExpr = Expression.Convert(testExpr, typeof(object));
 				var isTrue0 = Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_IsTrue, testExpr);
 				testExpr = isTrue0;
 			}
