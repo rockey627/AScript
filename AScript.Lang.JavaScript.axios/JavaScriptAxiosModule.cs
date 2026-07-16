@@ -3,13 +3,11 @@ using System.Net.Http;
 
 namespace AScript.Lang.JavaScript.axios
 {
-	public class JavaScriptAxiosModule : IScriptModule//, IScriptModuleType
+	public class JavaScriptAxiosModule : IScriptModule
 	{
 		public static readonly string ClientName = "AScript.Lang.JavaScript.axios";
 
-		public static IHttpClientFactory HttpClientFactory = new DefaultHttpClientFactory();
-
-		//public Type ModuleType => typeof(IHttpClientFactory);
+		public static IHttpClientFactory HttpClientFactory { get; set; } = new DefaultHttpClientFactory();
 
 		public object Install(BaseContext context)
 		{

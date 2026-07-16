@@ -49,18 +49,6 @@ script.Eval(s);
 		<Reference Include="System.Net.Http" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="Microsoft.Extensions.Http">
-			<Version>2.1.0</Version>
-		</PackageReference>
-	</ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
-		<PackageReference Include="Microsoft.Extensions.Http">
-			<Version>2.1.0</Version>
-		</PackageReference>
-	</ItemGroup>
-
 	<ItemGroup>
 		<ProjectReference Include="..\AScript.Lang.JavaScript\AScript.Lang.JavaScript.csproj" />
 		<ProjectReference Include="..\AScript\AScript.csproj" />
