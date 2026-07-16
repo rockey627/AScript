@@ -17,8 +17,8 @@ Assert.AreEqual(15, result);
 			]]>
 		</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>1.4.0.0</Version>
-		<PackageReleaseNotes>移除switch语句，新增case-when语句；新增类型构造函数、属性、方法扩展功能；新增IScriptModule脚本模块功能；优化Delegate参数匹配；新增try-catch-finally语句</PackageReleaseNotes>
+		<Version>1.4.1.0</Version>
+		<PackageReleaseNotes>优化?:/OrElse/AndAlso/if/while语句的条件判断，支持object判断；修复return语句在编译模式下的bug</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
