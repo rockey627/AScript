@@ -72,11 +72,8 @@ namespace AScript.TokenHandlers
 
 			var conditionResult = conditionBuilder.Eval(e.ScriptContext, e.Options, e.Control, out _);
 			PoolManage.Return(conditionBuilder);
-			bool b;
-			if (conditionResult is bool cr) b = cr;
-			else b = e.ScriptContext.IsTrue(conditionResult);
 			//if (!(conditionResult is bool b)) throw new Exceptions.ScriptRuntimeException("condition must be bool type");
-			if (b)
+			if (e.ScriptContext.IsTrue(conditionResult))
 			{
 				// 执行if语句
 				var statementTreeBuilder = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
@@ -122,11 +119,8 @@ namespace AScript.TokenHandlers
 
 			var conditionResult = await conditionBuilder.EvalAsync(e.ScriptContext, e.Options, e.Control, cancellationToken).ConfigureAwait(false);
 			PoolManage.Return(conditionBuilder);
-			bool b;
-			if (conditionResult.Value is bool cr) b = cr;
-			else b = e.ScriptContext.IsTrue(conditionResult.Value);
 			//if (!(conditionResult.Value is bool b)) throw new Exceptions.ScriptRuntimeException("condition must be bool type");
-			if (b)
+			if (e.ScriptContext.IsTrue(conditionResult.Value))
 			{
 				// 执行if语句
 				var statementTreeBuilder = await analyzer.BuildOneStatement2Async(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, cancellationToken: cancellationToken).ConfigureAwait(false);

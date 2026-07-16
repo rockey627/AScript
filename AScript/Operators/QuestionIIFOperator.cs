@@ -48,8 +48,7 @@ namespace AScript.Operators
 			if (arg1 is OperatorNode opNode && opNode.Name == ":")
 			{
 				var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
-				bool b = arg0 is bool b0 ? b0 : e.Context.IsTrue(arg0);
-				if (b)
+				if (e.Context.IsTrue(arg0))
 				{
 					e.SetResult(opNode.Left.Eval(e.Context, e.Options, e.Control, out var type), type);
 				}

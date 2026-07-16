@@ -53,7 +53,6 @@ namespace AScript.Nodes
 		{
 			if (this.Condition == null) return true;
 			var conditionResult = this.Condition.Eval(context, null, null, out var conditionType);
-			if (conditionResult is bool b) return b;
 			return context.IsTrue(conditionResult);
 		}
 
@@ -61,9 +60,7 @@ namespace AScript.Nodes
 		{
 			if (this.Condition == null) return true;
 			var result = await this.Condition.EvalAsync(context, null, null, cancellationToken).ConfigureAwait(false);
-			var conditionResult = result.Value;
-			if (conditionResult is bool b) return b;
-			return context.IsTrue(conditionResult);
+			return context.IsTrue(result.Value);
 		}
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)

@@ -1815,5 +1815,40 @@ return 4;
 			Assert.AreEqual(1L, script.Eval("true?1:2"));
 			Assert.AreEqual(2L, script.Eval("false?1:2"));
 		}
+
+		[TestMethod]
+		public void Test67_while_object()
+		{
+			var s = @"
+var n=5;
+var t=0;
+while(n) {
+t+=n;
+n--;
+}
+t
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(15L, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test67_while_object_CompileAll()
+		{
+			var s = @"
+var n=5;
+var t=0;
+while(n) {
+t+=n;
+n--;
+}
+t
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(15L, script.Eval(s));
+		}
 	}
 }

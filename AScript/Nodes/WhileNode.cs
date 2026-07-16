@@ -61,24 +61,26 @@ namespace AScript.Nodes
 		{
 			if (this.Condition == null) return true;
 			var conditionResult = this.Condition.Eval(context, options, null, out var conditionType);
-			if (!(conditionResult is bool b))
-			{
-				throw new ScriptAnalyzingException($"invalid if condition type {conditionType}");
-			}
-			return b;
+			//if (!(conditionResult is bool b))
+			//{
+			//	throw new ScriptAnalyzingException($"invalid if condition type {conditionType}");
+			//}
+			//return b;
+			return context.IsTrue(conditionResult);
 		}
 
 		private async Task<bool> EvalConditionAsync(ScriptContext context, BuildOptions options, CancellationToken cancellationToken)
 		{
 			if (this.Condition == null) return true;
 			var evalResult = await this.Condition.EvalAsync(context, options, null, cancellationToken).ConfigureAwait(false);
-			var conditionResult = evalResult.Value;
-			var conditionType = evalResult.Type;
-			if (!(conditionResult is bool b))
-			{
-				throw new ScriptAnalyzingException($"invalid if condition type {conditionType}");
-			}
-			return b;
+			//var conditionResult = evalResult.Value;
+			//var conditionType = evalResult.Type;
+			//if (!(conditionResult is bool b))
+			//{
+			//	throw new ScriptAnalyzingException($"invalid if condition type {conditionType}");
+			//}
+			//return b;
+			return context.IsTrue(evalResult.Value);
 		}
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
@@ -86,6 +88,11 @@ namespace AScript.Nodes
 			var tempBuildContext = new BuildContext(buildContext);
 			// 条件
 			Expression conditionExpression = this.Condition.Build(tempBuildContext, scriptContext, options);
+			if (conditionExpression.Type != typeof(bool))
+			{
+				if (conditionExpression.Type.IsValueType) conditionExpression = Expression.Convert(conditionExpression, typeof(object));
+				conditionExpression = Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_IsTrue, conditionExpression);
+			}
 			// 循环体
 			var breakLabel = Expression.Label();
 			var continueLabel = Expression.Label();

@@ -18,22 +18,25 @@ namespace AScript.TokenHandlers
 				return;
 			}
 			
-			var createTreeNodeOnlyOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			if (e.Ignore)
-			{
-				analyzer.ValidateNextToken(e.TokenReader, "(");
-				analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, null, ignore: true);
-				analyzer.ValidateNextToken(e.TokenReader, ")");
-				analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, null, ignore: true);
-				return;
-			}
+			var createTreeNodeOnlyOptions = e.Options.CreateFullTreeNode ?? false ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
+			//if (e.Ignore)
+			//{
+			//	analyzer.ValidateNextToken(e.TokenReader, "(");
+			//	analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, null, ignore: true);
+			//	analyzer.ValidateNextToken(e.TokenReader, ")");
+			//	analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, null, ignore: true);
+			//	return;
+			//}
 
 			analyzer.ValidateNextToken(e.TokenReader, "(");
 			var conditionBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, null, e.Ignore);
 			analyzer.ValidateNextToken(e.TokenReader, ")");
 			var bodyBuilder = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, createTreeNodeOnlyOptions, e.TokenReader, null, e.Ignore, noblock: true);
-			var whileNode = new WhileNode { Condition = conditionBuilder, Body = bodyBuilder };
-			e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, whileNode);
+			if (!e.Ignore)
+			{
+				var whileNode = new WhileNode { Condition = conditionBuilder, Body = bodyBuilder };
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, whileNode);
+			}
 		}
 	}
 }

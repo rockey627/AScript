@@ -362,6 +362,7 @@ namespace AScript
 		/// <returns></returns>
 		public bool IsTrue(object obj)
 		{
+			if (obj is bool b) return b;
 			var langs = this.Langs;
 			if (langs == null || langs.Length == 0)
 			{
@@ -383,7 +384,6 @@ namespace AScript
 					}
 				}
 			}
-			if (obj is bool b) return b;
 			throw new Exceptions.ScriptRuntimeException($"invalid object of type '{obj?.GetType()}', expect bool type");
 		}
 
