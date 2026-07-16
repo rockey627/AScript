@@ -1747,5 +1747,73 @@ return 4;
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(3L, script.Eval(s));
 		}
+
+		[TestMethod]
+		public void Test65_if_object2()
+		{
+			var s = @"
+var a = null;
+var b = 0.0;
+var c = 1.1;
+if (a) return 1;
+if (b) return 2;
+if (c) return 3;
+return 4;
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(3L, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test65_if_object2_CompileAll()
+		{
+			var s = @"
+var a = null;
+var b = 0.0;
+var c = 1.1;
+if (a) return 1;
+if (b) return 2;
+if (c) return 3;
+return 4;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(3L, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test66()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(1L, script.Eval("5?1:2"));
+			Assert.AreEqual(2L, script.Eval("0?1:2"));
+			Assert.AreEqual(2L, script.Eval("0.0?1:2"));
+			Assert.AreEqual(1L, script.Eval("1.2?1:2"));
+			Assert.AreEqual(1L, script.Eval("'hello'?1:2"));
+			Assert.AreEqual(2L, script.Eval("''?1:2"));
+			Assert.AreEqual(2L, script.Eval("null?1:2"));
+			Assert.AreEqual(1L, script.Eval("true?1:2"));
+			Assert.AreEqual(2L, script.Eval("false?1:2"));
+		}
+
+		[TestMethod]
+		public void Test66_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(1L, script.Eval("5?1:2"));
+			Assert.AreEqual(2L, script.Eval("0?1:2"));
+			Assert.AreEqual(2L, script.Eval("0.0?1:2"));
+			Assert.AreEqual(1L, script.Eval("1.2?1:2"));
+			Assert.AreEqual(1L, script.Eval("'hello'?1:2"));
+			Assert.AreEqual(2L, script.Eval("''?1:2"));
+			Assert.AreEqual(2L, script.Eval("null?1:2"));
+			Assert.AreEqual(1L, script.Eval("true?1:2"));
+			Assert.AreEqual(2L, script.Eval("false?1:2"));
+		}
 	}
 }

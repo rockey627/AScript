@@ -25,6 +25,11 @@ namespace AScript.Operators
 			if (arg1 is OperatorNode opNode && opNode.Name == ":")
 			{
 				var b = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
+				if (b.Type != typeof(bool))
+				{
+					if (b.Type.IsValueType) b = Expression.Convert(b, typeof(object));
+					b = Expression.Call(e.BuildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_IsTrue, b);
+				}
 				var ifTrue = opNode.Left.Build(e.BuildContext, e.ScriptContext, e.Options);
 				var ifFalse = opNode.Right.Build(e.BuildContext, e.ScriptContext, e.Options);
 				e.Result = Expression.Condition(b, ifTrue, ifFalse);
@@ -42,7 +47,8 @@ namespace AScript.Operators
 			}
 			if (arg1 is OperatorNode opNode && opNode.Name == ":")
 			{
-				bool b = (bool)e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
+				var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
+				bool b = arg0 is bool b0 ? b0 : e.Context.IsTrue(arg0);
 				if (b)
 				{
 					e.SetResult(opNode.Left.Eval(e.Context, e.Options, e.Control, out var type), type);
