@@ -761,10 +761,11 @@ public static class PersonExtensions
 ```
 public class PersonModule : IScriptModule
 {
-	public void Install(BaseContext context)
+	public object Install(BaseContext context)
 	{
 		context.AddType<Person>();
 		context.AddFunc(typeof(PersonExtensions));
+		return null;
 	}
 
 	public void Uninstall(BaseContext context)
