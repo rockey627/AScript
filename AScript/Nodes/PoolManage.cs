@@ -44,7 +44,17 @@ namespace AScript.Nodes
 			return new ObjectNode(data, dataType);
 		}
 
-		public static DefineVarNode CreateDefineVarNode(string name, string type, Type systemType = null)
+		public static DefineVarNode CreateDefineVarNode(string name, string type)
+		{
+			return CreateDefineVarNode(name, type, null, 0);
+		}
+
+		public static DefineVarNode CreateDefineVarNode(string name, string type, Type systemType)
+		{
+			return CreateDefineVarNode(name, type, systemType, 0);
+		}
+
+		public static DefineVarNode CreateDefineVarNode(string name, string type, Type systemType = null, int modifier = 0)
 		{
 			if (_DefineVarNodePool.TryDequeue(out var d))
 			{
@@ -52,9 +62,10 @@ namespace AScript.Nodes
 				d.Name = name;
 				d.Type = type;
 				d.SystemType = systemType;
+				d.Modifier = modifier;
 				return d;
 			}
-			return new DefineVarNode { Name = name, Type = type, SystemType = systemType };
+			return new DefineVarNode { Name = name, Type = type, SystemType = systemType, Modifier = modifier };
 		}
 
 		public static VariableNode CreateVariableNode(string name)

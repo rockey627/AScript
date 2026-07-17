@@ -1,4 +1,5 @@
 ﻿using AScript.Exceptions;
+using AScript.Lang.JavaScript;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -38,7 +39,7 @@ namespace AScript.Test.MSTests
 			{
 				script.Eval(s);
 			}
-			catch(ScriptException ex)
+			catch (ScriptException ex)
 			{
 				Assert.AreEqual("variable n is not exists", ex.Message);
 				return;
@@ -64,6 +65,58 @@ namespace AScript.Test.MSTests
 			Assert.AreEqual(typeof(int), type);
 			Assert.AreEqual(8, script.Eval("int a;a+8"));
 			Assert.AreEqual(11, script.Eval("int a=5;a+6"));
+		}
+
+		[TestMethod]
+		public void Test04_Const()
+		{
+			string s = "const PI = 3.14159; const RADIUS = 5; PI * RADIUS * RADIUS";
+			var script = new Script();
+			Assert.AreEqual(78.53975, (double)script.Eval(s), 0.0001);
+		}
+
+		[TestMethod]
+		public void Test04_Const_CompileAll()
+		{
+			string s = "const PI = 3.14159; const RADIUS = 5; PI * RADIUS * RADIUS";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(78.53975, (double)script.Eval(s), 0.0001);
+		}
+
+		[TestMethod]
+		public void Test05_Const()
+		{
+			string s = "const PI = 3.14159; const RADIUS = 5; PI=3; PI * RADIUS * RADIUS";
+			var script = new Script();
+			try
+			{
+				script.Eval(s);
+			}
+			catch (ScriptRuntimeException ex)
+			{
+				Assert.AreEqual("'PI' is const, can not modify", ex.Message);
+				return;
+			}
+			Assert.IsTrue(false);
+		}
+
+		[TestMethod]
+		public void Test05_Const_CompileAll()
+		{
+			string s = "const PI = 3.14159; const RADIUS = 5; PI=3; PI * RADIUS * RADIUS";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			try
+			{
+				script.Eval(s);
+			}
+			catch (ScriptRuntimeException ex)
+			{
+				Assert.AreEqual("'PI' is const, can not modify", ex.Message);
+				return;
+			}
+			Assert.IsTrue(false);
 		}
 	}
 }
