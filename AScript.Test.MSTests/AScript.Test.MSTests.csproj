@@ -20,6 +20,7 @@
     <ProjectReference Include="..\AScript.Lang.Python3\AScript.Lang.Python3.csproj" />
     <ProjectReference Include="..\AScript.Lang.Sql\AScript.Lang.Sql.csproj" />
     <ProjectReference Include="..\AScript.Lang.JavaScript.axios\AScript.Lang.JavaScript.axios.csproj" />
+    <ProjectReference Include="..\AScript.Lang.Lua\AScript.Lang.Lua.csproj" />
     <ProjectReference Include="..\AScript\AScript.csproj" />
   </ItemGroup>
 
@@ -32,5 +33,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Lua\" />
+	</ItemGroup>
 
 </Project>
