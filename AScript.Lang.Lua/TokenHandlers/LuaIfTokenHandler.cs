@@ -1,0 +1,59 @@
+using AScript.Nodes;
+using AScript.Syntaxs;
+using System;
+
+namespace AScript.Lang.Lua.TokenHandlers
+{
+	/// <summary>
+	/// <![CDATA[
+	/// if condition then
+	///     body
+	/// elseif condition then
+	///     body
+	/// else
+	///     body
+	/// end
+	/// ]]>
+	/// </summary>
+	public class LuaIfTokenHandler : ITokenHandler
+	{
+		public static readonly LuaIfTokenHandler Instance = new LuaIfTokenHandler();
+
+		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
+		{
+			e.IsHandled = true;
+			e.End = true;
+			if (e.TreeBuilder.Root != null)
+			{
+				e.TokenReader.Push(e.CurrentToken);
+				return;
+			}
+
+			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
+			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens);
+			analyzer.ValidateNextToken(e.TokenReader, "then");
+			var body = LuaLang.BuildSubBlock(e.CurrentToken.Column, analyzer, e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+
+			ITreeNode elseNode = null;
+			var token = e.TokenReader.Read();
+			if (token.HasValue)
+			{
+				if (token.Value.Value == "elseif")
+				{
+					e.TokenReader.Push(new Token("if", ETokenType.Word, token.Value.Line, token.Value.Column));
+					elseNode = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens);
+				}
+				else if (token.Value.Value == "else")
+				{
+					elseNode = LuaLang.BuildSubBlock(e.CurrentToken.Column, analyzer, e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+				}
+				else
+				{
+					e.TokenReader.Push(token.Value);
+				}
+			}
+
+			e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, new IfNode { Condition = condition, Body = body, Else = elseNode });
+		}
+	}
+}

@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net45</TargetFrameworks>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<Authors>rockey627</Authors>
+		<PackageTags>C# Lua Expression Eval Evaluator Execute Function Script Scripting 脚本执行 动态脚本 表达式 计算</PackageTags>
+		<PackageLicenseUrl>https://gitee.com/rockey627/ascript/blob/master/LICENSE</PackageLicenseUrl>
+		<PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
+		<Description>
+			<![CDATA[
+基于AScript扩展的Lua脚本语言，支持Lua基础语法及数据类型；
+快速开始：
+// 注册lua脚本语言
+Script.Langs.Set("lua", LuaLang.Instance);
+// 执行lua脚本
+string s = @"
+@lang lua
+function sum(a, b)
+    return a + b
+end
+local n = 10
+sum(n, 5)
+";
+var script = new Script();
+var result = script.Eval(s);
+Assert.AreEqual(15L, result);
+			]]>
+		</Description>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<Version>0.0.1.0</Version>
+		<PackageReleaseNotes>初始版本，支持Lua基础语法</PackageReleaseNotes>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AScript\AScript.csproj" />
+	</ItemGroup>
+
+</Project>
