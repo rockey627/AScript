@@ -53,6 +53,10 @@ namespace AScript
 		/// 全局变量类型
 		/// </summary>
 		protected IDictionary<string, Type> _VariableTypes;
+		/// <summary>
+		/// 变量修饰符
+		/// </summary>
+		protected IDictionary<string, int> _VariableModifiers;
 
 		// 支持函数重载
 		protected IDictionary<string, List<Delegate>> _Functions;
@@ -236,6 +240,31 @@ namespace AScript
 					_VariableTypes = _IgnoreCase ?
 						new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase) :
 						new Dictionary<string, Type>();
+				}
+			}
+		}
+
+		private void Init_VariableModifiers()
+		{
+			if (_VariableModifiers == null)
+			{
+				if (_ThreadSafely)
+				{
+					lock (this)
+					{
+						if (_VariableModifiers == null)
+						{
+							_VariableModifiers = _IgnoreCase ?
+								new ConcurrentDictionary<string, int>(StringComparer.OrdinalIgnoreCase) :
+								new ConcurrentDictionary<string, int>();
+						}
+					}
+				}
+				else
+				{
+					_VariableModifiers = _IgnoreCase ?
+						new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase) :
+						new Dictionary<string, int>();
 				}
 			}
 		}
@@ -506,6 +535,7 @@ namespace AScript
 			Init_VariableTypes();
 			this._Variables[name] = value;
 			this._VariableTypes[name] = valueType;
+			this._VariableModifiers?.Remove(name);
 		}
 
 		/// <summary>
@@ -519,10 +549,72 @@ namespace AScript
 			SetVar(name, value, typeof(T));
 		}
 
+		/// <summary>
+		/// 设置常量（脚本中不可修改该常量）
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		public void SetConst(string name, object value)
+		{
+			SetConst(name, value, null);
+		}
+
+		/// <summary>
+		/// 设置常量（脚本中不可修改该常量）
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		/// <param name="valueType"></param>
+		public void SetConst(string name, object value, Type valueType)
+		{
+			SetVar(name, value, valueType);
+			SetVarModifier(name, Modifiers.CONST);
+		}
+
+		/// <summary>
+		/// 设置常量（脚本中不可修改该常量）
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		public void SetConst<T>(string name, T value)
+		{
+			SetConst(name, value, typeof(T));
+		}
+
+		/// <summary>
+		/// 设置变量修饰符
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="modifier"></param>
+		protected void SetVarModifier(string name, int modifier)
+		{
+			Init_VariableModifiers();
+			this._VariableModifiers[name] = modifier;
+		}
+
+		/// <summary>
+		/// 获取变量修饰符
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected int GetVarModifier(string name)
+		{
+			var modifiers = this._VariableModifiers;
+			if (modifiers == null) return 0;
+			modifiers.TryGetValue(name, out var modifier);
+			return modifier;
+		}
+
+		/// <summary>
+		/// 删除变量
+		/// </summary>
+		/// <param name="name"></param>
 		public virtual void RemoveVar(string name)
 		{
 			this._Variables?.Remove(name);
 			this._VariableTypes?.Remove(name);
+			this._VariableModifiers?.Remove(name);
 		}
 
 		public object EvalVar(string name)

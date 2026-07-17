@@ -8,6 +8,7 @@ namespace AScript.Nodes
 	{
 		public Type SystemType { get; set; }
 		public string Type { get; set; }
+		public int Modifier { get; set; }
 
 		public DefineVarNode() { }
 		public DefineVarNode(string name) : base(name) { }
@@ -24,7 +25,14 @@ namespace AScript.Nodes
 			{
 				throw new ScriptAnalyzingException("unknown type:" + this.Type);
 			}
-			context.SetTempVar(this.Name, null, definedType, false);
+			if (Modifiers.IsConst(this.Modifier))
+			{
+				context.SetTempConst(this.Name, null, definedType, false);
+			}
+			else
+			{
+				context.SetTempVar(this.Name, null, definedType, false);
+			}
 			returnType = definedType;
 			return null;
 		}
@@ -48,6 +56,7 @@ namespace AScript.Nodes
 
 			this.Type = null;
 			this.SystemType = null;
+			this.Modifier = 0;
 		}
 	}
 }

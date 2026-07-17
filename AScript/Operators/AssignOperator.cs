@@ -175,10 +175,11 @@ namespace AScript.Operators
 				}
 
 				// 获取变量名和声明类型
-				Type declaredType = null;
-
+				Type declaredType;
+				int modifier = 0;
 				if (arg0 is DefineVarNode def)
 				{
+					modifier = def.Modifier;
 					declaredType = def.SystemType ?? e.Context.EvalType(def.Type);
 					// 先设置变量类型
 					if (declaredType != null && declaredType != typeof(object) && declaredType != typeof(void))
@@ -218,9 +219,15 @@ namespace AScript.Operators
 				//{
 				//	e.Context.AddFunc(customFunctionObject.Function);
 				//}
-
+				if (Modifiers.IsConst(modifier))
+				{
+					e.Context.SetTempConst(varName, value, type, false);
+				}
+				else
+				{
+					e.Context.SetTempVar(varName, value, type, true);
+				}
 				e.SetResult(value, type);
-				e.Context.SetTempVar(varName, value, type, true);
 				return;
 			}
 			else if (arg0 is OperatorNode opNode)
@@ -319,7 +326,14 @@ namespace AScript.Operators
 				}
 				if (!string.IsNullOrEmpty(defineVarNode.Name) && defineVarNode.Name != "_")
 				{
-					e.Context.SetTempVar(defineVarNode.Name, value, valueType, false);
+					if (Modifiers.IsConst(defineVarNode.Modifier))
+					{
+						e.Context.SetTempConst(defineVarNode.Name, value, valueType, false);
+					}
+					else
+					{
+						e.Context.SetTempVar(defineVarNode.Name, value, valueType, false);
+					}
 				}
 				return;
 			}

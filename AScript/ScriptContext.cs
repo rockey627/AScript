@@ -516,6 +516,20 @@ namespace AScript
 		/// <returns></returns>
 		public ScriptContext GetOwnerContext(string variable, out object value, out Type type, bool searchType = false)
 		{
+			return GetOwnerContext(variable, out value, out type, out _, searchType);
+		}
+
+		/// <summary>
+		/// 获取变量所在的上下文
+		/// </summary>
+		/// <param name="variable"></param>
+		/// <param name="value"></param>
+		/// <param name="type"></param>
+		/// <param name="modifier‌">变量修饰符</param>
+		/// <param name="searchType"></param>
+		/// <returns></returns>
+		public ScriptContext GetOwnerContext(string variable, out object value, out Type type, out int modifier‌, bool searchType = false)
+		{
 			var context = this;
 			do
 			{
@@ -527,6 +541,7 @@ namespace AScript
 					{
 						type = value == null ? typeof(object) : value.GetType();
 					}
+					modifier = context.GetVarModifier(variable);
 					return context;
 				}
 				var variables = context._Variables;
@@ -537,6 +552,7 @@ namespace AScript
 					{
 						type = value == null ? typeof(object) : value.GetType();
 					}
+					modifier = context.GetVarModifier(variable);
 					return context;
 				}
 				var types = context._Types;
@@ -544,6 +560,7 @@ namespace AScript
 				{
 					type = typeof(TypeWrapper);
 					value = new TypeWrapper(variable, c);
+					modifier = 0;
 					return context;
 				}
 				context = context.Parent;
@@ -553,6 +570,7 @@ namespace AScript
 			{
 				value = null;
 				type = null;
+				modifier = 0;
 				return null;
 			}
 			var tt = EvalTypeFromLangs(variable);
@@ -560,10 +578,12 @@ namespace AScript
 			{
 				value = null;
 				type = null;
+				modifier = 0;
 				return null;
 			}
 			type = typeof(TypeWrapper);
 			value = new TypeWrapper(variable, tt);
+			modifier = 0;
 			return null;
 		}
 
@@ -2243,10 +2263,31 @@ namespace AScript
 		public void SetTempVar(string name, object value, Type valueType, bool searchContext)
 		{
 			var context = searchContext ? (GetOwnerContext(name, out _, out _) ?? this) : this;
+			Modifiers.ThrowIfConst(name, context.GetVarModifier(name));
 			context.Init_TempVariables();
 			context.Init_TempVariableTypes();
 			context._TempVariables[name] = value;
 			context._TempVariableTypes[name] = valueType ?? value?.GetType() ?? typeof(object);
+		}
+
+		public void SetTempConst(string name, object value, Type valueType, bool searchContext)
+		{
+			var context = searchContext ? (GetOwnerContext(name, out _, out _) ?? this) : this;
+			context.Init_TempVariables();
+			context.Init_TempVariableTypes();
+			context._TempVariables[name] = value;
+			context._TempVariableTypes[name] = valueType ?? value?.GetType() ?? typeof(object);
+			context.SetVarModifier(name, Modifiers.CONST);
+		}
+
+		public void SetTempConst(string name, object value, bool searchContext)
+		{
+			SetTempConst(name, value, null, searchContext);
+		}
+
+		public void SetTempConst<T>(string name, T value, bool searchContext)
+		{
+			SetTempConst(name, value, typeof(T), searchContext);
 		}
 
 		/// <summary>
