@@ -5,20 +5,20 @@ namespace AScript
 	public class Modifiers
 	{
 		/// <summary>
-		/// 常量
+		/// 只读
 		/// </summary>
-		public const int CONST = 1;
+		public const int READONLY = 1;
 
-		public static bool IsConst(int modifier)
+		public static bool IsReadOnly(int modifier)
 		{
-			return (modifier & CONST) != 0;
+			return (modifier & READONLY) != 0;
 		}
 
-		public static void ThrowIfConst(string name, int modifier)
+		public static void ThrowIfReadOnly(string name, int modifier)
 		{
-			if (IsConst(modifier))
+			if (IsReadOnly(modifier))
 			{
-				throw new Exceptions.ScriptRuntimeException($"'{name}' is const, can not modify");
+				throw new Exceptions.ScriptRuntimeException($"'{name}' is readonly, can not modify");
 			}
 		}
 	}

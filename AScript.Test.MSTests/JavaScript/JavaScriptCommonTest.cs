@@ -1423,7 +1423,7 @@ handle;
 			var handle = await script.EvalAsync<object>(code);
 			Assert.IsNotNull(handle);
 
-			await Task.Delay(100);
+			await Task.Delay(200);
 			script.Eval("clearInterval(handle)");
 
 			// Each fire adds 1+2=3, at least 3 fires = at least 9

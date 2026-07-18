@@ -5,9 +5,9 @@ using System.Collections.Generic;
 
 namespace AScript.TokenHandlers
 {
-	public class ConstTokenHandler : ITokenHandler
+	public class ReadOnlyTokenHandler : ITokenHandler
 	{
-		public static readonly ConstTokenHandler Instance = new ConstTokenHandler();
+		public static readonly ReadOnlyTokenHandler Instance = new ReadOnlyTokenHandler();
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
@@ -41,7 +41,7 @@ namespace AScript.TokenHandlers
 				{
 					if (!e.Ignore)
 					{
-						var defineVarNode = PoolManage.CreateDefineVarNode(varName, null, systemType: varType ?? typeof(object), Modifiers.CONST);
+						var defineVarNode = PoolManage.CreateDefineVarNode(varName, null, systemType: varType ?? typeof(object), Modifiers.READONLY);
 						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, defineVarNode);
 					}
 					return;
@@ -51,7 +51,7 @@ namespace AScript.TokenHandlers
 					var value = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
 					if (!e.Ignore)
 					{
-						var defineVarNode = PoolManage.CreateDefineVarNode(varName, null, systemType: varType ?? typeof(object), Modifiers.CONST);
+						var defineVarNode = PoolManage.CreateDefineVarNode(varName, null, systemType: varType ?? typeof(object), Modifiers.READONLY);
 						var opNode = PoolManage.CreateOperatorNode("=", 2, DefaultSyntaxAnalyzer.OperatorPriorities["="]);
 						opNode.Left = defineVarNode;
 						opNode.Right = value;
@@ -70,7 +70,7 @@ namespace AScript.TokenHandlers
 				while (true)
 				{
 					nextToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
-					list?.Add(PoolManage.CreateDefineVarNode(nextToken.Value.Value, null, systemType: typeof(object), Modifiers.CONST));
+					list?.Add(PoolManage.CreateDefineVarNode(nextToken.Value.Value, null, systemType: typeof(object), Modifiers.READONLY));
 					nextToken = analyzer.ValidateNextToken(e.TokenReader);
 					if (nextToken.Value.IsSymbol(",")) continue;
 					if (nextToken.Value.IsSymbol(")")) break;
@@ -169,7 +169,7 @@ namespace AScript.TokenHandlers
 						if (list != null)
 						{
 							var opNode = PoolManage.CreateOperatorNode("=", 2, 0);
-							opNode.Left = PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object), Modifiers.CONST);
+							opNode.Left = PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object), Modifiers.READONLY);
 							opNode.Right = value;
 							list.Add(opNode);
 						}
@@ -212,7 +212,7 @@ namespace AScript.TokenHandlers
 					}
 					else
 					{
-						list?.Add(PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object), Modifiers.CONST));
+						list?.Add(PoolManage.CreateDefineVarNode(varName, null, systemType: typeof(object), Modifiers.READONLY));
 					}
 				}
 				if (nextToken.Value.IsSymbol(",")) continue;

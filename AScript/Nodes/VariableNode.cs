@@ -86,6 +86,7 @@ namespace AScript.Nodes
 		{
 			if (buildContext.TryGetVariableOrParameter(this.Name, out var varExpr, out ownerBuildContext, out _, out lastType))
 			{
+				ownerBuildContext.ChangedVariables.Add(this.Name);
 				return varExpr;
 			}
 			// 是否在执行上下文中存在变量
@@ -93,6 +94,11 @@ namespace AScript.Nodes
 			if (ownerContext == null)
 			{
 				buildContext.LocalVariables.Add(this.Name);
+			}
+			else
+			{
+				// 标记变量有变化
+				buildContext.ChangedVariables.Add(this.Name);
 			}
 			if (type == null)
 			{

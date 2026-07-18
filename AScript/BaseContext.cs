@@ -568,7 +568,7 @@ namespace AScript
 		public void SetConst(string name, object value, Type valueType)
 		{
 			SetVar(name, value, valueType);
-			SetVarModifier(name, Modifiers.CONST);
+			SetVarModifier(name, Modifiers.READONLY);
 		}
 
 		/// <summary>

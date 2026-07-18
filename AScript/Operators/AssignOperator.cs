@@ -219,7 +219,7 @@ namespace AScript.Operators
 				//{
 				//	e.Context.AddFunc(customFunctionObject.Function);
 				//}
-				if (Modifiers.IsConst(modifier))
+				if (Modifiers.IsReadOnly(modifier))
 				{
 					e.Context.SetTempConst(varName, value, type, false);
 				}
@@ -326,7 +326,7 @@ namespace AScript.Operators
 				}
 				if (!string.IsNullOrEmpty(defineVarNode.Name) && defineVarNode.Name != "_")
 				{
-					if (Modifiers.IsConst(defineVarNode.Modifier))
+					if (Modifiers.IsReadOnly(defineVarNode.Modifier))
 					{
 						e.Context.SetTempConst(defineVarNode.Name, value, valueType, false);
 					}

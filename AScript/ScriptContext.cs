@@ -2263,7 +2263,7 @@ namespace AScript
 		public void SetTempVar(string name, object value, Type valueType, bool searchContext)
 		{
 			var context = searchContext ? (GetOwnerContext(name, out _, out _) ?? this) : this;
-			Modifiers.ThrowIfConst(name, context.GetVarModifier(name));
+			Modifiers.ThrowIfReadOnly(name, context.GetVarModifier(name));
 			context.Init_TempVariables();
 			context.Init_TempVariableTypes();
 			context._TempVariables[name] = value;
@@ -2277,7 +2277,7 @@ namespace AScript
 			context.Init_TempVariableTypes();
 			context._TempVariables[name] = value;
 			context._TempVariableTypes[name] = valueType ?? value?.GetType() ?? typeof(object);
-			context.SetVarModifier(name, Modifiers.CONST);
+			context.SetVarModifier(name, Modifiers.READONLY);
 		}
 
 		public void SetTempConst(string name, object value, bool searchContext)

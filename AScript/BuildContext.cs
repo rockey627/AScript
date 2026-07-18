@@ -16,6 +16,7 @@ namespace AScript
 		private Dictionary<string, ParameterExpression> _Parameters;
 		private Dictionary<string, Type> _LastTypes;
 		private HashSet<string> _LocalVariables;
+		private HashSet<string> _ChangedVariables;
 		private Dictionary<string, Expression> _Events;
 
 		private LabelTarget _ContinueLabel;
@@ -76,6 +77,17 @@ namespace AScript
 					_Variables = new Dictionary<string, ParameterExpression>();
 				}
 				return _Variables;
+			}
+		}
+		public HashSet<string> ChangedVariables
+		{
+			get
+			{
+				if (_ChangedVariables == null)
+				{
+					_ChangedVariables = new HashSet<string>();
+				}
+				return _ChangedVariables;
 			}
 		}
 
@@ -532,25 +544,11 @@ namespace AScript
 				//}
 			}
 			expandBodies = TryExpandBodies(body);
-			// 变量
-			int blockCount = _PrevExpressionsCount + (expandBodies == null ? (body == null ? 0 : body.Length) : expandBodies.Count);
-			// 变量回写语句数量
-			if (_VariablesCount > 0 && (options?.RewriteVariables ?? true))
-			{
-				blockCount += _VariablesCount;
-				if (!this.RewriteLocalVariables && this._LocalVariables != null)
-				{
-					blockCount -= this._LocalVariables.Count;
-				}
-			}
-			if (this.ReturnLabel != null) blockCount++;
-			if (this.ReturnVariableExpression != null) blockCount++;
+			// 
 			List<ParameterExpression> variables;
 			Expression variableAssignExpression;
 			if (_UsedScriptContext && scriptContextParameter != ExpressionUtils.Parameter_ScriptContext && this.ScriptContextParameter != null)
 			{
-				// 增加参数赋值语句
-				blockCount++;
 				variables = new List<ParameterExpression>(_VariablesCount + (_VariablesCount == 0 ? 1 : 2));
 				variables.Add(scriptContextParameter);
 				if (_VariablesCount > 0)
@@ -579,26 +577,19 @@ namespace AScript
 				}
 				variableAssignExpression = null;
 			}
-			if (this.ReturnLabel != null) blockCount++;
-			List<Expression> list;
-			if (blockCount == _PrevExpressionsCount)
+			// 
+			List<Expression> list = new List<Expression>();
+			if (variableAssignExpression != null)
 			{
-				list = _PrevExpressions;
+				list.Add(variableAssignExpression);
 			}
-			else
+			if (_PrevExpressionsCount > 0)
 			{
-				list = new List<Expression>(blockCount);
-				if (variableAssignExpression != null)
-				{
-					list.Add(variableAssignExpression);
-				}
-				if (_PrevExpressionsCount > 0)
-				{
-					list.AddRange(_PrevExpressions);
-				}
-				if (expandBodies != null) list.AddRange(expandBodies);
-				else if (body != null && body.Length > 0) list.AddRange(body);
+				list.AddRange(_PrevExpressions);
 			}
+			if (expandBodies != null) list.AddRange(expandBodies);
+			else if (body != null && body.Length > 0) list.AddRange(body);
+			// 
 			if (list != null && list.Count > 0)
 			{
 				var lastExpression = list[list.Count - 1];
@@ -633,11 +624,15 @@ namespace AScript
 				foreach (var v in _Variables.Values)
 				{
 					bool searchParent = _LocalVariables == null || !_LocalVariables.Contains(v.Name);
-					if (!searchParent && !this.RewriteLocalVariables)
+					if (!searchParent)
 					{
-						// 不回写本地变量
-						continue;
+						if (!this.RewriteLocalVariables)
+						{
+							// 不回写本地变量
+							continue;
+						}
 					}
+					else if (_ChangedVariables == null || !_ChangedVariables.Contains(v.Name)) continue;
 					list.Add(Expression.Call(
 						scriptContextParameter,
 						ExpressionUtils.Method_ScriptContext_SetTempVar,

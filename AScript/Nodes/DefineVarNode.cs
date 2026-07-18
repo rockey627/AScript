@@ -25,7 +25,7 @@ namespace AScript.Nodes
 			{
 				throw new ScriptAnalyzingException("unknown type:" + this.Type);
 			}
-			if (Modifiers.IsConst(this.Modifier))
+			if (Modifiers.IsReadOnly(this.Modifier))
 			{
 				context.SetTempConst(this.Name, null, definedType, false);
 			}
