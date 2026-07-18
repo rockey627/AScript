@@ -15,6 +15,7 @@ namespace AScript
 		private Dictionary<string, ParameterExpression> _Variables;
 		private Dictionary<string, ParameterExpression> _Parameters;
 		private Dictionary<string, Type> _LastTypes;
+		private Dictionary<string, int> _VariableModifiers;
 		private HashSet<string> _LocalVariables;
 		private HashSet<string> _ChangedVariables;
 		private Dictionary<string, Expression> _Events;
@@ -100,6 +101,17 @@ namespace AScript
 					_LastTypes = new Dictionary<string, Type>();
 				}
 				return _LastTypes;
+			}
+		}
+		public Dictionary<string, int> VariableModifiers
+		{
+			get
+			{
+				if (_VariableModifiers == null)
+				{
+					_VariableModifiers = new Dictionary<string, int>();
+				}
+				return _VariableModifiers;
 			}
 		}
 		/// <summary>
@@ -281,6 +293,15 @@ namespace AScript
 			ownerBuildContext = null;
 			lastType = null;
 			return false;
+		}
+
+		public void ThrowIfReadOnly(string name)
+		{
+			if (_VariableModifiers == null) return;
+			if (_VariableModifiers.TryGetValue(name, out var modifier))
+			{
+				Modifiers.ThrowIfReadOnly(name, modifier);
+			}
 		}
 
 		//public void AddTempFunc(string name, LambdaExpression d)
@@ -633,13 +654,27 @@ namespace AScript
 						}
 					}
 					else if (_ChangedVariables == null || !_ChangedVariables.Contains(v.Name)) continue;
-					list.Add(Expression.Call(
-						scriptContextParameter,
-						ExpressionUtils.Method_ScriptContext_SetTempVar,
-						Expression.Constant(v.Name),
-						Expression.Convert(v, typeof(object)),
-						Expression.Constant(v.Type),
-						Expression.Constant(searchParent)));
+					if (_VariableModifiers != null && _VariableModifiers.TryGetValue(v.Name, out var modifier)
+						&& Modifiers.IsReadOnly(modifier))
+					{
+						list.Add(Expression.Call(
+							scriptContextParameter,
+							ExpressionUtils.Method_ScriptContext_SetTempConst,
+							Expression.Constant(v.Name),
+							Expression.Convert(v, typeof(object)),
+							Expression.Constant(v.Type),
+							Expression.Constant(searchParent)));
+					}
+					else
+					{
+						list.Add(Expression.Call(
+							scriptContextParameter,
+							ExpressionUtils.Method_ScriptContext_SetTempVar,
+							Expression.Constant(v.Name),
+							Expression.Convert(v, typeof(object)),
+							Expression.Constant(v.Type),
+							Expression.Constant(searchParent)));
+					}
 				}
 			}
 			if (this.ReturnVariableExpression != null)

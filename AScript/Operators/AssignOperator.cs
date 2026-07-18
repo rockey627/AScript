@@ -627,6 +627,10 @@ namespace AScript.Operators
 				}
 				left = null;
 				e.BuildContext.LocalVariables.Add(arg0Node.Name);
+				if (defineVar.Modifier != 0)
+				{
+					e.BuildContext.VariableModifiers[arg0Node.Name] = defineVar.Modifier;
+				}
 			}
 			else
 			{

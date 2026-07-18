@@ -113,7 +113,7 @@ namespace AScript.Test.MSTests
 			}
 			catch (ScriptRuntimeException ex)
 			{
-				Assert.AreEqual("'PI' is const, can not modify", ex.Message);
+				Assert.AreEqual("'PI' is readonly, can not modify", ex.Message);
 				return;
 			}
 			Assert.IsTrue(false);
@@ -134,6 +134,41 @@ namespace AScript.Test.MSTests
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			Assert.AreEqual(15, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test07_static_const_CompileAll()
+		{
+			string s = "static const a = 3; a=4; a * 5";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			try
+			{
+				script.Eval(s);
+			}
+			catch (ScriptRuntimeException ex)
+			{
+				Assert.AreEqual("'a' is readonly, can not modify", ex.Message);
+				return;
+			}
+			Assert.IsTrue(false);
+		}
+
+		[TestMethod]
+		public void Test08_static_const_CompileAll()
+		{
+			var script = new Script();
+			script.Eval("const a = 3", ECompileMode.All);
+			try
+			{
+				script.Eval("a=4");
+			}
+			catch (ScriptRuntimeException ex)
+			{
+				Assert.AreEqual("'a' is readonly, can not modify", ex.Message);
+				return;
+			}
+			Assert.IsTrue(false);
 		}
 
 	}

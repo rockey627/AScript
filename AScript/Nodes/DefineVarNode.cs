@@ -47,6 +47,10 @@ namespace AScript.Nodes
 			var v = Expression.Variable(type, this.Name);
 			buildContext.Variables[this.Name] = v;
 			buildContext.LocalVariables.Add(this.Name);
+			if (this.Modifier != 0)
+			{
+				buildContext.VariableModifiers[this.Name] = this.Modifier;
+			}
 			return v;
 		}
 

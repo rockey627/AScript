@@ -86,17 +86,19 @@ namespace AScript.Nodes
 		{
 			if (buildContext.TryGetVariableOrParameter(this.Name, out var varExpr, out ownerBuildContext, out _, out lastType))
 			{
+				ownerBuildContext.ThrowIfReadOnly(this.Name);
 				ownerBuildContext.ChangedVariables.Add(this.Name);
 				return varExpr;
 			}
 			// 是否在执行上下文中存在变量
-			var ownerContext = scriptContext.GetOwnerContext(this.Name, out _, out var type);
+			var ownerContext = scriptContext.GetOwnerContext(this.Name, out _, out var type, out int modifier);
 			if (ownerContext == null)
 			{
 				buildContext.LocalVariables.Add(this.Name);
 			}
 			else
 			{
+				Modifiers.ThrowIfReadOnly(this.Name, modifier);
 				// 标记变量有变化
 				buildContext.ChangedVariables.Add(this.Name);
 			}
