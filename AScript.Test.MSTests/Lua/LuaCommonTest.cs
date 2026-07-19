@@ -21,28 +21,54 @@ namespace AScript.Test.MSTests.Lua
 		[TestMethod]
 		public void Test01_Variable_Local()
 		{
-			var script = new Script();
-			script.Context.Langs = new[] { "lua" };
-
 			string code = @"
 local x = 10
 x
 ";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(10L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test01_Variable_Local_CompileAll()
+		{
+			string code = @"
+local x = 10
+x
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
 			Assert.AreEqual(10L, script.Eval(code));
 		}
 
 		[TestMethod]
 		public void Test02_Function_Basic()
 		{
-			var script = new Script();
-			script.Context.Langs = new[] { "lua" };
-
 			string code = @"
 function add(a, b)
 	return a + b
 end
 add(3, 5)
 ";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(8L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test02_Function_Basic_CompileAll()
+		{
+			string code = @"
+function add(a, b)
+	return a + b
+end
+add(3, 5)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
 			Assert.AreEqual(8L, script.Eval(code));
 		}
 
@@ -58,9 +84,35 @@ add(3, 5)
 		}
 
 		[TestMethod]
+		public void Test03_Arithmetic_Basic_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+
+			Assert.AreEqual(15L, script.Eval("10 + 5"));
+			Assert.AreEqual(5L, script.Eval("10 - 5"));
+			Assert.AreEqual(50L, script.Eval("10 * 5"));
+		}
+
+		[TestMethod]
 		public void Test04_Comparison_Operators()
 		{
 			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+
+			Assert.AreEqual(true, script.Eval("10 == 10"));
+			Assert.AreEqual(false, script.Eval("10 == 5"));
+			Assert.AreEqual(true, script.Eval("5 ~= 10"));
+			Assert.AreEqual(true, script.Eval("10 > 5"));
+			Assert.AreEqual(true, script.Eval("5 < 10"));
+		}
+
+		[TestMethod]
+		public void Test04_Comparison_Operators_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
 
 			Assert.AreEqual(true, script.Eval("10 == 10"));
@@ -83,11 +135,21 @@ add(3, 5)
 		}
 
 		[TestMethod]
-		public void Test06_If_Statement()
+		public void Test05_Logic_Operators_CompileAll()
 		{
 			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
 
+			Assert.AreEqual(true, script.Eval("true and true"));
+			Assert.AreEqual(false, script.Eval("true and false"));
+			Assert.AreEqual(true, script.Eval("true or false"));
+			Assert.AreEqual(false, script.Eval("not true"));
+		}
+
+		[TestMethod]
+		public void Test06_If_Statement()
+		{
 			string code = @"
 local x = 10
 if x > 5 then
@@ -95,15 +157,30 @@ if x > 5 then
 end
 x
 ";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(100L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test06_If_Statement_CompileAll()
+		{
+			string code = @"
+local x = 10
+if x > 5 then
+	x = 100
+end
+x
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
 			Assert.AreEqual(100L, script.Eval(code));
 		}
 
 		[TestMethod]
 		public void Test07_If_Else()
 		{
-			var script = new Script();
-			script.Context.Langs = new[] { "lua" };
-
 			string code = @"
 local x = 3
 if x > 5 then
@@ -113,6 +190,26 @@ else
 end
 x
 ";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(200L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test07_If_Else_CompileAll()
+		{
+			string code = @"
+local x = 3
+if x > 5 then
+	x = 100
+else
+	x = 200
+end
+x
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
 			Assert.AreEqual(200L, script.Eval(code));
 		}
 

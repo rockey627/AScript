@@ -93,6 +93,8 @@ namespace AScript.Lang.Lua.TokenHandlers
 			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
 			var body = LuaLang.BuildSubBlock(e.CurrentToken.Column, analyzer, e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
 
+			analyzer.ValidateNextToken(e.TokenReader, "end");
+
 			if (!e.Ignore)
 			{
 				var args = new DefineVarNode[argNames.Count];

@@ -29,31 +29,32 @@ namespace AScript.Lang.Lua.TokenHandlers
 				return;
 			}
 
-			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
+			var createFullOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
 			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens);
 			analyzer.ValidateNextToken(e.TokenReader, "then");
 			var body = LuaLang.BuildSubBlock(e.CurrentToken.Column, analyzer, e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
 
 			ITreeNode elseNode = null;
-			var token = e.TokenReader.Read();
-			if (token.HasValue)
+			var token = analyzer.ValidateNextToken(e.TokenReader);
+			if (token.Value.IsSymbol("elseif"))
 			{
-				if (token.Value.Value == "elseif")
-				{
-					e.TokenReader.Push(new Token("if", ETokenType.Word, token.Value.Line, token.Value.Column));
-					elseNode = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens);
-				}
-				else if (token.Value.Value == "else")
-				{
-					elseNode = LuaLang.BuildSubBlock(e.CurrentToken.Column, analyzer, e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
-				}
-				else
-				{
-					e.TokenReader.Push(token.Value);
-				}
+				e.TokenReader.Push(new Token("if", ETokenType.Word, token.Value.Line, token.Value.Column));
+				elseNode = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens);
 			}
+			else if (token.Value.IsSymbol("else"))
+			{
+				elseNode = LuaLang.BuildSubBlock(e.CurrentToken.Column, analyzer, e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+			}
+			else
+			{
+				e.TokenReader.Push(token.Value);
+			}
+			analyzer.ValidateNextToken(e.TokenReader, "end");
 
-			e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, new IfNode { Condition = condition, Body = body, Else = elseNode });
+			if (!e.Ignore)
+			{
+				e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, new IfNode { Condition = condition, Body = body, Else = elseNode });
+			}
 		}
 	}
 }

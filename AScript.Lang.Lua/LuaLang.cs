@@ -46,7 +46,6 @@ namespace AScript.Lang.Lua
 			AddFunc("%", ModuloOperator.Instance);
 			AddFunc("^", PowerOperator.Instance);
 			AddFunc("//", LuaFloorDivideOperator.Instance);
-			AddFunc("-", LuaUnaryMinusOperator.Instance);
 
 			// 关系运算符
 			AddFunc("<", LessThanOperator.Instance);
@@ -74,6 +73,9 @@ namespace AScript.Lang.Lua
 			// Token处理器
 			AddTokenHandler("local", LuaLocalTokenHandler.Instance);
 			AddTokenHandler("nil", LuaNilTokenHandler.Instance);
+			AddTokenHandler("and", new OperatorTokenHandler("&&"));
+			AddTokenHandler("or", new OperatorTokenHandler("||"));
+			AddTokenHandler("not", new OperatorTokenHandler("!") { DataCount = 1, Prefix = true });
 			AddTokenHandler("true", BoolTokenHandler.Instance);
 			AddTokenHandler("false", BoolTokenHandler.Instance);
 			AddTokenHandler("if", LuaIfTokenHandler.Instance);
