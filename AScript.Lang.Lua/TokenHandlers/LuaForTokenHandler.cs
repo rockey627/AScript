@@ -52,7 +52,8 @@ namespace AScript.Lang.Lua.TokenHandlers
 				e.TokenReader.Push(token2.Value);
 			}
 			analyzer.ValidateNextToken(e.TokenReader, "do");
-			var body = LuaLang.BuildSubBlock(e.CurrentToken.Column, analyzer, e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+			analyzer.ValidateNextToken(e.TokenReader, "end");
 
 			if (!e.Ignore)
 			{

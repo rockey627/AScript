@@ -18,7 +18,7 @@ namespace AScript.Lang.Lua
 	{
 		public static readonly LuaLang Instance = new LuaLang();
 
-		internal static readonly HashSet<string> EndTokens = new HashSet<string>() { "\n", "end", "else", "elseif", "until" };
+		internal static readonly HashSet<string> EndTokens = new HashSet<string>() { "end", "else", "elseif", "until" };
 
 		protected LuaLang()
 		{
@@ -63,16 +63,16 @@ namespace AScript.Lang.Lua
 			// 其他运算符
 			AddFunc(".", DotOperator.Instance);
 			AddFunc("[]", IndexOperator.Instance);
-			AddFunc("..", LuaConcatOperator.Instance);
-			AddFunc("#", LuaLengthOperator.Instance);
+			AddFunc("..", ConcatFunction.Instance);
+			AddFunc("#", new LengthFunction(typeof(long)));
 
 			// 内置函数
 			AddFunc("print", new PrintFunction());
 			AddFunc("type", new TypeFunction());
 
 			// Token处理器
-			AddTokenHandler("local", LuaLocalTokenHandler.Instance);
-			AddTokenHandler("nil", LuaNilTokenHandler.Instance);
+			AddTokenHandler("local", VarTokenHandler.Instance);
+			AddTokenHandler("nil", NullTokenHandler.Instance);
 			AddTokenHandler("and", new OperatorTokenHandler("&&"));
 			AddTokenHandler("or", new OperatorTokenHandler("||"));
 			AddTokenHandler("not", new OperatorTokenHandler("!") { DataCount = 1, Prefix = true });
@@ -88,6 +88,7 @@ namespace AScript.Lang.Lua
 			AddTokenHandler("break", BreakTokenHandler.Instance);
 			AddTokenHandler("continue", ContinueTokenHandler.Instance);
 			AddTokenHandler("[", new BracketTokenHandler(typeof(List<object>)));
+			AddTokenHandler("#", new OperatorTokenHandler(".") { DataCount = 1, Prefix = true });
 		}
 
 		public override ITokenStream GetTokenStream(CharReader charReader)
@@ -132,37 +133,39 @@ namespace AScript.Lang.Lua
 					return DefaultSyntaxAnalyzer.OperatorPriorities["!="];
 				case "~":
 					return DefaultSyntaxAnalyzer.OperatorPriorities["!"];
+				case "#":
+					return DefaultSyntaxAnalyzer.OperatorPriorities["."];
 				default:
 					break;
 			}
 			return base.GetOperatorPriority(op);
 		}
 
-		public static ITreeNode BuildSubBlock(int parentColumn, DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)
-		{
-			if (endTokens == null) endTokens = EndTokens;
-			var token = tokenReader.Read();
-			if (!token.HasValue) return null;
+		//public static ITreeNode BuildSubBlock(int parentColumn, DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)
+		//{
+		//	if (endTokens == null) endTokens = EndTokens;
+		//	var token = tokenReader.Read();
+		//	if (!token.HasValue) return null;
 
-			var builder = ignore ? null : new TreeBuilder();
-			int column = token.Value.Column;
-			while (token.HasValue && token.Value.Column > parentColumn)
-			{
-				tokenReader.Push(token.Value);
-				var statement = analyzer.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens: endTokens);
-				if (!ignore)
-				{
-					builder.Add(buildContext, scriptContext, options, control, statement);
-				}
-				token = tokenReader.Read();
-			}
-			if (token.HasValue)
-			{
-				tokenReader.Push(token.Value);
-			}
+		//	var builder = ignore ? null : new TreeBuilder();
+		//	int column = token.Value.Column;
+		//	while (token.HasValue && token.Value.Column > parentColumn)
+		//	{
+		//		tokenReader.Push(token.Value);
+		//		var statement = analyzer.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens: endTokens);
+		//		if (!ignore)
+		//		{
+		//			builder.Add(buildContext, scriptContext, options, control, statement);
+		//		}
+		//		token = tokenReader.Read();
+		//	}
+		//	if (token.HasValue)
+		//	{
+		//		tokenReader.Push(token.Value);
+		//	}
 
-			return builder;
-		}
+		//	return builder;
+		//}
 
 		// 内置函数类
 		private class PrintFunction : IFunctionEvaluator

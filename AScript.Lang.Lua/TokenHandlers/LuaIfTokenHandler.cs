@@ -32,7 +32,7 @@ namespace AScript.Lang.Lua.TokenHandlers
 			var createFullOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
 			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens);
 			analyzer.ValidateNextToken(e.TokenReader, "then");
-			var body = LuaLang.BuildSubBlock(e.CurrentToken.Column, analyzer, e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+			var body = analyzer.BuildMultiStatement( e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
 
 			ITreeNode elseNode = null;
 			var token = analyzer.ValidateNextToken(e.TokenReader);
@@ -43,7 +43,7 @@ namespace AScript.Lang.Lua.TokenHandlers
 			}
 			else if (token.Value.IsSymbol("else"))
 			{
-				elseNode = LuaLang.BuildSubBlock(e.CurrentToken.Column, analyzer, e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+				elseNode = analyzer.BuildMultiStatement( e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
 			}
 			else
 			{

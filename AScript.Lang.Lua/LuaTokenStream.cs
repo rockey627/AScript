@@ -28,34 +28,11 @@ namespace AScript.Lang.Lua
 		protected override bool TryCustomParse(char currentChar, out ETokenType? tokenType)
 		{
 			// 处理Lua字符串
-			if (currentChar == '\'' || currentChar == '"')
+			if (currentChar == '#')
 			{
-				tokenType = null;
-				char quote = currentChar;
-				var d = CharReader.Read();
-				while (d.HasValue && d.Value != quote)
-				{
-					if (d.Value == '\\')
-					{
-						var next = CharReader.Read();
-						if (next.HasValue)
-						{
-							_buffer.Append(next.Value);
-							d = CharReader.Read();
-							continue;
-						}
-						break;
-					}
-					_buffer.Append(d.Value);
-					d = CharReader.Read();
-				}
-				if (d.HasValue && d.Value == quote)
-				{
-					tokenType = ETokenType.String;
-					return true;
-				}
-				CharReader.Push(d.Value);
-				return false;
+				tokenType = ETokenType.Operator;
+				_buffer.Append(currentChar);
+				return true;
 			}
 
 			tokenType = null;

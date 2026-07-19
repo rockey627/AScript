@@ -23,8 +23,8 @@ namespace AScript.Lang.Lua.TokenHandlers
 				return;
 			}
 
-			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			var body = LuaLang.BuildSubBlock(e.CurrentToken.Column, analyzer, e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+			var createFullOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
+			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
 
 			// until condition
 			analyzer.ValidateNextToken(e.TokenReader, "until");

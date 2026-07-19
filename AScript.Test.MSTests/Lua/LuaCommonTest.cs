@@ -239,18 +239,42 @@ x
 			script.Context.Langs = new[] { "lua" };
 
 			Assert.AreEqual(5L, script.Eval("#\"hello\""));
+			Assert.AreEqual(0L, script.Eval("#''"));
+		}
+
+		[TestMethod]
+		public void Test09_String_Length_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+
+			Assert.AreEqual(5L, script.Eval("#\"hello\""));
+			Assert.AreEqual(0L, script.Eval("#''"));
 		}
 
 		[TestMethod]
 		public void Test10_Nil()
 		{
-			var script = new Script();
-			script.Context.Langs = new[] { "lua" };
-
 			string code = @"
 local x = nil
 x
 ";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(null, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test10_Nil_CompileAll()
+		{
+			string code = @"
+local x = nil
+x
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
 			Assert.AreEqual(null, script.Eval(code));
 		}
 
