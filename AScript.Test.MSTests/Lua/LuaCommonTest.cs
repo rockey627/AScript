@@ -219,7 +219,17 @@ x
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
 
-			Assert.AreEqual("helloworld", script.Eval("\"hello\" .. \"world\""));
+			Assert.AreEqual("helloworld", script.Eval("'hello' .. 'world'"));
+		}
+
+		[TestMethod]
+		public void Test08_String_Concat_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+
+			Assert.AreEqual("helloworld", script.Eval("'hello' .. 'world'"));
 		}
 
 		[TestMethod]
@@ -255,6 +265,17 @@ x
 		}
 
 		[TestMethod]
+		public void Test11_Unary_Minus_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+
+			Assert.AreEqual(-10L, script.Eval("-10"));
+			Assert.AreEqual(-5L, script.Eval("5 + -10"));
+		}
+
+		[TestMethod]
 		public void Test12_Table_Array()
 		{
 			var script = new Script();
@@ -270,24 +291,35 @@ arr[1]
 		[TestMethod]
 		public void Test13_Function_NoArgs()
 		{
-			var script = new Script();
-			script.Context.Langs = new[] { "lua" };
-
 			string code = @"
 function getValue()
 	return 100
 end
 getValue()
 ";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(100L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test13_Function_NoArgs_CompileAll()
+		{
+			string code = @"
+function getValue()
+	return 100
+end
+getValue()
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
 			Assert.AreEqual(100L, script.Eval(code));
 		}
 
 		[TestMethod]
 		public void Test14_Function_Recursive()
 		{
-			var script = new Script();
-			script.Context.Langs = new[] { "lua" };
-
 			string code = @"
 function factorial(n)
 	if n <= 1 then
@@ -297,6 +329,26 @@ function factorial(n)
 end
 factorial(5)
 ";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(120L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test14_Function_Recursive_CompileAll()
+		{
+			string code = @"
+function factorial(n)
+	if n <= 1 then
+		return 1
+	end
+	return n * factorial(n - 1)
+end
+factorial(5)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
 			Assert.AreEqual(120L, script.Eval(code));
 		}
 	}

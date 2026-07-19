@@ -71,7 +71,7 @@ namespace AScript.Readers
 							c = _reader.Read();
 							continue;
 						}
-						else if (startChar != '?')
+						else if (startChar != '?' && startChar != '.')
 						{
 							_reader.Push(c.Value);
 							// 如果前面不是数字，则返回前面的
@@ -79,7 +79,7 @@ namespace AScript.Readers
 						}
 					}
 					var nextChar = _reader.Peek();
-					if (nextChar.HasValue && !IsNumber(nextChar.Value))
+					if (nextChar.HasValue && !IsNumber(nextChar.Value) && nextChar.Value != '.')
 					{
 						_buffer.Append(c.Value);
 						break;
