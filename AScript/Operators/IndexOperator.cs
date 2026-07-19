@@ -25,6 +25,7 @@ namespace AScript.Operators
 		public static readonly IndexOperator Instance = new IndexOperator();
 
 		private readonly bool _Char2String;
+		private readonly bool _IndexBased1;
 
 		public IndexOperator() { }
 		/// <summary>
@@ -34,6 +35,15 @@ namespace AScript.Operators
 		public IndexOperator(bool char2String)
 		{
 			_Char2String = char2String;
+		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="char2String"></param>
+		/// <param name="indexBase1">下标是否从1开始</param>
+		public IndexOperator(bool char2String, bool indexBase1) : this(char2String)
+		{
+			_IndexBased1 = indexBase1;
 		}
 
 		public void Build(FunctionBuildArgs e)
@@ -60,6 +70,7 @@ namespace AScript.Operators
 				if (index is ConstantExpression constantExpr)
 				{
 					int i = Convert.ToInt32(constantExpr.Value);
+					if (_IndexBased1) i -= 1;
 					if (index.Type != typeof(int))
 					{
 						index = Expression.Constant(i);
@@ -79,6 +90,10 @@ namespace AScript.Operators
 					{
 						index = Expression.Convert(index, typeof(int));
 					}
+					if (_IndexBased1)
+					{
+						index = Expression.Subtract(index, Expression.Constant(1));
+					}
 					adjustedIndex = Expression.Condition(
 						Expression.LessThan(index, Expression.Constant(0)),
 						Expression.Add(Expression.ArrayLength(target), index),
@@ -95,6 +110,7 @@ namespace AScript.Operators
 				if (index is ConstantExpression constantExpr)
 				{
 					int i = Convert.ToInt32(constantExpr.Value);
+					if (_IndexBased1) i -= 1;
 					if (index.Type != typeof(int))
 					{
 						index = Expression.Constant(i);
@@ -104,7 +120,7 @@ namespace AScript.Operators
 						adjustedIndex = Expression.Add(
 							target.Type == typeof(string)
 								? Expression.Property(target, "Length")
-								: Expression.Property(target, "Count"), 
+								: Expression.Property(target, "Count"),
 							index);
 					}
 					else
@@ -117,6 +133,10 @@ namespace AScript.Operators
 					if (index.Type != typeof(int))
 					{
 						index = Expression.Convert(index, typeof(int));
+					}
+					if (_IndexBased1)
+					{
+						index = Expression.Subtract(index, Expression.Constant(1));
 					}
 					adjustedIndex = Expression.Condition(
 						Expression.LessThan(index, Expression.Constant(0)),
@@ -151,6 +171,10 @@ namespace AScript.Operators
 			var indexerProp = target.Type.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
 			if (indexerProp != null)
 			{
+				if (_IndexBased1)
+				{
+					index = Expression.Subtract(index, Expression.Constant(1));
+				}
 				e.Result = Expression.Property(target, indexerProp, index);
 			}
 			else
@@ -166,6 +190,10 @@ namespace AScript.Operators
 						var getItemMethod = target.Type.GetMethod("get_Item");
 						if (getItemMethod != null)
 						{
+							if (_IndexBased1)
+							{
+								index = Expression.Subtract(index, Expression.Constant(1));
+							}
 							e.Result = Expression.Call(target, getItemMethod, index);
 							return;
 						}
@@ -178,7 +206,11 @@ namespace AScript.Operators
 				//	typeof(object),
 				//	target,
 				//	index);
-				e.Result = Expression.Call(Method_GetItem, target, Expression.Convert(index, typeof(object)));
+				if (_IndexBased1)
+				{
+					index = Expression.Subtract(index, Expression.Constant(1));
+				}
+				e.Result = Expression.Call(Method_GetItem, target, Expression.Convert(index, typeof(object)), Expression.Constant(_IndexBased1));
 			}
 		}
 
@@ -223,7 +255,7 @@ namespace AScript.Operators
 			{
 				var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
 				var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
-				var result = GetItem(arg0, arg1);
+				var result = GetItem(arg0, arg1, _IndexBased1);
 				if (_Char2String && arg0 is string)
 				{
 					result = result.ToString();
@@ -232,11 +264,12 @@ namespace AScript.Operators
 			}
 		}
 
-		public static object GetItem(object arg0, object arg1)
+		public static object GetItem(object arg0, object arg1, bool indexBase1 = false)
 		{
 			if (arg0 is IList list)
 			{
 				int index = Convert.ToInt32(arg1);
+				if (indexBase1) index -= 1;
 				if (index < 0)
 				{
 					index = list.Count + index;
@@ -246,6 +279,7 @@ namespace AScript.Operators
 			if (arg0 is string s)
 			{
 				int index = Convert.ToInt32(arg1);
+				if (indexBase1) index -= 1;
 				if (index < 0)
 				{
 					index = s.Length + index;
@@ -258,6 +292,7 @@ namespace AScript.Operators
 			}
 			dynamic obj = arg0;
 			dynamic key = arg1;
+			if (indexBase1 && (key is int || key is long)) key -= 1;
 			return obj[key];
 		}
 	}

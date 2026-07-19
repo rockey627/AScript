@@ -62,7 +62,7 @@ namespace AScript.Lang.Lua
 
 			// 其他运算符
 			AddFunc(".", DotOperator.Instance);
-			AddFunc("[]", IndexOperator.Instance);
+			AddFunc("[]", new IndexOperator(false, true));
 			AddFunc("..", ConcatFunction.Instance);
 			AddFunc("#", new LengthFunction(typeof(long)));
 

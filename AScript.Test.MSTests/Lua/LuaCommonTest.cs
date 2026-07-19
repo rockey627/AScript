@@ -302,13 +302,25 @@ x
 		[TestMethod]
 		public void Test12_Table_Array()
 		{
-			var script = new Script();
-			script.Context.Langs = new[] { "lua" };
-
 			string code = @"
 local arr = {1, 2, 3}
 arr[1]
 ";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(1L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test12_Table_Array_CompileAll()
+		{
+			string code = @"
+local arr = {1, 2, 3}
+arr[1]
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
 			Assert.AreEqual(1L, script.Eval(code));
 		}
 
