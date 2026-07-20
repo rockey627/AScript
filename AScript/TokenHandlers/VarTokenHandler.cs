@@ -13,6 +13,13 @@ namespace AScript.TokenHandlers
 		{
 			e.IsHandled = true;
 
+			if (e.TreeBuilder.IsFullStatement())
+			{
+				e.End = true;
+				e.TokenReader.Push(e.CurrentToken);
+				return;
+			}
+
 			var nextToken = analyzer.ValidateNextToken(e.TokenReader);
 			if (nextToken.Value.Type == ETokenType.Word)
 			{
