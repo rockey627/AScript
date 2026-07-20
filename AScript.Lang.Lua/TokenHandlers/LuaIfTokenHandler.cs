@@ -35,19 +35,31 @@ namespace AScript.Lang.Lua.TokenHandlers
 			analyzer.ValidateNextToken(e.TokenReader, "then");
 			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
 
-			var elseifList = e.Ignore ? null : new List<ITreeNode>();
 			ITreeNode elseNode = null;
+			IfNode currentElseIfNode = null;
 			var token = analyzer.ValidateNextToken(e.TokenReader);
-			if (token.Value.IsSymbol("elseif"))
+			while (token.Value.IsSymbol("elseif"))
 			{
-				//e.TokenReader.Push(new Token("if", ETokenType.Word, token.Value.Line, token.Value.Column));
-				//elseNode = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens);
-				var elseifNode = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
-				elseifList?.Add(elseifNode);
+				var elseifCondition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens);
+				analyzer.ValidateNextToken(e.TokenReader, "then");
+				var elseifBody = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+				if (!e.Ignore)
+				{
+					var elseifNode = new IfNode { Condition = elseifCondition, Body = elseifBody };
+					if (currentElseIfNode != null)
+					{
+						currentElseIfNode.Else = elseifNode;
+					}
+					currentElseIfNode = elseifNode;
+					if (elseNode == null) elseNode = elseifNode;
+				}
+				token = analyzer.ValidateNextToken(e.TokenReader);
 			}
-			else if (token.Value.IsSymbol("else"))
+			if (token.Value.IsSymbol("else"))
 			{
-				elseNode = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+				var elseNode1 = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+				if (elseNode == null) elseNode = elseNode1;
+				else currentElseIfNode.Else = elseNode1;
 			}
 			else
 			{
@@ -57,15 +69,7 @@ namespace AScript.Lang.Lua.TokenHandlers
 
 			if (!e.Ignore)
 			{
-				ITreeNode elseNode2 = null;
-				if (elseifList.Count > 0)
-				{
-					foreach (var item in elseifList)
-					{
-						elseNode2 = new IfNode { }
-					}
-				}
-				e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, new IfNode { Condition = condition, Body = body, Else = elseNode2 });
+				e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, new IfNode { Condition = condition, Body = body, Else = elseNode });
 			}
 		}
 	}
