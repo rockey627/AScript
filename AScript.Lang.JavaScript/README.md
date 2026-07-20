@@ -544,7 +544,13 @@ JavaScriptLang.Instance.AddModule("axios", new JavaScriptAxiosModule());
 ```
 string s = @"
 var axios = require('axios');
-await axios.get('http://test.com/api/user/list'); 
+try {
+	await axios.get('http://test.com/api/user/list');
+} catch(ex) {
+	console.log(ex);
+} finally {
+	console.log('finish');
+}
 ";
 var script = new Script();
 script.Context.Langs = new[] { "js" };

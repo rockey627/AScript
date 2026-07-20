@@ -15,6 +15,7 @@
 * [AScript定制left/right join查询语法](https://mp.weixin.qq.com/s/IPKrsDlFc32bupVKLxOKug)
 * [AScript之事件处理脚本](https://mp.weixin.qq.com/s/0F6vRWp4KxsXlCB9CdDH7A)
 * [基于AScript的SQL脚本语言发布啦！](https://mp.weixin.qq.com/s/oKDiJ7_Pcd8ODGxYOLWXGQ)
+* [基于AScript的JavaScript脚本语言发布啦](https://mp.weixin.qq.com/s/tefbC2cfZiIWKuJo2Zkx7A)
 
 ## 介绍
 
