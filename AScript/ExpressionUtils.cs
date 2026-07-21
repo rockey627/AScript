@@ -24,6 +24,7 @@ namespace AScript
 
 		public static readonly MethodInfo Method_ScriptUtils_Convert = typeof(ScriptUtils).GetMethod("Convert", new[] { typeof(object), typeof(Type) });
 		public static readonly MethodInfo Method_ScriptUtils_SliceAssign = typeof(ScriptUtils).GetMethod("SliceAssign");
+		public static readonly MethodInfo Method_ScriptUtils_IsIntegerType = typeof(ScriptUtils).GetMethod("IsIntegerType", new[] { typeof(Type) });
 
 		public static readonly MethodInfo Method_ScriptContext_Create1 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(bool) });
 		public static readonly MethodInfo Method_ScriptContext_Create2 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(ScriptContext), typeof(bool) });
@@ -54,6 +55,7 @@ namespace AScript
 		public static readonly MethodInfo Method_String_Concat_array_object = typeof(string).GetMethod("Concat", new Type[] { typeof(object[]) });
 		public static readonly MethodInfo Method_Object_ToString = typeof(object).GetMethod("ToString", new Type[0]);
 		public static readonly MethodInfo Method_Object_Equals = typeof(object).GetMethod("Equals", new[] { typeof(object) });
+		public static readonly MethodInfo Method_Object_GetType = typeof(object).GetMethod("GetType", new Type[0]);
 
 		//public static readonly MethodInfo Method_Type_GetProperty_string = typeof(Type).GetMethod("GetProperty", new Type[] { typeof(string) });
 
