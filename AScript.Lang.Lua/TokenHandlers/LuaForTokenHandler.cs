@@ -1,18 +1,24 @@
+using AScript.Lang.Lua.Nodes;
 using AScript.Nodes;
 using AScript.Syntaxs;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace AScript.Lang.Lua.TokenHandlers
 {
 	/// <summary>
 	/// <![CDATA[
 	/// 数值for：for i = start, end, step do body end
+	/// 泛型for：for i,v in ipairs(table) do body end
 	/// ]]>
 	/// </summary>
 	public class LuaForTokenHandler : ITokenHandler
 	{
 		public static readonly LuaForTokenHandler Instance = new LuaForTokenHandler();
+
+		private static readonly HashSet<string> _EndTokens_do = new HashSet<string> { "do" };
+		private static readonly HashSet<string> _EndTokens_end = new HashSet<string> { "end" };
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
@@ -24,48 +30,49 @@ namespace AScript.Lang.Lua.TokenHandlers
 				return;
 			}
 
-			var nextToken = e.TokenReader.Read();
-			if (!nextToken.HasValue || nextToken.Value.Type != ETokenType.Word)
-			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid for expression at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
-			}
+			var nextToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
 			string varName = nextToken.Value.Value;
 
-			nextToken = e.TokenReader.Read();
-			if (!nextToken.HasValue || nextToken.Value.Value != "=")
+			nextToken = analyzer.ValidateNextToken(e.TokenReader);
+			if (nextToken.Value.IsSymbol("="))
 			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid for expression at ({e.CurrentToken.Line},{e.CurrentToken.Column}), expect '='");
+				// 数值for循环：for i=start,end[,step] do body end
+				BuildNumberFor(analyzer, e, varName);
+				return;
 			}
+			//if (nextToken.Value.IsSymbol(","))
+			//{
+			//	// 泛型for循环：for i,v in ipairs(table) do body end
 
-			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			var startExpr = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens);
+			//	return;
+			//}
+
+			throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
+		}
+
+		private void BuildNumberFor(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, string varName)
+		{
+			var start = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
 			analyzer.ValidateNextToken(e.TokenReader, ",");
-			var endExpr = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens);
-			ITreeNode stepExpr = null;
-			var token2 = e.TokenReader.Read();
-			if (token2.HasValue && token2.Value.Value == ",")
+			var end = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: _EndTokens_do);
+			ITreeNode step = null;
+			var nextToken = analyzer.ValidateNextToken(e.TokenReader);
+			if (nextToken.Value.IsSymbol(","))
 			{
-				stepExpr = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens);
+				step = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: _EndTokens_do);
 			}
 			else
 			{
-				e.TokenReader.Push(token2.Value);
+				e.TokenReader.Push(nextToken.Value);
 			}
 			analyzer.ValidateNextToken(e.TokenReader, "do");
-			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+			var createFullOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
+			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _EndTokens_end);
 			analyzer.ValidateNextToken(e.TokenReader, "end");
 
 			if (!e.Ignore)
 			{
-				// 创建变量定义
-				var defNode = PoolManage.CreateDefineVarNode(varName, null, typeof(object));
-				var forNode = new ForNode
-				{
-					Init = startExpr,
-					Condition = endExpr,
-					Post = stepExpr,
-					Body = body
-				};
+				var forNode = new LuaForNumberNode { VarNode = new VariableNode(varName), StartNode = start, EndNode = end, StepNode = step, Body = body };
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, forNode);
 			}
 		}
