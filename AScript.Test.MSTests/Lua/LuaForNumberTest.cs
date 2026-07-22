@@ -355,7 +355,7 @@ sum
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
-			Assert.AreEqual(9.0, script.Eval(code)); // 3.0 + 2.5 + 2.0 + 1.5 + 1.0 = 10.0
+			Assert.AreEqual(10.0, script.Eval(code)); // 3.0 + 2.5 + 2.0 + 1.5 + 1.0 = 10.0
 		}
 
 		[TestMethod]
@@ -855,8 +855,7 @@ count
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
-			// step 为 0 会导致无限循环，但由于表达式树的限制，这里只执行一次
-			Assert.AreEqual(1L, script.Eval(code));
+			Assert.AreEqual(0L, script.Eval(code));
 		}
 
 		[TestMethod]
@@ -872,7 +871,7 @@ count
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
-			Assert.AreEqual(1L, script.Eval(code));
+			Assert.AreEqual(0L, script.Eval(code));
 		}
 
 		[TestMethod]

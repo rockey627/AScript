@@ -148,14 +148,14 @@ namespace AScript.Lang.Lua
 		{
 			// Lua numbers are typically double unless they represent integers
 			var n = ScriptUtils.EvalNumber(num, true);
-			if (n is double d)
-			{
-				// Check if it's an integer
-				if (d == Math.Floor(d) && d >= long.MinValue && d <= long.MaxValue)
-				{
-					return (long)d;
-				}
-			}
+			//if (n is double d)
+			//{
+			//	// Check if it's an integer
+			//	if (d == Math.Floor(d) && d >= long.MinValue && d <= long.MaxValue)
+			//	{
+			//		return (long)d;
+			//	}
+			//}
 			return n;
 		}
 	}

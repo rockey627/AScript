@@ -29,6 +29,9 @@ namespace AScript.Lang.Lua.Nodes
 			var tempContext = ScriptContext.Create(context);
 			var tempControl = new EvalControl(control, true);
 
+			object bodyResult = null;
+			Type bodyReturnType = null;
+
 			if (ScriptUtils.IsIntegerType(startObj.GetType()) 
 				&& ScriptUtils.IsIntegerType(endObj.GetType()) 
 				&& ScriptUtils.IsIntegerType(stepObj.GetType()))
@@ -43,7 +46,7 @@ namespace AScript.Lang.Lua.Nodes
 						tempContext.SetVar(varName, i);
 						if (this.Body != null)
 						{
-							this.Body.Eval(ScriptContext.Create(tempContext), options, tempControl, out _);
+							bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempControl, out bodyReturnType);
 							if (tempControl.Terminal || tempControl.Break) break;
 							tempControl.Continue = false;
 						}
@@ -56,7 +59,7 @@ namespace AScript.Lang.Lua.Nodes
 						tempContext.SetVar(varName, i);
 						if (this.Body != null)
 						{
-							this.Body.Eval(ScriptContext.Create(tempContext), options, tempControl, out _);
+							bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempControl, out bodyReturnType);
 							if (tempControl.Terminal || tempControl.Break) break;
 							tempControl.Continue = false;
 						}
@@ -75,7 +78,7 @@ namespace AScript.Lang.Lua.Nodes
 						tempContext.SetVar(varName, i);
 						if (this.Body != null)
 						{
-							this.Body.Eval(ScriptContext.Create(tempContext), options, tempControl, out _);
+							bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempControl, out bodyReturnType);
 							if (tempControl.Terminal || tempControl.Break) break;
 							tempControl.Continue = false;
 						}
@@ -88,7 +91,7 @@ namespace AScript.Lang.Lua.Nodes
 						tempContext.SetVar(varName, i);
 						if (this.Body != null)
 						{
-							this.Body.Eval(ScriptContext.Create(tempContext), options, tempControl, out _);
+							bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempControl, out bodyReturnType);
 							if (tempControl.Terminal || tempControl.Break) break;
 							tempControl.Continue = false;
 						}
@@ -96,8 +99,8 @@ namespace AScript.Lang.Lua.Nodes
 				}
 			}
 
-			returnType = typeof(void);
-			return null;
+			returnType = bodyReturnType;
+			return bodyResult;
 		}
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
@@ -190,7 +193,7 @@ namespace AScript.Lang.Lua.Nodes
 			}
 
 			// 循环体块: body; continue_label: i += step
-			var loopBody = Expression.Block(bodyExpression, Expression.Label(continueLabel), increment);
+			var loopBody = bodyExpression == null ? (Expression)increment : Expression.Block(bodyExpression, Expression.Label(continueLabel), increment);
 
 			// 完整循环
 			var loop = Expression.Loop(
@@ -242,7 +245,7 @@ namespace AScript.Lang.Lua.Nodes
 			}
 
 			// 循环体块: body; continue_label: i += step
-			var loopBody = Expression.Block(bodyExpression, Expression.Label(continueLabel), increment);
+			var loopBody = bodyExpression == null ? (Expression)increment : Expression.Block(bodyExpression, Expression.Label(continueLabel), increment);
 
 			// 完整循环
 			var loop = Expression.Loop(

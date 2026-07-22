@@ -71,7 +71,7 @@ namespace AScript.Lang.Lua
 			AddFunc("type", new TypeFunction());
 
 			// Token处理器
-			AddTokenHandler("local", VarTokenHandler.Instance);
+			AddTokenHandler("local", LuaLocalTokenHandler.Instance);
 			AddTokenHandler("nil", NullTokenHandler.Instance);
 			AddTokenHandler("and", new OperatorTokenHandler("&&"));
 			AddTokenHandler("or", new OperatorTokenHandler("||"));
