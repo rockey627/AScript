@@ -206,10 +206,11 @@ namespace AScript.Operators
 				//	typeof(object),
 				//	target,
 				//	index);
-				if (_IndexBased1)
-				{
-					index = Expression.Subtract(index, Expression.Constant(1));
-				}
+				//if (_IndexBased1)
+				//{
+				//	if (index.Type != typeof(int)) index = Expression.Convert(index, typeof(int));
+				//	index = Expression.Subtract(index, Expression.Constant(1));
+				//}
 				e.Result = Expression.Call(Method_GetItem, target, Expression.Convert(index, typeof(object)), Expression.Constant(_IndexBased1));
 			}
 		}

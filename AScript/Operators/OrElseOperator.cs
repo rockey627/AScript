@@ -39,11 +39,12 @@ namespace AScript.Operators
 				e.Result = Expression.Condition(
 					isTrue0,
 					arg0,
-					Expression.Condition(
-						isTrue1,
-						arg1,
-						Expression.Default(arg0.Type)
-					)
+					arg1
+					//Expression.Condition(
+					//	isTrue1,
+					//	arg1,
+					//	Expression.Default(arg0.Type)
+					//)
 				);
 			}
 			//if (e.Args.Count == 2)

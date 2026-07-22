@@ -35,18 +35,9 @@ namespace AScript.Nodes
 		{
 			if (buildContext.TryGetVariableOrParameter(this.Name, out var varExpr, out _, out bool outer, out var lastType))
 			{
-				//if (outer)
-				//{
-				//	// 跨函数，需要定义临时变量从ScriptContext上下文获取
-				//	var call = Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_EvalVar, Expression.Constant(this.Name));
-				//	// 赋值v变量
-				//	var v = Expression.Convert(call, varExpr.Type);
-				//	var assign = Expression.Assign(varExpr, v);
-				//	buildContext.Variables[this.Name] = varExpr;
-				//	buildContext.PrevExpressions.Add(assign);
-				//}
-				if (lastType == null) return varExpr;
+				if (lastType == null || lastType == varExpr.Type) return varExpr;
 				return Expression.Convert(varExpr, lastType);
+				//return varExpr;
 			}
 			//scriptContext.GetOwnerContext(this.Name, out var value, out var type, true);
 			var value = scriptContext.EvalVar(this.Name, out var type);

@@ -87,15 +87,29 @@ namespace AScript.Nodes
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
-			TryEvalRoot(buildContext, scriptContext, options, null);
+			//TryEvalRoot(buildContext, scriptContext, options, null);
+			//var rootExpr = _Root?.Build(buildContext, scriptContext, options);
+			//if (_Expressions == null || _Expressions.Count == 0)
+			//{
+			//	return rootExpr;
+			//}
+			//if (rootExpr != null) _Expressions.Add(rootExpr);
+			//if (_Expressions.Count == 1) return _Expressions[0];
+			//return Expression.Block(_Expressions);
 			var rootExpr = _Root?.Build(buildContext, scriptContext, options);
 			if (_Expressions == null || _Expressions.Count == 0)
 			{
 				return rootExpr;
 			}
-			if (rootExpr != null) _Expressions.Add(rootExpr);
-			if (_Expressions.Count == 1) return _Expressions[0];
-			return Expression.Block(_Expressions);
+			if (rootExpr == null)
+			{
+				if (_Expressions.Count == 1) return _Expressions[0];
+				return Expression.Block(_Expressions);
+			}
+			var list = new List<Expression>(_Expressions.Count + 1);
+			list.AddRange(_Expressions);
+			list.Add(rootExpr);
+			return Expression.Block(list);
 		}
 
 		public override void Clear()
