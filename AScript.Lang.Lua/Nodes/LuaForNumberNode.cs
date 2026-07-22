@@ -130,15 +130,15 @@ namespace AScript.Lang.Lua.Nodes
 
 			// 构建整数循环体 (Int64)
 			var int64Loop = BuildInt64Loop(buildContext, scriptContext, options, varName,
-				Expression.Convert(startVar, typeof(long)),
-				Expression.Convert(endVar, typeof(long)),
-				Expression.Convert(stepVar, typeof(long)));
+				startVar.Type == typeof(long) ? (Expression)startVar : Expression.Convert(startVar, typeof(long)),
+				endVar.Type == typeof(long) ? (Expression)endVar : Expression.Convert(endVar, typeof(long)),
+				stepVar.Type == typeof(long) ? (Expression)stepVar : Expression.Convert(stepVar, typeof(long)));
 
 			// 构建浮点数循环体 (Double)
 			var doubleLoop = BuildDoubleLoop(buildContext, scriptContext, options, varName,
-				Expression.Convert(startVar, typeof(double)),
-				Expression.Convert(endVar, typeof(double)),
-				Expression.Convert(stepVar, typeof(double)));
+				startVar.Type == typeof(double) ? (Expression)startVar : Expression.Convert(startVar, typeof(double)),
+				endVar.Type == typeof(double) ? (Expression)endVar : Expression.Convert(endVar, typeof(double)),
+				stepVar.Type == typeof(double) ? (Expression)stepVar : Expression.Convert(stepVar, typeof(double)));
 
 			// 根据运行时类型检查选择不同的循环
 			var conditionExpr = Expression.Condition(isAllInteger, int64Loop, doubleLoop);
@@ -157,6 +157,7 @@ namespace AScript.Lang.Lua.Nodes
 			var iVar = Expression.Variable(typeof(long), varName);
 			var localContext = new BuildContext(buildContext);
 			localContext.Variables[varName] = iVar;
+			localContext.LocalVariables.Add(varName);
 
 			var breakLabel = Expression.Label();
 			var continueLabel = Expression.Label();
@@ -201,7 +202,8 @@ namespace AScript.Lang.Lua.Nodes
 				breakLabel
 			);
 
-			return Expression.Block(new[] { iVar }, initAssign, loop);
+			//return Expression.Block(new[] { iVar }, initAssign, loop);
+			return localContext.BuildBlock(scriptContext, options, initAssign, loop);
 		}
 
 		private Expression BuildDoubleLoop(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string varName, Expression startExpr, Expression endExpr, Expression stepExpr)
@@ -209,6 +211,7 @@ namespace AScript.Lang.Lua.Nodes
 			var iVar = Expression.Variable(typeof(double), varName);
 			var localContext = new BuildContext(buildContext);
 			localContext.Variables[varName] = iVar;
+			localContext.LocalVariables.Add(varName);
 
 			var breakLabel = Expression.Label();
 			var continueLabel = Expression.Label();
@@ -253,7 +256,8 @@ namespace AScript.Lang.Lua.Nodes
 				breakLabel
 			);
 
-			return Expression.Block(new[] { iVar }, initAssign, loop);
+			//return Expression.Block(new[] { iVar }, initAssign, loop);
+			return localContext.BuildBlock(scriptContext, options, initAssign, loop);
 		}
 
 		public override void Clear()
