@@ -1850,5 +1850,21 @@ t
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(15L, script.Eval(s));
 		}
+
+		[TestMethod]
+		public void Test68_CompileAll()
+		{
+			var s = @"
+var m = 0;
+for(var i=0; i<2; i++) {
+	m = m + 1.0;
+}
+m;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(2.0, script.Eval(s));
+		}
 	}
 }
