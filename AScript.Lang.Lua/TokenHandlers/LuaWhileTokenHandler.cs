@@ -24,9 +24,9 @@ namespace AScript.Lang.Lua.TokenHandlers
 			}
 
 			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens);
+			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens_do);
 			analyzer.ValidateNextToken(e.TokenReader, "do");
-			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens_end);
 			analyzer.ValidateNextToken(e.TokenReader, "end");
 
 			if (!e.Ignore)

@@ -17,9 +17,6 @@ namespace AScript.Lang.Lua.TokenHandlers
 	{
 		public static readonly LuaForTokenHandler Instance = new LuaForTokenHandler();
 
-		private static readonly HashSet<string> _EndTokens_do = new HashSet<string> { "do" };
-		private static readonly HashSet<string> _EndTokens_end = new HashSet<string> { "end" };
-
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;
@@ -54,12 +51,12 @@ namespace AScript.Lang.Lua.TokenHandlers
 		{
 			var start = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
 			analyzer.ValidateNextToken(e.TokenReader, ",");
-			var end = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: _EndTokens_do);
+			var end = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens_do);
 			ITreeNode step = null;
 			var nextToken = analyzer.ValidateNextToken(e.TokenReader);
 			if (nextToken.Value.IsSymbol(","))
 			{
-				step = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: _EndTokens_do);
+				step = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens_do);
 			}
 			else
 			{
@@ -67,7 +64,7 @@ namespace AScript.Lang.Lua.TokenHandlers
 			}
 			analyzer.ValidateNextToken(e.TokenReader, "do");
 			var createFullOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _EndTokens_end);
+			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens_end);
 			analyzer.ValidateNextToken(e.TokenReader, "end");
 
 			if (!e.Ignore)
@@ -85,12 +82,12 @@ namespace AScript.Lang.Lua.TokenHandlers
 			analyzer.ValidateNextToken(e.TokenReader, "in");
 
 			// 解析迭代器表达式
-			var iterator = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: _EndTokens_do);
+			var iterator = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens_do);
 			analyzer.ValidateNextToken(e.TokenReader, "do");
 
 			// body
 			var createFullOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _EndTokens_end);
+			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens_end);
 			analyzer.ValidateNextToken(e.TokenReader, "end");
 
 			if (!e.Ignore)

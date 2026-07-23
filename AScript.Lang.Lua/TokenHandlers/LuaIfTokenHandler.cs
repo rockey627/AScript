@@ -31,18 +31,18 @@ namespace AScript.Lang.Lua.TokenHandlers
 			}
 
 			var createFullOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens);
+			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens_then);
 			analyzer.ValidateNextToken(e.TokenReader, "then");
-			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens_else);
 
 			ITreeNode elseNode = null;
 			IfNode currentElseIfNode = null;
 			var token = analyzer.ValidateNextToken(e.TokenReader);
 			while (token.Value.IsSymbol("elseif"))
 			{
-				var elseifCondition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens);
+				var elseifCondition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens_then);
 				analyzer.ValidateNextToken(e.TokenReader, "then");
-				var elseifBody = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+				var elseifBody = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens_else);
 				if (!e.Ignore)
 				{
 					var elseifNode = new IfNode { Condition = elseifCondition, Body = elseifBody };
@@ -57,7 +57,7 @@ namespace AScript.Lang.Lua.TokenHandlers
 			}
 			if (token.Value.IsSymbol("else"))
 			{
-				var elseNode1 = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+				var elseNode1 = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens_end);
 				if (elseNode == null) elseNode = elseNode1;
 				else currentElseIfNode.Else = elseNode1;
 			}

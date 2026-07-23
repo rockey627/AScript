@@ -91,7 +91,7 @@ namespace AScript.Lang.Lua.TokenHandlers
 
 			// 函数体
 			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens);
+			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens_end);
 
 			analyzer.ValidateNextToken(e.TokenReader, "end");
 

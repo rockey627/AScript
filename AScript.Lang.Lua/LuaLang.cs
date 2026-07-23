@@ -1,7 +1,6 @@
 using AScript.Functions;
 using AScript.Lang.Lua.Operators;
 using AScript.Lang.Lua.TokenHandlers;
-using AScript.Nodes;
 using AScript.Operators;
 using AScript.Readers;
 using AScript.Syntaxs;
@@ -18,7 +17,13 @@ namespace AScript.Lang.Lua
 	{
 		public static readonly LuaLang Instance = new LuaLang();
 
-		internal static readonly HashSet<string> EndTokens = new HashSet<string>() { "end", "else", "elseif", "until" };
+		//internal static readonly HashSet<string> EndTokens = new HashSet<string>() { "end", "else", "elseif", "until" };
+
+		internal static readonly HashSet<string> EndTokens_do = new HashSet<string> { "do" };
+		internal static readonly HashSet<string> EndTokens_end = new HashSet<string> { "end" };
+		internal static readonly HashSet<string> EndTokens_until = new HashSet<string> { "until" };
+		internal static readonly HashSet<string> EndTokens_then = new HashSet<string> { "then" };
+		internal static readonly HashSet<string> EndTokens_else = new HashSet<string> { "else", "elseif", "end" };
 
 		protected LuaLang()
 		{

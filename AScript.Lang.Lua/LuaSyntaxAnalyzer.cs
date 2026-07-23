@@ -10,41 +10,6 @@ namespace AScript.Lang.Lua
 	{
 		public static readonly LuaSyntaxAnalyzer Instance = new LuaSyntaxAnalyzer();
 
-		private static readonly HashSet<string> _EndTokens = new HashSet<string> { "\n", "end", "else", "elseif", "until" };
-
-		public override ITreeNode BuildMultiStatement(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)
-		{
-			if (endTokens == null) endTokens = _EndTokens;
-			return base.BuildMultiStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens);
-		}
-
-		public override ITreeNode BuildOneStatement(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)
-		{
-			if (endTokens == null) endTokens = _EndTokens;
-			return base.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens);
-		}
-
-		protected override void ParseIdentifierOrOperator(TokenAnalyzingArgs e, IEnumerable<string> endTokens = null)
-		{
-			// 处理局部变量声明：local a = 10
-			if (e.CurrentToken.Type == ETokenType.Word && e.TreeBuilder.Root == null)
-			{
-				var nextToken = e.TokenReader.Read();
-				if (nextToken.HasValue && nextToken.Value.Type == ETokenType.Word)
-				{
-					// local varName = expr 或 local function name() ... end
-					e.TokenReader.Push(nextToken.Value);
-					base.ParseIdentifierOrOperator(e, endTokens);
-					return;
-				}
-				if (nextToken.HasValue)
-				{
-					e.TokenReader.Push(nextToken.Value);
-				}
-			}
-			base.ParseIdentifierOrOperator(e, endTokens);
-		}
-
 		protected override ITreeNode BuildBlock(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false)
 		{
 			// 解析表：{ key1=value1, key2=value2 } 或 { value1, value2, value3 }
