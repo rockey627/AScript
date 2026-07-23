@@ -70,6 +70,8 @@ namespace AScript.Lang.Lua
 			AddFunc("print", new PrintFunction());
 			AddFunc("type", new TypeFunction());
 
+			AddFunc(typeof(Extensions.LuaTableExtensions));
+
 			// Token处理器
 			AddTokenHandler("local", LuaLocalTokenHandler.Instance);
 			AddTokenHandler("nil", NullTokenHandler.Instance);
@@ -82,7 +84,7 @@ namespace AScript.Lang.Lua
 			AddTokenHandler("while", LuaWhileTokenHandler.Instance);
 			AddTokenHandler("repeat", LuaRepeatTokenHandler.Instance);
 			AddTokenHandler("for", LuaForTokenHandler.Instance);
-			AddTokenHandler("in", AScript.TokenHandlers.InTokenHandler.Instance);
+			AddTokenHandler("in", InTokenHandler.Instance);
 			AddTokenHandler("function", LuaFunctionTokenHandler.Instance);
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			AddTokenHandler("break", BreakTokenHandler.Instance);
