@@ -155,26 +155,30 @@ namespace AScript.Lang.Lua.Nodes
 		private Expression BuildInt64Loop(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string varName, Expression startExpr, Expression endExpr, Expression stepExpr)
 		{
 			var iVar = Expression.Variable(typeof(long), varName);
+			// 循环变量，数值for循环内部改变iVar值不会影响循环次数
+			var iVar2 = Expression.Variable(typeof(long), $"__{varName}_2_");
 			var localContext = new BuildContext(buildContext);
 			localContext.Variables[varName] = iVar;
+			localContext.Variables[iVar2.Name] = iVar2;
 			localContext.LocalVariables.Add(varName);
+			localContext.LocalVariables.Add(iVar2.Name);
 
 			var breakLabel = Expression.Label();
 			var continueLabel = Expression.Label();
 
 			// i = start
-			var initAssign = Expression.Assign(iVar, startExpr);
+			var initAssign = Expression.Assign(iVar2, startExpr);
 
 			// 条件判断: step > 0 ? i <= end : i >= end
 			var stepPositive = Expression.GreaterThan(stepExpr, Expression.Constant(0L));
 			var condition = Expression.Condition(
 				stepPositive,
-				Expression.LessThanOrEqual(iVar, endExpr),
-				Expression.GreaterThanOrEqual(iVar, endExpr)
+				Expression.LessThanOrEqual(iVar2, endExpr),
+				Expression.GreaterThanOrEqual(iVar2, endExpr)
 			);
 
 			// i += step
-			var increment = Expression.AddAssign(iVar, stepExpr);
+			var increment = Expression.AddAssign(iVar2, stepExpr);
 
 			// 循环体
 			Expression bodyExpression;
@@ -190,7 +194,11 @@ namespace AScript.Lang.Lua.Nodes
 					BreakLabel = breakLabel
 				};
 				bodyExpression = this.Body.Build(bodyBuildContext, scriptContext, options);
-				bodyExpression = bodyBuildContext.BuildBlock(scriptContext, options, bodyExpression);
+				if (bodyExpression != null)
+				{
+					var iVarAssign = Expression.Assign(iVar, iVar2);
+					bodyExpression = bodyBuildContext.BuildBlock(scriptContext, options, iVarAssign, bodyExpression);
+				}
 			}
 
 			// 循环体块: body; continue_label: i += step
@@ -202,33 +210,37 @@ namespace AScript.Lang.Lua.Nodes
 				breakLabel
 			);
 
-			//return Expression.Block(new[] { iVar }, initAssign, loop);
-			return localContext.BuildBlock(scriptContext, options, initAssign, loop);
+			return Expression.Block(new[] { iVar, iVar2 }, initAssign, loop);
+			//return localContext.BuildBlock(scriptContext, options, initAssign, loop);
 		}
 
 		private Expression BuildDoubleLoop(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string varName, Expression startExpr, Expression endExpr, Expression stepExpr)
 		{
 			var iVar = Expression.Variable(typeof(double), varName);
+			// 循环变量，数值for循环内部改变iVar值不会影响循环次数
+			var iVar2 = Expression.Variable(typeof(double), $"__{varName}_2_");
 			var localContext = new BuildContext(buildContext);
 			localContext.Variables[varName] = iVar;
+			localContext.Variables[iVar2.Name] = iVar2;
 			localContext.LocalVariables.Add(varName);
+			localContext.LocalVariables.Add(iVar2.Name);
 
 			var breakLabel = Expression.Label();
 			var continueLabel = Expression.Label();
 
 			// i = start
-			var initAssign = Expression.Assign(iVar, startExpr);
+			var initAssign = Expression.Assign(iVar2, startExpr);
 
 			// 条件判断: step > 0 ? i <= end : i >= end
 			var stepPositive = Expression.GreaterThan(stepExpr, Expression.Constant(0.0));
 			var condition = Expression.Condition(
 				stepPositive,
-				Expression.LessThanOrEqual(iVar, endExpr),
-				Expression.GreaterThanOrEqual(iVar, endExpr)
+				Expression.LessThanOrEqual(iVar2, endExpr),
+				Expression.GreaterThanOrEqual(iVar2, endExpr)
 			);
 
 			// i += step
-			var increment = Expression.AddAssign(iVar, stepExpr);
+			var increment = Expression.AddAssign(iVar2, stepExpr);
 
 			// 循环体
 			Expression bodyExpression;
@@ -244,7 +256,11 @@ namespace AScript.Lang.Lua.Nodes
 					BreakLabel = breakLabel
 				};
 				bodyExpression = this.Body.Build(bodyBuildContext, scriptContext, options);
-				bodyExpression = bodyBuildContext.BuildBlock(scriptContext, options, bodyExpression);
+				if (bodyExpression != null)
+				{
+					var iVarAssign = Expression.Assign(iVar, iVar2);
+					bodyExpression = bodyBuildContext.BuildBlock(scriptContext, options, iVarAssign, bodyExpression);
+				}
 			}
 
 			// 循环体块: body; continue_label: i += step
@@ -256,8 +272,8 @@ namespace AScript.Lang.Lua.Nodes
 				breakLabel
 			);
 
-			//return Expression.Block(new[] { iVar }, initAssign, loop);
-			return localContext.BuildBlock(scriptContext, options, initAssign, loop);
+			return Expression.Block(new[] { iVar, iVar2 }, initAssign, loop);
+			//return localContext.BuildBlock(scriptContext, options, initAssign, loop);
 		}
 
 		public override void Clear()

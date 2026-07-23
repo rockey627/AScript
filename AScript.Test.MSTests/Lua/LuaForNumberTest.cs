@@ -340,7 +340,7 @@ sum
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
-			Assert.AreEqual(6.0, script.Eval(code));
+			Assert.AreEqual(7.0, script.Eval(code));
 		}
 
 		[TestMethod]
@@ -371,7 +371,7 @@ sum
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
-			Assert.AreEqual(9.0, script.Eval(code));
+			Assert.AreEqual(10.0, script.Eval(code));
 		}
 
 		[TestMethod]
