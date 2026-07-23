@@ -40,12 +40,12 @@ namespace AScript.Lang.Lua.TokenHandlers
 				BuildNumberFor(analyzer, e, varName);
 				return;
 			}
-			//if (nextToken.Value.IsSymbol(","))
-			//{
-			//	// 泛型for循环：for i,v in ipairs(table) do body end
-
-			//	return;
-			//}
+			if (nextToken.Value.IsSymbol(","))
+			{
+				// 泛型for循环：for i,v in ipairs(table) do body end
+				BuildGenericFor(analyzer, e, varName);
+				return;
+			}
 
 			throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{e.CurrentToken.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
 		}
@@ -74,6 +74,36 @@ namespace AScript.Lang.Lua.TokenHandlers
 			{
 				var forNode = new LuaForNumberNode { VarNode = new VariableNode(varName), StartNode = start, EndNode = end, StepNode = step, Body = body };
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, forNode);
+			}
+		}
+
+		private void BuildGenericFor(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, string iVarName)
+		{
+			// 解析变量列表：for i,v in ...  
+			var nextToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+			var vVarName = nextToken.Value.Value;
+			analyzer.ValidateNextToken(e.TokenReader, "in");
+
+			// 解析迭代器表达式
+			var iterator = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: _EndTokens_do);
+			analyzer.ValidateNextToken(e.TokenReader, "do");
+
+			// body
+			var createFullOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
+			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _EndTokens_end);
+			analyzer.ValidateNextToken(e.TokenReader, "end");
+
+			if (!e.Ignore)
+			{
+				var foreachNode = new ForeachNode();
+				foreachNode.VarDefines = new List<DefineVarNode>
+				{
+					new DefineVarNode(iVarName, null, typeof(long)),
+					new DefineVarNode(vVarName, null, typeof(object))
+				};
+				foreachNode.Collection = iterator;
+				foreachNode.Body = body;
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, foreachNode);
 			}
 		}
 	}
