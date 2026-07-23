@@ -318,6 +318,10 @@ namespace AScript.Nodes
 			var breakLabel = Expression.Label();
 			var continueLabel = Expression.Label();
 			var listExpression = this.Collection.Build(tempBuildContext, scriptContext, options);
+			if (listExpression.Type == typeof(object))
+			{
+				listExpression = Expression.Convert(listExpression, typeof(IEnumerable));
+			}
 
 			// ForeachKey 模式：IDictionary 遍历 Keys，IList 使用 for 遍历索引
 			if (this.ForeachKey)
@@ -325,7 +329,9 @@ namespace AScript.Nodes
 				return BuildForeachKey(tempBuildContext, scriptContext, options, listExpression);
 			}
 
-			var getEnumeratorMethod = typeof(IEnumerable<>).MakeGenericType(ScriptUtils.GetElementType(listExpression.Type)).GetMethod("GetEnumerator");
+			var getEnumeratorMethod = listExpression.Type == typeof(IEnumerable) ?
+					typeof(IEnumerable).GetMethod("GetEnumerator") :
+					typeof(IEnumerable<>).MakeGenericType(ScriptUtils.GetElementType(listExpression.Type)).GetMethod("GetEnumerator");
 			var getEnumerator = Expression.Call(listExpression, getEnumeratorMethod);
 			var enumerator = Expression.Variable(getEnumerator.Method.ReturnType);
 			var currentProperty = enumerator.Type.GetProperty("Current");
