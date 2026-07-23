@@ -33,13 +33,16 @@ namespace AScript.Nodes
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
-			if (buildContext.TryGetVariableOrParameter(this.Name, out var varExpr, out _, out bool outer, out var lastType))
+			if (buildContext.TryGetVariableOrParameter(this.Name, out var varExpr, out _, out _, out var lastType))
 			{
 				if (lastType == null || lastType == varExpr.Type) return varExpr;
+				if (lastType == typeof(object)) return varExpr;
+				// 基本类型不转换
+				if (Type.GetTypeCode(lastType) != TypeCode.Object) return varExpr;
+				// 对象类型要转换
 				return Expression.Convert(varExpr, lastType);
 				//return varExpr;
 			}
-			//scriptContext.GetOwnerContext(this.Name, out var value, out var type, true);
 			var value = scriptContext.EvalVar(this.Name, out var type);
 			if (type == null)
 			{
