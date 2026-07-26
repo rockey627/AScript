@@ -287,13 +287,21 @@ namespace AScript.Operators
 				}
 				return s[index];
 			}
-			if (arg0 is ExpandoObject expandoObj)
+			//if (arg0 is ExpandoObject expandoObj)
+			//{
+			//	return (expandoObj as IDictionary<string, object>)[arg1.ToString()];
+			//}
+			if (arg0 is IDictionary<string, object> dict1)
 			{
-				return (expandoObj as IDictionary<string, object>)[arg1.ToString()];
+				return dict1[arg1.ToString()];
+			}
+			if (arg0 is IDictionary<object, object> dict2)
+			{
+				return dict2[arg1];
 			}
 			dynamic obj = arg0;
 			dynamic key = arg1;
-			if (indexBase1 && (key is int || key is long)) key -= 1;
+			if (indexBase1 && (key is int || key is long) && !(arg0 is IDictionary)) key -= 1;
 			return obj[key];
 		}
 	}
