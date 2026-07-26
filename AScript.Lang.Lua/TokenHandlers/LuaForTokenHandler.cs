@@ -11,6 +11,7 @@ namespace AScript.Lang.Lua.TokenHandlers
 	/// <![CDATA[
 	/// 数值for：for i = start, end, step do body end
 	/// 泛型for：for i,v in ipairs(table) do body end
+	///          for v in ipairs(table) do body end
 	/// ]]>
 	/// </summary>
 	public class LuaForTokenHandler : ITokenHandler
@@ -27,14 +28,22 @@ namespace AScript.Lang.Lua.TokenHandlers
 				return;
 			}
 
-			var nextToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
-			string varName = nextToken.Value.Value;
+			var varToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+			string varName = varToken.Value.Value;
 
-			nextToken = analyzer.ValidateNextToken(e.TokenReader);
+			var nextToken = analyzer.ValidateNextToken(e.TokenReader);
 			if (nextToken.Value.IsSymbol("="))
 			{
 				// 数值for循环：for i=start,end[,step] do body end
 				BuildNumberFor(analyzer, e, varName);
+				return;
+			}
+			if (nextToken.Value.IsSymbol("in"))
+			{
+				// 泛型for循环：for v in ipairs(table) do body end
+				e.TokenReader.Push(nextToken.Value);
+				e.TokenReader.Push(varToken.Value);
+				BuildGenericFor(analyzer, e, null);
 				return;
 			}
 			if (nextToken.Value.IsSymbol(","))
@@ -73,6 +82,27 @@ namespace AScript.Lang.Lua.TokenHandlers
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, forNode);
 			}
 		}
+
+		//private void BuildGeneric1For(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, string vVarName)
+		//{
+		//	// 解析迭代器表达式
+		//	var iterator = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, endTokens: LuaLang.EndTokens_do);
+		//	analyzer.ValidateNextToken(e.TokenReader, "do");
+
+		//	// body
+		//	var createFullOptions = (e.Options.CreateFullTreeNode ?? false) ? e.Options : new BuildOptions(e.Options) { CreateFullTreeNode = true };
+		//	var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, LuaLang.EndTokens_end);
+		//	analyzer.ValidateNextToken(e.TokenReader, "end");
+
+		//	if (!e.Ignore)
+		//	{
+		//		var foreachNode = new ForeachNode();
+		//		foreachNode.VarDefine = new DefineVarNode(vVarName, null, typeof(object));
+		//		foreachNode.Collection = iterator;
+		//		foreachNode.Body = body;
+		//		e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, foreachNode);
+		//	}
+		//}
 
 		private void BuildGenericFor(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, string iVarName)
 		{

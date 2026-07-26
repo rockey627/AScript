@@ -1,3 +1,4 @@
+using AScript.Lang.Lua.Nodes;
 using AScript.Nodes;
 using AScript.Readers;
 using AScript.Syntaxs;
@@ -12,101 +13,25 @@ namespace AScript.Lang.Lua
 
 		protected override ITreeNode BuildBlock(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false)
 		{
-			// 解析表：{ key1=value1, key2=value2 } 或 { value1, value2, value3 }
-			bool? isDict = null;
-			var initProperties = ignore ? null : new List<ITreeNode>();
-
-			while (true)
+			// 解析表：{ value1, key1=value2, key2=value3, value4 }
+			var items = ignore ? null : new List<ITreeNode>();
+			var token = ValidateNextToken(tokenReader);
+			if (!token.Value.IsSymbol("}"))
 			{
-				var token = tokenReader.Read();
-				if (!token.HasValue)
-				{
-					throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect '}}'");
-				}
-				if (token.Value.Value == "}")
-				{
-					break;
-				}
 				tokenReader.Push(token.Value);
-				var keyNode = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
-				var nextToken = tokenReader.Read();
-				if (!nextToken.HasValue)
+				var createFullOptions = (options.CreateFullTreeNode ?? false) ? options : new BuildOptions(options) { CreateFullTreeNode = true };
+				while (true)
 				{
-					throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect '}}'");
-				}
-				if (nextToken.Value.Type == ETokenType.String)
-				{
-					throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect '}}'");
-				}
-				if (nextToken.Value.Value == "}")
-				{
-					tokenReader.Push(nextToken.Value);
-				}
-				else if (nextToken.Value.Value == "=")
-				{
-					if (!isDict.HasValue) isDict = true;
-					else if (!isDict.Value)
-					{
-						throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ','");
-					}
-				}
-				else if (nextToken.Value.Value == ",")
-				{
-					if (!isDict.HasValue) isDict = false;
-					else if (isDict.Value)
-					{
-						throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect '='");
-					}
-					tokenReader.Push(nextToken.Value);
-				}
-				else
-				{
-					if (!isDict.HasValue)
-					{
-						throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect '}}'");
-					}
-					if (isDict.Value)
-					{
-						throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect '='");
-					}
-					throw new Exceptions.ScriptAnalyzingException($"invalid expression at {nextToken.Value.Line},{nextToken.Value.Column}, expect ','");
-				}
-
-				if (!isDict.Value)
-				{
-					if (!ignore) initProperties.Add(keyNode);
-				}
-				else
-				{
-					var valueNode = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
-					if (!ignore)
-					{
-						var indexAssign = PoolManage.CreateOperatorNode("[]", 2, OperatorPriorities["["]);
-						indexAssign.Left = keyNode;
-						indexAssign.Right = valueNode;
-						initProperties.Add(indexAssign);
-					}
-				}
-
-				token = tokenReader.Read();
-				if (!token.HasValue)
-				{
-					throw new Exceptions.ScriptAnalyzingException("invalid table syntax, expect ',' or '}'");
-				}
-				if (token.Value.Value == "}")
-				{
-					break;
-				}
-				if (token.Value.Value != ",")
-				{
+					var item = BuildOneStatement(buildContext, scriptContext, createFullOptions, tokenReader, control, ignore);
+					items?.Add(item);
+					token = ValidateNextToken(tokenReader);
+					if (token.Value.IsSymbol(",")) continue;
+					if (token.Value.IsSymbol("}")) break;
 					throw new Exceptions.ScriptAnalyzingException($"invalid table syntax at {token.Value.Line},{token.Value.Column}, expect ',' or '}}'");
 				}
 			}
-
 			if (ignore) return null;
-			return (isDict ?? true) ?
-				new NewNode { SystemType = typeof(Dictionary<object, object>), InitProperties = initProperties } :
-				new NewNode { SystemType = typeof(List<object>), InitProperties = initProperties };
+			return new LuaTableNode { Items = items };
 		}
 
 		protected override object EvalNumber(string num)

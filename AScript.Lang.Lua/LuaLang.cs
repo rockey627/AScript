@@ -179,11 +179,19 @@ namespace AScript.Lang.Lua
 		{
 			public void Eval(FunctionEvalArgs e)
 			{
-				if (e.Args.Count >= 1)
+				//if (e.Args.Count >= 1)
+				//{
+				//	var obj = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
+				//	Console.WriteLine(obj);
+				//}
+				for (int i = 0; i < e.Args.Count; i++)
 				{
-					var obj = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
-					Console.WriteLine(obj);
+					if (i > 0) Console.Write(' ');
+					var obj = e.Args[i].Eval(e.Context, e.Options, e.Control, out _);
+					Console.Write(obj);
 				}
+				Console.WriteLine();
+				e.SetResult(null);
 			}
 		}
 

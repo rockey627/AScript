@@ -30,7 +30,7 @@ namespace AScript.Lang.Lua.Extensions
 					yield return (i++, table[key.Key]);
 #endif
 				}
-				break;
+				//break;
 			}
 		}
 	}

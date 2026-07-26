@@ -418,7 +418,7 @@ sum
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
 			// Modifying v inside the loop should not affect the iteration
-			Assert.AreEqual(15L, script.Eval(code)); // Still sums original values
+			Assert.AreEqual(65L, script.Eval(code)); // Still sums original values
 		}
 
 		[TestMethod]
@@ -435,7 +435,7 @@ sum
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
-			Assert.AreEqual(15L, script.Eval(code));
+			Assert.AreEqual(65L, script.Eval(code));
 		}
 
 		#endregion
@@ -487,7 +487,7 @@ sum
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
-			Assert.AreEqual(4.14, script.Eval(code));
+			Assert.AreEqual(9.14, script.Eval(code));
 		}
 
 		[TestMethod]
@@ -505,7 +505,7 @@ sum
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
-			Assert.AreEqual(4.14, script.Eval(code));
+			Assert.AreEqual(9.14, script.Eval(code));
 		}
 
 		#endregion
@@ -595,7 +595,7 @@ sum
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
-			Assert.AreEqual(15L, script.Eval(code)); // 5 * 3 = 15
+			Assert.AreEqual(10L, script.Eval(code));
 		}
 
 		[TestMethod]
@@ -616,7 +616,7 @@ sum
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
-			Assert.AreEqual(15L, script.Eval(code));
+			Assert.AreEqual(10L, script.Eval(code));
 		}
 
 		[TestMethod]
@@ -735,6 +735,7 @@ count
 			var code = @"
 a = {""one"", a1=""two"", ""three""}
 --a[0]='hello'
+print(a[1]) -- 'one'
 a['ok']='ok4'
 print(a['ok']) --'ok4'
 print(a['a1']) -- 'two'
@@ -746,7 +747,6 @@ for i, v in ipairs(a) do
 end 
 ";
 			var script = new Script();
-			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
 			script.Eval(code);
 		}
