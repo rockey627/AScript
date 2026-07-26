@@ -50,10 +50,11 @@ namespace AScript.Nodes
 				{
 					foreach (var vd in this.VarDefines)
 					{
+						if (IsNiming(vd)) continue;
 						vd.Eval(tempContext, options, null, out _);
 					}
 				}
-				else
+				else if (!IsNiming(VarDefine))
 				{
 					this.VarDefine.Eval(tempContext, options, null, out _);
 				}
@@ -63,8 +64,11 @@ namespace AScript.Nodes
 					// ForeachKey 为 true 且是 IDictionary，遍历 Keys
 					foreach (var key in dict2.Keys)
 					{
-						this.VarDefine.Eval(tempContext, options, null, out var varType);
-						tempContext.SetVar(this.VarDefine.Name, key, key == null ? varType : null);
+						if (!IsNiming(this.VarDefine))
+						{
+							this.VarDefine.Eval(tempContext, options, null, out var varType);
+							tempContext.SetVar(this.VarDefine.Name, key, key == null ? varType : null);
+						}
 						bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempController, out bodyType);
 						if (tempController.Terminal || tempController.Break) break;
 						tempController.Continue = false;
@@ -75,8 +79,11 @@ namespace AScript.Nodes
 					// ForeachKey 为 true 且是 IDictionary，遍历 Keys
 					foreach (var key in dict.Keys)
 					{
-						this.VarDefine.Eval(tempContext, options, null, out var varType);
-						tempContext.SetVar(this.VarDefine.Name, key, key == null ? varType : null);
+						if (!IsNiming(this.VarDefine))
+						{
+							this.VarDefine.Eval(tempContext, options, null, out var varType);
+							tempContext.SetVar(this.VarDefine.Name, key, key == null ? varType : null);
+						}
 						bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempController, out bodyType);
 						if (tempController.Terminal || tempController.Break) break;
 						tempController.Continue = false;
@@ -87,8 +94,11 @@ namespace AScript.Nodes
 					// ForeachKey 为 true 且是 IList，使用 for 遍历索引
 					for (int i = 0; i < list1.Count; i++)
 					{
-						this.VarDefine.Eval(tempContext, options, null, out var varType);
-						tempContext.SetVar(this.VarDefine.Name, i, typeof(int));
+						if (!IsNiming(this.VarDefine))
+						{
+							this.VarDefine.Eval(tempContext, options, null, out var varType);
+							tempContext.SetVar(this.VarDefine.Name, i, typeof(int));
+						}
 						bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempController, out bodyType);
 						if (tempController.Terminal || tempController.Break) break;
 						tempController.Continue = false;
@@ -145,10 +155,14 @@ namespace AScript.Nodes
 							}
 							for (int i = 0; i < this.VarDefines.Count; i++)
 							{
-								tempContext.SetVar(this.VarDefines[i].Name, itemList[i], null);
+								var varDefine = this.VarDefines[i];
+								if (!IsNiming(varDefine))
+								{
+									tempContext.SetVar(varDefine.Name, itemList[i], null);
+								}
 							}
 						}
-						else
+						else if (!IsNiming(this.VarDefine))
 						{
 							this.VarDefine.Eval(tempContext, options, null, out var varType);
 							tempContext.SetVar(this.VarDefine.Name, item, item == null ? varType : null);
@@ -196,10 +210,11 @@ namespace AScript.Nodes
 				{
 					foreach (var vd in this.VarDefines)
 					{
+						if (IsNiming(vd)) continue;
 						await vd.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 					}
 				}
-				else
+				else if (!IsNiming(this.VarDefine))
 				{
 					await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 				}
@@ -210,8 +225,11 @@ namespace AScript.Nodes
 					foreach (var key in dict2.Keys)
 					{
 						cancellationToken.ThrowIfCancellationRequested();
-						var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
-						tempContext.SetVar(this.VarDefine.Name, key, key == null ? varDefineResult.Type : null);
+						if (!IsNiming(this.VarDefine))
+						{
+							var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+							tempContext.SetVar(this.VarDefine.Name, key, key == null ? varDefineResult.Type : null);
+						}
 						bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
 						if (tempController.Terminal || tempController.Break) break;
 						tempController.Continue = false;
@@ -223,8 +241,11 @@ namespace AScript.Nodes
 					foreach (var key in dict.Keys)
 					{
 						cancellationToken.ThrowIfCancellationRequested();
-						var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
-						tempContext.SetVar(this.VarDefine.Name, key, key == null ? varDefineResult.Type : null);
+						if (!IsNiming(this.VarDefine))
+						{
+							var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+							tempContext.SetVar(this.VarDefine.Name, key, key == null ? varDefineResult.Type : null);
+						}
 						bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
 						if (tempController.Terminal || tempController.Break) break;
 						tempController.Continue = false;
@@ -236,8 +257,11 @@ namespace AScript.Nodes
 					for (int i = 0; i < list1.Count; i++)
 					{
 						cancellationToken.ThrowIfCancellationRequested();
-						var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
-						tempContext.SetVar(this.VarDefine.Name, i, typeof(int));
+						if (!IsNiming(this.VarDefine))
+						{
+							var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
+							tempContext.SetVar(this.VarDefine.Name, i, typeof(int));
+						}
 						bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
 						if (tempController.Terminal || tempController.Break) break;
 						tempController.Continue = false;
@@ -295,10 +319,14 @@ namespace AScript.Nodes
 							}
 							for (int i = 0; i < this.VarDefines.Count; i++)
 							{
-								tempContext.SetVar(this.VarDefines[i].Name, itemList[i], null);
+								var varDefine = this.VarDefines[i];
+								if (!IsNiming(varDefine))
+								{
+									tempContext.SetVar(varDefine.Name, itemList[i], null);
+								}
 							}
 						}
-						else
+						else if (!IsNiming(this.VarDefine))
 						{
 							var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 							tempContext.SetVar(this.VarDefine.Name, item, item == null ? varDefineResult.Type : null);
@@ -361,9 +389,16 @@ namespace AScript.Nodes
 				{
 					var elementType = i < elementTypes.Count ? elementTypes[i] : typeof(object);
 					var vd = this.VarDefines[i];
-					vd.SystemType = elementType;
-					var itemVar = (ParameterExpression)vd.Build(tempBuildContext, scriptContext, options);
-					itemVars.Add(itemVar);
+					if (IsNiming(vd))
+					{
+						itemVars.Add(null);
+					}
+					else
+					{
+						vd.SystemType = elementType;
+						var itemVar = (ParameterExpression)vd.Build(tempBuildContext, scriptContext, options);
+						itemVars.Add(itemVar);
+					}
 				}
 
 				var bodyBuildContext = new BuildContext(tempBuildContext)
@@ -380,6 +415,7 @@ namespace AScript.Nodes
 
 				for (int i = 0; i < this.VarDefines.Count; i++)
 				{
+					if (itemVars[i] == null) continue;
 					var memberName = "Item" + (i + 1);
 					Expression memberAccess;
 					if (isTuple)
@@ -417,8 +453,12 @@ namespace AScript.Nodes
 			else
 			{
 				// 单变量模式
-				this.VarDefine.SystemType = currentProperty.PropertyType;
-				var itemVar = this.VarDefine.Build(tempBuildContext, scriptContext, options);
+				Expression itemVar = null;
+				if (!IsNiming(this.VarDefine))
+				{
+					this.VarDefine.SystemType = currentProperty.PropertyType;
+					itemVar = this.VarDefine.Build(tempBuildContext, scriptContext, options);
+				}
 				//
 				var bodyBuildContext = new BuildContext(tempBuildContext)
 				{
@@ -426,14 +466,19 @@ namespace AScript.Nodes
 					BreakLabel = breakLabel
 				};
 				var body = this.Body.Build(bodyBuildContext, scriptContext, options);
+				var bodyBlock = itemVar == null ?
+					bodyBuildContext.BuildBlock(scriptContext, options,
+							body,
+							Expression.Label(continueLabel)) :
+					bodyBuildContext.BuildBlock(scriptContext, options,
+							Expression.Assign(itemVar, Expression.Property(enumerator, currentProperty)),
+							body,
+							Expression.Label(continueLabel));
 				//
 				var loopBody = Expression.Block(
 					Expression.IfThenElse(
 						Expression.Call(enumerator, moveNextMethod),
-						bodyBuildContext.BuildBlock(scriptContext, options,
-							Expression.Assign(itemVar, Expression.Property(enumerator, currentProperty)),
-							body,
-							Expression.Label(continueLabel)),
+						bodyBlock,
 						Expression.Break(breakLabel)
 					));
 				var loop = Expression.Loop(loopBody, breakLabel);
@@ -522,6 +567,11 @@ namespace AScript.Nodes
 			}
 
 			throw new NotSupportedException("ForeachKey is only supported for IDictionary and IList");
+		}
+
+		private static bool IsNiming(VariableNode varNode)
+		{
+			return varNode == null || string.IsNullOrEmpty(varNode.Name) || varNode.Name == "_";
 		}
 
 		public override void Clear()
