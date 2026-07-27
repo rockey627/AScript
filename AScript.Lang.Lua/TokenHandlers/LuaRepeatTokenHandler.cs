@@ -30,8 +30,15 @@ namespace AScript.Lang.Lua.TokenHandlers
 
 			if (!e.Ignore)
 			{
-				// repeat...until 等价于 do...while(false) + break check
-				var whileNode = new WhileNode { Condition = condition, Body = body };
+				// repeat...until 等价于 do { body } while(!condition)
+				// 即条件为真时退出循环，等价于 IsDoWhile=true 但条件取反
+				var notCondition = new OperatorNode
+				{
+					Name = "not",
+					Prefix = true,
+					Right = condition
+				};
+				var whileNode = new WhileNode { Condition = notCondition, Body = body, IsDoWhile = true };
 				e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, whileNode);
 			}
 		}
