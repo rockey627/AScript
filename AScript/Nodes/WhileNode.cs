@@ -32,7 +32,11 @@ namespace AScript.Nodes
 				{
 					bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempControl, out bodyType);
 					if (tempControl.Terminal || tempControl.Break) break;
-					tempControl.Continue = false;
+					if (tempControl.Continue)
+					{
+						tempControl.Continue = false;
+						continue;
+					}
 				}
 				if (IsDoWhile && !EvalCondition(tempContext, options))
 				{
@@ -59,7 +63,11 @@ namespace AScript.Nodes
 				{
 					bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempControl, cancellationToken).ConfigureAwait(false);
 					if (tempControl.Terminal || tempControl.Break) break;
-					tempControl.Continue = false;
+					if (tempControl.Continue)
+					{
+						tempControl.Continue = false;
+						continue;
+					}
 				}
 				if (IsDoWhile && !(await EvalConditionAsync(tempContext, options, cancellationToken).ConfigureAwait(false)))
 				{
