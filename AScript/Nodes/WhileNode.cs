@@ -11,6 +11,10 @@ namespace AScript.Nodes
 	{
 		public ITreeNode Condition { get; set; }
 		public ITreeNode Body { get; set; }
+		/// <summary>
+		/// 是否是do ... while(condition)循环
+		/// </summary>
+		public bool IsDoWhile { get; set; }
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
@@ -20,7 +24,7 @@ namespace AScript.Nodes
 			Type bodyType = null;
 			while (true)
 			{
-				if (!EvalCondition(tempContext, options))
+				if (!IsDoWhile && !EvalCondition(tempContext, options))
 				{
 					break;
 				}
@@ -29,6 +33,10 @@ namespace AScript.Nodes
 					bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempControl, out bodyType);
 					if (tempControl.Terminal || tempControl.Break) break;
 					tempControl.Continue = false;
+				}
+				if (IsDoWhile && !EvalCondition(tempContext, options))
+				{
+					break;
 				}
 			}
 			returnType = bodyType;
@@ -43,7 +51,7 @@ namespace AScript.Nodes
 			while (true)
 			{
 				cancellationToken.ThrowIfCancellationRequested();
-				if (!(await EvalConditionAsync(tempContext, options, cancellationToken).ConfigureAwait(false)))
+				if (!IsDoWhile && !(await EvalConditionAsync(tempContext, options, cancellationToken).ConfigureAwait(false)))
 				{
 					break;
 				}
@@ -52,6 +60,10 @@ namespace AScript.Nodes
 					bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempControl, cancellationToken).ConfigureAwait(false);
 					if (tempControl.Terminal || tempControl.Break) break;
 					tempControl.Continue = false;
+				}
+				if (IsDoWhile && !(await EvalConditionAsync(tempContext, options, cancellationToken).ConfigureAwait(false)))
+				{
+					break;
 				}
 			}
 			return bodyResult;
@@ -101,17 +113,29 @@ namespace AScript.Nodes
 				ContinueLabel = continueLabel,
 				BreakLabel = breakLabel
 			};
-			Expression loopBlockExpression;
 			Expression bodyExpression = this.Body?.Build(bodyBuildContext, scriptContext, options);
-			if (bodyExpression == null) loopBlockExpression = Expression.Empty();
+			if (bodyExpression == null) bodyExpression = Expression.Empty();
+			else bodyExpression = bodyBuildContext.BuildBlock(scriptContext, options, bodyExpression);
+
+			Expression loop;
+			if (IsDoWhile)
+			{
+				// do { body } while(condition);
+				// 结构: loop: body; if(condition) goto loop else break
+				loop = Expression.Loop(
+					Expression.Block(bodyExpression, Expression.IfThenElse(conditionExpression, Expression.Goto(continueLabel), Expression.Break(breakLabel))),
+					breakLabel,
+					continueLabel);
+			}
 			else
 			{
-				bodyExpression = bodyBuildContext.BuildBlock(scriptContext, options, bodyExpression);
-				loopBlockExpression = Expression.Block(bodyExpression, Expression.Label(continueLabel));
+				// while(condition) { body }
+				// 结构: loop: if(condition) { body; goto loop } else break
+				loop = Expression.Loop(
+					Expression.IfThenElse(conditionExpression, Expression.Block(bodyExpression, Expression.Goto(continueLabel)), Expression.Break(breakLabel)),
+					breakLabel,
+					continueLabel);
 			}
-			var loop = Expression.Loop(
-				Expression.IfThenElse(conditionExpression, loopBlockExpression, Expression.Break(breakLabel)),
-				breakLabel);
 			return loop;
 		}
 
