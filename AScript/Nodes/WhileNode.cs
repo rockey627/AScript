@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AScript.Nodes
 {
-    public class WhileNode : TreeNode
+	public class WhileNode : TreeNode
 	{
 		public ITreeNode Condition { get; set; }
 		public ITreeNode Body { get; set; }
@@ -101,20 +101,16 @@ namespace AScript.Nodes
 				ContinueLabel = continueLabel,
 				BreakLabel = breakLabel
 			};
-			Expression bodyExpression;
-			if (this.Body == null)
-			{
-				bodyExpression = Expression.Empty();
-			}
+			Expression loopBlockExpression;
+			Expression bodyExpression = this.Body?.Build(bodyBuildContext, scriptContext, options);
+			if (bodyExpression == null) loopBlockExpression = Expression.Empty();
 			else
 			{
-				bodyExpression = this.Body.Build(bodyBuildContext, scriptContext, options);
 				bodyExpression = bodyBuildContext.BuildBlock(scriptContext, options, bodyExpression);
+				loopBlockExpression = Expression.Block(bodyExpression, Expression.Label(continueLabel));
 			}
-			// 
-			Expression loopBlockExpression = Expression.Block(bodyExpression, Expression.Label(continueLabel));
 			var loop = Expression.Loop(
-				Expression.IfThenElse(conditionExpression, loopBlockExpression, Expression.Break(breakLabel)), 
+				Expression.IfThenElse(conditionExpression, loopBlockExpression, Expression.Break(breakLabel)),
 				breakLabel);
 			return loop;
 		}
