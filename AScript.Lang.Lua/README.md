@@ -75,19 +75,23 @@ else
 end
 ```
 
-### 循环
+### while循环
 ```lua
--- while循环
 local i = 1
 while i <= 10 do
     print(i)
     i = i + 1
 end
+```
 
--- for循环
-for i = 1, 10 do
-    print(i)
-end
+### 数值for循环
+```
+
+```
+
+### 泛型for循环
+```
+
 ```
 
 ### 函数

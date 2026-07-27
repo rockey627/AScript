@@ -734,21 +734,31 @@ count
 		{
 			var code = @"
 a = {""one"", a1=""two"", ""three""}
---a[0]='hello'
-print(a[1]) -- 'one'
+x1=a[1]
+print(x1) -- 'one'
 a['ok']='ok4'
-print(a['ok']) --'ok4'
-print(a['a1']) -- 'two'
+x2=a['ok']
+print(x2) --'ok4'
+x3=a['a1']
+print(x3) -- 'two'
 --a[2]='2'
 a[10]='hi10'
-print(a[10]) -- 'hi10'
+x4=a[10]
+print(x4) -- 'hi10'
+x5=''
 for i, v in ipairs(a) do
+	x5=x5..i..' '..v..' '
     print(i, v) -- 1 one \n 2 three
 end 
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
 			script.Eval(code);
+			Assert.AreEqual("one", script.Eval("x1"));
+			Assert.AreEqual("ok4", script.Eval("x2"));
+			Assert.AreEqual("two", script.Eval("x3"));
+			Assert.AreEqual("hi10", script.Eval("x4"));
+			Assert.AreEqual("1 one 2 three ", script.Eval("x5"));
 		}
 		
 	}

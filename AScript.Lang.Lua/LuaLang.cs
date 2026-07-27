@@ -71,10 +71,7 @@ namespace AScript.Lang.Lua
 			AddFunc("..", ConcatFunction.Instance);
 			AddFunc("#", new LengthFunction(typeof(long)));
 
-			// 内置函数
-			AddFunc("print", new PrintFunction());
-			AddFunc("type", new TypeFunction());
-
+			AddFunc(typeof(Extensions.LuaCommonExtensions));
 			AddFunc(typeof(Extensions.LuaTableExtensions));
 
 			// Token处理器
@@ -148,72 +145,5 @@ namespace AScript.Lang.Lua
 			return base.GetOperatorPriority(op);
 		}
 
-		//public static ITreeNode BuildSubBlock(int parentColumn, DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)
-		//{
-		//	if (endTokens == null) endTokens = EndTokens;
-		//	var token = tokenReader.Read();
-		//	if (!token.HasValue) return null;
-
-		//	var builder = ignore ? null : new TreeBuilder();
-		//	int column = token.Value.Column;
-		//	while (token.HasValue && token.Value.Column > parentColumn)
-		//	{
-		//		tokenReader.Push(token.Value);
-		//		var statement = analyzer.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens: endTokens);
-		//		if (!ignore)
-		//		{
-		//			builder.Add(buildContext, scriptContext, options, control, statement);
-		//		}
-		//		token = tokenReader.Read();
-		//	}
-		//	if (token.HasValue)
-		//	{
-		//		tokenReader.Push(token.Value);
-		//	}
-
-		//	return builder;
-		//}
-
-		// 内置函数类
-		private class PrintFunction : IFunctionEvaluator
-		{
-			public void Eval(FunctionEvalArgs e)
-			{
-				//if (e.Args.Count >= 1)
-				//{
-				//	var obj = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
-				//	Console.WriteLine(obj);
-				//}
-				for (int i = 0; i < e.Args.Count; i++)
-				{
-					if (i > 0) Console.Write(' ');
-					var obj = e.Args[i].Eval(e.Context, e.Options, e.Control, out _);
-					Console.Write(obj);
-				}
-				Console.WriteLine();
-				e.SetResult(null);
-			}
-		}
-
-		private class TypeFunction : IFunctionEvaluator
-		{
-			public void Eval(FunctionEvalArgs e)
-			{
-				if (e.Args.Count >= 1)
-				{
-					var obj = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
-					string typeName;
-					if (obj == null) typeName = "nil";
-					else if (obj is bool) typeName = "boolean";
-					else if (obj is long || obj is double) typeName = "number";
-					else if (obj is string) typeName = "string";
-					else if (obj is List<object>) typeName = "table";
-					else if (obj is Dictionary<object, object>) typeName = "table";
-					else if (obj is Delegate) typeName = "function";
-					else typeName = "userdata";
-					e.SetResult(typeName);
-				}
-			}
-		}
 	}
 }

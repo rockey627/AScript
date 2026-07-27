@@ -12,8 +12,9 @@ namespace AScript.Lang.Lua.Extensions
 #else
 			IEnumerable<(long, object)>
 #endif
-			ipairs(Dictionary<object, object> table)
+			ipairs(object tableObj)
 		{
+			var table = (IDictionary<object, object>)tableObj;
 			long i = 1L;
 			var keys = table.Keys
 				.Where(a => a is int || a is long)
