@@ -171,9 +171,21 @@ namespace AScript.Operators
 			var indexerProp = target.Type.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
 			if (indexerProp != null)
 			{
-				if (_IndexBased1)
+				//if (_IndexBased1)
+				//{
+				//	if (index.Type == typeof(long))
+				//	{
+				//		index = Expression.Subtract(index, Expression.Constant(1L));
+				//	}
+				//	else
+				//	{
+				//		index = Expression.Subtract(index, Expression.Constant(1));
+				//	}
+				//}
+				var argType = indexerProp.GetGetMethod().GetParameters()[0].ParameterType;
+				if (index.Type != argType)
 				{
-					index = Expression.Subtract(index, Expression.Constant(1));
+					index = Expression.Convert(index, argType);
 				}
 				e.Result = Expression.Property(target, indexerProp, index);
 			}
@@ -190,9 +202,14 @@ namespace AScript.Operators
 						var getItemMethod = target.Type.GetMethod("get_Item");
 						if (getItemMethod != null)
 						{
-							if (_IndexBased1)
+							//if (_IndexBased1)
+							//{
+							//	index = Expression.Subtract(index, Expression.Constant(1));
+							//}
+							var argType = getItemMethod.GetParameters()[0].ParameterType;
+							if (index.Type != argType)
 							{
-								index = Expression.Subtract(index, Expression.Constant(1));
+								index = Expression.Convert(index, argType);
 							}
 							e.Result = Expression.Call(target, getItemMethod, index);
 							return;

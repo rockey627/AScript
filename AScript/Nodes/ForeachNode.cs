@@ -407,6 +407,10 @@ namespace AScript.Nodes
 					BreakLabel = breakLabel
 				};
 				var body = this.Body.Build(bodyBuildContext, scriptContext, options);
+				if (body != null)
+				{
+					body = bodyBuildContext.BuildBlock(scriptContext, options, body);
+				}
 
 				// 构建解构赋值表达式列表
 				var assignExpressions = new List<Expression>();
@@ -439,14 +443,19 @@ namespace AScript.Nodes
 					assignExpressions.Add(Expression.Assign(itemVars[i], memberAccess));
 				}
 
-				var loopBody = Expression.Block(
-					new[] { itemVar2 },
-					Expression.IfThenElse(
-						Expression.Call(enumerator, moveNextMethod),
-						Expression.Block(assignExpressions.Concat(new[] { body, Expression.Label(continueLabel) })),
-						Expression.Break(breakLabel)
-					));
-				var loop = Expression.Loop(loopBody, breakLabel);
+				Expression loop;
+				if (body == null) loop = Expression.Empty();
+				else
+				{
+					var loopBody = Expression.Block(
+						new[] { itemVar2 },
+						Expression.IfThenElse(
+							Expression.Call(enumerator, moveNextMethod),
+							Expression.Block(assignExpressions.Concat(new[] { body, Expression.Label(continueLabel) })),
+							Expression.Break(breakLabel)
+						));
+					loop = Expression.Loop(loopBody, breakLabel);
+				}
 				return Expression.Block(new[] { enumerator },
 					tempBuildContext.BuildBlock(scriptContext, options, Expression.Assign(enumerator, getEnumerator), loop));
 			}
