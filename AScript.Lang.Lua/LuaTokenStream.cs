@@ -16,6 +16,19 @@ namespace AScript.Lang.Lua
 				var c2 = CharReader.Read();
 				if (c2.HasValue && c2.Value == '-')
 				{
+					var c3 = CharReader.Read();
+					if (c3.HasValue && c3.Value == '[')
+					{
+						var c4 = CharReader.Read();
+						if (c4.HasValue && c4.Value == '[')
+						{
+							// Lua多行注释：--[[ ... ]]
+							SkipUntil("]]");
+							return true;
+						}
+						CharReader.Push(c4.Value);
+					}
+					CharReader.Push(c3.Value);
 					// Lua单行注释：--
 					SkipLine();
 					return true;

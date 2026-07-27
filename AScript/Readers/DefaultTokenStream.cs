@@ -362,6 +362,35 @@ namespace AScript.Readers
 			}
 		}
 
+		/// <summary>
+		/// 跳过直到找到指定字符串
+		/// </summary>
+		protected void SkipUntil(string endToken)
+		{
+			var c = CharReader.Read();
+			int matchIndex = 0;
+			while (c.HasValue)
+			{
+				if (c.Value == endToken[matchIndex])
+				{
+					matchIndex++;
+					if (matchIndex == endToken.Length)
+					{
+						return;
+					}
+				}
+				else if (matchIndex > 0)
+				{
+					for (int i = matchIndex - 1; i > 0; i--)
+					{
+						CharReader.Push(endToken[i]);
+					}
+					matchIndex = 0;
+				}
+				c = CharReader.Read();
+			}
+		}
+
 		protected virtual void ParseString(char startChar)
 		{
 			// 读取字符串，需要注意字符串中的转义字符，如：\' \" \r \n \t 等
