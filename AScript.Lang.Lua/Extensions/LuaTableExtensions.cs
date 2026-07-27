@@ -6,6 +6,16 @@ namespace AScript.Lang.Lua.Extensions
 {
 	public static class LuaTableExtensions
 	{
+		public static object table_remove(Dictionary<object, object> table, object key)
+		{
+			if (table.TryGetValue(key, out var value))
+			{
+				table.Remove(key);
+				return value;
+			}
+			return null;
+		}
+
 		public static
 #if NET45
 			IEnumerable<Tuple<long, object>>

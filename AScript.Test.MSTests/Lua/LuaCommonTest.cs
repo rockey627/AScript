@@ -48,7 +48,11 @@ x
 		{
 			string code = @"
 function add(a, b)
-	return a + b
+--[[ab
+a=a+10
+b=b+20
+]]
+	return a--[[hello]]+ b
 end
 add(3, 5)
 ";
@@ -62,7 +66,11 @@ add(3, 5)
 		{
 			string code = @"
 function add(a, b)
-	return a + b
+--[[ab
+a=a+10
+b=b+20
+]]
+	return a--[[hello]]+ b
 end
 add(3, 5)
 ";
