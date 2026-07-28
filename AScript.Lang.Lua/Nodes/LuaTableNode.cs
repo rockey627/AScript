@@ -11,52 +11,70 @@ namespace AScript.Lang.Lua.Nodes
 	/// </summary>
 	public class LuaTableNode : TreeNode
 	{
-		private static readonly MethodInfo Method_Dictionary_Add_object_object = typeof(Dictionary<object, object>).GetMethod("Add", new[] { typeof(object), typeof(object) });
+		private static readonly PropertyInfo LuaTable_Item_Property = typeof(LuaTable).GetProperty("Item");
 
 		public IList<ITreeNode> Items { get; set; }
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
-			var dictType = typeof(Dictionary<object, object>);
+			var tableType = typeof(LuaTable);
 
-			// 如果 Items 为空或 null，直接返回空字典
+			// 如果 Items 为空或 null，直接返回空表
 			if (this.Items == null || this.Items.Count == 0)
 			{
-				return Expression.New(dictType);
+				return Expression.New(tableType);
 			}
 
-			// 创建字典实例变量
-			var instanceVar = Expression.Variable(dictType, "table");
+			// 创建表实例变量
+			var instanceVar = Expression.Variable(tableType, "table");
 
 			// 构建初始化语句
 			var statements = new List<Expression>();
-			statements.Add(Expression.Assign(instanceVar, Expression.New(dictType)));
+			statements.Add(Expression.Assign(instanceVar, Expression.New(tableType)));
 
 			long index = 1;
 			foreach (var item in this.Items)
 			{
 				if (item is OperatorNode op && op.Name == "=")
 				{
-					// 键值对: key = value
-					var key = ((VariableNode)op.Left).Name;
-					var valueExpr = op.Right.Build(buildContext, scriptContext, options);
-					if (valueExpr.Type.IsValueType)
+					if (op.Left is CollectionNode colNode)
 					{
-						valueExpr = Expression.Convert(valueExpr, typeof(object));
+						// 键值对: [key] = value
+						var keyExpr = colNode.Items[0].Build(buildContext, scriptContext, options);
+						if (keyExpr.Type.IsValueType)
+						{
+							keyExpr = Expression.Convert(keyExpr, typeof(object));
+						}
+						var valueExpr = op.Right.Build(buildContext, scriptContext, options);
+						if (valueExpr.Type.IsValueType)
+						{
+							valueExpr = Expression.Convert(valueExpr, typeof(object));
+						}
+						statements.Add(Expression.Call(instanceVar, LuaTable_Item_Property.SetMethod, keyExpr, valueExpr));
 					}
-					statements.Add(Expression.Call(instanceVar, Method_Dictionary_Add_object_object,
-						Expression.Constant(key), valueExpr));
+					else
+					{
+						// 键值对: key = value
+						var key = ((VariableNode)op.Left).Name;
+						var keyExpr = Expression.Constant(key);
+						var valueExpr = op.Right.Build(buildContext, scriptContext, options);
+						if (valueExpr.Type.IsValueType)
+						{
+							valueExpr = Expression.Convert(valueExpr, typeof(object));
+						}
+						statements.Add(Expression.Call(instanceVar, LuaTable_Item_Property.SetMethod, keyExpr, valueExpr));
+					}
 				}
 				else
 				{
 					// 数组元素: [index] = value
+					var keyExpr = Expression.Convert(Expression.Constant(index++), typeof(object));
 					var valueExpr = item?.Build(buildContext, scriptContext, options) ?? ExpressionUtils.Constant_null;
 					if (valueExpr.Type.IsValueType)
 					{
 						valueExpr = Expression.Convert(valueExpr, typeof(object));
 					}
-					statements.Add(Expression.Call(instanceVar, Method_Dictionary_Add_object_object,
-						Expression.Convert(Expression.Constant(index++), typeof(object)), valueExpr));
+					statements.Add(Expression.Call(instanceVar, LuaTable_Item_Property.SetMethod, keyExpr, valueExpr));
 				}
 			}
 
@@ -66,27 +84,37 @@ namespace AScript.Lang.Lua.Nodes
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
-			var dict = new Dictionary<object, object>();
-			returnType = dict.GetType();
+			var table = new LuaTable();
+			returnType = table.GetType();
 			if (this.Items == null || this.Items.Count == 0)
 			{
-				return dict;
+				return table;
 			}
 			long index = 1L;
 			foreach (var item in this.Items)
 			{
 				if (item is OperatorNode op && op.Name == "=")
 				{
-					var key = ((VariableNode)op.Left).Name;
-					var value = op.Right.Eval(context, options, control, out _);
-					dict[key] = value;
+					if (op.Left is CollectionNode colNode)
+					{
+						var key = colNode.Items[0].Eval(context, options, control, out _);
+						var value = op.Right.Eval(context, options, control, out _);
+						table[key] = value;
+					}
+					else
+					{
+						// 键值对: key = value
+						var key = ((VariableNode)op.Left).Name;
+						var value = op.Right.Eval(context, options, control, out _);
+						table[key] = value;
+					}
 				}
 				else
 				{
-					dict[index++] = item?.Eval(context, options, control, out _);
+					table[index++] = item?.Eval(context, options, control, out _);
 				}
 			}
-			return dict;
+			return table;
 		}
 
 		public override void Clear()

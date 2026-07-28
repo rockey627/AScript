@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AScript.Lang.Lua.Extensions
 {
@@ -12,7 +13,7 @@ namespace AScript.Lang.Lua.Extensions
 				for (int i = 0; i < args.Length; i++)
 				{
 					if (i > 0) Console.Write(' ');
-					Console.Write(args[i]);
+					Console.Write(args[i] ?? "nil");
 				}
 			}
 			Console.WriteLine();
@@ -27,6 +28,26 @@ namespace AScript.Lang.Lua.Extensions
 			else if (obj is IDictionary<object, object>) return "table";
 			else if (obj is Delegate) return "function";
 			return "userdata";
+		}
+
+		public static
+#if NET45
+			IEnumerable<Tuple<long, object>>
+#else
+			IEnumerable<(long, object)>
+#endif
+			ipairs(object tableObj)
+		{
+			var table = (LuaTable)tableObj;
+			for (int i = 0; i < table.Array.Count; i++)
+			{
+				if (table.Array[i] == null) break;
+#if NET45
+				yield return Tuple.Create((long)(i + 1), table.Array[i]);
+#else
+				yield return ((long)(i + 1), table.Array[i]);
+#endif
+			}
 		}
 	}
 }
