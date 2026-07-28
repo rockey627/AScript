@@ -46,7 +46,7 @@ namespace AScript.Lang.Lua
 			AddFunc("+", PlusOperator.Instance);
 			AddFunc("-", SubtractOperator.Instance);
 			AddFunc("*", MultiplyOperator.Instance);
-			AddFunc("/", DivideOperator.Instance);
+			AddFunc("/", new DivideOperator(isDouble: true));
 			AddFunc("%", ModuloOperator.Instance);
 			AddFunc("^", PowerOperator.Instance);
 			AddFunc("//", LuaFloorDivideOperator.Instance);

@@ -89,6 +89,14 @@ add(3, 5)
 			Assert.AreEqual(15L, script.Eval("10 + 5"));
 			Assert.AreEqual(5L, script.Eval("10 - 5"));
 			Assert.AreEqual(50L, script.Eval("10 * 5"));
+			Assert.AreEqual(2.5, script.Eval("10 / 4"));
+			Assert.AreEqual(1L, script.Eval("10 % 3"));
+			Assert.AreEqual(8L, script.Eval("2 ^ 3"));
+			Assert.AreEqual(3L, script.Eval("10 // 3"));
+			Assert.AreEqual(2.5d, script.Eval("10.0 / 4"));
+			Assert.AreEqual(8.0d, script.Eval("2.0 ^ 3"));
+			Assert.AreEqual(3L, script.Eval("10.9 // 3"));
+			Assert.AreEqual(27.0d, script.Eval("3 ^ 3.0"));
 		}
 
 		[TestMethod]
@@ -101,6 +109,14 @@ add(3, 5)
 			Assert.AreEqual(15L, script.Eval("10 + 5"));
 			Assert.AreEqual(5L, script.Eval("10 - 5"));
 			Assert.AreEqual(50L, script.Eval("10 * 5"));
+			Assert.AreEqual(2.5, script.Eval("10 / 4"));
+			Assert.AreEqual(1L, script.Eval("10 % 3"));
+			Assert.AreEqual(8L, script.Eval("2 ^ 3"));
+			Assert.AreEqual(3L, script.Eval("10 // 3"));
+			Assert.AreEqual(2.5d, script.Eval("10.0 / 4"));
+			Assert.AreEqual(8.0d, script.Eval("2.0 ^ 3"));
+			Assert.AreEqual(3L, script.Eval("10.9 // 3"));
+			Assert.AreEqual(27.0d, script.Eval("3 ^ 3.0"));
 		}
 
 		[TestMethod]

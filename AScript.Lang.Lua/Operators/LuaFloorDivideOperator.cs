@@ -18,8 +18,9 @@ namespace AScript.Lang.Lua.Operators
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 			if (left.Type != typeof(double)) left = Expression.Convert(left, typeof(double));
 			if (right.Type != typeof(double)) right = Expression.Convert(right, typeof(double));
-			var floorMethod = typeof(Math).GetMethod("Floor", new[] { typeof(double) });
-			e.Result = Expression.Call(floorMethod, Expression.Divide(left, right));
+			var floorMethod = ExpressionUtils.Method_Math_Floor;// typeof(Math).GetMethod("Floor", new[] { typeof(double) });
+			var floor = Expression.Call(floorMethod, Expression.Divide(left, right));
+			e.Result = Expression.Convert(floor, typeof(long));
 		}
 
 		public void Eval(FunctionEvalArgs e)
