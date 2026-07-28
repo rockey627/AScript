@@ -61,7 +61,7 @@ namespace AScript
 
 		public static readonly MethodInfo Method_Console_WriteLine = typeof(Console).GetMethod("WriteLine", new Type[] { typeof(object) });
 
-		public static readonly MethodInfo Method_Math_Power = typeof(Math).GetMethod("Power", new[] { typeof(double), typeof(double) });
+		public static readonly MethodInfo Method_Math_Power = typeof(Math).GetMethod("Pow", new[] { typeof(double), typeof(double) });
 		public static readonly MethodInfo Method_Math_Floor = typeof(Math).GetMethod("Floor", new[] { typeof(double) });
 
 		public static readonly MethodInfo Method_Enumerable_Select1 = typeof(Enumerable).GetMethods().FirstOrDefault(a => a.Name == "Select" && a.GetParameters()[1].ParameterType.Name == "Func`2");
