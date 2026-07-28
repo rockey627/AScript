@@ -32,7 +32,6 @@ namespace AScript.Lang.Lua
 			AddType<string>("string", false);
 			AddType<bool>("boolean", false);
 			AddType<LuaTable>("table");
-			AddType<object>("nil", false);
 
 			// 赋值运算符
 			AddFunc("=", AssignOperator.Instance);
