@@ -419,9 +419,15 @@ factorial(5)
 			script.Context.Langs = new[] { "lua" };
 
 			Assert.AreEqual("hello", script.Eval("[[hello]]"));
+			Assert.AreEqual("hello123", script.Eval("[[hello]]..'123'"));
 			Assert.AreEqual("hello world", script.Eval("[[hello world]]"));
 			Assert.AreEqual("line1\nline2", script.Eval("[[line1\nline2]]"));
 			Assert.AreEqual("a]b", script.Eval("[[a]b]]"));
+			Assert.AreEqual("hello\nworld", script.Eval("[[hello\\nworld]]"));
+			Assert.AreEqual("hello\tworld", script.Eval("[[hello\\tworld]]"));
+			Assert.AreEqual("hello\rworld", script.Eval("[[hello\\rworld]]"));
+			Assert.AreEqual("hello\\world", script.Eval("[[hello\\\\world]]"));
+			Assert.AreEqual("line1line2", script.Eval("[[line1\\z\nline2]]"));
 		}
 
 		[TestMethod]
@@ -432,9 +438,15 @@ factorial(5)
 			script.Context.Langs = new[] { "lua" };
 
 			Assert.AreEqual("hello", script.Eval("[[hello]]"));
+			Assert.AreEqual("hello123", script.Eval("[[hello]]..'123'"));
 			Assert.AreEqual("hello world", script.Eval("[[hello world]]"));
 			Assert.AreEqual("line1\nline2", script.Eval("[[line1\nline2]]"));
 			Assert.AreEqual("a]b", script.Eval("[[a]b]]"));
+			Assert.AreEqual("hello\nworld", script.Eval("[[hello\\nworld]]"));
+			Assert.AreEqual("hello\tworld", script.Eval("[[hello\\tworld]]"));
+			Assert.AreEqual("hello\rworld", script.Eval("[[hello\\rworld]]"));
+			Assert.AreEqual("hello\\world", script.Eval("[[hello\\\\world]]"));
+			Assert.AreEqual("line1line2", script.Eval("[[line1\\z\nline2]]"));
 		}
 	}
 }
