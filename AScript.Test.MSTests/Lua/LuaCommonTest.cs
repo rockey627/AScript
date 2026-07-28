@@ -411,5 +411,30 @@ factorial(5)
 			script.Context.Langs = new[] { "lua" };
 			Assert.AreEqual(120L, script.Eval(code));
 		}
+
+		[TestMethod]
+		public void Test15_String_LongBracket()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+
+			Assert.AreEqual("hello", script.Eval("[[hello]]"));
+			Assert.AreEqual("hello world", script.Eval("[[hello world]]"));
+			Assert.AreEqual("line1\nline2", script.Eval("[[line1\nline2]]"));
+			Assert.AreEqual("a]b", script.Eval("[[a]b]]"));
+		}
+
+		[TestMethod]
+		public void Test15_String_LongBracket_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+
+			Assert.AreEqual("hello", script.Eval("[[hello]]"));
+			Assert.AreEqual("hello world", script.Eval("[[hello world]]"));
+			Assert.AreEqual("line1\nline2", script.Eval("[[line1\nline2]]"));
+			Assert.AreEqual("a]b", script.Eval("[[a]b]]"));
+		}
 	}
 }

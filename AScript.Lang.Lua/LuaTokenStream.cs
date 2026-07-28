@@ -48,6 +48,43 @@ namespace AScript.Lang.Lua
 				return true;
 			}
 
+			// [[ ]]字符串
+			if (currentChar == '[')
+			{
+				var c2 = CharReader.Peek();
+				if (c2.HasValue && c2.Value == '[')
+				{
+					CharReader.Read(); // consume second [
+					// Parse until ]]
+					var c = CharReader.Read();
+					int matchIndex = 0; // 0=first ], 1=second ]
+					while (c.HasValue)
+					{
+						if (c.Value == ']' && matchIndex == 0)
+						{
+							matchIndex = 1;
+						}
+						else if (c.Value == ']' && matchIndex == 1)
+						{
+							break; // found ]]
+						}
+						else
+						{
+							if (matchIndex > 0)
+							{
+								// we had a ] but this char is not ], so output the ]
+								_buffer.Append(']');
+								matchIndex = 0;
+							}
+							_buffer.Append(c.Value);
+						}
+						c = CharReader.Read();
+					}
+					tokenType = ETokenType.String;
+					return true;
+				}
+			}
+
 			tokenType = null;
 			return false;
 		}
