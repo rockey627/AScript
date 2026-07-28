@@ -725,7 +725,42 @@ namespace AScript
 				return;
 			}
 
+			var m = targetType.GetMethod("dynamic_set");
+			if (m != null)
+			{
+				m.Invoke(target, new object[] { propertyOrFieldName, value });
+				return;
+			}
+
+			if (target is DynamicObject)
+			{
+				DynamicSetMember(target, propertyOrFieldName, value);
+				return;
+			}
+
 			throw new Exceptions.ScriptRuntimeException($"unknow Property or Field {targetType.Name}.{propertyOrFieldName}");
+		}
+
+		public static void DynamicSetMember(object target, string memberName, object value)
+		{
+			dynamic d = target;
+			d[memberName] = value;
+			//var binder = Microsoft.CSharp.RuntimeBinder.Binder.SetMember(
+			//	Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags.None,
+			//	memberName,
+			//	target.GetType(),
+			//	new[] { Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags.None, null) }
+			//);
+			//var callSite = System.Runtime.CompilerServices.CallSite<Action<System.Runtime.CompilerServices.CallSite, object, object>>.Create(binder);
+			//callSite.Target(callSite, target, value);
+
+			//var binder = Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags.None, null);
+			//var callInfo = new Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo[] { binder };
+			//var setMemberBinder = Microsoft.CSharp.RuntimeBinder.CSharpSetMemberBinder.Create(new Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags(), "PropertyName", type, callInfo);
+
+			//// 使用反射调用 TrySetMember 方法
+			//var method = typeof(DynamicObject).GetMethod("TrySetMember", BindingFlags.Instance | BindingFlags.NonPublic);
+			//bool result = (bool)method.Invoke(obj, new object[] { setMemberBinder, "ValueToSet" }); // 注意这里的 "ValueToSet" 应替换为具体的值或对象
 		}
 
 		public static object GetAndSetValue(object instance, string propertyOrFieldName, out Type type, Func<MemberInfo, Type, object, object> valueFac)
@@ -892,6 +927,18 @@ namespace AScript
 				{
 					//type = f.FieldType;
 					return f.GetValue(target);
+				}
+
+				var m = targetType.GetMethod("dynamic_get");
+				if (m != null)
+				{
+					return m.Invoke(target, new object[] { propertyOrFieldName });
+				}
+
+				if (target is DynamicObject)
+				{
+					dynamic d = target;
+					return d[propertyOrFieldName];
 				}
 			}
 

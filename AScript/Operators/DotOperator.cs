@@ -27,10 +27,10 @@ namespace AScript.Operators
 
 			var arg0 = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
 			var fieldName = ((VariableNode)e.Args[1]).Name;
-			e.Result = GetValue(e, arg0, fieldName, this.Nullable);
+			e.Result = GetValue(e, arg0, fieldName);
 		}
 
-		private static Expression GetValue(FunctionBuildArgs e, Expression instance, string propertyOrFieldName, bool nullable = false)
+		private Expression GetValue(FunctionBuildArgs e, Expression instance, string propertyOrFieldName)
 		{
 			if (instance.Type == typeof(TypeWrapper))
 			{
@@ -69,7 +69,7 @@ namespace AScript.Operators
 			// 变量的属性或字段
 			if (e.ScriptContext.IsObjectMemberEnabled(instance.Type) ?? true)
 			{
-				if (nullable)
+				if (this.Nullable)
 				{
 					// ?. 判断
 					var propOrField = Expression.PropertyOrField(instance, propertyOrFieldName);
@@ -98,6 +98,17 @@ namespace AScript.Operators
 
 				var memberExpr = ExpressionUtils.PropertyOrField(instance, propertyOrFieldName);
 				if (memberExpr != null) return memberExpr;
+
+				var m = instance.Type.GetMethod("dynamic_get");
+				if (m != null)
+				{
+					return Expression.Call(instance, m, Expression.Constant(propertyOrFieldName));
+				}
+
+				if (typeof(DynamicObject).IsAssignableFrom(instance.Type))
+				{
+					return Expression.Property(instance, "Item", Expression.Constant(propertyOrFieldName));
+				}
 			}
 
 			var expr = e.ScriptContext.BuildFunc(e.BuildContext, e.Options, e.Control, $"get_{propertyOrFieldName}", false, new[] { new ExpressionNode(instance) });
@@ -122,7 +133,7 @@ namespace AScript.Operators
 			e.SetResult(value, type);
 		}
 
-		private static object GetValue(FunctionEvalArgs e, object instance, string propertyOrFieldName, out Type type)
+		private object GetValue(FunctionEvalArgs e, object instance, string propertyOrFieldName, out Type type)
 		{
 			object target;
 			Type targetType;
@@ -173,6 +184,27 @@ namespace AScript.Operators
 				{
 					type = f.FieldType;
 					return f.GetValue(target);
+				}
+
+				var m = targetType.GetMethod("dynamic_get");
+				if (m != null)
+				{
+					type = m.ReturnType;
+					return m.Invoke(target, new object[] { propertyOrFieldName });
+				}
+
+				if (target is DynamicObject)
+				{
+					var itemProperty = targetType.GetProperty("Item", new[] { typeof(string) });
+					if (itemProperty == null)
+					{
+						itemProperty = targetType.GetProperty("Item", new[] { typeof(object) });
+					}
+					if (itemProperty != null)
+					{
+						type = itemProperty.PropertyType;
+						return itemProperty.GetValue(target, new object[] { propertyOrFieldName });
+					}
 				}
 			}
 

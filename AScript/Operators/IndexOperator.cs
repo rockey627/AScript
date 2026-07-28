@@ -318,7 +318,7 @@ namespace AScript.Operators
 			}
 			dynamic obj = arg0;
 			dynamic key = arg1;
-			if (indexBase1 && (key is int || key is long) && !(arg0 is IDictionary)) key -= 1;
+			//if (indexBase1 && (key is int || key is long) && !(arg0 is IDictionary)) key -= 1;
 			return obj[key];
 		}
 	}
