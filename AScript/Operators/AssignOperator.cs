@@ -394,13 +394,14 @@ namespace AScript.Operators
 		{
 			if (value is TupleNode tupleNode)
 			{
-				if (item.Items.Count > tupleNode.Items.Count)
-				{
-					throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
-				}
+				//if (item.Items.Count > tupleNode.Items.Count)
+				//{
+				//	throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
+				//}
+				int minCount = Math.Min(item.Items.Count, tupleNode.Items.Count);
 				//var itemValues = new object[arg0Items.Count];
 				//var itemTypes = new Type[arg0Items.Count];
-				for (int i = 0; i < tupleNode.Items.Count; i++)
+				for (int i = 0; i < minCount; i++)
 				{
 					var value0 = tupleNode.Items[i].Eval(e.Context, e.Options, e.Control, out var valueType0);
 					if (i < item.Items.Count)
@@ -414,6 +415,14 @@ namespace AScript.Operators
 						//}
 						Decontruct(e, item.Items[i], value0, valueType0);
 					}
+				}
+				for (int i = minCount; i < item.Items.Count; i++)
+				{
+					item.Items[i].Eval(e.Context, e.Options, e.Control, out _);
+				}
+				for (int i = minCount; i < tupleNode.Items.Count; i++)
+				{
+					tupleNode.Items[i].Eval(e.Context, e.Options, e.Control, out _);
 				}
 				// 返回元组
 				//e.SetResult(TupleNode.CreateTuple(itemValues, itemTypes));
@@ -699,18 +708,22 @@ namespace AScript.Operators
 			}
 
 			int rightFieldCount = isValueTuple ? rightType.GetFields().Length : rightType.GetProperties().Length;
-			if (arg0Items.Count > rightFieldCount)
-			{
-				throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
-			}
-
+			//if (arg0Items.Count > rightFieldCount)
+			//{
+			//	throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
+			//}
+			int minCount = Math.Min(arg0Items.Count, rightFieldCount);
 			var expressions = new List<Expression>(arg0Items.Count);
-			for (int i = 0; i < arg0Items.Count; i++)
+			for (int i = 0; i < minCount; i++)
 			{
 				var item = arg0Items[i];
 				var value = isValueTuple ? Expression.Field(right, $"Item{i + 1}") : Expression.Property(right, $"Item{i + 1}");
 				var expr = BuildDeconstruct(e, item, value);
 				if (expr != null) expressions.Add(expr);
+			}
+			for (int i = minCount; i < arg0Items.Count; i++)
+			{
+				expressions.Add(arg0Items[i].Build(e.BuildContext, e.ScriptContext, e.Options));
 			}
 
 			e.Result = Expression.Block(typeof(void), expressions);

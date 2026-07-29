@@ -9,6 +9,7 @@ namespace AScript.Nodes
 {
 	public class TupleNode : TreeNode
 	{
+		private static readonly MethodInfo Method_Tuple_1;
 		private static readonly MethodInfo Method_Tuple_2;
 		private static readonly MethodInfo Method_Tuple_3;
 		private static readonly MethodInfo Method_Tuple_4;
@@ -27,6 +28,9 @@ namespace AScript.Nodes
 				int count = method.GetParameters().Length;
 				switch (count)
 				{
+					case 1:
+						Method_Tuple_1 = method;
+						break;
 					case 2:
 						Method_Tuple_2 = method;
 						break;
@@ -60,6 +64,9 @@ namespace AScript.Nodes
 				int count = method.GetParameters().Length;
 				switch (count)
 				{
+					case 1:
+						Method_Tuple_1 = method;
+						break;
 					case 2:
 						Method_Tuple_2 = method;
 						break;
@@ -155,6 +162,7 @@ namespace AScript.Nodes
 		{
 			switch (count)
 			{
+				case 1: return Method_Tuple_1;
 				case 2: return Method_Tuple_2;
 				case 3: return Method_Tuple_3;
 				case 4: return Method_Tuple_4;
