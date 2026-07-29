@@ -11,14 +11,18 @@ namespace AScript.Lang.JavaScript.axios
 
 		public object Install(BaseContext context)
 		{
-			context.SetObjectMemberEnabled(typeof(JavaScriptHttpResponse), true);
+			//context.SetObjectMemberEnabled(typeof(JavaScriptHttpResponse), true);
+			context.SetObjectMemberEnabled(typeof(IHttpClientFactory), false);
+			context.SetObjectMemberEnabled(typeof(HttpClient), false);
 			context.AddFunc(typeof(JavaScriptAxiosExtensions));
 			return HttpClientFactory;
 		}
 
 		public void Uninstall(BaseContext context)
 		{
-			context.SetObjectMemberEnabled(typeof(JavaScriptHttpResponse), null);
+			//context.SetObjectMemberEnabled(typeof(JavaScriptHttpResponse), null);
+			context.SetObjectMemberEnabled(typeof(IHttpClientFactory), null);
+			context.SetObjectMemberEnabled(typeof(HttpClient), null);
 		}
 
 		private class DefaultHttpClientFactory : IHttpClientFactory

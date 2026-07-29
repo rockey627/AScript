@@ -10,7 +10,8 @@ namespace AScript.Lang.JavaScript.Extensions
 		{
 			context.FunctionEval -= Context_FunctionEval;
 			context.FunctionEval += Context_FunctionEval;
-			context.AddType("JSON", typeof(JsonConvert));
+			context.AddType("JSON", typeof(JsonConvert), false);
+			context.SetObjectMemberEnabled(typeof(JToken), false);
 			context.AddFunc(typeof(JavaScriptJsonExtensions));
 			return null;
 		}
@@ -18,7 +19,8 @@ namespace AScript.Lang.JavaScript.Extensions
 		public void Uninstall(BaseContext context)
 		{
 			context.FunctionEval -= Context_FunctionEval;
-			context.RemoveType("JSON");
+			context.RemoveType("JSON", true);
+			context.SetObjectMemberEnabled(typeof(JToken), null);
 		}
 
 		private void Context_FunctionEval(object sender, FunctionEvalArgs e)

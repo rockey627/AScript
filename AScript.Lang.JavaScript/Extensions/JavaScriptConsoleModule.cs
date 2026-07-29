@@ -6,14 +6,14 @@ namespace AScript.Lang.JavaScript.Extensions
 	{
 		public object Install(BaseContext context)
 		{
-			context.AddType("console", typeof(Console));
+			context.AddType("console", typeof(Console), false);
 			context.AddFunc(typeof(JavaScriptConsoleExtensions));
 			return null;
 		}
 
 		public void Uninstall(BaseContext context)
 		{
-			context.RemoveType("console");
+			context.RemoveType("console", true);
 		}
 	}
 }

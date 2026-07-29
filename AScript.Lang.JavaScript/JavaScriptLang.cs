@@ -19,13 +19,15 @@ namespace AScript.Lang.JavaScript
 
 		protected JavaScriptLang()
 		{
-			AddType("String", typeof(string));
-			AddType("Array", typeof(List<object>));
-			AddType("Set", typeof(HashSet<object>));
-			AddType("Map", typeof(Dictionary<object, object>));
-			AddType("Date", typeof(DateTime));
-			AddType("Math", typeof(Math));
-			AddType("Promise", typeof(Task<object>));
+			AddType("String", typeof(string), false);
+			AddType("Array", typeof(List<object>), false);
+			AddType("Set", typeof(HashSet<object>), false);
+			AddType("Map", typeof(Dictionary<object, object>), false);
+			AddType("Date", typeof(DateTime), false);
+			AddType("Math", typeof(Math), false);
+			AddType("Promise", typeof(Task<object>), false);
+
+			SetObjectMemberEnabled(typeof(Array), false);
 
 			AddFunc("=", AssignOperator.Instance);
 			AddFunc("+=", PlusAssignOperator.Instance);
@@ -127,12 +129,6 @@ namespace AScript.Lang.JavaScript
 		public override bool IsDynamic()
 		{
 			return true;
-		}
-
-		public override bool? IsObjectMemberEnabled(Type objType)
-		{
-			var enabled = base.IsObjectMemberEnabled(objType);
-			return enabled ?? false;
 		}
 
 		public override ISyntaxAnalyzer GetSyntaxAnalyzer()
