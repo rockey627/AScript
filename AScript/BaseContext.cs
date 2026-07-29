@@ -445,12 +445,40 @@ namespace AScript
 		/// <returns></returns>
 		public virtual bool? IsObjectMemberEnabled(Type objType)
 		{
+			//var dict = _ObjectMemberEnabledDict;
+			//if (dict == null) return null;
+			//if (dict.TryGetValue(objType, out var enable))
+			//{
+			//	return enable;
+			//}
+			//return null;
+			return IsObjectMemberEnabledCore(objType);
+		}
+
+		public virtual bool? IsObjectMemberEnabledCore(Type objType)
+		{
+			if (objType == null) return null;
 			var dict = _ObjectMemberEnabledDict;
-			if (dict != null && dict.TryGetValue(objType, out var enable))
+			if (dict == null || dict.Count == 0) return null;
+			if (dict.TryGetValue(objType, out var enable))
 			{
 				return enable;
 			}
-			return null;
+			var interfaces = objType.GetInterfaces();
+			foreach (var i in interfaces)
+			{
+				if (dict.TryGetValue(i, out enable))
+				{
+					//dict[objType] = enable;
+					return enable;
+				}
+			}
+			var r = IsObjectMemberEnabledCore(objType.BaseType);
+			//if (r.HasValue)
+			//{
+			//	dict[objType] = r.Value;
+			//}
+			return r;
 		}
 
 		/// <summary>
@@ -488,9 +516,45 @@ namespace AScript
 			AddType(typeof(T));
 		}
 
+		public void AddType(string name, Type type, bool memberEnabled)
+		{
+			AddType(name, type);
+			SetObjectMemberEnabled(type, memberEnabled);
+		}
+
+		public void AddType(Type type, bool memberEnabled)
+		{
+			AddType(type.Name, type, memberEnabled);
+		}
+
+		public void AddType<T>(string name, bool memberEnabled)
+		{
+			AddType(name, typeof(T), memberEnabled);
+		}
+
+		public void AddType<T>(bool memberEnabled)
+		{
+			AddType(typeof(T), memberEnabled);
+		}
+
 		public void RemoveType(string name)
 		{
 			this._Types?.Remove(name);
+		}
+
+		public void RemoveType(string name, bool removeMemberEnabled)
+		{
+			var types = this._Types;
+			if (types == null) return;
+			var objectMemberEnabledDict = this._ObjectMemberEnabledDict;
+			if (!removeMemberEnabled || objectMemberEnabledDict == null)
+			{
+				types.Remove(name);
+				return;
+			}
+			if (!types.TryGetValue(name, out var type)) return;
+			types.Remove(name);
+			objectMemberEnabledDict.Remove(type);
 		}
 
 		public void AddAssembly(string name, Assembly assembly)

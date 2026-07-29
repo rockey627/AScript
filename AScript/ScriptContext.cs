@@ -392,16 +392,18 @@ namespace AScript
 		/// </summary>
 		/// <param name="objType"></param>
 		/// <returns></returns>
-		public virtual bool? IsObjectMemberEnabled(Type objType)
+		public override bool? IsObjectMemberEnabled(Type objType)
 		{
 			var context = this;
 			while (context != null)
 			{
-				var dict = context._ObjectMemberEnabledDict;
-				if (dict != null && dict.TryGetValue(objType, out var enabled))
-				{
-					return enabled;
-				}
+				//var dict = context._ObjectMemberEnabledDict;
+				//if (dict != null && dict.TryGetValue(objType, out var enabled))
+				//{
+				//	return enabled;
+				//}
+				var enabled = context.IsObjectMemberEnabledCore(objType);
+				if (enabled.HasValue) return enabled;
 				context = context.Parent;
 			}
 

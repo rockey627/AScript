@@ -116,27 +116,6 @@ namespace AScript
 			OnFunctionBuild(e);
 		}
 
-		public void AddType(string name, Type type, bool memberEnabled)
-		{
-			AddType(name, type);
-			SetObjectMemberEnabled(type, memberEnabled);
-		}
-
-		public void AddType(Type type, bool memberEnabled)
-		{
-			AddType(type.Name, type, memberEnabled);
-		}
-
-		public void AddType<T>(string name, bool memberEnabled)
-		{
-			AddType(name, typeof(T), memberEnabled);
-		}
-
-		public void AddType<T>(bool memberEnabled)
-		{
-			AddType(typeof(T), memberEnabled);
-		}
-
 		public void HandleToken(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			if (e.IsHandled) return;
