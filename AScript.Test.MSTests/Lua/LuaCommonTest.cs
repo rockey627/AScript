@@ -448,5 +448,84 @@ factorial(5)
 			Assert.AreEqual("hello\\world", script.Eval("[[hello\\\\world]]"));
 			Assert.AreEqual("line1line2", script.Eval("[[line1\\z\nline2]]"));
 		}
+
+		[TestMethod]
+		public void Test16_Tuple()
+		{
+			var s = @"
+local a,b = 1, 2
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			script.Eval(s);
+			Assert.AreEqual(1L, script.Eval("a"));
+			Assert.AreEqual(2L, script.Eval("b"));
+		}
+
+		[TestMethod]
+		public void Test16_Tuple_CompileAll()
+		{
+			var s = @"
+local a,b = 1, 2
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			script.Eval(s);
+			Assert.AreEqual(1L, script.Eval("a"));
+			Assert.AreEqual(2L, script.Eval("b"));
+		}
+
+		[TestMethod]
+		public void Test16_Tuple2()
+		{
+			var s = @"
+local a,b = 1
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			script.Eval(s);
+			Assert.AreEqual(1L, script.Eval("a"));
+			Assert.IsNull(script.Eval("b"));
+		}
+
+		[TestMethod]
+		public void Test16_Tuple2_CompileAll()
+		{
+			var s = @"
+local a,b = 1
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			script.Eval(s);
+			Assert.AreEqual(1L, script.Eval("a"));
+			Assert.IsNull(script.Eval("b"));
+		}
+
+		[TestMethod]
+		public void Test17_Tuple()
+		{
+			var s = @"
+local a,b = 1, 2
+a+b
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(3L, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test17_Tuple_CompileAll()
+		{
+			var s = @"
+local a,b = 1, 2
+a+b
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(3L, script.Eval(s));
+		}
 	}
 }
