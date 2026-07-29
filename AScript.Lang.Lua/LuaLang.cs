@@ -33,6 +33,8 @@ namespace AScript.Lang.Lua
 			AddType<bool>("boolean", false);
 			AddType<LuaTable>("table");
 
+			SetObjectMemberEnabled(typeof(List<object>), false);
+
 			// 赋值运算符
 			AddFunc("=", AssignOperator.Instance);
 			AddFunc("+=", PlusAssignOperator.Instance);
@@ -71,27 +73,7 @@ namespace AScript.Lang.Lua
 			AddFunc("#", new LengthFunction(typeof(long)));
 
 			AddFunc(typeof(Extensions.LuaCommonExtensions));
-
-			//this.FunctionEval += (ss, ee) =>
-			//{
-			//	if (ee.Name.StartsWith("get_") && ee.Args != null && ee.Args.Count == 1)
-			//	{
-			//		ee.EvalArgs();
-			//		var instance = ee.ArgValues[0];
-			//		if (instance is IDictionary<object, object> dict)
-			//		{
-			//			var key = ee.Name.Substring(4);
-			//			if (dict.TryGetValue(key, out var value))
-			//			{
-			//				ee.SetResult(value, value?.GetType());
-			//			}
-			//			else
-			//			{
-			//				ee.SetResult(null, null);
-			//			}
-			//		}
-			//	}
-			//};
+			AddFunc(typeof(Extensions.LuaStringExtensions));
 
 			// Token处理器
 			AddTokenHandler("local", LuaLocalTokenHandler.Instance);
