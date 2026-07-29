@@ -455,7 +455,7 @@ namespace AScript
 			return IsObjectMemberEnabledCore(objType);
 		}
 
-		public virtual bool? IsObjectMemberEnabledCore(Type objType)
+		protected virtual bool? IsObjectMemberEnabledCore(Type objType)
 		{
 			if (objType == null) return null;
 			var dict = _ObjectMemberEnabledDict;
