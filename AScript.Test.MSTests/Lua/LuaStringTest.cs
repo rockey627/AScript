@@ -432,8 +432,8 @@ namespace AScript.Test.MSTests.Lua
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
 
-			Assert.AreEqual("hello,world,hello", script.Eval("string.rep('hello', ',', 3)"));
-			Assert.AreEqual("a-b-c", script.Eval("string.rep('a', '-', 3)"));
+			Assert.AreEqual("hello,hello,hello", script.Eval("string.rep('hello', ',', 3)"));
+			Assert.AreEqual("a-a-a", script.Eval("string.rep('a', '-', 3)"));
 			Assert.AreEqual("aaa", script.Eval("string.rep('a', '', 3)"));
 		}
 
@@ -444,8 +444,8 @@ namespace AScript.Test.MSTests.Lua
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
 
-			Assert.AreEqual("hello,world,hello", script.Eval("string.rep('hello', ',', 3)"));
-			Assert.AreEqual("a-b-c", script.Eval("string.rep('a', '-', 3)"));
+			Assert.AreEqual("hello,hello,hello", script.Eval("string.rep('hello', ',', 3)"));
+			Assert.AreEqual("a-a-a", script.Eval("string.rep('a', '-', 3)"));
 			Assert.AreEqual("aaa", script.Eval("string.rep('a', '', 3)"));
 		}
 
@@ -478,9 +478,34 @@ namespace AScript.Test.MSTests.Lua
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
 
-			Assert.AreEqual("h*llo", script.Eval("string.gsub('hello', 'l', '*')"));
-			Assert.AreEqual("he**o", script.Eval("string.gsub('hello', 'l', '**')"));
-			Assert.AreEqual("worldworldworld", script.Eval("string.gsub('hellohellohello', 'hello', 'world')"));
+#if NETFRAMEWORK
+			var result1 = script.Eval("string.gsub('hello', 'l', '*')") as Tuple<string, long>;
+			Assert.IsNotNull(result1);
+			Assert.AreEqual("he**o", result1.Item1);
+			Assert.AreEqual(2L, result1.Item2);
+
+			var result2 = script.Eval("string.gsub('hello', 'l', '**')") as Tuple<string, long>;
+			Assert.IsNotNull(result2);
+			Assert.AreEqual("he****o", result2.Item1);
+			Assert.AreEqual(2L, result2.Item2);
+
+			var result3 = script.Eval("string.gsub('hellohellohello', 'hello', 'world')") as Tuple<string, long>;
+			Assert.IsNotNull(result3);
+			Assert.AreEqual("worldworldworld", result3.Item1);
+			Assert.AreEqual(3L, result3.Item2);
+#else
+			var (r1, c1) = ((string, long))script.Eval("string.gsub('hello', 'l', '*')");
+			Assert.AreEqual("he**o", r1);
+			Assert.AreEqual(2L, c1);
+
+			var (r2, c2) = ((string, long))script.Eval("string.gsub('hello', 'l', '**')");
+			Assert.AreEqual("he****o", r2);
+			Assert.AreEqual(2L, c2);
+
+			var (r3, c3) = ((string, long))script.Eval("string.gsub('hellohellohello', 'hello', 'world')");
+			Assert.AreEqual("worldworldworld", r3);
+			Assert.AreEqual(3L, c3);
+#endif
 		}
 
 		[TestMethod]
@@ -490,9 +515,34 @@ namespace AScript.Test.MSTests.Lua
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
 
-			Assert.AreEqual("h*llo", script.Eval("string.gsub('hello', 'l', '*')"));
-			Assert.AreEqual("he**o", script.Eval("string.gsub('hello', 'l', '**')"));
-			Assert.AreEqual("worldworldworld", script.Eval("string.gsub('hellohellohello', 'hello', 'world')"));
+#if NETFRAMEWORK
+			var result1 = script.Eval("string.gsub('hello', 'l', '*')") as Tuple<string, long>;
+			Assert.IsNotNull(result1);
+			Assert.AreEqual("he**o", result1.Item1);
+			Assert.AreEqual(2L, result1.Item2);
+
+			var result2 = script.Eval("string.gsub('hello', 'l', '**')") as Tuple<string, long>;
+			Assert.IsNotNull(result2);
+			Assert.AreEqual("he****o", result2.Item1);
+			Assert.AreEqual(2L, result2.Item2);
+
+			var result3 = script.Eval("string.gsub('hellohellohello', 'hello', 'world')") as Tuple<string, long>;
+			Assert.IsNotNull(result3);
+			Assert.AreEqual("worldworldworld", result3.Item1);
+			Assert.AreEqual(3L, result3.Item2);
+#else
+			var (r1, c1) = ((string, long))script.Eval("string.gsub('hello', 'l', '*')");
+			Assert.AreEqual("he**o", r1);
+			Assert.AreEqual(2L, c1);
+
+			var (r2, c2) = ((string, long))script.Eval("string.gsub('hello', 'l', '**')");
+			Assert.AreEqual("he****o", r2);
+			Assert.AreEqual(2L, c2);
+
+			var (r3, c3) = ((string, long))script.Eval("string.gsub('hellohellohello', 'hello', 'world')");
+			Assert.AreEqual("worldworldworld", r3);
+			Assert.AreEqual(3L, c3);
+#endif
 		}
 
 		[TestMethod]
@@ -501,11 +551,45 @@ namespace AScript.Test.MSTests.Lua
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
 
+#if NETFRAMEWORK
 			// 限制替换次数
-			Assert.AreEqual("h*llo", script.Eval("string.gsub('hellohello', 'l', '*', 1)"));
-			Assert.AreEqual("h*llo*ello", script.Eval("string.gsub('hellohello', 'l', '*', 2)"));
-			Assert.AreEqual("h*llo*llo", script.Eval("string.gsub('hellohello', 'l', '*', 3)"));
-			Assert.AreEqual("h*llo*llo", script.Eval("string.gsub('hellohello', 'l', '*', 10)"));
+			var result1 = script.Eval("string.gsub('hellohello', 'l', '*', 1)") as Tuple<string, long>;
+			Assert.IsNotNull(result1);
+			Assert.AreEqual("he*lohello", result1.Item1);
+			Assert.AreEqual(1L, result1.Item2);
+
+			var result2 = script.Eval("string.gsub('hellohello', 'l', '*', 2)") as Tuple<string, long>;
+			Assert.IsNotNull(result2);
+			Assert.AreEqual("he**ohello", result2.Item1);
+			Assert.AreEqual(2L, result2.Item2);
+
+			var result3 = script.Eval("string.gsub('hellohello', 'l', '*', 3)") as Tuple<string, long>;
+			Assert.IsNotNull(result3);
+			Assert.AreEqual("he**ohe*lo", result3.Item1);
+			Assert.AreEqual(3L, result3.Item2);
+
+			var result4 = script.Eval("string.gsub('hellohello', 'l', '*', 10)") as Tuple<string, long>;
+			Assert.IsNotNull(result4);
+			Assert.AreEqual("he**ohe**o", result4.Item1);
+			Assert.AreEqual(4L, result4.Item2);
+#else
+			// 限制替换次数
+			var (r1, c1) = ((string, long))script.Eval("string.gsub('hellohello', 'l', '*', 1)");
+			Assert.AreEqual("he*lohello", r1);
+			Assert.AreEqual(1L, c1);
+
+			var (r2, c2) = ((string, long))script.Eval("string.gsub('hellohello', 'l', '*', 2)");
+			Assert.AreEqual("he**ohello", r2);
+			Assert.AreEqual(2L, c2);
+
+			var (r3, c3) = ((string, long))script.Eval("string.gsub('hellohello', 'l', '*', 3)");
+			Assert.AreEqual("he**ohe*lo", r3);
+			Assert.AreEqual(3L, c3);
+
+			var (r4, c4) = ((string, long))script.Eval("string.gsub('hellohello', 'l', '*', 10)");
+			Assert.AreEqual("he**ohe**o", r4);
+			Assert.AreEqual(4L, c4);
+#endif
 		}
 
 		[TestMethod]
@@ -515,10 +599,45 @@ namespace AScript.Test.MSTests.Lua
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
 
-			Assert.AreEqual("h*llo", script.Eval("string.gsub('hellohello', 'l', '*', 1)"));
-			Assert.AreEqual("h*llo*ello", script.Eval("string.gsub('hellohello', 'l', '*', 2)"));
-			Assert.AreEqual("h*llo*llo", script.Eval("string.gsub('hellohello', 'l', '*', 3)"));
-			Assert.AreEqual("h*llo*llo", script.Eval("string.gsub('hellohello', 'l', '*', 10)"));
+#if NETFRAMEWORK
+			// 限制替换次数
+			var result1 = script.Eval("string.gsub('hellohello', 'l', '*', 1)") as Tuple<string, long>;
+			Assert.IsNotNull(result1);
+			Assert.AreEqual("he*lohello", result1.Item1);
+			Assert.AreEqual(1L, result1.Item2);
+
+			var result2 = script.Eval("string.gsub('hellohello', 'l', '*', 2)") as Tuple<string, long>;
+			Assert.IsNotNull(result2);
+			Assert.AreEqual("he**ohello", result2.Item1);
+			Assert.AreEqual(2L, result2.Item2);
+
+			var result3 = script.Eval("string.gsub('hellohello', 'l', '*', 3)") as Tuple<string, long>;
+			Assert.IsNotNull(result3);
+			Assert.AreEqual("he**ohe*lo", result3.Item1);
+			Assert.AreEqual(3L, result3.Item2);
+
+			var result4 = script.Eval("string.gsub('hellohello', 'l', '*', 10)") as Tuple<string, long>;
+			Assert.IsNotNull(result4);
+			Assert.AreEqual("he**ohe**o", result4.Item1);
+			Assert.AreEqual(4L, result4.Item2);
+#else
+			// 限制替换次数
+			var (r1, c1) = ((string, long))script.Eval("string.gsub('hellohello', 'l', '*', 1)");
+			Assert.AreEqual("he*lohello", r1);
+			Assert.AreEqual(1L, c1);
+
+			var (r2, c2) = ((string, long))script.Eval("string.gsub('hellohello', 'l', '*', 2)");
+			Assert.AreEqual("he**ohello", r2);
+			Assert.AreEqual(2L, c2);
+
+			var (r3, c3) = ((string, long))script.Eval("string.gsub('hellohello', 'l', '*', 3)");
+			Assert.AreEqual("he**ohe*lo", r3);
+			Assert.AreEqual(3L, c3);
+
+			var (r4, c4) = ((string, long))script.Eval("string.gsub('hellohello', 'l', '*', 10)");
+			Assert.AreEqual("he**ohe**o", r4);
+			Assert.AreEqual(4L, c4);
+#endif
 		}
 
 		[TestMethod]

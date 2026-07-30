@@ -78,7 +78,7 @@ namespace AScript.Lang.Lua.TokenHandlers
 						}
 						var defineNode = new TupleNode { Items = defineItems };
 						// 创建values
-						var valueNode = new TupleNode { Items = values };
+						var valueNode = values.Count == 1 ? values[0] : new TupleNode { Items = values };
 						var assignNode = PoolManage.CreateOperatorNode("=", 2, 0);
 						assignNode.Left = defineNode;
 						assignNode.Right = valueNode;

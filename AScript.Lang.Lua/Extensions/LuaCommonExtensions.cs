@@ -12,8 +12,37 @@ namespace AScript.Lang.Lua.Extensions
 			{
 				for (int i = 0; i < args.Length; i++)
 				{
-					if (i > 0) Console.Write(' ');
-					Console.Write(args[i] ?? "nil");
+					if (i > 0) Console.Write("\t");
+					var v = args[i];
+					if (v == null)
+					{
+						Console.Write("nil");
+						continue;
+					}
+					var type = v.GetType();
+					string typeName = type.Name;
+					if (typeName.StartsWith("Tuple`"))
+					{
+						var properties = type.GetProperties();
+						for (int j = 0; j < properties.Length; j++)
+						{
+							if (j > 0) Console.Write("\t");
+							Console.Write(properties[j].GetValue(v));
+						}
+					}
+					else if (typeName.StartsWith("ValueTuple`"))
+					{
+						var fields = type.GetFields();
+						for (int j = 0; j < fields.Length; j++)
+						{
+							if (j > 0) Console.Write("\t");
+							Console.Write(fields[j].GetValue(v));
+						}
+					}
+					else
+					{
+						Console.Write(v);
+					}
 				}
 			}
 			Console.WriteLine();

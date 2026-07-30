@@ -80,10 +80,16 @@ namespace AScript.Lang.Lua.Extensions
 		}
 #endif
 
-		// string.format(formatstring, ...) - 格式化字符串
+		// string.format(formatstring, ...) - 格式化字符串，支持 %s 和 %d 格式说明符
 		public static string string_format(string format, params object[] args)
 		{
-			return string.Format(format, args);
+			// 将 Lua 风格的 %s,%d,%q 格式说明符转换为 .NET 风格的 {0},{1} 等
+			int argIndex = 0;
+			var netFormat = System.Text.RegularExpressions.Regex.Replace(format, @"%[sdq]", match =>
+			{
+				return "{" + argIndex++ + "}";
+			});
+			return string.Format(netFormat, args);
 		}
 
 		// string.lower(s) / string.upper(s) - 大小写转换
@@ -132,24 +138,37 @@ namespace AScript.Lang.Lua.Extensions
 			return result;
 		}
 
-		// string.gsub(s, pattern, replacement) - 全局替换
-		public static string string_gsub(string s, string pattern, string replacement)
+		// string.gsub(s, pattern, replacement) - 全局替换，返回 (结果, 替换次数)
+#if NETFRAMEWORK
+		public static Tuple<string, long> string_gsub(string s, string pattern, string replacement)
 		{
-			if (string.IsNullOrEmpty(s)) return s;
-			if (string.IsNullOrEmpty(pattern)) return s;
-			return s.Replace(pattern, replacement);
+			if (string.IsNullOrEmpty(s) || string.IsNullOrEmpty(pattern))
+				return Tuple.Create(s, 0L);
+			var count = 0L;
+			var result = new StringBuilder();
+			var remaining = s;
+			while (true)
+			{
+				var index = remaining.IndexOf(pattern);
+				if (index < 0) break;
+				result.Append(remaining.Substring(0, index));
+				result.Append(replacement);
+				remaining = remaining.Substring(index + pattern.Length);
+				count++;
+			}
+			result.Append(remaining);
+			return Tuple.Create(result.ToString(), count);
 		}
 
-		// string.gsub(s, pattern, replacement, n) - 全局替换，限制次数
-		public static string string_gsub(string s, string pattern, string replacement, long n)
+		public static Tuple<string, long> string_gsub(string s, string pattern, string replacement, long n)
 		{
-			if (string.IsNullOrEmpty(s)) return s;
-			if (string.IsNullOrEmpty(pattern)) return s;
-			if (n <= 0) return s;
+			if (string.IsNullOrEmpty(s) || string.IsNullOrEmpty(pattern))
+				return Tuple.Create(s, 0L);
+			if (n <= 0) return Tuple.Create(s, 0L);
 
 			var result = new StringBuilder();
 			var remaining = s;
-			var count = 0;
+			var count = 0L;
 
 			while (count < n)
 			{
@@ -163,8 +182,54 @@ namespace AScript.Lang.Lua.Extensions
 			}
 
 			result.Append(remaining);
-			return result.ToString();
+			return Tuple.Create(result.ToString(), count);
 		}
+#else
+		public static (string result, long count) string_gsub(string s, string pattern, string replacement)
+		{
+			if (string.IsNullOrEmpty(s) || string.IsNullOrEmpty(pattern))
+				return (s, 0L);
+			var count = 0L;
+			var result = new StringBuilder();
+			var remaining = s;
+			while (true)
+			{
+				var index = remaining.IndexOf(pattern);
+				if (index < 0) break;
+				result.Append(remaining.Substring(0, index));
+				result.Append(replacement);
+				remaining = remaining.Substring(index + pattern.Length);
+				count++;
+			}
+			result.Append(remaining);
+			return (result.ToString(), count);
+		}
+
+		public static (string result, long count) string_gsub(string s, string pattern, string replacement, long n)
+		{
+			if (string.IsNullOrEmpty(s) || string.IsNullOrEmpty(pattern))
+				return (s, 0L);
+			if (n <= 0) return (s, 0L);
+
+			var result = new StringBuilder();
+			var remaining = s;
+			var count = 0L;
+
+			while (count < n)
+			{
+				var index = remaining.IndexOf(pattern);
+				if (index < 0) break;
+
+				result.Append(remaining.Substring(0, index));
+				result.Append(replacement);
+				remaining = remaining.Substring(index + pattern.Length);
+				count++;
+			}
+
+			result.Append(remaining);
+			return (result.ToString(), count);
+		}
+#endif
 
 		// string.match(s, pattern, init) - 匹配一次
 		public static List<object> string_match(string s, string pattern)
