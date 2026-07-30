@@ -231,11 +231,71 @@ namespace AScript.Lang.Lua.Extensions
 		}
 #endif
 
+		// 辅助方法：将 Lua 模式转换为 .NET 正则表达式模式
+		private static string LuaPatternToNetRegex(string pattern)
+		{
+			if (string.IsNullOrEmpty(pattern)) return pattern;
+
+			var sb = new StringBuilder();
+			var i = 0;
+			while (i < pattern.Length)
+			{
+				if (pattern[i] == '%' && i + 1 < pattern.Length)
+				{
+					var nextChar = pattern[i + 1];
+					switch (nextChar)
+					{
+						// Lua 字符类转换为 .NET 正则表达式
+						case 'a': sb.Append(@"[A-Za-z]"); break;          // 任何字母
+						case 'c': sb.Append(@"[\x00-\x1F\x7F]"); break;  // 任何控制字符
+						case 'd': sb.Append(@"[0-9]"); break;             // 任何数字
+						case 'l': sb.Append(@"[a-z]"); break;             // 任何小写字母
+						case 'p': sb.Append(@"[!""#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]"); break; // 任何标点符号
+						case 's': sb.Append(@"[ \t\n\r\f\v]"); break;      // 任何空白字符
+						case 'u': sb.Append(@"[A-Z]"); break;             // 任何大写字母
+						case 'w': sb.Append(@"[A-Za-z0-9]"); break;        // 任何字母数字
+						case 'x': sb.Append(@"[0-9A-Fa-f]"); break;        // 任何十六进制数字
+						case 'z': sb.Append(@"\x00"); break;              // 字符串结束符（null字符）
+						// 转义字符
+						case '%': sb.Append(@"%"); break;
+						case '.': sb.Append(@"\."); break;
+						case '^': sb.Append(@"\^"); break;
+						case '$': sb.Append(@"\$"); break;
+						case '(': sb.Append(@"\("); break;
+						case ')': sb.Append(@"\)"); break;
+						case '[': sb.Append(@"\["); break;
+						case ']': sb.Append(@"\]"); break;
+						case '*': sb.Append(@"\*"); break;
+						case '+': sb.Append(@"\+"); break;
+						case '?': sb.Append(@"\?"); break;
+						case '#': sb.Append(@"\#"); break; // Lua 5.2+ 模式修饰符
+						case '=': sb.Append(@"="); break;
+						case '-': sb.Append(@"\-"); break;
+						default: sb.Append('%').Append(nextChar); break;
+					}
+					i += 2;
+				}
+				else
+				{
+					// 普通字符，需要转义在正则表达式中有特殊意义的字符
+					switch (pattern[i])
+					{
+						case '\\': sb.Append(@"\\"); break;
+						case '/': sb.Append(@"/"); break;  // Lua pattern separator
+						default: sb.Append(pattern[i]); break;
+					}
+					i++;
+				}
+			}
+			return sb.ToString();
+		}
+
 		// string.match(s, pattern, init) - 匹配一次
 		public static List<object> string_match(string s, string pattern)
 		{
 			if (string.IsNullOrEmpty(s) || string.IsNullOrEmpty(pattern)) return null;
-			var match = Regex.Match(s, pattern);
+			var netPattern = LuaPatternToNetRegex(pattern);
+			var match = Regex.Match(s, netPattern);
 			if (!match.Success) return null;
 			return new List<object> { match.Value };
 		}
@@ -247,7 +307,8 @@ namespace AScript.Lang.Lua.Extensions
 			if (startIndex >= s.Length) return null;
 
 			var remaining = s.Substring(startIndex);
-			var match = Regex.Match(remaining, pattern);
+			var netPattern = LuaPatternToNetRegex(pattern);
+			var match = Regex.Match(remaining, netPattern);
 			if (!match.Success) return null;
 			return new List<object> { match.Value };
 		}
@@ -256,7 +317,8 @@ namespace AScript.Lang.Lua.Extensions
 		public static List<object> string_gmatch(string s, string pattern)
 		{
 			if (string.IsNullOrEmpty(s) || string.IsNullOrEmpty(pattern)) return new List<object>();
-			var matches = Regex.Matches(s, pattern);
+			var netPattern = LuaPatternToNetRegex(pattern);
+			var matches = Regex.Matches(s, netPattern);
 			var result = new List<object>(matches.Count);
 			foreach (Match match in matches)
 			{
