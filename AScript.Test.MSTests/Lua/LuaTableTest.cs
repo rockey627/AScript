@@ -1420,5 +1420,298 @@ t[2]
 		}
 
 		#endregion
+
+		#region Table Sort (table.sort)
+
+		[TestMethod]
+		public void Test53_Table_Sort_Numbers()
+		{
+			string code = @"
+local t = {3, 1, 4, 1, 5, 9, 2, 6}
+table.sort(t)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,1,2,3,4,5,6,9", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test53_Table_Sort_Numbers_CompileAll()
+		{
+			string code = @"
+local t = {3, 1, 4, 1, 5, 9, 2, 6}
+table.sort(t)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,1,2,3,4,5,6,9", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test54_Table_Sort_Strings()
+		{
+			string code = @"
+local t = {'dog', 'cat', 'bird', 'apple'}
+table.sort(t)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("apple,bird,cat,dog", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test54_Table_Sort_Strings_CompileAll()
+		{
+			string code = @"
+local t = {'dog', 'cat', 'bird', 'apple'}
+table.sort(t)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("apple,bird,cat,dog", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test55_Table_Sort_Already_Sorted()
+		{
+			string code = @"
+local t = {1, 2, 3, 4, 5}
+table.sort(t)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,2,3,4,5", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test55_Table_Sort_Already_Sorted_CompileAll()
+		{
+			string code = @"
+local t = {1, 2, 3, 4, 5}
+table.sort(t)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,2,3,4,5", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test56_Table_Sort_Reverse_Order()
+		{
+			string code = @"
+local t = {5, 4, 3, 2, 1}
+table.sort(t)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,2,3,4,5", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test56_Table_Sort_Reverse_Order_CompileAll()
+		{
+			string code = @"
+local t = {5, 4, 3, 2, 1}
+table.sort(t)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,2,3,4,5", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test57_Table_Sort_Single_Element()
+		{
+			string code = @"
+local t = {42}
+table.sort(t)
+t[1]
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(42L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test57_Table_Sort_Single_Element_CompileAll()
+		{
+			string code = @"
+local t = {42}
+table.sort(t)
+t[1]
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(42L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test58_Table_Sort_Empty_Table()
+		{
+			string code = @"
+local t = {}
+table.sort(t)
+#t
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(0L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test58_Table_Sort_Empty_Table_CompileAll()
+		{
+			string code = @"
+local t = {}
+table.sort(t)
+#t
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(0L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test59_Table_Sort_LuaTable_Direct()
+		{
+			var table = new LuaTable();
+			table[1] = 5;
+			table[2] = 2;
+			table[3] = 8;
+			table[4] = 1;
+			LuaTable.sort(table);
+			Assert.AreEqual(1, table[1]);
+			Assert.AreEqual(2, table[2]);
+			Assert.AreEqual(5, table[3]);
+			Assert.AreEqual(8, table[4]);
+		}
+
+		[TestMethod]
+		public void Test60_Table_Sort_Duplicates()
+		{
+			string code = @"
+local t = {3, 3, 3, 1, 1, 2, 2, 2}
+table.sort(t)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,1,2,2,2,3,3,3", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test60_Table_Sort_Duplicates_CompileAll()
+		{
+			string code = @"
+local t = {3, 3, 3, 1, 1, 2, 2, 2}
+table.sort(t)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,1,2,2,2,3,3,3", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test61_Table_Sort_Negative_Numbers()
+		{
+			string code = @"
+local t = {5, -3, 2, -1, 0, 4, -10}
+table.sort(t)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("-10,-3,-1,0,2,4,5", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test61_Table_Sort_Negative_Numbers_CompileAll()
+		{
+			string code = @"
+local t = {5, -3, 2, -1, 0, 4, -10}
+table.sort(t)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("-10,-3,-1,0,2,4,5", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test62_Table_Sort_Float_Numbers()
+		{
+			string code = @"
+local t = {3.14, 2.71, 1.41, 0.5}
+table.sort(t)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("0.5,1.41,2.71,3.14", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test62_Table_Sort_Float_Numbers_CompileAll()
+		{
+			string code = @"
+local t = {3.14, 2.71, 1.41, 0.5}
+table.sort(t)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("0.5,1.41,2.71,3.14", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test63_Table_Sort_Does_Not_Affect_Dictionary_Part()
+		{
+			string code = @"
+local t = {3, 1, 4}
+t.name = 'test'
+t.other = 123
+table.sort(t)
+t[1] .. ',' .. t[2] .. ',' .. t[3] .. ',' .. t.name
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,3,4,test", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test63_Table_Sort_Does_Not_Affect_Dictionary_Part_CompileAll()
+		{
+			string code = @"
+local t = {3, 1, 4}
+t.name = 'test'
+t.other = 123
+table.sort(t)
+t[1] .. ',' .. t[2] .. ',' .. t[3] .. ',' .. t.name
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,3,4,test", script.Eval<string>(code));
+		}
+
+		#endregion
 	}
 }

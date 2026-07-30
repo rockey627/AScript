@@ -71,6 +71,7 @@ namespace AScript.Lang.Lua
 			AddFunc("[]", new IndexOperator(false, true));
 			AddFunc("..", ConcatFunction.Instance);
 			AddFunc("#", new LengthFunction(typeof(long)));
+			AddFunc<LuaTable, long>("#", table => table.Array.Count);
 
 			AddFunc(typeof(Extensions.LuaCommonExtensions));
 			AddFunc(typeof(Extensions.LuaStringExtensions));
@@ -93,7 +94,8 @@ namespace AScript.Lang.Lua
 			AddTokenHandler("break", BreakTokenHandler.Instance);
 			AddTokenHandler("continue", ContinueTokenHandler.Instance);
 			AddTokenHandler("[", new BracketTokenHandler(typeof(List<object>)));
-			AddTokenHandler("#", new OperatorTokenHandler(".") { DataCount = 1, Prefix = true });
+			//AddTokenHandler("#", new OperatorTokenHandler(".") { DataCount = 1, Prefix = true });
+			AddTokenHandler("#", LuaLenTokenHandler.Instance);
 		}
 
 		public override ITokenStream GetTokenStream(CharReader charReader)

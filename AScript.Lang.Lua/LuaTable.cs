@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Dynamic;
 using System.Text;
 
@@ -226,6 +227,74 @@ namespace AScript.Lang.Lua
 				}
 			}
 			return sb.ToString();
+		}
+
+		// table.sort(table) - 对列表进行排序（升序）
+		public static void sort(LuaTable table)
+		{
+			sort(table, null);
+		}
+
+		// table.sort(table, comp) - 使用自定义比较函数排序
+		// comp(a, b) 返回 true 表示 a < b
+		public static void sort(LuaTable table, Func<object, object, bool> comp)
+		{
+			if (table._list.Count <= 1)
+				return;
+
+			if (comp == null)
+			{
+				// 默认升序排序
+				table._list.Sort(CompareDefault);
+			}
+			else
+			{
+				// 使用自定义比较函数
+				// 注意：这里假设 comp 是一个可调用的委托/函数
+				// 在实际实现中可能需要通过脚本引擎调用
+				table._list.Sort((a, b) => comp(a, b) ? -1 : 1);
+			}
+		}
+
+		// 默认比较函数：用于升序排序
+		// 规则：数字 < 字符串 < 布尔 < 其他
+		// 同类型之间使用 < 比较
+		private static int CompareDefault(object a, object b)
+		{
+			if (a == null && b == null) return 0;
+			if (a == null) return -1;
+			if (b == null) return 1;
+
+			// 类型优先级：数字(1) < 字符串(2) < 布尔(3) < 其他(4)
+			var typeRankA = GetTypeRank(a);
+			var typeRankB = GetTypeRank(b);
+
+			if (typeRankA != typeRankB)
+				return typeRankA.CompareTo(typeRankB);
+
+			// 同类型比较
+			if (a is long longA && b is long longB)
+				return longA.CompareTo(longB);
+			if (a is double doubleA && b is double doubleB)
+				return doubleA.CompareTo(doubleB);
+			if (a is string strA && b is string strB)
+				return string.CompareOrdinal(strA, strB);
+			if (a is bool boolA && b is bool boolB)
+				return boolA.CompareTo(boolB);
+
+			// 对于其他类型，使用 ToString 进行比较
+			return string.CompareOrdinal(a.ToString(), b.ToString());
+		}
+
+		private static int GetTypeRank(object obj)
+		{
+			if (obj is long || obj is int || obj is double || obj is float)
+				return 1;
+			if (obj is string)
+				return 2;
+			if (obj is bool)
+				return 3;
+			return 4;
 		}
 
 		public IList<object> Array => _list;
