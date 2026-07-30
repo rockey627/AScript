@@ -125,7 +125,7 @@ namespace AScript.Operators
 			else if (arg0 is TupleNode tupleNode)
 			{
 				// 元组解构
-				HandleTupleBuild(e, tupleNode.Items);
+				HandleTupleBuild(e, tupleNode);
 			}
 			else if (arg0 is CollectionNode collectionNode)
 			{
@@ -482,6 +482,21 @@ namespace AScript.Operators
 				return;
 			}
 			// 
+			if (value is IList list)
+			{
+				int min = Math.Min(item.Items.Count, list.Count);
+				for (int i = 0; i < min; i++)
+				{
+					Decontruct(e, item.Items[i], list[i]);
+				}
+				for (int i = min; i < item.Items.Count; i++)
+				{
+					item.Items[i].Eval(e.Context, e.Options, e.Control, out _);
+				}
+				e.SetResult(null, typeof(void));
+				return;
+			}
+			// 
 			Decontruct(e, item.Items[0], value, arg1Type);
 			for (int i = 1; i < item.Items.Count; i++)
 			{
@@ -703,41 +718,52 @@ namespace AScript.Operators
 			return Expression.Assign(left, rightExpr);
 		}
 
-		private void HandleTupleBuild(FunctionBuildArgs e, IList<ITreeNode> arg0Items)
+		private void HandleTupleBuild(FunctionBuildArgs e, TupleNode tupleNode)
 		{
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 			var rightType = right.Type;
 			var rightTypeName = rightType.Name;
 			bool isValueTuple = rightTypeName.StartsWith("ValueTuple`");
 			bool isTuple = !isValueTuple && rightTypeName.StartsWith("Tuple`");
-			var expressions = new List<Expression>(arg0Items.Count);
+			var expressions = new List<Expression>(tupleNode.Items.Count);
 			int minCount;
-			if (!isValueTuple && !isTuple)
-			{
-				minCount = 1;
-				var expr = BuildDeconstruct(e, arg0Items[0], right);
-				if (expr != null) expressions.Add(expr);
-				//throw new ScriptAnalyzingException("invalid expression near =, right side is not a tuple");
-			}
-			else
+			if (isValueTuple || isTuple)
 			{
 				int rightFieldCount = isValueTuple ? rightType.GetFields().Length : rightType.GetProperties().Length;
-				//if (arg0Items.Count > rightFieldCount)
+				//if (item.Items.Count > rightFieldCount)
 				//{
 				//	throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
 				//}
-				minCount = Math.Min(arg0Items.Count, rightFieldCount);
+				minCount = Math.Min(tupleNode.Items.Count, rightFieldCount);
 				for (int i = 0; i < minCount; i++)
 				{
-					var item = arg0Items[i];
+					var item = tupleNode.Items[i];
 					var value = isValueTuple ? Expression.Field(right, $"Item{i + 1}") : Expression.Property(right, $"Item{i + 1}");
 					var expr = BuildDeconstruct(e, item, value);
 					if (expr != null) expressions.Add(expr);
 				}
 			}
-			for (int i = minCount; i < arg0Items.Count; i++)
+			else if (typeof(IList).IsAssignableFrom(rightType))
 			{
-				expressions.Add(arg0Items[i].Build(e.BuildContext, e.ScriptContext, e.Options));
+				minCount = tupleNode.Items.Count;
+				for (int i = 0; i < minCount; i++)
+				{
+					var item = tupleNode.Items[i];
+					var value = Expression.Property(right, "Item", Expression.Constant(i));
+					var expr = BuildDeconstruct(e, item, value);
+					if (expr != null) expressions.Add(expr);
+				}
+			}
+			else
+			{
+				minCount = 1;
+				var expr = BuildDeconstruct(e, tupleNode.Items[0], right);
+				if (expr != null) expressions.Add(expr);
+				//throw new ScriptAnalyzingException("invalid expression near =, right side is not a tuple");
+			}
+			for (int i = minCount; i < tupleNode.Items.Count; i++)
+			{
+				expressions.Add(tupleNode.Items[i].Build(e.BuildContext, e.ScriptContext, e.Options));
 			}
 
 			e.Result = Expression.Block(typeof(void), expressions);
