@@ -1169,5 +1169,256 @@ table.concat(t, '')
 		}
 
 		#endregion
+
+		#region Table Insert (table.insert)
+
+		[TestMethod]
+		public void Test43_Table_Insert_End()
+		{
+			string code = @"
+local t = {1, 2, 3}
+table.insert(t, 4)
+t[4]
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(4L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test43_Table_Insert_End_CompileAll()
+		{
+			string code = @"
+local t = {1, 2, 3}
+table.insert(t, 4)
+t[4]
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(4L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test44_Table_Insert_Position()
+		{
+			string code = @"
+local t = {1, 3, 4}
+table.insert(t, 2, 2)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,2,3,4", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test44_Table_Insert_Position_CompileAll()
+		{
+			string code = @"
+local t = {1, 3, 4}
+table.insert(t, 2, 2)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,2,3,4", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test45_Table_Insert_First()
+		{
+			string code = @"
+local t = {2, 3, 4}
+table.insert(t, 1, 1)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,2,3,4", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test45_Table_Insert_First_CompileAll()
+		{
+			string code = @"
+local t = {2, 3, 4}
+table.insert(t, 1, 1)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,2,3,4", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test46_Table_Insert_String()
+		{
+			string code = @"
+local t = {'a', 'c'}
+table.insert(t, 2, 'b')
+table.concat(t, '')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("abc", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test46_Table_Insert_String_CompileAll()
+		{
+			string code = @"
+local t = {'a', 'c'}
+table.insert(t, 2, 'b')
+table.concat(t, '')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("abc", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test47_Table_Insert_Multiple()
+		{
+			string code = @"
+local t = {}
+table.insert(t, 1)
+table.insert(t, 2)
+table.insert(t, 3)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,2,3", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test47_Table_Insert_Multiple_CompileAll()
+		{
+			string code = @"
+local t = {}
+table.insert(t, 1)
+table.insert(t, 2)
+table.insert(t, 3)
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,2,3", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test48_Table_Insert_LuaTable_Direct()
+		{
+			var table = new LuaTable();
+			table[1] = "a";
+			table[2] = "c";
+			LuaTable.insert(table, 2, "b");
+			Assert.AreEqual("a", table[1]);
+			Assert.AreEqual("b", table[2]);
+			Assert.AreEqual("c", table[3]);
+		}
+
+		[TestMethod]
+		public void Test49_Table_Insert_LuaTable_End()
+		{
+			var table = new LuaTable();
+			table[1] = "x";
+			table[2] = "y";
+			LuaTable.insert(table, "z");
+			Assert.AreEqual("x", table[1]);
+			Assert.AreEqual("y", table[2]);
+			Assert.AreEqual("z", table[3]);
+			Assert.AreEqual(3, table.Array.Count);
+		}
+
+		[TestMethod]
+		public void Test50_Table_Insert_Mixed_Types()
+		{
+			string code = @"
+local t = {1, 'two', true}
+table.insert(t, 4, nil)
+t[4] = 'four'
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,two,true,four", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test50_Table_Insert_Mixed_Types_CompileAll()
+		{
+			string code = @"
+local t = {1, 'two', true}
+table.insert(t, 4, nil)
+t[4] = 'four'
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1,two,true,four", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test51_Table_Insert_Position_At_End()
+		{
+			string code = @"
+local t = {'a', 'b'}
+table.insert(t, 3, 'c')
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("a,b,c", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test51_Table_Insert_Position_At_End_CompileAll()
+		{
+			string code = @"
+local t = {'a', 'b'}
+table.insert(t, 3, 'c')
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("a,b,c", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test52_Table_Insert_Return_Value()
+		{
+			string code = @"
+local t = {1, 2}
+table.insert(t, 2, 3)
+t[2]
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(3L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test52_Table_Insert_Return_Value_CompileAll()
+		{
+			string code = @"
+local t = {1, 2}
+table.insert(t, 2, 3)
+t[2]
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(3L, script.Eval(code));
+		}
+
+		#endregion
 	}
 }

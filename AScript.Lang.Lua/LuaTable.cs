@@ -72,6 +72,58 @@ namespace AScript.Lang.Lua
 			}
 		}
 
+		// table.insert(t, value) - 在列表末尾插入元素
+		public static void insert(LuaTable table, object value)
+		{
+			insert(table, table._list.Count + 1, value);
+		}
+
+		// table.insert(t, pos, value) - 在指定位置插入元素
+		// pos: 1-based 索引，支持负数（-1 表示倒数第一个元素之前）
+		public static void insert(LuaTable table, object pos, object value)
+		{
+			var position = Convert.ToInt64(pos);
+			insert(table, position, value);
+		}
+
+		public static void insert(LuaTable table, long pos, object value)
+		{
+			var count = table._list.Count;
+
+			// 处理负数索引（Lua 风格：-1 表示最后一个元素之后）
+			var actualPos = pos;
+			if (pos < 0)
+			{
+				// 负数索引：-1 插入到末尾，-2 插入到倒数第一个元素之前
+				actualPos = count + pos + 1;
+			}
+
+			// 边界处理
+			if (actualPos < 1)
+				actualPos = 1;
+			if (actualPos > count + 1)
+				actualPos = count + 1;
+
+			table._list.Insert((int)actualPos - 1, value);
+		}
+
+		/// <summary>
+		/// 移除最后一个元素
+		/// </summary>
+		/// <param name="table"></param>
+		/// <returns></returns>
+		public static object remove(LuaTable table)
+		{
+			if (table._list.Count > 0)
+			{
+				int index = table._list.Count - 1;
+				var value = table._list[index];
+				table._list.RemoveAt(index);
+				return value;
+			}
+			return null;
+		}
+
 		public static object remove(LuaTable table, object key)
 		{
 			if (key is int index)
@@ -163,7 +215,14 @@ namespace AScript.Lang.Lua
 				var value = table._list[i];
 				if (value != null)
 				{
-					sb.Append(value.ToString());
+					if (value is bool b)
+					{
+						sb.Append(b ? "true" : "false");
+					}
+					else
+					{
+						sb.Append(value.ToString());
+					}
 				}
 			}
 			return sb.ToString();
