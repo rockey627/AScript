@@ -2079,7 +2079,8 @@ namespace AScript
 
 		public static Delegate Compile(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression)
 		{
-			return Lambda(buildContext, scriptContext, options, expression).Compile();
+			var lambda = Lambda(buildContext, scriptContext, options, expression);
+			return lambda.Compile();
 		}
 
 		public static async Task<Delegate> CompileAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, CancellationToken cancellationToken = default)

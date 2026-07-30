@@ -2064,7 +2064,7 @@ namespace AScript
 			for (int i = list.Count - 1; i >= 0; i--)
 			{
 				var d = list[i];
-				if (ScriptUtils.IsMatchArgTypes(argTypes, list[i], out useScriptContext, out hasClosure))
+				if (ScriptUtils.IsMatchArgTypes(argTypes, d, out useScriptContext, out hasClosure))
 				{
 					return d;
 				}

@@ -902,5 +902,52 @@ namespace AScript.Test.MSTests.Lua
 			Assert.AreEqual(9L, unpackL[1]);
 
 		}
+
+		[TestMethod]
+		public void Test18_string_pack_unpack()
+		{
+			string s = @"
+local format='<i4i4fc10'
+local hp=12500
+local mp=8700
+local atk=156.5
+local name='john'
+local data = string.pack(format, hp, mp, atk, name)
+print(#data)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			script.Eval(s);
+
+			script.Eval("local a,b,c,d=string.unpack(format, data)");
+			Assert.AreEqual(12500, script.Eval("a"));
+			Assert.AreEqual(8700, script.Eval("b"));
+			Assert.AreEqual(156.5, script.Eval("c"));
+			Assert.AreEqual("john", script.Eval("d"));
+		}
+
+		[TestMethod]
+		public void Test18_string_pack_unpack_CompileAll()
+		{
+			string s = @"
+local format='<i4i4fc10'
+local hp=12500
+local mp=8700
+local atk=156.5
+local name='john'
+local data = string.pack(format, hp, mp, atk, name)
+print(#data)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			script.Eval(s);
+
+			script.Eval("local a,b,c,d=string.unpack(format, data)");
+			Assert.AreEqual(12500, script.Eval("a"));
+			Assert.AreEqual(8700, script.Eval("b"));
+			Assert.AreEqual(156.5, script.Eval("c"));
+			Assert.AreEqual("john", script.Eval("d"));
+		}
 	}
 }

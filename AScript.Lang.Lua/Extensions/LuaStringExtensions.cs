@@ -525,10 +525,11 @@ namespace AScript.Lang.Lua.Extensions
 		//           l(signed long), L(unsigned long), i<I>(signed int with size), f(float), d(double),
 		//           s(string with length prefix), c<sz>(fixed string), x(padding byte)
 		// 字节序: > 表示大端，< 表示小端（默认）
-		public static string string_pack(string format, params object[] args)
+		public static string string_pack(object format, params object[] args)
 		{
+			string formatString = (string)format;
 			// 空格式字符串：将所有参数作为字节打包
-			if (string.IsNullOrEmpty(format))
+			if (string.IsNullOrEmpty(formatString))
 			{
 				var sb = new StringBuilder();
 				foreach (var arg in args)
@@ -546,17 +547,17 @@ namespace AScript.Lang.Lua.Extensions
 			}
 
 			// 解析字节序
-			var bigEndian = ParseEndianness(format, out var skipChars);
-			format = format.Substring(skipChars);
+			var bigEndian = ParseEndianness(formatString, out var skipChars);
+			formatString = formatString.Substring(skipChars);
 			using (var ms = new MemoryStream())
 			{
 				using (var bw = new BinaryWriter(ms))
 				{
 					int argIndex = 0;
 					int i = 0;
-					while (i < format.Length)
+					while (i < formatString.Length)
 					{
-						var fmt = format[i];
+						var fmt = formatString[i];
 						switch (fmt)
 						{
 							case ' ':
@@ -596,9 +597,9 @@ namespace AScript.Lang.Lua.Extensions
 							case 'I': // unsigned int with optional size modifier
 								{
 									var size = 4;
-									if (i + 1 < format.Length && char.IsDigit(format[i + 1]))
+									if (i + 1 < formatString.Length && char.IsDigit(formatString[i + 1]))
 									{
-										size = format[i + 1] - '0';
+										size = formatString[i + 1] - '0';
 										i++;
 									}
 									var isUnsigned = fmt == 'I';
@@ -650,9 +651,9 @@ namespace AScript.Lang.Lua.Extensions
 								{
 									var sizeStr = new StringBuilder();
 									i++;
-									while (i < format.Length && char.IsDigit(format[i]))
+									while (i < formatString.Length && char.IsDigit(formatString[i]))
 									{
-										sizeStr.Append(format[i]);
+										sizeStr.Append(formatString[i]);
 										i++;
 									}
 									var size = sizeStr.Length > 0 ? int.Parse(sizeStr.ToString()) : 1;
@@ -692,20 +693,21 @@ namespace AScript.Lang.Lua.Extensions
 			}
 		}
 
-		public static List<object> string_unpack(string format, string s)
+		public static List<object> string_unpack(object format, string s)
 		{
 			return string_unpack(format, s, 1);
 		}
 
 		// string.unpack(fmt, s, i) - 解包值（Lua 5.3 风格）
 		// 返回 List<object>: 包含解包的值和下一个读取位置（非空格式时）
-		public static List<object> string_unpack(string format, string s, long pos)
+		public static List<object> string_unpack(object format, string s, long pos)
 		{
+			string formatString = (string)format;
 			var result = new List<object>();
 			var index = pos > 0 ? (int)(pos - 1) : Math.Max(0, s.Length + (int)pos);
 
 			// 空格式字符串：将从pos开始的所有字节作为值返回（保持原有行为）
-			if (string.IsNullOrEmpty(format))
+			if (string.IsNullOrEmpty(formatString))
 			{
 				while (index < s.Length)
 				{
@@ -716,16 +718,16 @@ namespace AScript.Lang.Lua.Extensions
 			}
 
 			// 解析字节序
-			var bigEndian = ParseEndianness(format, out var skipChars);
-			format = format.Substring(skipChars);
+			var bigEndian = ParseEndianness(formatString, out var skipChars);
+			formatString = formatString.Substring(skipChars);
 
 			// 将字符串转换为字节数组
 			var bytes = System.Text.Encoding.GetEncoding("ISO-8859-1").GetBytes(s);
 
 			int i = 0;
-			while (i < format.Length && index < bytes.Length)
+			while (i < formatString.Length && index < bytes.Length)
 			{
-				var fmt = format[i];
+				var fmt = formatString[i];
 				switch (fmt)
 				{
 					case ' ':
@@ -777,9 +779,9 @@ namespace AScript.Lang.Lua.Extensions
 					case 'I': // unsigned int with optional size modifier
 						{
 							var size = 4;
-							if (i + 1 < format.Length && char.IsDigit(format[i + 1]))
+							if (i + 1 < formatString.Length && char.IsDigit(formatString[i + 1]))
 							{
-								size = format[i + 1] - '0';
+								size = formatString[i + 1] - '0';
 								i++;
 							}
 							if (index + size <= bytes.Length)
@@ -839,9 +841,9 @@ namespace AScript.Lang.Lua.Extensions
 						{
 							var sizeStr = new StringBuilder();
 							i++;
-							while (i < format.Length && char.IsDigit(format[i]))
+							while (i < formatString.Length && char.IsDigit(formatString[i]))
 							{
-								sizeStr.Append(format[i]);
+								sizeStr.Append(formatString[i]);
 								i++;
 							}
 							var size = sizeStr.Length > 0 ? int.Parse(sizeStr.ToString()) : 1;
