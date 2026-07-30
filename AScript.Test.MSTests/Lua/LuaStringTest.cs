@@ -120,36 +120,36 @@ namespace AScript.Test.MSTests.Lua
 
 			// find(s, pattern) - 返回 (起始位置, 结束位置)，Lua 使用 1-based 索引
 #if NETFRAMEWORK
-			var result1 = script.Eval("string.find('hello', 'he')") as Tuple<long, long>;
+			var result1 = script.Eval<Tuple<long, long>>("string.find('hello', 'he')");
 			Assert.IsNotNull(result1);
 			Assert.AreEqual(1L, result1.Item1);
 			Assert.AreEqual(2L, result1.Item2);
 
-			var result2 = script.Eval("string.find('hello', 'el')") as Tuple<long, long>;
+			var result2 = script.Eval<Tuple<long, long>>("string.find('hello', 'el')");
 			Assert.IsNotNull(result2);
 			Assert.AreEqual(2L, result2.Item1);
 			Assert.AreEqual(3L, result2.Item2);
 
-			var result3 = script.Eval("string.find('hello', 'lo')") as Tuple<long, long>;
+			var result3 = script.Eval<Tuple<long, long>>("string.find('hello', 'lo')");
 			Assert.IsNotNull(result3);
 			Assert.AreEqual(4L, result3.Item1);
 			Assert.AreEqual(5L, result3.Item2);
 
-			var result4 = script.Eval("string.find('hello', 'xyz')") as Tuple<long, long>;
+			var result4 = script.Eval<Tuple<long, long>>("string.find('hello', 'xyz')");
 			Assert.IsNull(result4);
 
 			// find(s, pattern, init) - 从 init 位置开始查找
-			var result5 = script.Eval("string.find('hello', 'l', 3)") as Tuple<long, long>;
+			var result5 = script.Eval<Tuple<long, long>>("string.find('hello', 'l', 3)");
 			Assert.IsNotNull(result5);
 			Assert.AreEqual(3L, result5.Item1);
 			Assert.AreEqual(3L, result5.Item2);
 
-			var result6 = script.Eval("string.find('hello', 'l', 4)") as Tuple<long, long>;
+			var result6 = script.Eval<Tuple<long, long>>("string.find('hello', 'l', 4)");
 			Assert.IsNotNull(result6);
 			Assert.AreEqual(4L, result6.Item1);
 			Assert.AreEqual(4L, result6.Item2);
 
-			var result7 = script.Eval("string.find('hello', 'l', 5)") as Tuple<long, long>;
+			var result7 = script.Eval<Tuple<long, long>>("string.find('hello', 'l', 5)");
 			Assert.IsNull(result7);
 #else
 			var (item1_1, item1_2) = ((long, long))script.Eval("string.find('hello', 'he')");
@@ -191,35 +191,35 @@ namespace AScript.Test.MSTests.Lua
 			script.Context.Langs = new[] { "lua" };
 
 #if NETFRAMEWORK
-			var result1 = script.Eval("string.find('hello', 'he')") as Tuple<long, long>;
+			var result1 = script.Eval<Tuple<long, long>>("string.find('hello', 'he')");
 			Assert.IsNotNull(result1);
 			Assert.AreEqual(1L, result1.Item1);
 			Assert.AreEqual(2L, result1.Item2);
 
-			var result2 = script.Eval("string.find('hello', 'el')") as Tuple<long, long>;
+			var result2 = script.Eval<Tuple<long, long>>("string.find('hello', 'el')");
 			Assert.IsNotNull(result2);
 			Assert.AreEqual(2L, result2.Item1);
 			Assert.AreEqual(3L, result2.Item2);
 
-			var result3 = script.Eval("string.find('hello', 'lo')") as Tuple<long, long>;
+			var result3 = script.Eval<Tuple<long, long>>("string.find('hello', 'lo')");
 			Assert.IsNotNull(result3);
 			Assert.AreEqual(4L, result3.Item1);
 			Assert.AreEqual(5L, result3.Item2);
 
-			var result4 = script.Eval("string.find('hello', 'xyz')") as Tuple<long, long>;
+			var result4 = script.Eval<Tuple<long, long>>("string.find('hello', 'xyz')");
 			Assert.IsNull(result4);
 
-			var result5 = script.Eval("string.find('hello', 'l', 3)") as Tuple<long, long>;
+			var result5 = script.Eval<Tuple<long, long>>("string.find('hello', 'l', 3)");
 			Assert.IsNotNull(result5);
 			Assert.AreEqual(3L, result5.Item1);
 			Assert.AreEqual(3L, result5.Item2);
 
-			var result6 = script.Eval("string.find('hello', 'l', 4)") as Tuple<long, long>;
+			var result6 = script.Eval<Tuple<long, long>>("string.find('hello', 'l', 4)");
 			Assert.IsNotNull(result6);
 			Assert.AreEqual(4L, result6.Item1);
 			Assert.AreEqual(4L, result6.Item2);
 
-			var result7 = script.Eval("string.find('hello', 'l', 5)") as Tuple<long, long>;
+			var result7 = script.Eval<Tuple<long, long>>("string.find('hello', 'l', 5)");
 			Assert.IsNull(result7);
 #else
 			var (item1_1, item1_2) = ((long, long))script.Eval("string.find('hello', 'he')");
@@ -366,14 +366,14 @@ namespace AScript.Test.MSTests.Lua
 			script.Context.Langs = new[] { "lua" };
 
 			// byte(s, i, j) 返回多个值
-			var result1 = script.Eval("string.byte('Hello', 1, 3)") as List<object>;
+			var result1 = script.Eval<List<object>>("string.byte('Hello', 1, 3)");
 			Assert.IsNotNull(result1);
 			Assert.AreEqual(3, result1.Count);
 			Assert.AreEqual(72L, result1[0]);
 			Assert.AreEqual(101L, result1[1]);
 			Assert.AreEqual(108L, result1[2]);
 
-			var result2 = script.Eval("string.byte('Hello', -3, -1)") as List<object>;
+			var result2 = script.Eval<List<object>>("string.byte('Hello', -3, -1)");
 			Assert.IsNotNull(result2);
 			Assert.AreEqual(3, result2.Count);
 			Assert.AreEqual(108L, result2[0]);
@@ -388,14 +388,14 @@ namespace AScript.Test.MSTests.Lua
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
 
-			var result1 = script.Eval("string.byte('Hello', 1, 3)") as List<object>;
+			var result1 = script.Eval<List<object>>("string.byte('Hello', 1, 3)");
 			Assert.IsNotNull(result1);
 			Assert.AreEqual(3, result1.Count);
 			Assert.AreEqual(72L, result1[0]);
 			Assert.AreEqual(101L, result1[1]);
 			Assert.AreEqual(108L, result1[2]);
 
-			var result2 = script.Eval("string.byte('Hello', -3, -1)") as List<object>;
+			var result2 = script.Eval<List<object>>("string.byte('Hello', -3, -1)");
 			Assert.IsNotNull(result2);
 			Assert.AreEqual(3, result2.Count);
 			Assert.AreEqual(108L, result2[0]);
@@ -479,17 +479,17 @@ namespace AScript.Test.MSTests.Lua
 			script.Context.Langs = new[] { "lua" };
 
 #if NETFRAMEWORK
-			var result1 = script.Eval("string.gsub('hello', 'l', '*')") as Tuple<string, long>;
+			var result1 = script.Eval<Tuple<string, long>>("string.gsub('hello', 'l', '*')");
 			Assert.IsNotNull(result1);
 			Assert.AreEqual("he**o", result1.Item1);
 			Assert.AreEqual(2L, result1.Item2);
 
-			var result2 = script.Eval("string.gsub('hello', 'l', '**')") as Tuple<string, long>;
+			var result2 = script.Eval<Tuple<string, long>>("string.gsub('hello', 'l', '**')");
 			Assert.IsNotNull(result2);
 			Assert.AreEqual("he****o", result2.Item1);
 			Assert.AreEqual(2L, result2.Item2);
 
-			var result3 = script.Eval("string.gsub('hellohellohello', 'hello', 'world')") as Tuple<string, long>;
+			var result3 = script.Eval<Tuple<string, long>>("string.gsub('hellohellohello', 'hello', 'world')");
 			Assert.IsNotNull(result3);
 			Assert.AreEqual("worldworldworld", result3.Item1);
 			Assert.AreEqual(3L, result3.Item2);
@@ -516,17 +516,17 @@ namespace AScript.Test.MSTests.Lua
 			script.Context.Langs = new[] { "lua" };
 
 #if NETFRAMEWORK
-			var result1 = script.Eval("string.gsub('hello', 'l', '*')") as Tuple<string, long>;
+			var result1 = script.Eval<Tuple<string, long>>("string.gsub('hello', 'l', '*')");
 			Assert.IsNotNull(result1);
 			Assert.AreEqual("he**o", result1.Item1);
 			Assert.AreEqual(2L, result1.Item2);
 
-			var result2 = script.Eval("string.gsub('hello', 'l', '**')") as Tuple<string, long>;
+			var result2 = script.Eval<Tuple<string, long>>("string.gsub('hello', 'l', '**')");
 			Assert.IsNotNull(result2);
 			Assert.AreEqual("he****o", result2.Item1);
 			Assert.AreEqual(2L, result2.Item2);
 
-			var result3 = script.Eval("string.gsub('hellohellohello', 'hello', 'world')") as Tuple<string, long>;
+			var result3 = script.Eval<Tuple<string, long>>("string.gsub('hellohellohello', 'hello', 'world')");
 			Assert.IsNotNull(result3);
 			Assert.AreEqual("worldworldworld", result3.Item1);
 			Assert.AreEqual(3L, result3.Item2);
@@ -553,22 +553,22 @@ namespace AScript.Test.MSTests.Lua
 
 #if NETFRAMEWORK
 			// 限制替换次数
-			var result1 = script.Eval("string.gsub('hellohello', 'l', '*', 1)") as Tuple<string, long>;
+			var result1 = script.Eval<Tuple<string, long>>("string.gsub('hellohello', 'l', '*', 1)");
 			Assert.IsNotNull(result1);
 			Assert.AreEqual("he*lohello", result1.Item1);
 			Assert.AreEqual(1L, result1.Item2);
 
-			var result2 = script.Eval("string.gsub('hellohello', 'l', '*', 2)") as Tuple<string, long>;
+			var result2 = script.Eval<Tuple<string, long>>("string.gsub('hellohello', 'l', '*', 2)");
 			Assert.IsNotNull(result2);
 			Assert.AreEqual("he**ohello", result2.Item1);
 			Assert.AreEqual(2L, result2.Item2);
 
-			var result3 = script.Eval("string.gsub('hellohello', 'l', '*', 3)") as Tuple<string, long>;
+			var result3 = script.Eval<Tuple<string, long>>("string.gsub('hellohello', 'l', '*', 3)");
 			Assert.IsNotNull(result3);
 			Assert.AreEqual("he**ohe*lo", result3.Item1);
 			Assert.AreEqual(3L, result3.Item2);
 
-			var result4 = script.Eval("string.gsub('hellohello', 'l', '*', 10)") as Tuple<string, long>;
+			var result4 = script.Eval<Tuple<string, long>>("string.gsub('hellohello', 'l', '*', 10)");
 			Assert.IsNotNull(result4);
 			Assert.AreEqual("he**ohe**o", result4.Item1);
 			Assert.AreEqual(4L, result4.Item2);
@@ -601,22 +601,22 @@ namespace AScript.Test.MSTests.Lua
 
 #if NETFRAMEWORK
 			// 限制替换次数
-			var result1 = script.Eval("string.gsub('hellohello', 'l', '*', 1)") as Tuple<string, long>;
+			var result1 = script.Eval<Tuple<string, long>>("string.gsub('hellohello', 'l', '*', 1)");
 			Assert.IsNotNull(result1);
 			Assert.AreEqual("he*lohello", result1.Item1);
 			Assert.AreEqual(1L, result1.Item2);
 
-			var result2 = script.Eval("string.gsub('hellohello', 'l', '*', 2)") as Tuple<string, long>;
+			var result2 = script.Eval<Tuple<string, long>>("string.gsub('hellohello', 'l', '*', 2)");
 			Assert.IsNotNull(result2);
 			Assert.AreEqual("he**ohello", result2.Item1);
 			Assert.AreEqual(2L, result2.Item2);
 
-			var result3 = script.Eval("string.gsub('hellohello', 'l', '*', 3)") as Tuple<string, long>;
+			var result3 = script.Eval<Tuple<string, long>>("string.gsub('hellohello', 'l', '*', 3)");
 			Assert.IsNotNull(result3);
 			Assert.AreEqual("he**ohe*lo", result3.Item1);
 			Assert.AreEqual(3L, result3.Item2);
 
-			var result4 = script.Eval("string.gsub('hellohello', 'l', '*', 10)") as Tuple<string, long>;
+			var result4 = script.Eval<Tuple<string, long>>("string.gsub('hellohello', 'l', '*', 10)");
 			Assert.IsNotNull(result4);
 			Assert.AreEqual("he**ohe**o", result4.Item1);
 			Assert.AreEqual(4L, result4.Item2);
@@ -646,12 +646,12 @@ namespace AScript.Test.MSTests.Lua
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
 
-			var result = script.Eval("string.match('hello world', 'world')") as List<object>;
+			var result = script.Eval<List<object>>("string.match('hello world', 'world')");
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.Count);
 			Assert.AreEqual("world", result[0]);
 
-			var result2 = script.Eval("string.match('hello 123', '%d+')") as List<object>;
+			var result2 = script.Eval<List<object>>("string.match('hello 123', '%d+')");
 			Assert.IsNotNull(result2);
 			Assert.AreEqual("123", result2[0]);
 		}
@@ -663,12 +663,12 @@ namespace AScript.Test.MSTests.Lua
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
 
-			var result = script.Eval("string.match('hello world', 'world')") as List<object>;
+			var result = script.Eval<List<object>>("string.match('hello world', 'world')");
 			Assert.IsNotNull(result);
 			Assert.AreEqual(1, result.Count);
 			Assert.AreEqual("world", result[0]);
 
-			var result2 = script.Eval("string.match('hello 123', '%d+')") as List<object>;
+			var result2 = script.Eval<List<object>>("string.match('hello 123', '%d+')");
 			Assert.IsNotNull(result2);
 			Assert.AreEqual("123", result2[0]);
 		}
@@ -679,13 +679,13 @@ namespace AScript.Test.MSTests.Lua
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
 
-			var result = script.Eval("string.gmatch('hello world world', 'world')") as List<object>;
+			var result = script.Eval<List<object>>("string.gmatch('hello world world', 'world')");
 			Assert.IsNotNull(result);
 			Assert.AreEqual(2, result.Count);
 			Assert.AreEqual("world", result[0]);
 			Assert.AreEqual("world", result[1]);
 
-			var result2 = script.Eval("string.gmatch('1 2 3 4 5', '%d+')") as List<object>;
+			var result2 = script.Eval<List<object>>("string.gmatch('1 2 3 4 5', '%d+')");
 			Assert.IsNotNull(result2);
 			Assert.AreEqual(5, result2.Count);
 		}
@@ -697,13 +697,13 @@ namespace AScript.Test.MSTests.Lua
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
 
-			var result = script.Eval("string.gmatch('hello world world', 'world')") as List<object>;
+			var result = script.Eval<List<object>>("string.gmatch('hello world world', 'world')");
 			Assert.IsNotNull(result);
 			Assert.AreEqual(2, result.Count);
 			Assert.AreEqual("world", result[0]);
 			Assert.AreEqual("world", result[1]);
 
-			var result2 = script.Eval("string.gmatch('1 2 3 4 5', '%d+')") as List<object>;
+			var result2 = script.Eval<List<object>>("string.gmatch('1 2 3 4 5', '%d+')");
 			Assert.IsNotNull(result2);
 			Assert.AreEqual(5, result2.Count);
 		}
@@ -718,7 +718,7 @@ namespace AScript.Test.MSTests.Lua
 			Assert.AreEqual("ABC", script.Eval("string.pack('', 65, 66, 67)"));
 
 			// string.unpack - 空格式字符串
-			var unpackResult = script.Eval("string.unpack('', 'ABC', 1)") as List<object>;
+			var unpackResult = script.Eval<List<object>>("string.unpack('', 'ABC', 1)");
 			Assert.IsNotNull(unpackResult);
 			Assert.AreEqual(3, unpackResult.Count);
 			Assert.AreEqual(65L, unpackResult[0]);
@@ -726,12 +726,13 @@ namespace AScript.Test.MSTests.Lua
 			Assert.AreEqual(67L, unpackResult[2]);
 
 			// string.pack - B (unsigned byte)
-			var packedB = script.Eval("string.pack('BBB', 65, 66, 67)") as string;
+			var packedB = script.Eval<string>("string.pack('BBB', 65, 66, 67)");
+			Console.WriteLine("packedB:" + packedB);
 			Assert.IsNotNull(packedB);
 			Assert.AreEqual("ABC", packedB);
 
 			// string.unpack - B (unsigned byte)
-			var unpackB = script.Eval("string.unpack('BBB', 'ABC', 1)") as List<object>;
+			var unpackB = script.Eval<List<object>>("string.unpack('BBB', 'ABC', 1)");
 			Assert.IsNotNull(unpackB);
 			Assert.AreEqual(4, unpackB.Count);
 			Assert.AreEqual(65L, unpackB[0]);
@@ -739,30 +740,72 @@ namespace AScript.Test.MSTests.Lua
 			Assert.AreEqual(67L, unpackB[2]);
 			Assert.AreEqual(4L, unpackB[3]); // next position
 
+			script.Eval("local a,b,c,d=string.unpack('BBB', 'ABC', 1)");
+			Assert.AreEqual(65L, script.Eval("a"));
+			Assert.AreEqual(66L, script.Eval("b"));
+			Assert.AreEqual(67L, script.Eval("c"));
+			Assert.AreEqual(4L, script.Eval("d")); // next position
+
 			// string.pack - i4 (signed int 4 bytes)
-			var packedI = script.Eval("string.pack('i4', 256)") as string;
+			var packedI = script.Eval<string>("string.pack('i4', 256)");
+			Console.WriteLine("packedI:" + packedI);
 			Assert.IsNotNull(packedI);
 			Assert.AreEqual(4, packedI.Length); // 4 bytes for i4
 
+			script.Context.SetVar("packedI", packedI);
+			var unpackI = script.Eval<List<object>>("string.unpack('i4', packedI)");
+			Assert.AreEqual(2, unpackI.Count);
+			Assert.AreEqual(256, unpackI[0]);
+			Assert.AreEqual(5L, unpackI[1]);
+
 			// string.pack - f (float)
-			var packedF = script.Eval("string.pack('f', 3.14)") as string;
+			var packedF = script.Eval<string>("string.pack('f', 3.14)");
+			Console.WriteLine("packedF:" + packedF);
 			Assert.IsNotNull(packedF);
 			Assert.AreEqual(4, packedF.Length); // 4 bytes for float
 
+			script.Context.SetVar("packedF", packedF);
+			var unpackF = script.Eval<List<object>>("string.unpack('f', packedF)");
+			Assert.AreEqual(2, unpackF.Count);
+			Assert.AreEqual(3.14, (double)unpackF[0], 0.000001);
+			Assert.AreEqual(5L, unpackF[1]);
+
 			// string.pack - d (double)
-			var packedD = script.Eval("string.pack('d', 3.14159)") as string;
+			var packedD = script.Eval<string>("string.pack('d', 3.14159)");
+			Console.WriteLine("packedD:" + packedD);
 			Assert.IsNotNull(packedD);
 			Assert.AreEqual(8, packedD.Length); // 8 bytes for double
 
+			script.Context.SetVar("packedD", packedD);
+			var unpackD = script.Eval<List<object>>("string.unpack('d', packedD)");
+			Assert.AreEqual(2, unpackD.Count);
+			Assert.AreEqual(3.14159, (double)unpackD[0]);
+			Assert.AreEqual(9L, unpackD[1]);
+
 			// string.pack - h (signed short)
-			var packedH = script.Eval("string.pack('h', 256)") as string;
+			var packedH = script.Eval<string>("string.pack('h', 256)");
+			Console.WriteLine("packedH:" + packedH);
 			Assert.IsNotNull(packedH);
 			Assert.AreEqual(2, packedH.Length); // 2 bytes for short
 
+			script.Context.SetVar("packedH", packedH);
+			var unpackH = script.Eval<List<object>>("string.unpack('h', packedH)");
+			Assert.AreEqual(2, unpackH.Count);
+			Assert.AreEqual((short)256, unpackH[0]);
+			Assert.AreEqual(3L, unpackH[1]);
+
 			// string.pack - l (signed long)
-			var packedL = script.Eval("string.pack('l', 123456)") as string;
+			var packedL = script.Eval<string>("string.pack('l', 123456)");
+			Console.WriteLine("packedL:" + packedL);
 			Assert.IsNotNull(packedL);
-			Assert.AreEqual(4, packedL.Length); // 4 bytes for long
+			Assert.AreEqual(8, packedL.Length); // 8 bytes for long
+
+			script.Context.SetVar("packedL", packedL);
+			var unpackL = script.Eval<List<object>>("string.unpack('l', packedL)");
+			Assert.AreEqual(2, unpackL.Count);
+			Assert.AreEqual(123456L, unpackL[0]);
+			Assert.AreEqual(9L, unpackL[1]);
+
 		}
 
 		[TestMethod]
@@ -776,7 +819,7 @@ namespace AScript.Test.MSTests.Lua
 			Assert.AreEqual("ABC", script.Eval("string.pack('', 65, 66, 67)"));
 
 			// string.unpack - 空格式字符串
-			var unpackResult = script.Eval("string.unpack('', 'ABC', 1)") as List<object>;
+			var unpackResult = script.Eval<List<object>>("string.unpack('', 'ABC', 1)");
 			Assert.IsNotNull(unpackResult);
 			Assert.AreEqual(3, unpackResult.Count);
 			Assert.AreEqual(65L, unpackResult[0]);
@@ -784,12 +827,12 @@ namespace AScript.Test.MSTests.Lua
 			Assert.AreEqual(67L, unpackResult[2]);
 
 			// string.pack - B (unsigned byte)
-			var packedB = script.Eval("string.pack('BBB', 65, 66, 67)") as string;
+			var packedB = script.Eval<string>("string.pack('BBB', 65, 66, 67)");
 			Assert.IsNotNull(packedB);
 			Assert.AreEqual("ABC", packedB);
 
 			// string.unpack - B (unsigned byte)
-			var unpackB = script.Eval("string.unpack('BBB', 'ABC', 1)") as List<object>;
+			var unpackB = script.Eval<List<object>>("string.unpack('BBB', 'ABC', 1)");
 			Assert.IsNotNull(unpackB);
 			Assert.AreEqual(4, unpackB.Count);
 			Assert.AreEqual(65L, unpackB[0]);
@@ -797,30 +840,67 @@ namespace AScript.Test.MSTests.Lua
 			Assert.AreEqual(67L, unpackB[2]);
 			Assert.AreEqual(4L, unpackB[3]); // next position
 
+			script.Eval("local a,b,c,d=string.unpack('BBB', 'ABC', 1)");
+			Assert.AreEqual(65L, script.Eval("a"));
+			Assert.AreEqual(66L, script.Eval("b"));
+			Assert.AreEqual(67L, script.Eval("c"));
+			Assert.AreEqual(4L, script.Eval("d")); // next position
+
 			// string.pack - i4 (signed int 4 bytes)
-			var packedI = script.Eval("string.pack('i4', 256)") as string;
+			var packedI = script.Eval<string>("string.pack('i4', 256)");
 			Assert.IsNotNull(packedI);
 			Assert.AreEqual(4, packedI.Length); // 4 bytes for i4
 
+			script.Context.SetVar("packedI", packedI);
+			var unpackI = script.Eval<List<object>>("string.unpack('i4', packedI)");
+			Assert.AreEqual(2, unpackI.Count);
+			Assert.AreEqual(256, unpackI[0]);
+			Assert.AreEqual(5L, unpackI[1]);
+
 			// string.pack - f (float)
-			var packedF = script.Eval("string.pack('f', 3.14)") as string;
+			var packedF = script.Eval<string>("string.pack('f', 3.14)");
 			Assert.IsNotNull(packedF);
 			Assert.AreEqual(4, packedF.Length); // 4 bytes for float
 
+			script.Context.SetVar("packedF", packedF);
+			var unpackF = script.Eval<List<object>>("string.unpack('f', packedF)");
+			Assert.AreEqual(2, unpackF.Count);
+			Assert.AreEqual(3.14, (double)unpackF[0], 0.000001);
+			Assert.AreEqual(5L, unpackF[1]);
+
 			// string.pack - d (double)
-			var packedD = script.Eval("string.pack('d', 3.14159)") as string;
+			var packedD = script.Eval<string>("string.pack('d', 3.14159)");
 			Assert.IsNotNull(packedD);
 			Assert.AreEqual(8, packedD.Length); // 8 bytes for double
 
+			script.Context.SetVar("packedD", packedD);
+			var unpackD = script.Eval<List<object>>("string.unpack('d', packedD)");
+			Assert.AreEqual(2, unpackD.Count);
+			Assert.AreEqual(3.14159, (double)unpackD[0]);
+			Assert.AreEqual(9L, unpackD[1]);
+
 			// string.pack - h (signed short)
-			var packedH = script.Eval("string.pack('h', 256)") as string;
+			var packedH = script.Eval<string>("string.pack('h', 256)");
 			Assert.IsNotNull(packedH);
 			Assert.AreEqual(2, packedH.Length); // 2 bytes for short
 
+			script.Context.SetVar("packedH", packedH);
+			var unpackH = script.Eval<List<object>>("string.unpack('h', packedH)");
+			Assert.AreEqual(2, unpackH.Count);
+			Assert.AreEqual((short)256, unpackH[0]);
+			Assert.AreEqual(3L, unpackH[1]);
+
 			// string.pack - l (signed long)
-			var packedL = script.Eval("string.pack('l', 123456)") as string;
+			var packedL = script.Eval<string>("string.pack('l', 123456)");
 			Assert.IsNotNull(packedL);
-			Assert.AreEqual(4, packedL.Length); // 4 bytes for long
+			Assert.AreEqual(8, packedL.Length); // 8 bytes for long
+
+			script.Context.SetVar("packedL", packedL);
+			var unpackL = script.Eval<List<object>>("string.unpack('l', packedL)");
+			Assert.AreEqual(2, unpackL.Count);
+			Assert.AreEqual(123456L, unpackL[0]);
+			Assert.AreEqual(9L, unpackL[1]);
+
 		}
 	}
 }

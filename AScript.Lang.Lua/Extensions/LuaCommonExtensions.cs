@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,6 +18,15 @@ namespace AScript.Lang.Lua.Extensions
 					if (v == null)
 					{
 						Console.Write("nil");
+						continue;
+					}
+					if (v is IList list)
+					{
+						for (int j = 0; j < list.Count; j++)
+						{
+							if (j > 0) Console.Write("\t");
+							Console.Write(list[j]);
+						}
 						continue;
 					}
 					var type = v.GetType();

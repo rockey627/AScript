@@ -347,10 +347,184 @@ namespace AScript.Lang.Lua.Extensions
 			return string.Join(sep, parts);
 		}
 
+		// 辅助方法：将小端字节数组转换为指定字节序的值
+		private static short ReadInt16(byte[] bytes, int index, bool bigEndian)
+		{
+			if (bigEndian)
+			{
+				var b = new byte[2];
+				Array.Copy(bytes, index, b, 0, 2);
+				Array.Reverse(b);
+				return BitConverter.ToInt16(b, 0);
+			}
+			return BitConverter.ToInt16(bytes, index);
+		}
+
+		private static ushort ReadUInt16(byte[] bytes, int index, bool bigEndian)
+		{
+			if (bigEndian)
+			{
+				var b = new byte[2];
+				Array.Copy(bytes, index, b, 0, 2);
+				Array.Reverse(b);
+				return BitConverter.ToUInt16(b, 0);
+			}
+			return BitConverter.ToUInt16(bytes, index);
+		}
+
+		private static int ReadInt32(byte[] bytes, int index, bool bigEndian)
+		{
+			if (bigEndian)
+			{
+				var b = new byte[4];
+				Array.Copy(bytes, index, b, 0, 4);
+				Array.Reverse(b);
+				return BitConverter.ToInt32(b, 0);
+			}
+			return BitConverter.ToInt32(bytes, index);
+		}
+
+		private static uint ReadUInt32(byte[] bytes, int index, bool bigEndian)
+		{
+			if (bigEndian)
+			{
+				var b = new byte[4];
+				Array.Copy(bytes, index, b, 0, 4);
+				Array.Reverse(b);
+				return BitConverter.ToUInt32(b, 0);
+			}
+			return BitConverter.ToUInt32(bytes, index);
+		}
+
+		private static long ReadInt64(byte[] bytes, int index, bool bigEndian)
+		{
+			if (bigEndian)
+			{
+				var b = new byte[8];
+				Array.Copy(bytes, index, b, 0, 8);
+				Array.Reverse(b);
+				return BitConverter.ToInt64(b, 0);
+			}
+			return BitConverter.ToInt64(bytes, index);
+		}
+
+		private static ulong ReadUInt64(byte[] bytes, int index, bool bigEndian)
+		{
+			if (bigEndian)
+			{
+				var b = new byte[8];
+				Array.Copy(bytes, index, b, 0, 8);
+				Array.Reverse(b);
+				return BitConverter.ToUInt64(b, 0);
+			}
+			return BitConverter.ToUInt64(bytes, index);
+		}
+
+		private static float ReadSingle(byte[] bytes, int index, bool bigEndian)
+		{
+			if (bigEndian)
+			{
+				var b = new byte[4];
+				Array.Copy(bytes, index, b, 0, 4);
+				Array.Reverse(b);
+				return BitConverter.ToSingle(b, 0);
+			}
+			return BitConverter.ToSingle(bytes, index);
+		}
+
+		private static double ReadDouble(byte[] bytes, int index, bool bigEndian)
+		{
+			if (bigEndian)
+			{
+				var b = new byte[8];
+				Array.Copy(bytes, index, b, 0, 8);
+				Array.Reverse(b);
+				return BitConverter.ToDouble(b, 0);
+			}
+			return BitConverter.ToDouble(bytes, index);
+		}
+
+		// 辅助方法：将值写入指定字节序的字节数组
+		private static byte[] WriteInt16(short value, bool bigEndian)
+		{
+			var bytes = BitConverter.GetBytes(value);
+			if (bigEndian) Array.Reverse(bytes);
+			return bytes;
+		}
+
+		private static byte[] WriteUInt16(ushort value, bool bigEndian)
+		{
+			var bytes = BitConverter.GetBytes(value);
+			if (bigEndian) Array.Reverse(bytes);
+			return bytes;
+		}
+
+		private static byte[] WriteInt32(int value, bool bigEndian)
+		{
+			var bytes = BitConverter.GetBytes(value);
+			if (bigEndian) Array.Reverse(bytes);
+			return bytes;
+		}
+
+		private static byte[] WriteUInt32(uint value, bool bigEndian)
+		{
+			var bytes = BitConverter.GetBytes(value);
+			if (bigEndian) Array.Reverse(bytes);
+			return bytes;
+		}
+
+		private static byte[] WriteInt64(long value, bool bigEndian)
+		{
+			var bytes = BitConverter.GetBytes(value);
+			if (bigEndian) Array.Reverse(bytes);
+			return bytes;
+		}
+
+		private static byte[] WriteUInt64(ulong value, bool bigEndian)
+		{
+			var bytes = BitConverter.GetBytes(value);
+			if (bigEndian) Array.Reverse(bytes);
+			return bytes;
+		}
+
+		private static byte[] WriteSingle(float value, bool bigEndian)
+		{
+			var bytes = BitConverter.GetBytes(value);
+			if (bigEndian) Array.Reverse(bytes);
+			return bytes;
+		}
+
+		private static byte[] WriteDouble(double value, bool bigEndian)
+		{
+			var bytes = BitConverter.GetBytes(value);
+			if (bigEndian) Array.Reverse(bytes);
+			return bytes;
+		}
+
+		// 解析格式字符串开头的字节序指示符
+		private static bool ParseEndianness(string format, out int skipChars)
+		{
+			skipChars = 0;
+			if (string.IsNullOrEmpty(format)) return false;
+
+			if (format[0] == '>')
+			{
+				skipChars = 1;
+				return true; // 大端
+			}
+			if (format[0] == '<')
+			{
+				skipChars = 1;
+				return false; // 小端
+			}
+			return false; // 默认小端
+		}
+
 		// string.pack(fmt, ...) - 打包值（Lua 5.3 风格）
 		// 格式字符: b(signed byte), B(unsigned byte), h(signed short), H(unsigned short),
 		//           l(signed long), L(unsigned long), i<I>(signed int with size), f(float), d(double),
 		//           s(string with length prefix), c<sz>(fixed string), x(padding byte)
+		// 字节序: > 表示大端，< 表示小端（默认）
 		public static string string_pack(string format, params object[] args)
 		{
 			// 空格式字符串：将所有参数作为字节打包
@@ -371,11 +545,13 @@ namespace AScript.Lang.Lua.Extensions
 				return sb.ToString();
 			}
 
+			// 解析字节序
+			var bigEndian = ParseEndianness(format, out var skipChars);
+			format = format.Substring(skipChars);
 			using (var ms = new MemoryStream())
 			{
 				using (var bw = new BinaryWriter(ms))
 				{
-
 					int argIndex = 0;
 					int i = 0;
 					while (i < format.Length)
@@ -384,7 +560,6 @@ namespace AScript.Lang.Lua.Extensions
 						switch (fmt)
 						{
 							case ' ':
-								// 忽略空格
 								i++;
 								break;
 							case 'b': // signed byte (1 byte)
@@ -397,30 +572,30 @@ namespace AScript.Lang.Lua.Extensions
 									bw.Write(Convert.ToByte(args[argIndex++]));
 								i++;
 								break;
-							case 'h': // signed short (2 bytes, little-endian)
+							case 'h': // signed short (2 bytes)
 								if (argIndex < args.Length)
-									bw.Write(Convert.ToInt16(args[argIndex++]));
+									bw.Write(WriteInt16(Convert.ToInt16(args[argIndex++]), bigEndian));
 								i++;
 								break;
-							case 'H': // unsigned short (2 bytes, little-endian)
+							case 'H': // unsigned short (2 bytes)
 								if (argIndex < args.Length)
-									bw.Write(Convert.ToUInt16(args[argIndex++]));
+									bw.Write(WriteUInt16(Convert.ToUInt16(args[argIndex++]), bigEndian));
 								i++;
 								break;
-							case 'l': // signed long (4 bytes, little-endian)
+							case 'l': // signed long (8 bytes)
 								if (argIndex < args.Length)
-									bw.Write(Convert.ToInt32(args[argIndex++]));
+									bw.Write(WriteInt64(Convert.ToInt64(args[argIndex++]), bigEndian));
 								i++;
 								break;
-							case 'L': // unsigned long (4 bytes, little-endian)
+							case 'L': // unsigned long (8 bytes)
 								if (argIndex < args.Length)
-									bw.Write(Convert.ToUInt32(args[argIndex++]));
+									bw.Write(WriteUInt64(Convert.ToUInt64(args[argIndex++]), bigEndian));
 								i++;
 								break;
 							case 'i': // signed int with optional size modifier
 							case 'I': // unsigned int with optional size modifier
 								{
-									var size = 4; // 默认4字节
+									var size = 4;
 									if (i + 1 < format.Length && char.IsDigit(format[i + 1]))
 									{
 										size = format[i + 1] - '0';
@@ -437,16 +612,13 @@ namespace AScript.Lang.Lua.Extensions
 												else bw.Write(Convert.ToSByte(val));
 												break;
 											case 2:
-												if (isUnsigned) bw.Write(Convert.ToUInt16(val));
-												else bw.Write(Convert.ToInt16(val));
+												bw.Write(isUnsigned ? WriteUInt16(Convert.ToUInt16(val), bigEndian) : WriteInt16(Convert.ToInt16(val), bigEndian));
 												break;
 											case 4:
-												if (isUnsigned) bw.Write(Convert.ToUInt32(val));
-												else bw.Write(Convert.ToInt32(val));
+												bw.Write(isUnsigned ? WriteUInt32(Convert.ToUInt32(val), bigEndian) : WriteInt32(Convert.ToInt32(val), bigEndian));
 												break;
 											case 8:
-												if (isUnsigned) bw.Write(Convert.ToUInt64(val));
-												else bw.Write(Convert.ToInt64(val));
+												bw.Write(isUnsigned ? WriteUInt64(Convert.ToUInt64(val), bigEndian) : WriteInt64(val, bigEndian));
 												break;
 										}
 									}
@@ -455,27 +627,27 @@ namespace AScript.Lang.Lua.Extensions
 								break;
 							case 'f': // float (4 bytes)
 								if (argIndex < args.Length)
-									bw.Write(Convert.ToSingle(args[argIndex++]));
+									bw.Write(WriteSingle(Convert.ToSingle(args[argIndex++]), bigEndian));
 								i++;
 								break;
 							case 'd': // double (8 bytes)
 								if (argIndex < args.Length)
-									bw.Write(Convert.ToDouble(args[argIndex++]));
+									bw.Write(WriteDouble(Convert.ToDouble(args[argIndex++]), bigEndian));
 								i++;
 								break;
 							case 's': // string with length prefix (4-byte length)
 								if (argIndex < args.Length)
 								{
 									var str = args[argIndex++]?.ToString() ?? "";
-									bw.Write(str.Length);
-									var bytes = System.Text.Encoding.UTF8.GetBytes(str);
-									bw.Write(bytes);
+									var lenBytes = WriteInt32(str.Length, bigEndian);
+									bw.Write(lenBytes);
+									var strBytes = System.Text.Encoding.UTF8.GetBytes(str);
+									bw.Write(strBytes);
 								}
 								i++;
 								break;
 							case 'c': // fixed-size string
 								{
-									// 读取大小参数
 									var sizeStr = new StringBuilder();
 									i++;
 									while (i < format.Length && char.IsDigit(format[i]))
@@ -487,16 +659,16 @@ namespace AScript.Lang.Lua.Extensions
 									if (argIndex < args.Length)
 									{
 										var str = args[argIndex++]?.ToString() ?? "";
-										var bytes = System.Text.Encoding.UTF8.GetBytes(str);
-										if (bytes.Length >= size)
+										var strBytes = System.Text.Encoding.UTF8.GetBytes(str);
+										if (strBytes.Length >= size)
 										{
-											bw.Write(bytes, 0, size);
+											for (int k = 0; k < size; k++)
+												bw.Write(strBytes[k]);
 										}
 										else
 										{
-											bw.Write(bytes);
-											// 用 null 填充剩余空间
-											for (int k = bytes.Length; k < size; k++)
+											bw.Write(strBytes);
+											for (int k = strBytes.Length; k < size; k++)
 												bw.Write((byte)0);
 										}
 									}
@@ -504,9 +676,6 @@ namespace AScript.Lang.Lua.Extensions
 								break;
 							case 'x': // padding byte
 								bw.Write((byte)0);
-								i++;
-								break;
-							case '=': // alignment (just skip for now)
 								i++;
 								break;
 							default:
@@ -523,9 +692,14 @@ namespace AScript.Lang.Lua.Extensions
 			}
 		}
 
+		public static List<object> string_unpack(string format, string s)
+		{
+			return string_unpack(format, s, 1);
+		}
+
 		// string.unpack(fmt, s, i) - 解包值（Lua 5.3 风格）
 		// 返回 List<object>: 包含解包的值和下一个读取位置（非空格式时）
-		public static List<object> string_unpack(string format, string s, long pos = 1)
+		public static List<object> string_unpack(string format, string s, long pos)
 		{
 			var result = new List<object>();
 			var index = pos > 0 ? (int)(pos - 1) : Math.Max(0, s.Length + (int)pos);
@@ -540,6 +714,10 @@ namespace AScript.Lang.Lua.Extensions
 				}
 				return result;
 			}
+
+			// 解析字节序
+			var bigEndian = ParseEndianness(format, out var skipChars);
+			format = format.Substring(skipChars);
 
 			// 将字符串转换为字节数组
 			var bytes = System.Text.Encoding.GetEncoding("ISO-8859-1").GetBytes(s);
@@ -563,35 +741,35 @@ namespace AScript.Lang.Lua.Extensions
 						index++;
 						i++;
 						break;
-					case 'h': // signed short (2 bytes, little-endian)
+					case 'h': // signed short (2 bytes)
 						if (index + 2 <= bytes.Length)
 						{
-							result.Add(BitConverter.ToInt16(bytes, index));
+							result.Add(ReadInt16(bytes, index, bigEndian));
 							index += 2;
 						}
 						i++;
 						break;
-					case 'H': // unsigned short (2 bytes, little-endian)
+					case 'H': // unsigned short (2 bytes)
 						if (index + 2 <= bytes.Length)
 						{
-							result.Add((long)BitConverter.ToUInt16(bytes, index));
+							result.Add((long)ReadUInt16(bytes, index, bigEndian));
 							index += 2;
 						}
 						i++;
 						break;
-					case 'l': // signed long (4 bytes, little-endian)
-						if (index + 4 <= bytes.Length)
+					case 'l': // signed long (8 bytes)
+						if (index + 8 <= bytes.Length)
 						{
-							result.Add(BitConverter.ToInt32(bytes, index));
-							index += 4;
+							result.Add(ReadInt64(bytes, index, bigEndian));
+							index += 8;
 						}
 						i++;
 						break;
-					case 'L': // unsigned long (4 bytes, little-endian)
-						if (index + 4 <= bytes.Length)
+					case 'L': // unsigned long (8 bytes)
+						if (index + 8 <= bytes.Length)
 						{
-							result.Add((long)BitConverter.ToUInt32(bytes, index));
-							index += 4;
+							result.Add((long)ReadUInt64(bytes, index, bigEndian));
+							index += 8;
 						}
 						i++;
 						break;
@@ -609,28 +787,16 @@ namespace AScript.Lang.Lua.Extensions
 								switch (size)
 								{
 									case 1:
-										if (fmt == 'I')
-											result.Add((long)bytes[index]);
-										else
-											result.Add((sbyte)bytes[index]);
+										result.Add(fmt == 'I' ? (object)(long)bytes[index] : (sbyte)bytes[index]);
 										break;
 									case 2:
-										if (fmt == 'I')
-											result.Add((long)BitConverter.ToUInt16(bytes, index));
-										else
-											result.Add(BitConverter.ToInt16(bytes, index));
+										result.Add(fmt == 'I' ? (object)(long)ReadUInt16(bytes, index, bigEndian) : ReadInt16(bytes, index, bigEndian));
 										break;
 									case 4:
-										if (fmt == 'I')
-											result.Add((long)BitConverter.ToUInt32(bytes, index));
-										else
-											result.Add(BitConverter.ToInt32(bytes, index));
+										result.Add(fmt == 'I' ? (object)(long)ReadUInt32(bytes, index, bigEndian) : ReadInt32(bytes, index, bigEndian));
 										break;
 									case 8:
-										if (fmt == 'I')
-											result.Add((long)BitConverter.ToUInt64(bytes, index));
-										else
-											result.Add(BitConverter.ToInt64(bytes, index));
+										result.Add(fmt == 'I' ? (object)(long)ReadUInt64(bytes, index, bigEndian) : ReadInt64(bytes, index, bigEndian));
 										break;
 								}
 								index += size;
@@ -641,7 +807,7 @@ namespace AScript.Lang.Lua.Extensions
 					case 'f': // float (4 bytes)
 						if (index + 4 <= bytes.Length)
 						{
-							result.Add((double)BitConverter.ToSingle(bytes, index));
+							result.Add((double)ReadSingle(bytes, index, bigEndian));
 							index += 4;
 						}
 						i++;
@@ -649,7 +815,7 @@ namespace AScript.Lang.Lua.Extensions
 					case 'd': // double (8 bytes)
 						if (index + 8 <= bytes.Length)
 						{
-							result.Add(BitConverter.ToDouble(bytes, index));
+							result.Add(ReadDouble(bytes, index, bigEndian));
 							index += 8;
 						}
 						i++;
@@ -657,7 +823,7 @@ namespace AScript.Lang.Lua.Extensions
 					case 's': // string with length prefix (4-byte length)
 						if (index + 4 <= bytes.Length)
 						{
-							var len = BitConverter.ToInt32(bytes, index);
+							var len = ReadInt32(bytes, index, bigEndian);
 							index += 4;
 							if (len >= 0 && index + len <= bytes.Length)
 							{
@@ -705,7 +871,7 @@ namespace AScript.Lang.Lua.Extensions
 			}
 
 			// 返回解包的值列表和下一个读取位置
-			result.Add((long)(index + 1)); // Lua unpack 返回下一个位置（1-based）
+			result.Add((long)(index + 1));
 			return result;
 		}
 
