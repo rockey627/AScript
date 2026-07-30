@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -256,7 +257,7 @@ namespace AScript.Lang.Lua.Extensions
 						case 'w': sb.Append(@"[A-Za-z0-9]"); break;        // 任何字母数字
 						case 'x': sb.Append(@"[0-9A-Fa-f]"); break;        // 任何十六进制数字
 						case 'z': sb.Append(@"\x00"); break;              // 字符串结束符（null字符）
-						// 转义字符
+																		  // 转义字符
 						case '%': sb.Append(@"%"); break;
 						case '.': sb.Append(@"\."); break;
 						case '^': sb.Append(@"\^"); break;
@@ -346,42 +347,365 @@ namespace AScript.Lang.Lua.Extensions
 			return string.Join(sep, parts);
 		}
 
-		// string.pack(fmt, ...) - 打包值（简化实现）
+		// string.pack(fmt, ...) - 打包值（Lua 5.3 风格）
+		// 格式字符: b(signed byte), B(unsigned byte), h(signed short), H(unsigned short),
+		//           l(signed long), L(unsigned long), i<I>(signed int with size), f(float), d(double),
+		//           s(string with length prefix), c<sz>(fixed string), x(padding byte)
 		public static string string_pack(string format, params object[] args)
 		{
-			var sb = new StringBuilder();
-			foreach (var arg in args)
+			// 空格式字符串：将所有参数作为字节打包
+			if (string.IsNullOrEmpty(format))
 			{
-				if (arg is long l)
+				var sb = new StringBuilder();
+				foreach (var arg in args)
 				{
-					sb.Append((char)l);
+					if (arg is long l)
+						sb.Append((char)l);
+					else if (arg is int i)
+						sb.Append((char)i);
+					else if (arg is double d)
+						sb.Append((char)(int)d);
+					else if (arg is string str)
+						sb.Append(str);
 				}
-				else if (arg is int i)
+				return sb.ToString();
+			}
+
+			using (var ms = new MemoryStream())
+			{
+				using (var bw = new BinaryWriter(ms))
 				{
-					sb.Append((char)i);
-				}
-				else if (arg is double d)
-				{
-					sb.Append((char)(int)d);
-				}
-				else if (arg is string str)
-				{
-					sb.Append(str);
+
+					int argIndex = 0;
+					int i = 0;
+					while (i < format.Length)
+					{
+						var fmt = format[i];
+						switch (fmt)
+						{
+							case ' ':
+								// 忽略空格
+								i++;
+								break;
+							case 'b': // signed byte (1 byte)
+								if (argIndex < args.Length)
+									bw.Write(Convert.ToSByte(args[argIndex++]));
+								i++;
+								break;
+							case 'B': // unsigned byte (1 byte)
+								if (argIndex < args.Length)
+									bw.Write(Convert.ToByte(args[argIndex++]));
+								i++;
+								break;
+							case 'h': // signed short (2 bytes, little-endian)
+								if (argIndex < args.Length)
+									bw.Write(Convert.ToInt16(args[argIndex++]));
+								i++;
+								break;
+							case 'H': // unsigned short (2 bytes, little-endian)
+								if (argIndex < args.Length)
+									bw.Write(Convert.ToUInt16(args[argIndex++]));
+								i++;
+								break;
+							case 'l': // signed long (4 bytes, little-endian)
+								if (argIndex < args.Length)
+									bw.Write(Convert.ToInt32(args[argIndex++]));
+								i++;
+								break;
+							case 'L': // unsigned long (4 bytes, little-endian)
+								if (argIndex < args.Length)
+									bw.Write(Convert.ToUInt32(args[argIndex++]));
+								i++;
+								break;
+							case 'i': // signed int with optional size modifier
+							case 'I': // unsigned int with optional size modifier
+								{
+									var size = 4; // 默认4字节
+									if (i + 1 < format.Length && char.IsDigit(format[i + 1]))
+									{
+										size = format[i + 1] - '0';
+										i++;
+									}
+									var isUnsigned = fmt == 'I';
+									if (argIndex < args.Length)
+									{
+										var val = Convert.ToInt64(args[argIndex++]);
+										switch (size)
+										{
+											case 1:
+												if (isUnsigned) bw.Write(Convert.ToByte(val));
+												else bw.Write(Convert.ToSByte(val));
+												break;
+											case 2:
+												if (isUnsigned) bw.Write(Convert.ToUInt16(val));
+												else bw.Write(Convert.ToInt16(val));
+												break;
+											case 4:
+												if (isUnsigned) bw.Write(Convert.ToUInt32(val));
+												else bw.Write(Convert.ToInt32(val));
+												break;
+											case 8:
+												if (isUnsigned) bw.Write(Convert.ToUInt64(val));
+												else bw.Write(Convert.ToInt64(val));
+												break;
+										}
+									}
+									i++;
+								}
+								break;
+							case 'f': // float (4 bytes)
+								if (argIndex < args.Length)
+									bw.Write(Convert.ToSingle(args[argIndex++]));
+								i++;
+								break;
+							case 'd': // double (8 bytes)
+								if (argIndex < args.Length)
+									bw.Write(Convert.ToDouble(args[argIndex++]));
+								i++;
+								break;
+							case 's': // string with length prefix (4-byte length)
+								if (argIndex < args.Length)
+								{
+									var str = args[argIndex++]?.ToString() ?? "";
+									bw.Write(str.Length);
+									var bytes = System.Text.Encoding.UTF8.GetBytes(str);
+									bw.Write(bytes);
+								}
+								i++;
+								break;
+							case 'c': // fixed-size string
+								{
+									// 读取大小参数
+									var sizeStr = new StringBuilder();
+									i++;
+									while (i < format.Length && char.IsDigit(format[i]))
+									{
+										sizeStr.Append(format[i]);
+										i++;
+									}
+									var size = sizeStr.Length > 0 ? int.Parse(sizeStr.ToString()) : 1;
+									if (argIndex < args.Length)
+									{
+										var str = args[argIndex++]?.ToString() ?? "";
+										var bytes = System.Text.Encoding.UTF8.GetBytes(str);
+										if (bytes.Length >= size)
+										{
+											bw.Write(bytes, 0, size);
+										}
+										else
+										{
+											bw.Write(bytes);
+											// 用 null 填充剩余空间
+											for (int k = bytes.Length; k < size; k++)
+												bw.Write((byte)0);
+										}
+									}
+								}
+								break;
+							case 'x': // padding byte
+								bw.Write((byte)0);
+								i++;
+								break;
+							case '=': // alignment (just skip for now)
+								i++;
+								break;
+							default:
+								i++;
+								break;
+						}
+					}
+
+					bw.Flush();
+					var result = ms.ToArray();
+					// 将字节数组转换为字符串（每个字节对应一个字符）
+					return System.Text.Encoding.GetEncoding("ISO-8859-1").GetString(result);
 				}
 			}
-			return sb.ToString();
 		}
 
-		// string.unpack(fmt, s, i) - 解包值（简化实现）
+		// string.unpack(fmt, s, i) - 解包值（Lua 5.3 风格）
+		// 返回 List<object>: 包含解包的值和下一个读取位置（非空格式时）
 		public static List<object> string_unpack(string format, string s, long pos = 1)
 		{
 			var result = new List<object>();
 			var index = pos > 0 ? (int)(pos - 1) : Math.Max(0, s.Length + (int)pos);
-			while (index < s.Length)
+
+			// 空格式字符串：将从pos开始的所有字节作为值返回（保持原有行为）
+			if (string.IsNullOrEmpty(format))
 			{
-				result.Add((long)s[index]);
-				index++;
+				while (index < s.Length)
+				{
+					result.Add((long)s[index]);
+					index++;
+				}
+				return result;
 			}
+
+			// 将字符串转换为字节数组
+			var bytes = System.Text.Encoding.GetEncoding("ISO-8859-1").GetBytes(s);
+
+			int i = 0;
+			while (i < format.Length && index < bytes.Length)
+			{
+				var fmt = format[i];
+				switch (fmt)
+				{
+					case ' ':
+						i++;
+						break;
+					case 'b': // signed byte
+						result.Add((sbyte)bytes[index]);
+						index++;
+						i++;
+						break;
+					case 'B': // unsigned byte
+						result.Add((long)bytes[index]);
+						index++;
+						i++;
+						break;
+					case 'h': // signed short (2 bytes, little-endian)
+						if (index + 2 <= bytes.Length)
+						{
+							result.Add(BitConverter.ToInt16(bytes, index));
+							index += 2;
+						}
+						i++;
+						break;
+					case 'H': // unsigned short (2 bytes, little-endian)
+						if (index + 2 <= bytes.Length)
+						{
+							result.Add((long)BitConverter.ToUInt16(bytes, index));
+							index += 2;
+						}
+						i++;
+						break;
+					case 'l': // signed long (4 bytes, little-endian)
+						if (index + 4 <= bytes.Length)
+						{
+							result.Add(BitConverter.ToInt32(bytes, index));
+							index += 4;
+						}
+						i++;
+						break;
+					case 'L': // unsigned long (4 bytes, little-endian)
+						if (index + 4 <= bytes.Length)
+						{
+							result.Add((long)BitConverter.ToUInt32(bytes, index));
+							index += 4;
+						}
+						i++;
+						break;
+					case 'i': // signed int with optional size modifier
+					case 'I': // unsigned int with optional size modifier
+						{
+							var size = 4;
+							if (i + 1 < format.Length && char.IsDigit(format[i + 1]))
+							{
+								size = format[i + 1] - '0';
+								i++;
+							}
+							if (index + size <= bytes.Length)
+							{
+								switch (size)
+								{
+									case 1:
+										if (fmt == 'I')
+											result.Add((long)bytes[index]);
+										else
+											result.Add((sbyte)bytes[index]);
+										break;
+									case 2:
+										if (fmt == 'I')
+											result.Add((long)BitConverter.ToUInt16(bytes, index));
+										else
+											result.Add(BitConverter.ToInt16(bytes, index));
+										break;
+									case 4:
+										if (fmt == 'I')
+											result.Add((long)BitConverter.ToUInt32(bytes, index));
+										else
+											result.Add(BitConverter.ToInt32(bytes, index));
+										break;
+									case 8:
+										if (fmt == 'I')
+											result.Add((long)BitConverter.ToUInt64(bytes, index));
+										else
+											result.Add(BitConverter.ToInt64(bytes, index));
+										break;
+								}
+								index += size;
+							}
+							i++;
+						}
+						break;
+					case 'f': // float (4 bytes)
+						if (index + 4 <= bytes.Length)
+						{
+							result.Add((double)BitConverter.ToSingle(bytes, index));
+							index += 4;
+						}
+						i++;
+						break;
+					case 'd': // double (8 bytes)
+						if (index + 8 <= bytes.Length)
+						{
+							result.Add(BitConverter.ToDouble(bytes, index));
+							index += 8;
+						}
+						i++;
+						break;
+					case 's': // string with length prefix (4-byte length)
+						if (index + 4 <= bytes.Length)
+						{
+							var len = BitConverter.ToInt32(bytes, index);
+							index += 4;
+							if (len >= 0 && index + len <= bytes.Length)
+							{
+								var strBytes = new byte[len];
+								Array.Copy(bytes, index, strBytes, 0, len);
+								result.Add(System.Text.Encoding.UTF8.GetString(strBytes));
+								index += len;
+							}
+						}
+						i++;
+						break;
+					case 'c': // fixed-size string
+						{
+							var sizeStr = new StringBuilder();
+							i++;
+							while (i < format.Length && char.IsDigit(format[i]))
+							{
+								sizeStr.Append(format[i]);
+								i++;
+							}
+							var size = sizeStr.Length > 0 ? int.Parse(sizeStr.ToString()) : 1;
+							if (index + size <= bytes.Length)
+							{
+								var strBytes = new byte[size];
+								Array.Copy(bytes, index, strBytes, 0, size);
+								// 移除末尾的 null 字符
+								var str = System.Text.Encoding.UTF8.GetString(strBytes);
+								str = str.TrimEnd('\0');
+								result.Add(str);
+								index += size;
+							}
+						}
+						break;
+					case 'x': // padding byte
+						index++;
+						i++;
+						break;
+					case '=': // alignment
+						i++;
+						break;
+					default:
+						i++;
+						break;
+				}
+			}
+
+			// 返回解包的值列表和下一个读取位置
+			result.Add((long)(index + 1)); // Lua unpack 返回下一个位置（1-based）
 			return result;
 		}
 

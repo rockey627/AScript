@@ -714,16 +714,55 @@ namespace AScript.Test.MSTests.Lua
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
 
-			// string.pack
+			// string.pack - 空格式字符串
 			Assert.AreEqual("ABC", script.Eval("string.pack('', 65, 66, 67)"));
 
-			// string.unpack
+			// string.unpack - 空格式字符串
 			var unpackResult = script.Eval("string.unpack('', 'ABC', 1)") as List<object>;
 			Assert.IsNotNull(unpackResult);
 			Assert.AreEqual(3, unpackResult.Count);
 			Assert.AreEqual(65L, unpackResult[0]);
 			Assert.AreEqual(66L, unpackResult[1]);
 			Assert.AreEqual(67L, unpackResult[2]);
+
+			// string.pack - B (unsigned byte)
+			var packedB = script.Eval("string.pack('BBB', 65, 66, 67)") as string;
+			Assert.IsNotNull(packedB);
+			Assert.AreEqual("ABC", packedB);
+
+			// string.unpack - B (unsigned byte)
+			var unpackB = script.Eval("string.unpack('BBB', 'ABC', 1)") as List<object>;
+			Assert.IsNotNull(unpackB);
+			Assert.AreEqual(4, unpackB.Count);
+			Assert.AreEqual(65L, unpackB[0]);
+			Assert.AreEqual(66L, unpackB[1]);
+			Assert.AreEqual(67L, unpackB[2]);
+			Assert.AreEqual(4L, unpackB[3]); // next position
+
+			// string.pack - i4 (signed int 4 bytes)
+			var packedI = script.Eval("string.pack('i4', 256)") as string;
+			Assert.IsNotNull(packedI);
+			Assert.AreEqual(4, packedI.Length); // 4 bytes for i4
+
+			// string.pack - f (float)
+			var packedF = script.Eval("string.pack('f', 3.14)") as string;
+			Assert.IsNotNull(packedF);
+			Assert.AreEqual(4, packedF.Length); // 4 bytes for float
+
+			// string.pack - d (double)
+			var packedD = script.Eval("string.pack('d', 3.14159)") as string;
+			Assert.IsNotNull(packedD);
+			Assert.AreEqual(8, packedD.Length); // 8 bytes for double
+
+			// string.pack - h (signed short)
+			var packedH = script.Eval("string.pack('h', 256)") as string;
+			Assert.IsNotNull(packedH);
+			Assert.AreEqual(2, packedH.Length); // 2 bytes for short
+
+			// string.pack - l (signed long)
+			var packedL = script.Eval("string.pack('l', 123456)") as string;
+			Assert.IsNotNull(packedL);
+			Assert.AreEqual(4, packedL.Length); // 4 bytes for long
 		}
 
 		[TestMethod]
@@ -733,14 +772,55 @@ namespace AScript.Test.MSTests.Lua
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
 
+			// string.pack - 空格式字符串
 			Assert.AreEqual("ABC", script.Eval("string.pack('', 65, 66, 67)"));
 
+			// string.unpack - 空格式字符串
 			var unpackResult = script.Eval("string.unpack('', 'ABC', 1)") as List<object>;
 			Assert.IsNotNull(unpackResult);
 			Assert.AreEqual(3, unpackResult.Count);
 			Assert.AreEqual(65L, unpackResult[0]);
 			Assert.AreEqual(66L, unpackResult[1]);
 			Assert.AreEqual(67L, unpackResult[2]);
+
+			// string.pack - B (unsigned byte)
+			var packedB = script.Eval("string.pack('BBB', 65, 66, 67)") as string;
+			Assert.IsNotNull(packedB);
+			Assert.AreEqual("ABC", packedB);
+
+			// string.unpack - B (unsigned byte)
+			var unpackB = script.Eval("string.unpack('BBB', 'ABC', 1)") as List<object>;
+			Assert.IsNotNull(unpackB);
+			Assert.AreEqual(4, unpackB.Count);
+			Assert.AreEqual(65L, unpackB[0]);
+			Assert.AreEqual(66L, unpackB[1]);
+			Assert.AreEqual(67L, unpackB[2]);
+			Assert.AreEqual(4L, unpackB[3]); // next position
+
+			// string.pack - i4 (signed int 4 bytes)
+			var packedI = script.Eval("string.pack('i4', 256)") as string;
+			Assert.IsNotNull(packedI);
+			Assert.AreEqual(4, packedI.Length); // 4 bytes for i4
+
+			// string.pack - f (float)
+			var packedF = script.Eval("string.pack('f', 3.14)") as string;
+			Assert.IsNotNull(packedF);
+			Assert.AreEqual(4, packedF.Length); // 4 bytes for float
+
+			// string.pack - d (double)
+			var packedD = script.Eval("string.pack('d', 3.14159)") as string;
+			Assert.IsNotNull(packedD);
+			Assert.AreEqual(8, packedD.Length); // 8 bytes for double
+
+			// string.pack - h (signed short)
+			var packedH = script.Eval("string.pack('h', 256)") as string;
+			Assert.IsNotNull(packedH);
+			Assert.AreEqual(2, packedH.Length); // 2 bytes for short
+
+			// string.pack - l (signed long)
+			var packedL = script.Eval("string.pack('l', 123456)") as string;
+			Assert.IsNotNull(packedL);
+			Assert.AreEqual(4, packedL.Length); // 4 bytes for long
 		}
 	}
 }
