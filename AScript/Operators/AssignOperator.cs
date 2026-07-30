@@ -435,9 +435,10 @@ namespace AScript.Operators
 			}
 			var arg1Type = value?.GetType();
 			var arg1TypeName = arg1Type?.Name;
-			if (arg1TypeName != null && (arg1TypeName.StartsWith("ValueTuple`") || arg1TypeName.StartsWith("Tuple`")))
+			bool isValueTuple = arg1TypeName != null && arg1TypeName.StartsWith("ValueTuple`");
+			bool isTuple = arg1TypeName != null && !isValueTuple && arg1TypeName.StartsWith("Tuple`");
+			if (isValueTuple || isTuple)
 			{
-				bool isValueTuple = arg1TypeName.StartsWith("ValueTuple`");
 				int arg1FieldCount = isValueTuple ? arg1Type.GetFields().Length : arg1Type.GetProperties().Length;
 				if (item.Items.Count > arg1FieldCount)
 				{
@@ -480,8 +481,15 @@ namespace AScript.Operators
 				e.SetResult(null, typeof(void));
 				return;
 			}
-
-			throw new ScriptAnalyzingException("invalid expression near =");
+			// 
+			Decontruct(e, item.Items[0], value, arg1Type);
+			for (int i = 1; i < item.Items.Count; i++)
+			{
+				item.Items[i].Eval(e.Context, e.Options, e.Control, out _);
+			}
+			e.SetResult(null, typeof(void));
+			return;
+			//throw new ScriptAnalyzingException("invalid expression near =");
 		}
 
 		/// <summary>
@@ -701,25 +709,31 @@ namespace AScript.Operators
 			var rightType = right.Type;
 			var rightTypeName = rightType.Name;
 			bool isValueTuple = rightTypeName.StartsWith("ValueTuple`");
-			bool isTuple = rightTypeName.StartsWith("Tuple`");
+			bool isTuple = !isValueTuple && rightTypeName.StartsWith("Tuple`");
+			var expressions = new List<Expression>(arg0Items.Count);
+			int minCount;
 			if (!isValueTuple && !isTuple)
 			{
-				throw new ScriptAnalyzingException("invalid expression near =, right side is not a tuple");
-			}
-
-			int rightFieldCount = isValueTuple ? rightType.GetFields().Length : rightType.GetProperties().Length;
-			//if (arg0Items.Count > rightFieldCount)
-			//{
-			//	throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
-			//}
-			int minCount = Math.Min(arg0Items.Count, rightFieldCount);
-			var expressions = new List<Expression>(arg0Items.Count);
-			for (int i = 0; i < minCount; i++)
-			{
-				var item = arg0Items[i];
-				var value = isValueTuple ? Expression.Field(right, $"Item{i + 1}") : Expression.Property(right, $"Item{i + 1}");
-				var expr = BuildDeconstruct(e, item, value);
+				minCount = 1;
+				var expr = BuildDeconstruct(e, arg0Items[0], right);
 				if (expr != null) expressions.Add(expr);
+				//throw new ScriptAnalyzingException("invalid expression near =, right side is not a tuple");
+			}
+			else
+			{
+				int rightFieldCount = isValueTuple ? rightType.GetFields().Length : rightType.GetProperties().Length;
+				//if (arg0Items.Count > rightFieldCount)
+				//{
+				//	throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
+				//}
+				minCount = Math.Min(arg0Items.Count, rightFieldCount);
+				for (int i = 0; i < minCount; i++)
+				{
+					var item = arg0Items[i];
+					var value = isValueTuple ? Expression.Field(right, $"Item{i + 1}") : Expression.Property(right, $"Item{i + 1}");
+					var expr = BuildDeconstruct(e, item, value);
+					if (expr != null) expressions.Add(expr);
+				}
 			}
 			for (int i = minCount; i < arg0Items.Count; i++)
 			{
@@ -746,7 +760,7 @@ namespace AScript.Operators
 				var rightType = right.Type;
 				var rightTypeName = rightType.Name;
 				bool isValueTuple = rightTypeName.StartsWith("ValueTuple`");
-				bool isTuple = rightTypeName.StartsWith("Tuple`");
+				bool isTuple = !isValueTuple && rightTypeName.StartsWith("Tuple`");
 				if (!isValueTuple && !isTuple)
 				{
 					throw new ScriptAnalyzingException("invalid expression near =, right side is not a tuple");
