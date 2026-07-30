@@ -135,11 +135,11 @@ namespace AScript.Functions
 			if (e.Args == null || e.Args.Count == 0) return;
 			e.EvalArgs();
 			var t0 = e.ArgTypes[0];
-			if (t0 == typeof(string) || t0 == typeof(object))
-			{
-				e.SetResult(string.Concat(e.ArgValues));
-			}
-			else if (t0.IsArray)
+			//if (t0 == typeof(string) || t0 == typeof(object))
+			//{
+			//	e.SetResult(string.Concat(e.ArgValues));
+			//}
+			if (t0.IsArray)
 			{
 				var arrays = new Array[e.ArgValues.Length];
 				for (int i = 0; i < e.ArgValues.Length; i++)
@@ -151,6 +151,10 @@ namespace AScript.Functions
 			else if (typeof(ICollection).IsAssignableFrom(t0))
 			{
 				e.SetResult(ListConcat(e.ArgValues));
+			}
+			else
+			{
+				e.SetResult(string.Concat(e.ArgValues));
 			}
 		}
 
