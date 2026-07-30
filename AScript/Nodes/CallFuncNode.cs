@@ -403,9 +403,9 @@ namespace AScript.Nodes
 					if (result != null) return result;
 					if (argTypes == null || argTypes.Length == 0)
 					{
-						throw new ScriptAnalyzingException($"unknown function: {v0.Type}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
+						throw new ScriptAnalyzingException($"unknown function: {wrapper.Name}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
 					}
-					throw new ScriptAnalyzingException($"unknown function: {v0.Type}.{this.Name}()");
+					throw new ScriptAnalyzingException($"unknown function: {wrapper.Name}.{this.Name}()");
 				}
 
 				if (scriptContext.IsObjectMemberEnabled(v0.Type) ?? true)

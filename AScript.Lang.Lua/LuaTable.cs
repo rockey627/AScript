@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Text;
 
 namespace AScript.Lang.Lua
 {
@@ -108,6 +109,64 @@ namespace AScript.Lang.Lua
 				return value;
 			}
 			return null;
+		}
+
+		// table.concat(list) - 连接表中所有字符串元素
+		// table.concat(list, sep) - 使用分隔符连接
+		// table.concat(list, sep, i) - 从第 i 个元素开始连接
+		// table.concat(list, sep, i, j) - 连接从 i 到 j 的元素
+		public static string concat(LuaTable table)
+		{
+			return concat(table, null, 1, table._list.Count);
+		}
+
+		public static string concat(LuaTable table, object sep)
+		{
+			return concat(table, (string)sep, 1L, table._list.Count);
+		}
+
+		public static string concat(LuaTable table, object sep, object start)
+		{
+			var startIdx = Convert.ToInt64(start);
+			return concat(table, (string)sep, startIdx, table._list.Count);
+		}
+
+		public static string concat(LuaTable table, object sep, object start, object end)
+		{
+			var sepStr = (string)sep;
+			var startIdx = Convert.ToInt64(start);
+			var endIdx = Convert.ToInt64(end);
+			return concat(table, sepStr, startIdx, endIdx);
+		}
+
+		public static string concat(LuaTable table, string sep, long start, long end)
+		{
+			if (table._list.Count == 0 || start > end)
+				return "";
+
+			// Lua 使用 1-based 索引，转换为 0-based
+			var actualStart = start > 0 ? (int)start - 1 : Math.Max(0, table._list.Count + (int)start);
+			var actualEnd = end > 0 ? (int)end - 1 : table._list.Count + (int)end;
+
+			// 边界检查
+			if (actualStart < 0) actualStart = 0;
+			if (actualEnd >= table._list.Count) actualEnd = table._list.Count - 1;
+			if (actualStart > actualEnd)
+				return "";
+
+			var sb = new StringBuilder();
+			for (int i = actualStart; i <= actualEnd; i++)
+			{
+				if (i > actualStart && !string.IsNullOrEmpty(sep))
+					sb.Append(sep);
+
+				var value = table._list[i];
+				if (value != null)
+				{
+					sb.Append(value.ToString());
+				}
+			}
+			return sb.ToString();
 		}
 
 		public IList<object> Array => _list;

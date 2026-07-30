@@ -1786,10 +1786,10 @@ namespace AScript.Syntaxs
 				{
 					converted[i + expressionStartIndex] = args[i];
 				}
-				else if (paramType.IsAssignableFrom(argType))
-				{
-					converted[i + expressionStartIndex] = args[i];
-				}
+				//else if (paramType.IsAssignableFrom(argType))
+				//{
+				//	converted[i + expressionStartIndex] = args[i];
+				//}
 				else
 				{
 					// 尝试类型转换

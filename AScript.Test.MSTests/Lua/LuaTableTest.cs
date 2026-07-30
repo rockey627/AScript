@@ -845,5 +845,329 @@ t.x
 		}
 
 		#endregion
+
+		#region Table Concat (table.concat)
+
+		[TestMethod]
+		public void Test28_Table_Concat_Basic()
+		{
+			string code = @"
+local t = {'a', 'b', 'c'}
+table.concat(t)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("abc", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test28_Table_Concat_Basic_CompileAll()
+		{
+			string code = @"
+local t = {'a', 'b', 'c'}
+table.concat(t)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("abc", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test29_Table_Concat_With_Separator()
+		{
+			string code = @"
+local t = {'a', 'b', 'c'}
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("a,b,c", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test29_Table_Concat_With_Separator_CompileAll()
+		{
+			string code = @"
+local t = {'a', 'b', 'c'}
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("a,b,c", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test30_Table_Concat_With_Start_Index()
+		{
+			string code = @"
+local t = {'a', 'b', 'c'}
+table.concat(t, ',', 2)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("b,c", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test30_Table_Concat_With_Start_Index_CompileAll()
+		{
+			string code = @"
+local t = {'a', 'b', 'c'}
+table.concat(t, ',', 2)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("b,c", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test31_Table_Concat_With_Start_And_End_Index()
+		{
+			string code = @"
+local t = {'a', 'b', 'c'}
+table.concat(t, '-', 2, 2)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("b", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test31_Table_Concat_With_Start_And_End_Index_CompileAll()
+		{
+			string code = @"
+local t = {'a', 'b', 'c'}
+table.concat(t, '-', 2, 2)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("b", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test32_Table_Concat_Negative_Index()
+		{
+			string code = @"
+local t = {'a', 'b', 'c', 'd', 'e'}
+table.concat(t, ':', -2)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("d:e", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test32_Table_Concat_Negative_Index_CompileAll()
+		{
+			string code = @"
+local t = {'a', 'b', 'c', 'd', 'e'}
+table.concat(t, ':', -2)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("d:e", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test33_Table_Concat_Negative_Start_And_End()
+		{
+			string code = @"
+local t = {'a', 'b', 'c', 'd', 'e'}
+table.concat(t, '-', -3, -1)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("c-d-e", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test33_Table_Concat_Negative_Start_And_End_CompileAll()
+		{
+			string code = @"
+local t = {'a', 'b', 'c', 'd', 'e'}
+table.concat(t, '-', -3, -1)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("c-d-e", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test34_Table_Concat_Empty_Table()
+		{
+			string code = @"
+local t = {}
+table.concat(t)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test34_Table_Concat_Empty_Table_CompileAll()
+		{
+			string code = @"
+local t = {}
+table.concat(t)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test35_Table_Concat_Start_Greater_Than_End()
+		{
+			string code = @"
+local t = {'a', 'b', 'c'}
+table.concat(t, ',', 3, 1)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test35_Table_Concat_Start_Greater_Than_End_CompileAll()
+		{
+			string code = @"
+local t = {'a', 'b', 'c'}
+table.concat(t, ',', 3, 1)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test36_Table_Concat_Single_Element()
+		{
+			string code = @"
+local t = {'only'}
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("only", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test36_Table_Concat_Single_Element_CompileAll()
+		{
+			string code = @"
+local t = {'only'}
+table.concat(t, ',')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("only", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test37_Table_Concat_Numbers()
+		{
+			string code = @"
+local t = {1, 2, 3, 4, 5}
+table.concat(t, '-')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1-2-3-4-5", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test37_Table_Concat_Numbers_CompileAll()
+		{
+			string code = @"
+local t = {1, 2, 3, 4, 5}
+table.concat(t, '-')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("1-2-3-4-5", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test38_Table_Concat_LuaTable_Direct()
+		{
+			var table = new LuaTable();
+			table[1] = "hello";
+			table[2] = "world";
+			table[3] = "lua";
+			var result = LuaTable.concat(table, " ");
+			Assert.AreEqual("hello world lua", result);
+		}
+
+		[TestMethod]
+		public void Test39_Table_Concat_LuaTable_No_Separator()
+		{
+			var table = new LuaTable();
+			table[1] = "x";
+			table[2] = "y";
+			table[3] = "z";
+			var result = LuaTable.concat(table);
+			Assert.AreEqual("xyz", result);
+		}
+
+		[TestMethod]
+		public void Test40_Table_Concat_LuaTable_With_Range()
+		{
+			var table = new LuaTable();
+			table[1] = "a";
+			table[2] = "b";
+			table[3] = "c";
+			table[4] = "d";
+			var result = LuaTable.concat(table, ":", 2, 3);
+			Assert.AreEqual("b:c", result);
+		}
+
+		[TestMethod]
+		public void Test41_Table_Concat_LuaTable_Negative_Indices()
+		{
+			var table = new LuaTable();
+			table[1] = "a";
+			table[2] = "b";
+			table[3] = "c";
+			var result = LuaTable.concat(table, "-", -2, -1);
+			Assert.AreEqual("b-c", result);
+		}
+
+		[TestMethod]
+		public void Test42_Table_Concat_With_String_Number_Mix()
+		{
+			string code = @"
+local t = {'a', 1, 'b', 2, 'c'}
+table.concat(t, '')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("a1b2c", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test42_Table_Concat_With_String_Number_Mix_CompileAll()
+		{
+			string code = @"
+local t = {'a', 1, 'b', 2, 'c'}
+table.concat(t, '')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("a1b2c", script.Eval<string>(code));
+		}
+
+		#endregion
 	}
 }
