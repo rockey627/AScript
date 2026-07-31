@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace AScript.Operators
 {
 	public class SubtractOperator : IFunctionEvaluator, IFunctionBuilder
 	{
+		private static readonly MethodInfo Method_Negate = typeof(SubtractOperator).GetMethod("Negate", BindingFlags.Static | BindingFlags.NonPublic);
+
 		public static readonly SubtractOperator Instance = new SubtractOperator();
 
 		public void Build(FunctionBuildArgs e)
@@ -12,7 +15,14 @@ namespace AScript.Operators
 			if (e.Args.Count == 1)
 			{
 				var arg = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
-				e.Result = Expression.Negate(arg);
+				if (arg.Type == typeof(object))
+				{
+					e.Result = Expression.Call(Method_Negate, arg);
+				}
+				else
+				{
+					e.Result = Expression.Negate(arg);
+				}
 			}
 			else
 			{
@@ -28,6 +38,12 @@ namespace AScript.Operators
 					e.Result = Expression.Subtract(left, right);
 				}
 			}
+		}
+
+		private static object Negate(object obj)
+		{
+			dynamic d = obj;
+			return -d;
 		}
 
 		public void Eval(FunctionEvalArgs e)
