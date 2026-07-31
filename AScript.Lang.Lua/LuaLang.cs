@@ -52,6 +52,7 @@ namespace AScript.Lang.Lua
 			AddFunc("%", ModuloOperator.Instance);
 			AddFunc("^", PowerOperator.Instance);
 			AddFunc("//", LuaFloorDivideOperator.Instance);
+			AddFunc("~", NotOperator.Instance);
 
 			// 关系运算符
 			AddFunc("<", LessThanOperator.Instance);
@@ -71,6 +72,7 @@ namespace AScript.Lang.Lua
 			AddFunc("[]", new IndexOperator(false, true));
 			AddFunc("..", ConcatFunction.Instance);
 			AddFunc("#", new LengthFunction(typeof(long)));
+			AddFunc<LuaTable, LuaTable, string>("..", (table1, table2) => LuaTable.concat(table1, table2));
 			AddFunc<LuaTable, long>("#", table => table.ArrayLength);
 
 			AddFunc(typeof(Extensions.LuaCommonExtensions));

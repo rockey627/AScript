@@ -2623,6 +2623,742 @@ t.hello .. ',' .. t.world
 			Assert.AreEqual("custom_hello,custom_world", script.Eval<string>(code));
 		}
 
+		[TestMethod]
+		public void Test87_Metatable_Sub_Operator()
+		{
+			string code = @"
+local t1 = {value = 10}
+local t2 = {value = 3}
+local mt = {}
+mt.__sub = function(a, b)
+	local r = {}
+	r.value = a.value - b.value
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 - t2
+r.value
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(7L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test87_Metatable_Sub_Operator_CompileAll()
+		{
+			string code = @"
+local t1 = {value = 10}
+local t2 = {value = 3}
+local mt = {}
+mt.__sub = function(a, b)
+	local r = {}
+	r.value = a.value - b.value
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 - t2
+r.value
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(7L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test88_Metatable_Mul_Operator()
+		{
+			string code = @"
+local t1 = {value = 7}
+local t2 = {value = 6}
+local mt = {}
+mt.__mul = function(a, b)
+	local r = {}
+	r.value = a.value * b.value
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 * t2
+r.value
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(42L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test88_Metatable_Mul_Operator_CompileAll()
+		{
+			string code = @"
+local t1 = {value = 7}
+local t2 = {value = 6}
+local mt = {}
+mt.__mul = function(a, b)
+	local r = {}
+	r.value = a.value * b.value
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 * t2
+r.value
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(42L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test89_Metatable_Div_Operator()
+		{
+			string code = @"
+local t1 = {value = 20}
+local t2 = {value = 4}
+local mt = {}
+mt.__div = function(a, b)
+	local r = {}
+	r.value = a.value / b.value
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 / t2
+r.value
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(5D, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test89_Metatable_Div_Operator_CompileAll()
+		{
+			string code = @"
+local t1 = {value = 20}
+local t2 = {value = 4}
+local mt = {}
+mt.__div = function(a, b)
+	local r = {}
+	r.value = a.value / b.value
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 / t2
+r.value
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(5D, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test90_Metatable_Mod_Operator()
+		{
+			string code = @"
+local t1 = {value = 17}
+local t2 = {value = 5}
+local mt = {}
+mt.__mod = function(a, b)
+	local r = {}
+	r.value = a.value % b.value
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 % t2
+r.value
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(2L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test90_Metatable_Mod_Operator_CompileAll()
+		{
+			string code = @"
+local t1 = {value = 17}
+local t2 = {value = 5}
+local mt = {}
+mt.__mod = function(a, b)
+	local r = {}
+	r.value = a.value % b.value
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 % t2
+r.value
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(2L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test91_Metatable_Unm_Operator()
+		{
+			string code = @"
+local t = {value = 10}
+local mt = {}
+mt.__unm = function(a)
+	local r = {}
+	r.value = -a.value
+	return r
+end
+setmetatable(t, mt)
+local r = -t
+r.value
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(-10L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test91_Metatable_Unm_Operator_CompileAll()
+		{
+			string code = @"
+local t = {value = 10}
+local mt = {}
+mt.__unm = function(a)
+	local r = {}
+	r.value = -a.value
+	return r
+end
+setmetatable(t, mt)
+local r = -t
+r.value
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(-10L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test92_Metatable_Eq_Operator()
+		{
+			string code = @"
+local t1 = {value = 10}
+local t2 = {value = 10}
+local t3 = {value = 20}
+local mt = {}
+mt.__eq = function(a, b)
+	return a.value == b.value
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+setmetatable(t3, mt)
+(t1 == t2) and (t1 == t3)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(false, script.Eval<bool>(code));
+		}
+
+		[TestMethod]
+		public void Test92_Metatable_Eq_Operator_CompileAll()
+		{
+			string code = @"
+local t1 = {value = 10}
+local t2 = {value = 10}
+local t3 = {value = 20}
+local mt = {}
+mt.__eq = function(a, b)
+	return a.value == b.value
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+setmetatable(t3, mt)
+(t1 == t2) and (t1 == t3)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(false, script.Eval<bool>(code));
+		}
+
+		[TestMethod]
+		public void Test93_Metatable_Lt_Operator()
+		{
+			string code = @"
+local t1 = {value = 5}
+local t2 = {value = 10}
+local mt = {}
+mt.__lt = function(a, b)
+	return a.value < b.value
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+(t1 < t2) and not (t2 < t1)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(true, script.Eval<bool>(code));
+		}
+
+		[TestMethod]
+		public void Test93_Metatable_Lt_Operator_CompileAll()
+		{
+			string code = @"
+local t1 = {value = 5}
+local t2 = {value = 10}
+local mt = {}
+mt.__lt = function(a, b)
+	return a.value < b.value
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+(t1 < t2) and not (t2 < t1)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(true, script.Eval<bool>(code));
+		}
+
+		[TestMethod]
+		public void Test94_Metatable_Le_Operator()
+		{
+			string code = @"
+local t1 = {value = 5}
+local t2 = {value = 10}
+local mt = {}
+mt.__le = function(a, b)
+	return a.value <= b.value
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+(t1 <= t2) and (t1 <= t1) and not (t2 <= t1)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(true, script.Eval<bool>(code));
+		}
+
+		[TestMethod]
+		public void Test94_Metatable_Le_Operator_CompileAll()
+		{
+			string code = @"
+local t1 = {value = 5}
+local t2 = {value = 10}
+local mt = {}
+mt.__le = function(a, b)
+	return a.value <= b.value
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+(t1 <= t2) and (t1 <= t1) and not (t2 <= t1)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(true, script.Eval<bool>(code));
+		}
+
+		[TestMethod]
+		public void Test95_Metatable_Concat_Operator()
+		{
+			string code = @"
+local t1 = {s = 'hello'}
+local t2 = {s = 'world'}
+local mt = {}
+mt.__concat = function(a, b)
+	return a.s .. ' ' .. b.s
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+t1 .. t2
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("hello world", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test95_Metatable_Concat_Operator_CompileAll()
+		{
+			string code = @"
+local t1 = {s = 'hello'}
+local t2 = {s = 'world'}
+local mt = {}
+mt.__concat = function(a, b)
+	return a.s .. ' ' .. b.s
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+t1 .. t2
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("hello world", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test96_Metatable_Band_Operator()
+		{
+			string code = @"
+local t1 = {value = 0b1100}
+local t2 = {value = 0b1010}
+local mt = {}
+mt.__band = function(a, b)
+	local r = {}
+	r.value = a.value & b.value
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 & t2
+r.value
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(0b1000L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test96_Metatable_Band_Operator_CompileAll()
+		{
+			string code = @"
+local t1 = {value = 0b1100}
+local t2 = {value = 0b1010}
+local mt = {}
+mt.__band = function(a, b)
+	local r = {}
+	r.value = a.value & b.value
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 & t2
+r.value
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(0b1000L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test97_Metatable_Bor_Operator()
+		{
+			string code = @"
+local t1 = {value = 0b1100}
+local t2 = {value = 0b1010}
+local mt = {}
+mt.__bor = function(a, b)
+	local r = {}
+	r.value = a.value | b.value
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 | t2
+r.value
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(0b1110L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test97_Metatable_Bor_Operator_CompileAll()
+		{
+			string code = @"
+local t1 = {value = 0b1100}
+local t2 = {value = 0b1010}
+local mt = {}
+mt.__bor = function(a, b)
+	local r = {}
+	r.value = a.value | b.value
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 | t2
+r.value
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(0b1110L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test98_Metatable_Bxor_Operator()
+		{
+			string code = @"
+local t1 = {value = 0b1100}
+local t2 = {value = 0b1010}
+local mt = {}
+mt.__bxor = function(a, b)
+	local r = {}
+	r.value = a.value ~ b.value
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 ^ t2
+r.value
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(0b0110L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test98_Metatable_Bxor_Operator_CompileAll()
+		{
+			string code = @"
+local t1 = {value = 0b1100}
+local t2 = {value = 0b1010}
+local mt = {}
+mt.__bxor = function(a, b)
+	local r = {}
+	r.value = a.value ~ b.value
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 ^ t2
+r.value
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(0b0110L, script.Eval(code));
+		}
+
+//		[TestMethod]
+//		public void Test99_Metatable_Shl_Operator()
+//		{
+//			string code = @"
+//local t1 = {value = 1}
+//local t2 = {value = 4}
+//local mt = {}
+//mt.__shl = function(a, b)
+//	local r = {}
+//	r.value = a.value << b.value
+//	return r
+//end
+//setmetatable(t1, mt)
+//setmetatable(t2, mt)
+//local r = t1 << t2
+//r.value
+//";
+//			var script = new Script();
+//			script.Context.Langs = new[] { "lua" };
+//			Assert.AreEqual(16L, script.Eval(code));
+//		}
+
+//		[TestMethod]
+//		public void Test99_Metatable_Shl_Operator_CompileAll()
+//		{
+//			string code = @"
+//local t1 = {value = 1}
+//local t2 = {value = 4}
+//local mt = {}
+//mt.__shl = function(a, b)
+//	local r = {}
+//	r.value = a.value << b.value
+//	return r
+//end
+//setmetatable(t1, mt)
+//setmetatable(t2, mt)
+//local r = t1 << t2
+//r.value
+//";
+//			var script = new Script();
+//			script.Options.CompileMode = ECompileMode.All;
+//			script.Context.Langs = new[] { "lua" };
+//			Assert.AreEqual(16L, script.Eval(code));
+//		}
+
+//		[TestMethod]
+//		public void Test100_Metatable_Shr_Operator()
+//		{
+//			string code = @"
+//local t1 = {value = 16}
+//local t2 = {value = 2}
+//local mt = {}
+//mt.__shr = function(a, b)
+//	local r = {}
+//	r.value = a.value >> b.value
+//	return r
+//end
+//setmetatable(t1, mt)
+//setmetatable(t2, mt)
+//local r = t1 >> t2
+//r.value
+//";
+//			var script = new Script();
+//			script.Context.Langs = new[] { "lua" };
+//			Assert.AreEqual(4L, script.Eval(code));
+//		}
+
+//		[TestMethod]
+//		public void Test100_Metatable_Shr_Operator_CompileAll()
+//		{
+//			string code = @"
+//local t1 = {value = 16}
+//local t2 = {value = 2}
+//local mt = {}
+//mt.__shr = function(a, b)
+//	local r = {}
+//	r.value = a.value >> b.value
+//	return r
+//end
+//setmetatable(t1, mt)
+//setmetatable(t2, mt)
+//local r = t1 >> t2
+//r.value
+//";
+//			var script = new Script();
+//			script.Options.CompileMode = ECompileMode.All;
+//			script.Context.Langs = new[] { "lua" };
+//			Assert.AreEqual(4L, script.Eval(code));
+//		}
+
+		[TestMethod]
+		public void Test101_Metatable_Bnot_Operator()
+		{
+			string code = @"
+local t = {value = 0}
+local mt = {}
+mt.__bnot = function(a)
+	local r = {}
+	r.value = ~a.value
+	return r
+end
+setmetatable(t, mt)
+local r = ~t
+r.value
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(-1L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test101_Metatable_Bnot_Operator_CompileAll()
+		{
+			string code = @"
+local t = {value = 0}
+local mt = {}
+mt.__bnot = function(a)
+	local r = {}
+	r.value = ~a.value
+	return r
+end
+setmetatable(t, mt)
+local r = ~t
+r.value
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(-1L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test102_Metatable_Arithmetic_Chain()
+		{
+			string code = @"
+local t1 = {value = 10}
+local t2 = {value = 3}
+local mt = {}
+mt.__add = function(a, b) local r = {} r.value = a.value + b.value return r end
+mt.__sub = function(a, b) local r = {} r.value = a.value - b.value return r end
+mt.__mul = function(a, b) local r = {} r.value = a.value * b.value return r end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = (t1 + t2) * t1 - t2
+r.value
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(127L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test102_Metatable_Arithmetic_Chain_CompileAll()
+		{
+			string code = @"
+local t1 = {value = 10}
+local t2 = {value = 3}
+local mt = {}
+mt.__add = function(a, b) local r = {} r.value = a.value + b.value return r end
+mt.__sub = function(a, b) local r = {} r.value = a.value - b.value return r end
+mt.__mul = function(a, b) local r = {} r.value = a.value * b.value return r end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = (t1 + t2) * t1 - t2
+r.value
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(127L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test103_Metatable_No_Sub_Operator()
+		{
+			string code = @"
+local t1 = {value = 10}
+local t2 = {value = 3}
+setmetatable(t1, {})
+setmetatable(t2, {})
+local ok, err = pcall(function() return t1 - t2 end)
+ok
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(false, script.Eval<bool>(code));
+		}
+
+		[TestMethod]
+		public void Test104_Metatable_No_Mul_Operator()
+		{
+			string code = @"
+local t1 = {value = 10}
+local t2 = {value = 3}
+setmetatable(t1, {})
+setmetatable(t2, {})
+local ok, err = pcall(function() return t1 * t2 end)
+ok
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(false, script.Eval<bool>(code));
+		}
+
+		[TestMethod]
+		public void Test105_Metatable_No_Lt_Operator()
+		{
+			string code = @"
+local t1 = {value = 5}
+local t2 = {value = 10}
+setmetatable(t1, {})
+setmetatable(t2, {})
+local ok, err = pcall(function() return t1 < t2 end)
+ok
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(false, script.Eval<bool>(code));
+		}
+
 		#endregion
 	}
 }

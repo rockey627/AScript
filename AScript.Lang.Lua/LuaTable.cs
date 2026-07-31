@@ -387,9 +387,23 @@ namespace AScript.Lang.Lua
 			return true;
 		}
 
+		public static string concat(LuaTable table1, LuaTable table2)
+		{
+			var addObj = table1.Metatable?["__concat"] ?? table2.Metatable?["__concat"];
+			if (addObj is Delegate del)
+			{
+				return (string)del.DynamicInvoke(table1, table2);
+			}
+			if (addObj is IFunctionObject functionObject)
+			{
+				return (string)functionObject.DynamicInvoke(table1, table2);
+			}
+			throw new Exceptions.ScriptRuntimeException($"table __concat function is not exists");
+		}
+
 		public static LuaTable operator +(LuaTable table1, LuaTable table2)
 		{
-			var addObj = table1.Metatable?["__add"];
+			var addObj = table1.Metatable?["__add"] ?? table2.Metatable?["__add"];
 			if (addObj is Delegate del)
 			{
 				return (LuaTable)del.DynamicInvoke(table1, table2);
@@ -399,6 +413,244 @@ namespace AScript.Lang.Lua
 				return (LuaTable)functionObject.DynamicInvoke(table1, table2);
 			}
 			throw new Exceptions.ScriptRuntimeException($"table __add function is not exists");
+		}
+
+		public static LuaTable operator -(LuaTable table1, LuaTable table2)
+		{
+			var subObj = table1.Metatable?["__sub"] ?? table2.Metatable?["__sub"];
+			if (subObj is Delegate del)
+			{
+				return (LuaTable)del.DynamicInvoke(table1, table2);
+			}
+			if (subObj is IFunctionObject functionObject)
+			{
+				return (LuaTable)functionObject.DynamicInvoke(table1, table2);
+			}
+			throw new Exceptions.ScriptRuntimeException($"table __sub function is not exists");
+		}
+
+		public static LuaTable operator *(LuaTable table1, LuaTable table2)
+		{
+			var mulObj = table1.Metatable?["__mul"] ?? table2.Metatable?["__mul"];
+			if (mulObj is Delegate del)
+			{
+				return (LuaTable)del.DynamicInvoke(table1, table2);
+			}
+			if (mulObj is IFunctionObject functionObject)
+			{
+				return (LuaTable)functionObject.DynamicInvoke(table1, table2);
+			}
+			throw new Exceptions.ScriptRuntimeException($"table __mul function is not exists");
+		}
+
+		public static LuaTable operator /(LuaTable table1, LuaTable table2)
+		{
+			var divObj = table1.Metatable?["__div"] ?? table2.Metatable?["__div"];
+			if (divObj is Delegate del)
+			{
+				return (LuaTable)del.DynamicInvoke(table1, table2);
+			}
+			if (divObj is IFunctionObject functionObject)
+			{
+				return (LuaTable)functionObject.DynamicInvoke(table1, table2);
+			}
+			throw new Exceptions.ScriptRuntimeException($"table __div function is not exists");
+		}
+
+		public static LuaTable operator %(LuaTable table1, LuaTable table2)
+		{
+			var modObj = table1.Metatable?["__mod"] ?? table2.Metatable?["__mod"];
+			if (modObj is Delegate del)
+			{
+				return (LuaTable)del.DynamicInvoke(table1, table2);
+			}
+			if (modObj is IFunctionObject functionObject)
+			{
+				return (LuaTable)functionObject.DynamicInvoke(table1, table2);
+			}
+			throw new Exceptions.ScriptRuntimeException($"table __mod function is not exists");
+		}
+
+		public static LuaTable operator -(LuaTable table)
+		{
+			var unmObj = table.Metatable?["__unm"];
+			if (unmObj is Delegate del)
+			{
+				return (LuaTable)del.DynamicInvoke(table);
+			}
+			if (unmObj is IFunctionObject functionObject)
+			{
+				return (LuaTable)functionObject.DynamicInvoke(table);
+			}
+			throw new Exceptions.ScriptRuntimeException($"table __unm function is not exists");
+		}
+
+		public static bool operator ==(LuaTable table1, LuaTable table2)
+		{
+			if (ReferenceEquals(table1, null)) return ReferenceEquals(table2, null);
+			if (ReferenceEquals(table2, null)) return false;
+			var eqObj = table1.Metatable?["__eq"] ?? table2.Metatable?["__eq"];
+			if (eqObj is Delegate del)
+			{
+				return (bool)del.DynamicInvoke(table1, table2);
+			}
+			if (eqObj is IFunctionObject functionObject)
+			{
+				return (bool)functionObject.DynamicInvoke(table1, table2);
+			}
+			// Default reference equality
+			return ReferenceEquals(table1, table2);
+		}
+
+		public static bool operator !=(LuaTable table1, LuaTable table2)
+		{
+			return !(table1 == table2);
+		}
+
+		public static bool operator <(LuaTable table1, LuaTable table2)
+		{
+			var ltObj = table1.Metatable?["__lt"];
+			if (ltObj is Delegate del)
+			{
+				return (bool)del.DynamicInvoke(table1, table2);
+			}
+			if (ltObj is IFunctionObject functionObject)
+			{
+				return (bool)functionObject.DynamicInvoke(table1, table2);
+			}
+			throw new Exceptions.ScriptRuntimeException($"table __lt function is not exists");
+		}
+
+		public static bool operator >(LuaTable table1, LuaTable table2)
+		{
+			var gtObj = table1.Metatable?["__gt"] ?? table2.Metatable?["__gt"];
+			if (gtObj is Delegate del)
+			{
+				return (bool)del.DynamicInvoke(table1, table2);
+			}
+			if (gtObj is IFunctionObject functionObject)
+			{
+				return (bool)functionObject.DynamicInvoke(table1, table2);
+			}
+			throw new Exceptions.ScriptRuntimeException($"table __lt function is not exists");
+		}
+
+		public static bool operator <=(LuaTable table1, LuaTable table2)
+		{
+			var leObj = table1.Metatable?["__le"] ?? table2.Metatable?["__le"];
+			if (leObj is Delegate del)
+			{
+				return (bool)del.DynamicInvoke(table1, table2);
+			}
+			if (leObj is IFunctionObject functionObject)
+			{
+				return (bool)functionObject.DynamicInvoke(table1, table2);
+			}
+			// In Lua, a <= b is defined as not (b < a)
+			var ltObj = table1.Metatable?["__lt"];
+			if (ltObj != null)
+			{
+				throw new Exceptions.ScriptRuntimeException($"table __le function is not exists");
+			}
+			throw new Exceptions.ScriptRuntimeException($"table __le function is not exists");
+		}
+
+		public static bool operator >=(LuaTable table1, LuaTable table2)
+		{
+			var geObj = table1.Metatable?["__ge"] ?? table2.Metatable?["__ge"];
+			if (geObj is Delegate del)
+			{
+				return (bool)del.DynamicInvoke(table1, table2);
+			}
+			if (geObj is IFunctionObject functionObject)
+			{
+				return (bool)functionObject.DynamicInvoke(table1, table2);
+			}
+			throw new Exceptions.ScriptRuntimeException($"table __ge function is not exists");
+		}
+
+		public static LuaTable operator &(LuaTable table1, LuaTable table2)
+		{
+			var bandObj = table1.Metatable?["__band"] ?? table2.Metatable?["__band"];
+			if (bandObj is Delegate del)
+			{
+				return (LuaTable)del.DynamicInvoke(table1, table2);
+			}
+			if (bandObj is IFunctionObject functionObject)
+			{
+				return (LuaTable)functionObject.DynamicInvoke(table1, table2);
+			}
+			throw new Exceptions.ScriptRuntimeException($"table __band function is not exists");
+		}
+
+		public static LuaTable operator |(LuaTable table1, LuaTable table2)
+		{
+			var borObj = table1.Metatable?["__bor"] ?? table2.Metatable?["__bor"];
+			if (borObj is Delegate del)
+			{
+				return (LuaTable)del.DynamicInvoke(table1, table2);
+			}
+			if (borObj is IFunctionObject functionObject)
+			{
+				return (LuaTable)functionObject.DynamicInvoke(table1, table2);
+			}
+			throw new Exceptions.ScriptRuntimeException($"table __bor function is not exists");
+		}
+
+		public static LuaTable operator ^(LuaTable table1, LuaTable table2)
+		{
+			var bxorObj = table1.Metatable?["__bxor"] ?? table2.Metatable?["__bxor"];
+			if (bxorObj is Delegate del)
+			{
+				return (LuaTable)del.DynamicInvoke(table1, table2);
+			}
+			if (bxorObj is IFunctionObject functionObject)
+			{
+				return (LuaTable)functionObject.DynamicInvoke(table1, table2);
+			}
+			throw new Exceptions.ScriptRuntimeException($"table __bxor function is not exists");
+		}
+
+		//public static LuaTable operator <<(LuaTable table1, LuaTable table2)
+		//{
+		//	var shlObj = table1.Metatable?["__shl"];
+		//	if (shlObj is Delegate del)
+		//	{
+		//		return (LuaTable)del.DynamicInvoke(table1, table2);
+		//	}
+		//	if (shlObj is IFunctionObject functionObject)
+		//	{
+		//		return (LuaTable)functionObject.DynamicInvoke(table1, table2);
+		//	}
+		//	throw new Exceptions.ScriptRuntimeException($"table __shl function is not exists");
+		//}
+
+		//public static LuaTable operator >>(LuaTable table1, LuaTable table2)
+		//{
+		//	var shrObj = table1.Metatable?["__shr"];
+		//	if (shrObj is Delegate del)
+		//	{
+		//		return (LuaTable)del.DynamicInvoke(table1, table2);
+		//	}
+		//	if (shrObj is IFunctionObject functionObject)
+		//	{
+		//		return (LuaTable)functionObject.DynamicInvoke(table1, table2);
+		//	}
+		//	throw new Exceptions.ScriptRuntimeException($"table __shr function is not exists");
+		//}
+
+		public static object operator ~(LuaTable table)
+		{
+			var bnotObj = table.Metatable?["__bnot"];
+			if (bnotObj is Delegate del)
+			{
+				return del.DynamicInvoke(table);
+			}
+			if (bnotObj is IFunctionObject functionObject)
+			{
+				return functionObject.DynamicInvoke(table);
+			}
+			throw new Exceptions.ScriptRuntimeException($"table __bnot function is not exists");
 		}
 
 		public override string ToString()
