@@ -11,6 +11,32 @@ namespace AScript.Lang.Lua
 		private readonly List<object> _list = new List<object>();
 		private readonly Dictionary<object, object> _dict = new Dictionary<object, object>();
 
+		public LuaTable Metatable
+		{
+			get
+			{
+				_dict.TryGetValue("__metatable", out var metatable);
+				return (LuaTable)metatable;
+			}
+			set => this["__metatable"] = value;
+		}
+
+		public IList<object> Array => _list;
+
+		public long ArrayLength
+		{
+			get
+			{
+				int n = 0;
+				for (int i = 0; i < _list.Count; i++)
+				{
+					if (_list[i] == null) break;
+					n++;
+				}
+				return n;
+			}
+		}
+
 		public object this[object key]
 		{
 			get
@@ -19,19 +45,26 @@ namespace AScript.Lang.Lua
 				{
 					if (index >= 1 && index <= _list.Count)
 					{
-						return _list[index - 1];
+						var result = _list[index - 1];
+						if (result != null) return result;
 					}
 				}
 				else if (key is long longIndex)
 				{
 					if (longIndex >= 1 && longIndex <= _list.Count)
 					{
-						return _list[(int)longIndex - 1];
+						var result = _list[(int)longIndex - 1];
+						if (result != null) return result;
 					}
 				}
-				else if (_dict.TryGetValue(key, out var value))
+				else if (_dict.TryGetValue(key, out var value) && value != null)
 				{
 					return value;
+				}
+				// 
+				if (TryGetFromIndex(key, out var value2))
+				{
+					return value2;
 				}
 				return null;
 			}
@@ -41,36 +74,82 @@ namespace AScript.Lang.Lua
 				{
 					if (index >= 1)
 					{
-						while (_list.Count < index)
+						if (_list.Count >= index && _list[index - 1] != null || !TrySetToNewIndex(key, value))
 						{
-							_list.Add(null);
+							while (_list.Count < index)
+							{
+								_list.Add(null);
+							}
+							_list[index - 1] = value;
 						}
-						_list[index - 1] = value;
 					}
 				}
 				else if (key is long longIndex)
 				{
 					if (longIndex >= 1)
 					{
-						while (_list.Count < longIndex)
+						int baseIndex = (int)longIndex - 1;
+						if (_list.Count > baseIndex && _list[baseIndex] != null || !TrySetToNewIndex(key, value))
 						{
-							_list.Add(null);
+							while (_list.Count < longIndex)
+							{
+								_list.Add(null);
+							}
+							_list[baseIndex] = value;
 						}
-						_list[(int)longIndex - 1] = value;
 					}
 				}
 				else
 				{
-					if (value == null)
-					{
-						_dict.Remove(key);
-					}
-					else
+					if (_dict.ContainsKey(key) || !TrySetToNewIndex(key, value))
 					{
 						_dict[key] = value;
 					}
 				}
 			}
+		}
+
+		private bool TryGetFromIndex(object key, out object value)
+		{
+			var indexObj = this.Metatable?["__index"];
+			if (indexObj is LuaTable indexTable)
+			{
+				value = indexTable[key];
+				return true;
+			}
+			if (indexObj is Delegate del)
+			{
+				value = del.DynamicInvoke(this, key);
+				return true;
+			}
+			if (indexObj is IFunctionObject functionObject)
+			{
+				value = functionObject.DynamicInvoke(this, key);
+				return true;
+			}
+			value = null;
+			return false;
+		}
+
+		private bool TrySetToNewIndex(object key, object value)
+		{
+			var indexObj = this.Metatable?["__newindex"];
+			if (indexObj is LuaTable indexTable)
+			{
+				indexTable[key] = value;
+				return true;
+			}
+			if (indexObj is Delegate del)
+			{
+				del.DynamicInvoke(this, key, value);
+				return true;
+			}
+			if (indexObj is IFunctionObject functionObject)
+			{
+				functionObject.DynamicInvoke(this, key, value);
+				return true;
+			}
+			return false;
 		}
 
 		// table.insert(t, value) - 在列表末尾插入元素
@@ -297,18 +376,6 @@ namespace AScript.Lang.Lua
 			return 4;
 		}
 
-		public IList<object> Array => _list;
-
-		//public object dynamic_get(object key)
-		//{
-		//	return this[key];
-		//}
-
-		//public void dynamic_set(object key, object value)
-		//{
-		//	this[key] = value;
-		//}
-
 		public override bool TryGetMember(GetMemberBinder binder, out object result)
 		{
 			return _dict.TryGetValue(binder.Name, out result);
@@ -318,6 +385,34 @@ namespace AScript.Lang.Lua
 		{
 			_dict[binder.Name] = value;
 			return true;
+		}
+
+		public static LuaTable operator +(LuaTable table1, LuaTable table2)
+		{
+			var addObj = table1.Metatable?["__add"];
+			if (addObj is Delegate del)
+			{
+				return (LuaTable)del.DynamicInvoke(table1, table2);
+			}
+			if (addObj is IFunctionObject functionObject)
+			{
+				return (LuaTable)functionObject.DynamicInvoke(table1, table2);
+			}
+			throw new Exceptions.ScriptRuntimeException($"table __add function is not exists");
+		}
+
+		public override string ToString()
+		{
+			var tostringObj = this.Metatable?["__tostring"];
+			if (tostringObj is Delegate del)
+			{
+				return (string)del.DynamicInvoke(this);
+			}
+			if (tostringObj is IFunctionObject functionObject)
+			{
+				return (string)functionObject.DynamicInvoke(this);
+			}
+			return base.ToString();
 		}
 	}
 }

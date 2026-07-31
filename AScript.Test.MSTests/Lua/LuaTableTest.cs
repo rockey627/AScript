@@ -30,6 +30,37 @@ namespace AScript.Test.MSTests.Lua
 			Assert.AreEqual(18L, dynamicTable.Age);
 		}
 
+		[TestMethod]
+		public void Test00_01()
+		{
+			string code = @"
+local t = {}
+t[3]='a'
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			script.Eval(code);
+			Assert.AreEqual(0L, script.Eval("#t"));
+			Assert.AreEqual("a", script.Eval("t[3]"));
+			Assert.AreEqual(null, script.Eval("t[1]"));
+		}
+
+		[TestMethod]
+		public void Test00_01_CompileAll()
+		{
+			string code = @"
+local t = {}
+t[3]='a'
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			script.Eval(code);
+			Assert.AreEqual(0L, script.Eval("#t"));
+			Assert.AreEqual("a", script.Eval("t[3]"));
+			Assert.AreEqual(null, script.Eval("t[1]"));
+		}
+
 		#region Table Creation and Access
 
 		[TestMethod]
@@ -1710,6 +1741,886 @@ t[1] .. ',' .. t[2] .. ',' .. t[3] .. ',' .. t.name
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
 			Assert.AreEqual("1,3,4,test", script.Eval<string>(code));
+		}
+
+		#endregion
+
+		#region Metatable
+
+		[TestMethod]
+		public void Test64_Metatable_Set_Get()
+		{
+			string code = @"
+local t = {}
+setmetatable(t, {__index={key='value'}})
+t.key
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("value", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test64_Metatable_Set_Get_CompileAll()
+		{
+			string code = @"
+local t = {}
+setmetatable(t, {__index={key='value'}})
+t.key
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("value", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test65_Metatable_Index_Table_Delegate()
+		{
+			string code = @"
+mytable = setmetatable({key1 = 'value1'}, {
+  __index = function(mytable, key)
+    if key == 'key2' then
+      return 'metatablevalue'
+    else
+      return nil
+    end
+  end
+})
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			script.Eval(code);
+			Assert.AreEqual("value1", script.Eval("mytable.key1"));
+			Assert.AreEqual("metatablevalue", script.Eval("mytable.key2"));
+		}
+
+		[TestMethod]
+		public void Test65_Metatable_Index_Table_Delegate_CompileAll()
+		{
+			string code = @"
+mytable = setmetatable({key1 = 'value1'}, {
+  __index = function(mytable, key)
+    if key == 'key2' then
+      return 'metatablevalue'
+    else
+      return nil
+    end
+  end
+})
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			script.Eval(code);
+			Assert.AreEqual("value1", script.Eval("mytable.key1"));
+			Assert.AreEqual("metatablevalue", script.Eval("mytable.key2"));
+		}
+
+		[TestMethod]
+		public void Test66_Metatable_Index_Table_Delegate_Array()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local proto = {}
+proto[1] = 'first'
+proto[2] = 'second'
+mt.__index = proto
+setmetatable(t, mt)
+t[1] .. ',' .. t[2]
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("first,second", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test66_Metatable_Index_Table_Delegate_Array_CompileAll()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local proto = {}
+proto[1] = 'first'
+proto[2] = 'second'
+mt.__index = proto
+setmetatable(t, mt)
+t[1] .. ',' .. t[2]
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("first,second", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test66_Metatable_Index_Table_Delegate_Array2()
+		{
+			string code = @"
+local t = {'a','b','c'}
+t[2]=null
+local mt = {}
+local proto = {}
+proto[1] = 'first'
+proto[2] = 'second'
+mt.__index = proto
+setmetatable(t, mt)
+t[1] .. ',' .. t[2]
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("a,second", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test66_Metatable_Index_Table_Delegate_Array2_CompileAll()
+		{
+			string code = @"
+local t = {'a','b','c'}
+t[2]=null
+local mt = {}
+local proto = {}
+proto[1] = 'first'
+proto[2] = 'second'
+mt.__index = proto
+setmetatable(t, mt)
+t[1] .. ',' .. t[2]
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("a,second", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test67_Metatable_Index_Not_Found()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local proto = {}
+proto.existing = 'value'
+mt.__index = proto
+setmetatable(t, mt)
+t.nonexistent
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(null, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test67_Metatable_Index_Not_Found_CompileAll()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local proto = {}
+proto.existing = 'value'
+mt.__index = proto
+setmetatable(t, mt)
+t.nonexistent
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(null, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test68_Metatable_Index_Override_Existing()
+		{
+			string code = @"
+local t = {name = 'instance'}
+local mt = {}
+local proto = {}
+proto.name = 'prototype'
+mt.__index = proto
+setmetatable(t, mt)
+t.name
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("instance", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test68_Metatable_Index_Override_Existing_CompileAll()
+		{
+			string code = @"
+local t = {name = 'instance'}
+local mt = {}
+local proto = {}
+proto.name = 'prototype'
+mt.__index = proto
+setmetatable(t, mt)
+t.name
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("instance", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test69_Metatable_NewIndex_Table()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local storage = {}
+mt.__newindex = storage
+setmetatable(t, mt)
+t.newkey = 'newvalue'
+storage.newkey
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("newvalue", script.Eval(code));
+			Assert.AreEqual(null, script.Eval("t.newkey"));
+		}
+
+		[TestMethod]
+		public void Test69_Metatable_NewIndex_Table_CompileAll()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local storage = {}
+mt.__newindex = storage
+setmetatable(t, mt)
+t.newkey = 'newvalue'
+storage.newkey
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("newvalue", script.Eval(code));
+			Assert.AreEqual(null, script.Eval("t.newkey"));
+		}
+
+		[TestMethod]
+		public void Test70_Metatable_Chained_Index()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local proto1 = {}
+local proto2 = {}
+proto2.deep = 'found'
+proto1.parent = proto2
+mt.__index = proto1
+setmetatable(t, mt)
+t.parent.deep
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("found", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test70_Metatable_Chained_Index_CompileAll()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local proto1 = {}
+local proto2 = {}
+proto2.deep = 'found'
+proto1.parent = proto2
+mt.__index = proto1
+setmetatable(t, mt)
+t.parent.deep
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("found", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test71_Metatable_Index_With_Array_And_Dict()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local proto = {}
+proto[1] = 'array_value'
+proto.dict = 'dict_value'
+mt.__index = proto
+setmetatable(t, mt)
+t[1] .. ',' .. t.dict
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("array_value,dict_value", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test71_Metatable_Index_With_Array_And_Dict_CompileAll()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local proto = {}
+proto[1] = 'array_value'
+proto.dict = 'dict_value'
+mt.__index = proto
+setmetatable(t, mt)
+t[1] .. ',' .. t.dict
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("array_value,dict_value", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test72_Metatable_NewIndex_Overwrite()
+		{
+			string code = @"
+local t = {key = 'original'}
+local mt = {}
+local storage = {}
+mt.__newindex = storage
+setmetatable(t, mt)
+t.key = 'modified'
+storage.key .. ',' .. t.key
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(",modified", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test72_Metatable_NewIndex_Overwrite_CompileAll()
+		{
+			string code = @"
+local t = {key = 'original'}
+local mt = {}
+local storage = {}
+mt.__newindex = storage
+setmetatable(t, mt)
+t.key = 'modified'
+storage.key .. ',' .. t.key
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(",modified", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test73_Metatable_Index_Numeric_Key_In_Prototype()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local proto = {}
+proto[100] = 'hundred'
+mt.__index = proto
+setmetatable(t, mt)
+t[100]
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("hundred", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test74_Metatable_NewIndex_Numeric_Key()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local storage = {}
+mt.__newindex = storage
+setmetatable(t, mt)
+t[5] = 'five'
+storage[5]
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("five", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test74_Metatable_NewIndex_Numeric_Key_CompileAll()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local storage = {}
+mt.__newindex = storage
+setmetatable(t, mt)
+t[5] = 'five'
+storage[5]
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("five", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test75_Metatable_Index_Own_And_Prototype()
+		{
+			string code = @"
+local t = {own = 'mine'}
+local mt = {}
+local proto = {}
+proto.proto_key = 'proto_value'
+mt.__index = proto
+setmetatable(t, mt)
+t.own .. ',' .. t.proto_key .. ',' .. tostring(t.missing)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("mine,proto_value,nil", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test75_Metatable_Index_Own_And_Prototype_CompileAll()
+		{
+			string code = @"
+local t = {own = 'mine'}
+local mt = {}
+local proto = {}
+proto.proto_key = 'proto_value'
+mt.__index = proto
+setmetatable(t, mt)
+t.own .. ',' .. t.proto_key .. ',' .. tostring(t.missing)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("mine,proto_value,nil", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test76_Metatable_Multiple_Keys()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local proto = {}
+proto.a = 1
+proto.b = 2
+proto.c = 3
+mt.__index = proto
+setmetatable(t, mt)
+t.a + t.b + t.c
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(6L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test76_Metatable_Multiple_Keys_CompileAll()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local proto = {}
+proto.a = 1
+proto.b = 2
+proto.c = 3
+mt.__index = proto
+setmetatable(t, mt)
+t.a + t.b + t.c
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(6L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test77_Metatable_Mixed_Read_Write()
+		{
+			string code = @"
+local t = {direct = 'direct_value'}
+local mt = {}
+local storage = {}
+local index_tbl = {}
+index_tbl.from_index = 'index_value'
+mt.__newindex = storage
+mt.__index = index_tbl
+setmetatable(t, mt)
+t.direct .. ',' .. t.from_index .. ',' .. tostring(t.new_key)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("direct_value,index_value,nil", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test77_Metatable_Mixed_Read_Write_CompileAll()
+		{
+			string code = @"
+local t = {direct = 'direct_value'}
+local mt = {}
+local storage = {}
+local index_tbl = {}
+index_tbl.from_index = 'index_value'
+mt.__newindex = storage
+mt.__index = index_tbl
+setmetatable(t, mt)
+t.direct .. ',' .. t.from_index .. ',' .. tostring(t.new_key)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("direct_value,index_value,nil", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test78_Metatable_Prototype_Inheritance()
+		{
+			string code = @"
+local child = {child_key = 'child_value'}
+local mt = {}
+local parent = {}
+parent.parent_key = 'parent_value'
+parent.another = 'another_value'
+mt.__index = parent
+setmetatable(child, mt)
+child.child_key .. ',' .. child.parent_key .. ',' .. child.another
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("child_value,parent_value,another_value", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test78_Metatable_Prototype_Inheritance_CompileAll()
+		{
+			string code = @"
+local child = {child_key = 'child_value'}
+local mt = {}
+local parent = {}
+parent.parent_key = 'parent_value'
+parent.another = 'another_value'
+mt.__index = parent
+setmetatable(child, mt)
+child.child_key .. ',' .. child.parent_key .. ',' .. child.another
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("child_value,parent_value,another_value", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test79_Metatable_Array_In_Prototype()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local proto = {}
+proto[1] = 100
+proto[2] = 200
+proto[3] = 300
+mt.__index = proto
+setmetatable(t, mt)
+t[1] + t[2] + t[3]
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(600L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test79_Metatable_Array_In_Prototype_CompileAll()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+local proto = {}
+proto[1] = 100
+proto[2] = 200
+proto[3] = 300
+mt.__index = proto
+setmetatable(t, mt)
+t[1] + t[2] + t[3]
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(600L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test80_Metatable_Add_Operator()
+		{
+			string code = @"
+local t1 = {value = 10}
+local t2 = {value = 20}
+local mt = {}
+mt.__add = function(a, b)
+	local r = {}
+	r.value = a.value + b.value
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 + t2
+r.value
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(30L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test80_Metatable_Add_Operator_CompileAll()
+		{
+			string code = @"
+local t1 = {value = 10}
+local t2 = {value = 20}
+local mt = {}
+mt.__add = function(a, b)
+	local r = {}
+	r.value = a.value + b.value
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 + t2
+r.value
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(30L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test81_Metatable_Tostring()
+		{
+			string code = @"
+local t = {1, 2, 3}
+local mt = {}
+mt.__tostring = function(tbl)
+	return '[' .. tbl[1] .. ',' .. tbl[2] .. ',' .. tbl[3] .. ']'
+end
+setmetatable(t, mt)
+tostring(t)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("[1,2,3]", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test81_Metatable_Tostring_CompileAll()
+		{
+			string code = @"
+local t = {1, 2, 3}
+local mt = {}
+mt.__tostring = function(tbl)
+	return '[' .. tbl[1] .. ',' .. tbl[2] .. ',' .. tbl[3] .. ']'
+end
+setmetatable(t, mt)
+tostring(t)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("[1,2,3]", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test82_Metatable_Tostring_Custom_Format()
+		{
+			string code = @"
+local t = {name = 'test', value = 42}
+local mt = {}
+mt.__tostring = function(tbl)
+	return 'Table:{name=' .. tbl.name .. ',value=' .. tbl.value .. '}'
+end
+setmetatable(t, mt)
+tostring(t)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("Table:{name=test,value=42}", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test82_Metatable_Tostring_Custom_Format_CompileAll()
+		{
+			string code = @"
+local t = {name = 'test', value = 42}
+local mt = {}
+mt.__tostring = function(tbl)
+	return 'Table:{name=' .. tbl.name .. ',value=' .. tbl.value .. '}'
+end
+setmetatable(t, mt)
+tostring(t)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("Table:{name=test,value=42}", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test83_Metatable_No_Add_Operator()
+		{
+			string code = @"
+local t1 = {value = 10}
+local t2 = {value = 20}
+setmetatable(t1, {})
+setmetatable(t2, {})
+local ok, err = pcall(function() return t1 + t2 end)
+ok
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(false, script.Eval<bool>(code));
+		}
+
+		[TestMethod]
+		public void Test83_Metatable_No_Add_Operator_CompileAll()
+		{
+			string code = @"
+local t1 = {value = 10}
+local t2 = {value = 20}
+setmetatable(t1, {})
+setmetatable(t2, {})
+local ok, err = pcall(function() return t1 + t2 end)
+ok
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(false, script.Eval<bool>(code));
+		}
+
+		[TestMethod]
+		public void Test84_Metatable_Add_Operator_Array_Concat()
+		{
+			string code = @"
+local t1 = {'a', 'b'}
+local t2 = {'c', 'd'}
+local mt = {}
+mt.__add = function(a, b)
+	local r = {}
+	r[1] = a[1] .. b[1]
+	r[2] = a[2] .. b[2]
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 + t2
+r[1] .. r[2]
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("acbd", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test84_Metatable_Add_Operator_Array_Concat_CompileAll()
+		{
+			string code = @"
+local t1 = {'a', 'b'}
+local t2 = {'c', 'd'}
+local mt = {}
+mt.__add = function(a, b)
+	local r = {}
+	r[1] = a[1] .. b[1]
+	r[2] = a[2] .. b[2]
+	return r
+end
+setmetatable(t1, mt)
+setmetatable(t2, mt)
+local r = t1 + t2
+r[1] .. r[2]
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("acbd", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test85_Metatable_Newindex_Function()
+		{
+			string code = @"
+local t = {}
+local captured = {}
+local mt = {}
+mt.__newindex = function(tbl, k, v)
+	captured[k] = v
+end
+setmetatable(t, mt)
+t.key1 = 'value1'
+t.key2 = 'value2'
+captured.key1 .. ',' .. captured.key2
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("value1,value2", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test85_Metatable_Newindex_Function_CompileAll()
+		{
+			string code = @"
+local t = {}
+local captured = {}
+local mt = {}
+mt.__newindex = function(tbl, k, v)
+	captured[k] = v
+end
+setmetatable(t, mt)
+t.key1 = 'value1'
+t.key2 = 'value2'
+captured.key1 .. ',' .. captured.key2
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("value1,value2", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test86_Metatable_Index_Function()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+mt.__index = function(tbl, k)
+	return 'custom_' .. k
+end
+setmetatable(t, mt)
+t.hello .. ',' .. t.world
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("custom_hello,custom_world", script.Eval<string>(code));
+		}
+
+		[TestMethod]
+		public void Test86_Metatable_Index_Function_CompileAll()
+		{
+			string code = @"
+local t = {}
+local mt = {}
+mt.__index = function(tbl, k)
+	return 'custom_' .. k
+end
+setmetatable(t, mt)
+t.hello .. ',' .. t.world
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("custom_hello,custom_world", script.Eval<string>(code));
 		}
 
 		#endregion

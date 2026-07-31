@@ -71,13 +71,14 @@ namespace AScript.Lang.Lua
 			AddFunc("[]", new IndexOperator(false, true));
 			AddFunc("..", ConcatFunction.Instance);
 			AddFunc("#", new LengthFunction(typeof(long)));
-			AddFunc<LuaTable, long>("#", table => table.Array.Count);
+			AddFunc<LuaTable, long>("#", table => table.ArrayLength);
 
 			AddFunc(typeof(Extensions.LuaCommonExtensions));
 			AddFunc(typeof(Extensions.LuaStringExtensions));
 
 			// Token处理器
 			AddTokenHandler("local", LuaLocalTokenHandler.Instance);
+			AddTokenHandler("null", NullTokenHandler.Instance);
 			AddTokenHandler("nil", NullTokenHandler.Instance);
 			AddTokenHandler("and", new OperatorTokenHandler("&&"));
 			AddTokenHandler("or", new OperatorTokenHandler("||"));

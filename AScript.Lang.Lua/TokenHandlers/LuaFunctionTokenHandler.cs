@@ -26,37 +26,41 @@ namespace AScript.Lang.Lua.TokenHandlers
 			}
 
 			// 函数名
-			var token = e.TokenReader.Read();
-			if (!token.HasValue)
+			var token = analyzer.ValidateNextToken(e.TokenReader);
+			//if (token.Value.Type != ETokenType.Word)
+			//{
+			//	throw new Exceptions.ScriptAnalyzingException($"invalid function name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column}), expect function name");
+			//}
+			string funcName;
+			if (token.Value.IsSymbol("("))
 			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid function at ({e.CurrentToken.Line},{e.CurrentToken.Column}), expect function name");
+				funcName = null;
 			}
-			if (token.Value.Type != ETokenType.Word)
+			else
 			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid function name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column}), expect function name");
-			}
-			string funcName = token.Value.Value;
+				funcName = token.Value.Value;
 
-			// 检查是否是方法调用 (name:name())
-			var nextToken = e.TokenReader.Read();
-			if (nextToken.HasValue && nextToken.Value.Value == ":")
-			{
-				// 方法调用，函数名变为 name:name
-				funcName = funcName + ":";
-				token = e.TokenReader.Read();
-				if (!token.HasValue || token.Value.Type != ETokenType.Word)
-				{
-					throw new Exceptions.ScriptAnalyzingException($"invalid method name at ({token.Value.Line},{token.Value.Column})");
-				}
-				funcName = funcName + token.Value.Value;
-			}
-			else if (nextToken.HasValue)
-			{
-				e.TokenReader.Push(nextToken.Value);
-			}
+				//// 检查是否是方法调用 (name:name())
+				//var nextToken = e.TokenReader.Read();
+				//if (nextToken.HasValue && nextToken.Value.Value == ":")
+				//{
+				//	// 方法调用，函数名变为 name:name
+				//	funcName = funcName + ":";
+				//	token = e.TokenReader.Read();
+				//	if (!token.HasValue || token.Value.Type != ETokenType.Word)
+				//	{
+				//		throw new Exceptions.ScriptAnalyzingException($"invalid method name at ({token.Value.Line},{token.Value.Column})");
+				//	}
+				//	funcName = funcName + token.Value.Value;
+				//}
+				//else if (nextToken.HasValue)
+				//{
+				//	e.TokenReader.Push(nextToken.Value);
+				//}
 
-			// 参数列表
-			analyzer.ValidateNextToken(e.TokenReader, "(");
+				// 参数列表
+				analyzer.ValidateNextToken(e.TokenReader, "(");
+			}
 			var argNames = e.Ignore ? null : new List<string>();
 			token = e.TokenReader.Read();
 			while (true)

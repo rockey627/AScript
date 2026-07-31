@@ -192,7 +192,7 @@ namespace AScript.Operators
 					declaredType = e.Context.GetVarType(varName);
 				}
 
-				if (e.Options.Dynamic ?? e.Context.IsDynamicLang() ?? false)
+				if (e.Options?.Dynamic ?? e.Context.IsDynamicLang() ?? false)
 				{
 					// 动态语言
 				}

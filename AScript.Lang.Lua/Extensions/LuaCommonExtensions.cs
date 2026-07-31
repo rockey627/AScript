@@ -25,7 +25,7 @@ namespace AScript.Lang.Lua.Extensions
 						for (int j = 0; j < list.Count; j++)
 						{
 							if (j > 0) Console.Write("\t");
-							Console.Write(list[j]);
+							Console.Write(tostring(list[j]));
 						}
 						continue;
 					}
@@ -37,7 +37,7 @@ namespace AScript.Lang.Lua.Extensions
 						for (int j = 0; j < properties.Length; j++)
 						{
 							if (j > 0) Console.Write("\t");
-							Console.Write(properties[j].GetValue(v));
+							Console.Write(tostring(properties[j].GetValue(v)));
 						}
 					}
 					else if (typeName.StartsWith("ValueTuple`"))
@@ -46,16 +46,23 @@ namespace AScript.Lang.Lua.Extensions
 						for (int j = 0; j < fields.Length; j++)
 						{
 							if (j > 0) Console.Write("\t");
-							Console.Write(fields[j].GetValue(v));
+							Console.Write(tostring(fields[j].GetValue(v)));
 						}
 					}
 					else
 					{
-						Console.Write(v);
+						Console.Write(tostring(v));
 					}
 				}
 			}
 			Console.WriteLine();
+		}
+
+		public static string tostring(object obj)
+		{
+			if (obj == null) return "nil";
+			if (obj is bool b) return b ? "true" : "false";
+			return obj.ToString();
 		}
 
 		public static string type(object obj)
@@ -87,6 +94,17 @@ namespace AScript.Lang.Lua.Extensions
 				yield return ((long)(i + 1), table.Array[i]);
 #endif
 			}
+		}
+
+		public static LuaTable setmetatable(LuaTable table, LuaTable metatable)
+		{
+			table.Metatable = metatable;
+			return table;
+		}
+
+		public static LuaTable getmetatable(LuaTable table)
+		{
+			return table.Metatable;
 		}
 	}
 }
