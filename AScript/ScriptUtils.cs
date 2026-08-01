@@ -1148,5 +1148,66 @@ namespace AScript
 			}
 			return false;
 		}
+
+		/// <summary>
+		/// 动态调用 DynamicObject 的方法（运行时执行）
+		/// </summary>
+		public static bool TryInvokeDynamicObject(DynamicObject target, string methodName, object[] args, out object result)
+		{
+			var binder = Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(
+						Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags.None,
+						methodName, // 成员名称，对应你的方法名或属性名等
+						new[] { typeof(object[]), typeof(object) },
+						null,
+						new[]
+						{
+							Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags.None, null),
+							Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags.IsOut, null)
+						}
+					);
+			var dynamicArgs = new object[] { binder, args, null };
+			var success = (bool)ExpressionUtils.Method_DynamicObject_TryInvokeMember.Invoke(target, dynamicArgs);
+			if (success)
+			{
+				result = dynamicArgs[2];
+				return true;
+			}
+			result = null;
+			return false;
+		}
+
+		public static object InvokeDynamicObject(DynamicObject target, string methodName, object[] args)
+		{
+			TryInvokeDynamicObject(target, methodName, args, out var result);
+			return result;
+		}
+
+		/// <summary>
+		/// 构建动态调用 DynamicObject 方法的表达式
+		/// </summary>
+		public static Expression BuildDynamicInvoke(BuildContext buildContext, ScriptContext scriptContext, Expression target, string methodName, Expression[] argExprs)
+		{
+			// 构建数组表达式: new object[] { arg1, arg2, ... }
+			Expression argsArray;
+			if (argExprs == null || argExprs.Length == 0)
+			{
+				argsArray = Expression.NewArrayBounds(typeof(object), Expression.Constant(0));
+			}
+			else
+			{
+				var initializers = new Expression[argExprs.Length];
+				for (int i = 0; i < argExprs.Length; i++)
+				{
+					initializers[i] = argExprs[i].Type.IsValueType
+						? Expression.Convert(argExprs[i], typeof(object))
+						: argExprs[i];
+				}
+				argsArray = Expression.NewArrayInit(typeof(object), initializers);
+			}
+
+			// 调用辅助方法: ScriptUtils.InvokeDynamicObject(target, methodName, args)
+			var method = typeof(ScriptUtils).GetMethod("InvokeDynamicObject", new[] { typeof(DynamicObject), typeof(string), typeof(object[]) });
+			return Expression.Call(method, target, Expression.Constant(methodName), argsArray);
+		}
 	}
 }

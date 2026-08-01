@@ -1,7 +1,6 @@
 ﻿using AScript.Exceptions;
 using System;
 using System.Dynamic;
-using Microsoft.CSharp.RuntimeBinder;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -119,20 +118,10 @@ namespace AScript.Nodes
 
 				if (v0 is DynamicObject dynamicObject)
 				{
-					var binder = Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(
-						CSharpBinderFlags.None,
-						this.Name, // 成员名称，对应你的方法名或属性名等
-						new[] { typeof(object[]), typeof(object) },
-						null,
-						new[] { CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null), CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.IsOut, null) }
-					);
-					var dynamicArgs = new object[] { binder, argValues, null };
-					var dynamicSuccess = (bool)ExpressionUtils.Method_DynamicObject_TryInvokeMember.Invoke(v0, dynamicArgs);
-					if (dynamicSuccess)
+					if (ScriptUtils.TryInvokeDynamicObject(dynamicObject, this.Name, argValues, out var result))
 					{
-						var dynamicResult = dynamicArgs[2];
-						returnType = dynamicResult?.GetType() ?? typeof(object);
-						return dynamicResult;
+						returnType = result?.GetType() ?? typeof(object);
+						return result;
 					}
 				}
 
@@ -295,20 +284,10 @@ namespace AScript.Nodes
 
 				if (v0 is DynamicObject dynamicObject)
 				{
-					var binder = Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(
-						CSharpBinderFlags.None,
-						this.Name, // 成员名称，对应你的方法名或属性名等
-						new[] { typeof(object[]), typeof(object) },
-						null,
-						new[] { CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null), CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.IsOut, null) }
-					);
-					var dynamicArgs = new object[] { binder, argValues, null };
-					var dynamicSuccess = (bool)ExpressionUtils.Method_DynamicObject_TryInvokeMember.Invoke(v0, dynamicArgs);
-					if (dynamicSuccess)
+					if (ScriptUtils.TryInvokeDynamicObject(dynamicObject, this.Name, argValues, out var result))
 					{
-						var dynamicResult = dynamicArgs[2];
-						var returnType = dynamicResult?.GetType() ?? typeof(object);
-						return new EvalResult(dynamicResult, returnType);
+						var returnType = result?.GetType() ?? typeof(object);
+						return new EvalResult(result, returnType);
 					}
 				}
 
@@ -463,8 +442,8 @@ namespace AScript.Nodes
 
 				if (typeof(DynamicObject).IsAssignableFrom(v0.Type))
 				{
-					// 动态调用方法
-
+					// 动态调用 DynamicObject 的方法
+					return ScriptUtils.BuildDynamicInvoke(buildContext, scriptContext, v0, this.Name, argExprs);
 				}
 
 				try
