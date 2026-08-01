@@ -743,6 +743,17 @@ namespace AScript.Operators
 					if (expr != null) expressions.Add(expr);
 				}
 			}
+			else if (rightType.IsArray)
+			{
+				minCount = tupleNode.Items.Count;
+				for (int i = 0; i < minCount; i++)
+				{
+					var item = tupleNode.Items[i];
+					var value = Expression.ArrayAccess(right, Expression.Constant(i));
+					var expr = BuildDeconstruct(e, item, value);
+					if (expr != null) expressions.Add(expr);
+				}
+			}
 			else if (typeof(IList).IsAssignableFrom(rightType))
 			{
 				minCount = tupleNode.Items.Count;
