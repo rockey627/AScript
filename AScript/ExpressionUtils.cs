@@ -41,6 +41,8 @@ namespace AScript
 
 		public static readonly MethodInfo Method_Delegate_DynamicInvoke = typeof(Delegate).GetMethod("DynamicInvoke", new Type[] { typeof(object[]) });
 
+		public static readonly MethodInfo Method_DynamicObject_TryInvokeMember = typeof(DynamicObject).GetMethod("TryInvokeMember", BindingFlags.Instance | BindingFlags.Public);
+
 		public static readonly MethodInfo Method_String_Concat = typeof(string).GetMethod("Concat", new Type[] { typeof(string) });
 		public static readonly MethodInfo Method_String_Concat_object = typeof(string).GetMethod("Concat", new Type[] { typeof(object) });
 		public static readonly MethodInfo Method_String_Concat2 = typeof(string).GetMethod("Concat", new Type[] { typeof(string), typeof(string) });

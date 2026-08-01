@@ -396,6 +396,52 @@ namespace AScript.Lang.Lua
 			return true;
 		}
 
+		public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
+		{
+			var v = this[binder.Name];
+			if (v is CustomFunctionObject customFunctionObject)
+			{
+				v = customFunctionObject.Compile(null);
+				this[binder.Name] = v;
+			}
+			if (v is Delegate del)
+			{
+				// 检查是否需要插入 self 参数
+				var parameters = del.Method.GetParameters();
+				bool needsSelfInsert = false;
+				if (parameters.Length > 0)
+				{
+					int index = 0;
+					if (parameters[index].ParameterType.FullName == "System.Runtime.CompilerServices.Closure")
+					{
+						index++;
+					}
+					if (parameters[index].ParameterType == typeof(LuaTable) &&
+						parameters[index].Name == "self")
+					{
+						needsSelfInsert = true;
+					}
+				}
+				if (needsSelfInsert)
+				{
+					if (args == null || args.Length == 0)
+					{
+						args = new object[] { this };
+					}
+					else
+					{
+						var newArgs = new object[args.Length + 1];
+						newArgs[0] = this;
+						System.Array.Copy(args, 0, newArgs, 1, args.Length);
+						args = newArgs;
+					}
+				}
+				result = del.DynamicInvoke(args);
+				return true;
+			}
+			return base.TryInvokeMember(binder, args, out result);
+		}
+
 		public static string concat(LuaTable table1, LuaTable table2)
 		{
 			var addObj = table1.Metatable?["__concat"] ?? table2.Metatable?["__concat"];

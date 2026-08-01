@@ -1,5 +1,7 @@
 ﻿using AScript.Exceptions;
 using System;
+using System.Dynamic;
+using Microsoft.CSharp.RuntimeBinder;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -112,6 +114,25 @@ namespace AScript.Nodes
 					{
 						returnType = method.ReturnType;
 						return ScriptUtils.DynamicInvoke(context, options, control, method, v0, argValues, argTypes, useScriptContext, hasClosure, paramsIndex);
+					}
+				}
+
+				if (v0 is DynamicObject dynamicObject)
+				{
+					var binder = Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(
+						CSharpBinderFlags.None,
+						this.Name, // 成员名称，对应你的方法名或属性名等
+						new[] { typeof(object[]), typeof(object) },
+						null,
+						new[] { CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null), CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.IsOut, null) }
+					);
+					var dynamicArgs = new object[] { binder, argValues, null };
+					var dynamicSuccess = (bool)ExpressionUtils.Method_DynamicObject_TryInvokeMember.Invoke(v0, dynamicArgs);
+					if (dynamicSuccess)
+					{
+						var dynamicResult = dynamicArgs[2];
+						returnType = dynamicResult?.GetType() ?? typeof(object);
+						return dynamicResult;
 					}
 				}
 
@@ -272,6 +293,25 @@ namespace AScript.Nodes
 					}
 				}
 
+				if (v0 is DynamicObject dynamicObject)
+				{
+					var binder = Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(
+						CSharpBinderFlags.None,
+						this.Name, // 成员名称，对应你的方法名或属性名等
+						new[] { typeof(object[]), typeof(object) },
+						null,
+						new[] { CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null), CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.IsOut, null) }
+					);
+					var dynamicArgs = new object[] { binder, argValues, null };
+					var dynamicSuccess = (bool)ExpressionUtils.Method_DynamicObject_TryInvokeMember.Invoke(v0, dynamicArgs);
+					if (dynamicSuccess)
+					{
+						var dynamicResult = dynamicArgs[2];
+						var returnType = dynamicResult?.GetType() ?? typeof(object);
+						return new EvalResult(dynamicResult, returnType);
+					}
+				}
+
 				var argValues2 = new object[argValues == null ? 1 : argValues.Length + 1];
 				argValues2[0] = v0;
 				if (argValues != null && argValues.Length > 0)
@@ -419,45 +459,14 @@ namespace AScript.Nodes
 					{
 						return ScriptUtils.BuildInvoke(buildContext, scriptContext, options, method, v0, this.Args, argExprs, useScriptContext, hasClosure, paramsIndex);
 					}
-
-					//var methodInfo = v0.Type.GetMethod(this.Name, argTypes);
-					//if (methodInfo == null)
-					//{
-					//	var argTypes2 = new Type[argTypes.Length + 1];
-					//	argTypes2[0] = typeof(ScriptContext);
-					//	Array.Copy(argTypes, 0, argTypes2, 1, argTypes.Length);
-					//	methodInfo = v0.Type.GetMethod(this.Name, argTypes2);
-					//	if (methodInfo != null)
-					//	{
-					//		argTypes = argTypes2;
-					//		Expression[] argExpressions2;
-					//		if (argExprs == null || argExprs.Length == 0)
-					//		{
-					//			argExpressions2 = new Expression[1];
-					//		}
-					//		else
-					//		{
-					//			argExpressions2 = new Expression[argExprs.Length + 1];
-					//			Array.Copy(argExprs, 0, argExpressions2, 1, argExprs.Length);
-					//		}
-					//		argExpressions2[0] = buildContext.GetScriptContextParameter();
-					//		argExprs = argExpressions2;
-					//	}
-					//}
 				}
 
-				//var argValues2 = new Expression[argExprs == null ? 1 : argExprs.Length + 1];
-				//argValues2[0] = v0;
-				//if (argExprs != null && argExprs.Length > 0)
-				//{
-				//	Array.Copy(argExprs, 0, argValues2, 1, argExprs.Length);
-				//}
-				//var argTypes2 = new Type[argTypes == null ? 1 : argTypes.Length + 1];
-				//argTypes2[0] = v0.Type;
-				//if (argTypes != null && argTypes.Length > 0)
-				//{
-				//	Array.Copy(argTypes, 0, argTypes2, 1, argTypes.Length);
-				//}
+				if (typeof(DynamicObject).IsAssignableFrom(v0.Type))
+				{
+					// 动态调用方法
+
+				}
+
 				try
 				{
 					int argsLength = this.Args == null ? 0 : this.Args.Length;
