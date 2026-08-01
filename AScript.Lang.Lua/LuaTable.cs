@@ -114,6 +114,11 @@ namespace AScript.Lang.Lua
 			var indexObj = this.Metatable?["__index"];
 			if (indexObj is LuaTable indexTable)
 			{
+				if (ReferenceEquals(indexTable, this))
+				{
+					value = null;
+					return false;
+				}
 				value = indexTable[key];
 				return true;
 			}
@@ -136,6 +141,10 @@ namespace AScript.Lang.Lua
 			var indexObj = this.Metatable?["__newindex"];
 			if (indexObj is LuaTable indexTable)
 			{
+				if (ReferenceEquals(indexTable, this))
+				{
+					return false;
+				}
 				indexTable[key] = value;
 				return true;
 			}
@@ -489,6 +498,7 @@ namespace AScript.Lang.Lua
 		{
 			if (ReferenceEquals(table1, null)) return ReferenceEquals(table2, null);
 			if (ReferenceEquals(table2, null)) return false;
+			if (ReferenceEquals(table1, table2)) return true;
 			var eqObj = table1.Metatable?["__eq"] ?? table2.Metatable?["__eq"];
 			if (eqObj is Delegate del)
 			{
@@ -498,8 +508,7 @@ namespace AScript.Lang.Lua
 			{
 				return (bool)functionObject.DynamicInvoke(table1, table2);
 			}
-			// Default reference equality
-			return ReferenceEquals(table1, table2);
+			return false;
 		}
 
 		public static bool operator !=(LuaTable table1, LuaTable table2)
