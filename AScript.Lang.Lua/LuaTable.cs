@@ -597,19 +597,19 @@ namespace AScript.Lang.Lua
 			throw new Exceptions.ScriptRuntimeException($"table __bor function is not exists");
 		}
 
-		public static LuaTable operator ^(LuaTable table1, LuaTable table2)
-		{
-			var bxorObj = table1.Metatable?["__bxor"] ?? table2.Metatable?["__bxor"];
-			if (bxorObj is Delegate del)
-			{
-				return (LuaTable)del.DynamicInvoke(table1, table2);
-			}
-			if (bxorObj is IFunctionObject functionObject)
-			{
-				return (LuaTable)functionObject.DynamicInvoke(table1, table2);
-			}
-			throw new Exceptions.ScriptRuntimeException($"table __bxor function is not exists");
-		}
+		//public static LuaTable operator ^(LuaTable table1, LuaTable table2)
+		//{
+		//	var bxorObj = table1.Metatable?["__bxor"] ?? table2.Metatable?["__bxor"];
+		//	if (bxorObj is Delegate del)
+		//	{
+		//		return (LuaTable)del.DynamicInvoke(table1, table2);
+		//	}
+		//	if (bxorObj is IFunctionObject functionObject)
+		//	{
+		//		return (LuaTable)functionObject.DynamicInvoke(table1, table2);
+		//	}
+		//	throw new Exceptions.ScriptRuntimeException($"table __bxor function is not exists");
+		//}
 
 		//public static LuaTable operator <<(LuaTable table1, LuaTable table2)
 		//{

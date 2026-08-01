@@ -53,6 +53,9 @@ namespace AScript.Lang.Lua
 			AddFunc("^", PowerOperator.Instance);
 			AddFunc("//", LuaFloorDivideOperator.Instance);
 			AddFunc("~", NotOperator.Instance);
+			AddFunc("&", AndOperator.Instance);
+			AddFunc("|", OrOperator.Instance);
+			AddFunc("~", XOrOperator.Instance);
 
 			// 关系运算符
 			AddFunc("<", LessThanOperator.Instance);
