@@ -106,5 +106,18 @@ namespace AScript.Lang.Lua.Extensions
 		{
 			return table.Metatable;
 		}
+
+		public static object[] pcall(Delegate func, params object[] args)
+		{
+			try
+			{
+				var result = func.DynamicInvoke(args);
+				return new object[] { true, result };
+			}
+			catch (Exception ex)
+			{
+				return new object[] { false, ex.Message };
+			}
+		}
 	}
 }
