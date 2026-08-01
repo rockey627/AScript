@@ -979,10 +979,19 @@ namespace AScript
 			{
 				var c0 = number[0];
 				var c1 = number[1];
-				if (c0 == '0' && (c1 == 'x' || c1 == 'X'))
+				if (c0 == '0')
 				{
-					if (number.Length <= 10 && !int2long) return System.Convert.ToInt32(number, 16);
-					return System.Convert.ToInt64(number, 16);
+					if (c1 == 'x' || c1 == 'X')
+					{
+						if (number.Length <= 10 && !int2long) return System.Convert.ToInt32(number, 16);
+						return System.Convert.ToInt64(number, 16);
+					}
+					if (c1 == 'b' || c1 == 'B')
+					{
+						var binStr = number.Substring(2);
+						if (binStr.Length <= 32 && !int2long) return System.Convert.ToInt32(binStr, 2);
+						return System.Convert.ToInt64(binStr, 2);
+					}
 				}
 			}
 			if (int2long) return long.Parse(number);
