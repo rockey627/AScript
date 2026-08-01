@@ -10,6 +10,7 @@ namespace AScript.Operators
 
 		public void Build(FunctionBuildArgs e)
 		{
+			if (e.Args.Count != 2) return;
 			var leftNode = e.Args[0];
 			var rightNode = e.Args[1];
 			Expression left = null, right = null;

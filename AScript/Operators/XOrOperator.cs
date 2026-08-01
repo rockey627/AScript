@@ -12,16 +12,19 @@ namespace AScript.Operators
 
 		public void Build(FunctionBuildArgs e)
 		{
-			var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
-			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-			if (left.Type == typeof(object) || right.Type == typeof(object)
-					|| !ExpressionUtils.ConvertMaxType(ref left, ref right))
+			if (e.Args.Count == 2)
 			{
-				e.Result = Expression.Dynamic(ExpressionUtils.Binder_XOr, typeof(object), left, right);
-			}
-			else
-			{
-				e.Result = Expression.ExclusiveOr(left, right);
+				var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
+				var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+				if (left.Type == typeof(object) || right.Type == typeof(object)
+						|| !ExpressionUtils.ConvertMaxType(ref left, ref right))
+				{
+					e.Result = Expression.Dynamic(ExpressionUtils.Binder_XOr, typeof(object), left, right);
+				}
+				else
+				{
+					e.Result = Expression.ExclusiveOr(left, right);
+				}
 			}
 		}
 

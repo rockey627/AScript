@@ -24,7 +24,7 @@ namespace AScript.Operators
 					e.Result = Expression.Negate(arg);
 				}
 			}
-			else
+			else if (e.Args.Count == 2)
 			{
 				var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
 				var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);

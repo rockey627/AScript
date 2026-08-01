@@ -15,15 +15,18 @@ namespace AScript.Operators
 
 		public void Build(FunctionBuildArgs e)
 		{
-			var arg = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
-			if (arg.Type == typeof(object))
+			if (e.Args.Count == 1)
 			{
-				//e.Result = Expression.Dynamic(ExpressionUtils.Binder_Not, typeof(object), arg);
-				e.Result = Expression.Call(Method_Not, arg);
-			}
-			else
-			{
-				e.Result = Expression.Not(arg);
+				var arg = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
+				if (arg.Type == typeof(object))
+				{
+					//e.Result = Expression.Dynamic(ExpressionUtils.Binder_Not, typeof(object), arg);
+					e.Result = Expression.Call(Method_Not, arg);
+				}
+				else
+				{
+					e.Result = Expression.Not(arg);
+				}
 			}
 		}
 

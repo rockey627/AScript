@@ -17,6 +17,7 @@ namespace AScript.Operators
 
 		public void Build(FunctionBuildArgs e)
 		{
+			if (e.Args.Count != 3) return;
 			var target = e.BuildArgs(0);// e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
 			var start = e.BuildArgs(1) ?? Expression.Constant(0);// e.Args[1]?.Build(e.BuildContext, e.ScriptContext, e.Options) ?? Expression.Constant(0);
 			var end = e.BuildArgs(2);// e.Args[2]?.Build(e.BuildContext, e.ScriptContext, e.Options);// ?? ExpressionUtils.Constant_null;

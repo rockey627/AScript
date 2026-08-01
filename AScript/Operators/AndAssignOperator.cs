@@ -11,6 +11,7 @@ namespace AScript.Operators
 
 		public void Build(FunctionBuildArgs e)
 		{
+			if (e.Args.Count != 2) return;
 			var arg0 = e.Args[0];
 			Expression left;
 			if (arg0 is VariableNode leftVar)

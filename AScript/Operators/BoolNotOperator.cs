@@ -9,6 +9,7 @@ namespace AScript.Operators
 
 		public void Build(FunctionBuildArgs e)
 		{
+			if (e.Args.Count != 1) return;
 			var arg = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
 			if (arg.Type == typeof(object))
 			{
