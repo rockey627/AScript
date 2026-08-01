@@ -233,7 +233,9 @@ namespace AScript
 				index++;
 				useScriptContext = true;
 			}
-			if (methodParameters.Length - argTypesCount > index)
+			//if (methodParameters.Length - argTypesCount > index)
+			if (!hasParams && methodParameters.Length - argTypesCount > index
+				|| hasParams && methodParameters.Length - argTypesCount - 1 > index)
 			{
 				paramsIndex = -1;
 				return false;
@@ -248,10 +250,8 @@ namespace AScript
 					break;
 				}
 			}
-			paramsIndex = -1;
+			paramsIndex = hasParams ? j : -1;
 			if (matched || !hasParams || j + index < methodParameters.Length - 1) return matched;
-
-			paramsIndex = j;
 			return true;
 		}
 
