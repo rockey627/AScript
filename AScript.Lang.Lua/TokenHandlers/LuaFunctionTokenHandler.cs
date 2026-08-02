@@ -8,7 +8,7 @@ namespace AScript.Lang.Lua.TokenHandlers
 	/// <summary>
 	/// <![CDATA[
 	/// function name(args) body end
-	/// function name.modname(args) body end  (方法调用)
+	/// function ClassName:name(args) body end
 	/// ]]>
 	/// </summary>
 	public class LuaFunctionTokenHandler : ITokenHandler
@@ -27,10 +27,7 @@ namespace AScript.Lang.Lua.TokenHandlers
 
 			// 函数名
 			var token = analyzer.ValidateNextToken(e.TokenReader);
-			//if (token.Value.Type != ETokenType.Word)
-			//{
-			//	throw new Exceptions.ScriptAnalyzingException($"invalid function name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column}), expect function name");
-			//}
+			string className = null;
 			string funcName;
 			if (token.Value.IsSymbol("("))
 			{
@@ -40,23 +37,17 @@ namespace AScript.Lang.Lua.TokenHandlers
 			{
 				funcName = token.Value.Value;
 
-				//// 检查是否是方法调用 (name:name())
-				//var nextToken = e.TokenReader.Read();
-				//if (nextToken.HasValue && nextToken.Value.Value == ":")
-				//{
-				//	// 方法调用，函数名变为 name:name
-				//	funcName = funcName + ":";
-				//	token = e.TokenReader.Read();
-				//	if (!token.HasValue || token.Value.Type != ETokenType.Word)
-				//	{
-				//		throw new Exceptions.ScriptAnalyzingException($"invalid method name at ({token.Value.Line},{token.Value.Column})");
-				//	}
-				//	funcName = funcName + token.Value.Value;
-				//}
-				//else if (nextToken.HasValue)
-				//{
-				//	e.TokenReader.Push(nextToken.Value);
-				//}
+				// function ClassName:name(args) body end
+				var nextToken = analyzer.ValidateNextToken(e.TokenReader);
+				if (nextToken.Value.IsSymbol(":"))
+				{
+					className = funcName;
+					funcName = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word).Value.Value;
+				}
+				else
+				{
+					e.TokenReader.Push(nextToken.Value);
+				}
 
 				// 参数列表
 				analyzer.ValidateNextToken(e.TokenReader, "(");
