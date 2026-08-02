@@ -443,7 +443,7 @@ namespace AScript.Nodes
 				if (typeof(DynamicObject).IsAssignableFrom(v0.Type))
 				{
 					// 动态调用 DynamicObject 的方法
-					return ScriptUtils.BuildDynamicInvoke(buildContext, scriptContext, v0, this.Name, argExprs);
+					return ScriptUtils.BuildDynamicObject(buildContext, scriptContext, v0, this.Name, argExprs);
 				}
 
 				try

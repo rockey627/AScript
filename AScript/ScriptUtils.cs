@@ -1185,7 +1185,7 @@ namespace AScript
 		/// <summary>
 		/// 构建动态调用 DynamicObject 方法的表达式
 		/// </summary>
-		public static Expression BuildDynamicInvoke(BuildContext buildContext, ScriptContext scriptContext, Expression target, string methodName, Expression[] argExprs)
+		public static Expression BuildDynamicObject(BuildContext buildContext, ScriptContext scriptContext, Expression target, string methodName, Expression[] argExprs)
 		{
 			// 构建数组表达式: new object[] { arg1, arg2, ... }
 			Expression argsArray;
