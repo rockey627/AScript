@@ -162,17 +162,18 @@ namespace AScript.Lang.Lua
 		}
 
 		// table.insert(t, value) - 在列表末尾插入元素
-		public static void insert(LuaTable table, object value)
+		public static void insert(object table, object value)
 		{
-			insert(table, table._list.Count + 1, value);
+			var luaTable = (LuaTable)table;
+			insert(luaTable, luaTable._list.Count + 1, value);
 		}
 
 		// table.insert(t, pos, value) - 在指定位置插入元素
 		// pos: 1-based 索引，支持负数（-1 表示倒数第一个元素之前）
-		public static void insert(LuaTable table, object pos, object value)
+		public static void insert(object table, object pos, object value)
 		{
 			var position = Convert.ToInt64(pos);
-			insert(table, position, value);
+			insert((LuaTable)table, position, value);
 		}
 
 		public static void insert(LuaTable table, long pos, object value)
@@ -409,6 +410,7 @@ namespace AScript.Lang.Lua
 				// 检查是否需要插入 self 参数
 				var parameters = del.Method.GetParameters();
 				bool needsSelfInsert = false;
+				int argsLength = args == null ? 0 : args.Length;
 				if (parameters.Length > 0)
 				{
 					int index = 0;
@@ -416,15 +418,15 @@ namespace AScript.Lang.Lua
 					{
 						index++;
 					}
-					if (parameters[index].ParameterType == typeof(LuaTable) &&
-						parameters[index].Name == "self")
+					if (//parameters[index].ParameterType == typeof(LuaTable) &&
+						parameters.Length - index > argsLength)
 					{
 						needsSelfInsert = true;
 					}
 				}
 				if (needsSelfInsert)
 				{
-					if (args == null || args.Length == 0)
+					if (argsLength == 0)
 					{
 						args = new object[] { this };
 					}

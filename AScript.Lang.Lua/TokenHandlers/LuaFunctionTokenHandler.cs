@@ -1,3 +1,4 @@
+using AScript.Lang.Lua.Nodes;
 using AScript.Nodes;
 using AScript.Syntaxs;
 using System;
@@ -92,12 +93,26 @@ namespace AScript.Lang.Lua.TokenHandlers
 
 			if (!e.Ignore)
 			{
-				var args = new DefineVarNode[argNames.Count];
-				for (int i = 0; i < argNames.Count; i++)
+				// 当使用 function ClassName:name(args) 语法时，需要自动添加 self 参数
+				DefineVarNode[] args;
+				if (!string.IsNullOrEmpty(className))
 				{
-					args[i] = new DefineVarNode { Name = argNames[i], SystemType = typeof(object) };
+					args = new DefineVarNode[argNames.Count + 1];
+					args[0] = new DefineVarNode { Name = "self", SystemType = typeof(LuaTable) };
+					for (int i = 0; i < argNames.Count; i++)
+					{
+						args[i + 1] = new DefineVarNode { Name = argNames[i], SystemType = typeof(object) };
+					}
 				}
-				var defineNode = new DefineFuncNode { Name = funcName, Args = args, Body = body, ReturnSystemType = typeof(object) };
+				else
+				{
+					args = new DefineVarNode[argNames.Count];
+					for (int i = 0; i < argNames.Count; i++)
+					{
+						args[i] = new DefineVarNode { Name = argNames[i], SystemType = typeof(object) };
+					}
+				}
+				var defineNode = new LuaDefineFuncNode { ClassName = className, Name = funcName, Args = args, Body = body };
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, defineNode);
 			}
 		}
