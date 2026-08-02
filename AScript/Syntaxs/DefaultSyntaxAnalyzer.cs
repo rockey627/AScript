@@ -113,7 +113,12 @@ namespace AScript.Syntaxs
 				if (control != null && (control.Break || control.Terminal || control.Continue)) break;
 				var nextToken = tokenReader.Read();
 				if (!nextToken.HasValue) break;
-				if (nextToken.Value.Value == ";" || nextToken.Value.Value == "," || nextToken.Value.Value == ":") continue;
+				//if (nextToken.Value.Value == ";" || nextToken.Value.Value == "," || nextToken.Value.Value == ":") continue;
+				if (nextToken.Value.Value == ";" || nextToken.Value.Value == ",") continue;
+				if (nextToken.Value.Value == ":" && !scriptContext.GetOperatorPriority(":").HasValue && !scriptContext.IsKeywords(":"))
+				{
+					continue;
+				}
 				tokenReader.Push(nextToken.Value);
 				if (nextToken.Value.Value == "}" || nextToken.Value.Value == ")" || nextToken.Value.Value == "]") break;
 				if (ScriptUtils.Contains(endTokens, nextToken.Value.Value)) break;
@@ -143,7 +148,12 @@ namespace AScript.Syntaxs
 				if (control != null && (control.Break || control.Terminal || control.Continue)) break;
 				var nextToken = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 				if (!nextToken.HasValue) break;
-				if (nextToken.Value.Value == ";" || nextToken.Value.Value == "," || nextToken.Value.Value == ":") continue;
+				//if (nextToken.Value.Value == ";" || nextToken.Value.Value == "," || nextToken.Value.Value == ":") continue;
+				if (nextToken.Value.Value == ";" || nextToken.Value.Value == ",") continue;
+				if (nextToken.Value.Value == ":" && !scriptContext.GetOperatorPriority(":").HasValue && !scriptContext.IsKeywords(":"))
+				{
+					continue;
+				}
 				tokenReader.Push(nextToken.Value);
 				if (nextToken.Value.Value == "}" || nextToken.Value.Value == ")" || nextToken.Value.Value == "]") break;
 				if (ScriptUtils.Contains(endTokens, nextToken.Value.Value)) break;
@@ -181,7 +191,12 @@ namespace AScript.Syntaxs
 					}
 					treeBuilder.AddData(buildContext, scriptContext, options, control, t.Value.Value, typeof(string));
 				}
-				else if (t.Value.Value == ")" || t.Value.Value == "]" || t.Value.Value == "}" || t.Value.Value == "," || t.Value.Value == ";" || t.Value.Value == ":")
+				else if (t.Value.Value == ")" || t.Value.Value == "]" || t.Value.Value == "}" || t.Value.Value == "," || t.Value.Value == ";")// || t.Value.Value == ":")
+				{
+					tokenReader.Push(t.Value);
+					break;
+				}
+				else if (t.Value.Value == ":" && !scriptContext.GetOperatorPriority(":").HasValue && !scriptContext.IsKeywords(":"))
 				{
 					tokenReader.Push(t.Value);
 					break;
@@ -512,7 +527,12 @@ namespace AScript.Syntaxs
 					}
 					await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, t.Value.Value, typeof(string), cancellationToken).ConfigureAwait(false);
 				}
-				else if (t.Value.Value == ")" || t.Value.Value == "]" || t.Value.Value == "}" || t.Value.Value == "," || t.Value.Value == ";" || t.Value.Value == ":")
+				else if (t.Value.Value == ")" || t.Value.Value == "]" || t.Value.Value == "}" || t.Value.Value == "," || t.Value.Value == ";")// || t.Value.Value == ":")
+				{
+					tokenReader.Push(t.Value);
+					break;
+				}
+				else if (t.Value.Value == ":" && !scriptContext.GetOperatorPriority(":").HasValue && !scriptContext.IsKeywords(":"))
 				{
 					tokenReader.Push(t.Value);
 					break;
