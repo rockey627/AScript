@@ -430,12 +430,14 @@ namespace AScript.Lang.Lua
 				var parameters = del.Method.GetParameters();
 				bool needsSelfInsert = false;
 				int argsLength = args == null ? 0 : args.Length;
+				int parametersLength = parameters.Length;
 				if (parameters.Length > 0)
 				{
 					int index = 0;
 					if (parameters[index].ParameterType.FullName == "System.Runtime.CompilerServices.Closure")
 					{
 						index++;
+						parametersLength -= 1;
 					}
 					if (//parameters[index].ParameterType == typeof(LuaTable) &&
 						parameters.Length - index > argsLength)
@@ -454,6 +456,20 @@ namespace AScript.Lang.Lua
 						var newArgs = new object[argsLength + 1];
 						newArgs[0] = this;
 						System.Array.Copy(args, 0, newArgs, 1, argsLength);
+						args = newArgs;
+					}
+					argsLength = args.Length;
+				}
+				if (parametersLength > argsLength)
+				{
+					if (args == null || argsLength == 0)
+					{
+						args = new object[parametersLength];
+					}
+					else
+					{
+						var newArgs = new object[parametersLength];
+						System.Array.Copy(args, newArgs, argsLength);
 						args = newArgs;
 					}
 				}

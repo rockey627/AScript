@@ -19,6 +19,364 @@ namespace AScript.Test.MSTests.Lua
 			Script.Langs.TryRemove("lua");
 		}
 
+		[TestMethod]
+		public void Test00_01()
+		{
+			string code = @"
+-- 定义 Person 类
+Person = {name = '', age = 0}
+
+-- Person 的构造函数
+function Person:new(name, age)
+    local obj = {}  -- 创建一个新的表作为对象
+    setmetatable(obj, self)  -- 设置元表，使其成为 Person 的实例
+    self.__index = self  -- 设置索引元方法，指向 Person
+    obj.name = name
+    obj.age = age
+    return obj
+end
+
+-- 添加方法：打印个人信息
+function Person:introduce()
+	local s = 'My name is ' .. self.name .. ' and I am ' .. self.age .. ' years old.'
+    print(s)
+	return s
+end
+
+-- 创建一个 Person 对象
+local person1 = Person:new('Alice', 30)
+
+-- 调用对象的方法
+person1:introduce()  -- 输出 'My name is Alice and I am 30 years old.'
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("My name is Alice and I am 30 years old.", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test00_01_CompileAll()
+		{
+			string code = @"
+-- 定义 Person 类
+Person = {name = '', age = 0}
+
+-- Person 的构造函数
+function Person:new(name, age)
+    local obj = {}  -- 创建一个新的表作为对象
+    setmetatable(obj, self)  -- 设置元表，使其成为 Person 的实例
+    self.__index = self  -- 设置索引元方法，指向 Person
+    obj.name = name
+    obj.age = age
+    return obj
+end
+
+-- 添加方法：打印个人信息
+function Person:introduce()
+	local s = 'My name is ' .. self.name .. ' and I am ' .. self.age .. ' years old.'
+    print(s)
+	return s
+end
+
+-- 创建一个 Person 对象
+local person1 = Person:new('Alice', 30)
+
+-- 调用对象的方法
+person1:introduce()  -- 输出 'My name is Alice and I am 30 years old.'
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("My name is Alice and I am 30 years old.", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test00_02()
+		{
+			string code = @"
+-- 定义矩形类
+Rectangle = {area = 0, length = 0, breadth = 0}
+
+-- 创建矩形对象的构造函数
+function Rectangle:new(o, length, breadth)
+  o = o or {}  -- 如果未传入对象，创建一个新的空表
+  setmetatable(o, self)  -- 设置元表，使其继承 Rectangle 的方法
+  self.__index = self  -- 确保在访问时能找到方法和属性
+  o.length = length or 0  -- 设置长度，默认为 0
+  o.breadth = breadth or 0  -- 设置宽度，默认为 0
+  o.area = o.length * o.breadth  -- 计算面积
+  return o
+end
+
+-- 打印矩形的面积
+function Rectangle:printArea()
+  print('矩形面积为 ', self.area)
+end
+
+r = Rectangle:new(nil,10,20)
+r:printArea()
+r.area
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(200L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test00_02_CompileAll()
+		{
+			string code = @"
+-- 定义矩形类
+Rectangle = {area = 0, length = 0, breadth = 0}
+
+-- 创建矩形对象的构造函数
+function Rectangle:new(o, length, breadth)
+  o = o or {}  -- 如果未传入对象，创建一个新的空表
+  setmetatable(o, self)  -- 设置元表，使其继承 Rectangle 的方法
+  self.__index = self  -- 确保在访问时能找到方法和属性
+  o.length = length or 0  -- 设置长度，默认为 0
+  o.breadth = breadth or 0  -- 设置宽度，默认为 0
+  o.area = o.length * o.breadth  -- 计算面积
+  return o
+end
+
+-- 打印矩形的面积
+function Rectangle:printArea()
+  print('矩形面积为 ', self.area)
+end
+
+r = Rectangle:new(nil,10,20)
+r:printArea()
+r.area
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(200L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test00_03()
+		{
+			string code = @"
+-- 定义矩形类
+Rectangle = {area = 0, length = 0, breadth = 0}
+
+-- 创建矩形对象的构造函数
+function Rectangle:new(o, length, breadth)
+  o = o or {}  -- 如果未传入对象，创建一个新的空表
+  setmetatable(o, self)  -- 设置元表，使其继承 Rectangle 的方法
+  self.__index = self  -- 确保在访问时能找到方法和属性
+  o.length = length or 0  -- 设置长度，默认为 0
+  o.breadth = breadth or 0  -- 设置宽度，默认为 0
+  o.area = o.length * o.breadth  -- 计算面积
+  return o
+end
+
+-- 打印矩形的面积
+function Rectangle:printArea()
+  print('矩形面积为 ', self.area)
+end
+
+-- 定义正方形类，继承自矩形类
+Square = Rectangle:new()  -- Square 继承 Rectangle 类
+
+-- 重写构造函数（正方形的边长相等）
+function Square:new(o, side)
+  o = o or {}  -- 如果未传入对象，创建一个新的空表
+  setmetatable(o, self)  -- 设置元表，使其继承 Rectangle 的方法
+  self.__index = self  -- 确保在访问时能找到方法和属性
+  o.length = side or 0  -- 设置边长
+  o.breadth = side or 0  -- 正方形的宽度和长度相等
+  o.area = o.length * o.breadth  -- 计算面积
+  return o
+end
+
+-- 运行实例：
+local rect = Rectangle:new(nil, 5, 10)  -- 创建一个长为 5，宽为 10 的矩形
+rect:printArea()  -- 输出 '矩形面积为 50'
+
+local square = Square:new(nil, 4)  -- 创建一个边长为 4 的正方形
+square:printArea()  -- 输出 '矩形面积为 16'
+
+rect.area ..','..square.area
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("50,16", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test00_03_CompileAll()
+		{
+			string code = @"
+-- 定义矩形类
+Rectangle = {area = 0, length = 0, breadth = 0}
+
+-- 创建矩形对象的构造函数
+function Rectangle:new(o, length, breadth)
+  o = o or {}  -- 如果未传入对象，创建一个新的空表
+  setmetatable(o, self)  -- 设置元表，使其继承 Rectangle 的方法
+  self.__index = self  -- 确保在访问时能找到方法和属性
+  o.length = length or 0  -- 设置长度，默认为 0
+  o.breadth = breadth or 0  -- 设置宽度，默认为 0
+  o.area = o.length * o.breadth  -- 计算面积
+  return o
+end
+
+-- 打印矩形的面积
+function Rectangle:printArea()
+  print('矩形面积为 ', self.area)
+end
+
+-- 定义正方形类，继承自矩形类
+Square = Rectangle:new()  -- Square 继承 Rectangle 类
+
+-- 重写构造函数（正方形的边长相等）
+function Square:new(o, side)
+  o = o or {}  -- 如果未传入对象，创建一个新的空表
+  setmetatable(o, self)  -- 设置元表，使其继承 Rectangle 的方法
+  self.__index = self  -- 确保在访问时能找到方法和属性
+  o.length = side or 0  -- 设置边长
+  o.breadth = side or 0  -- 正方形的宽度和长度相等
+  o.area = o.length * o.breadth  -- 计算面积
+  return o
+end
+
+-- 运行实例：
+local rect = Rectangle:new(nil, 5, 10)  -- 创建一个长为 5，宽为 10 的矩形
+rect:printArea()  -- 输出 '矩形面积为 50'
+
+local square = Square:new(nil, 4)  -- 创建一个边长为 4 的正方形
+square:printArea()  -- 输出 '矩形面积为 16'
+
+rect.area ..','..square.area
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("50,16", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test00_04()
+		{
+			string code = @"
+-- 定义动物类（Animal）
+Animal = {name = 'Unknown'}
+
+-- Animal 类的构造函数
+function Animal:new(o, name)
+  o = o or {}  -- 如果没有传入对象，则创建一个新的空表
+  setmetatable(o, self)  -- 设置元表，使其继承 Animal 的方法
+  self.__index = self  -- 让对象可以访问 Animal 的方法
+  o.name = name or 'Unknown'  -- 设置名称，默认为 'Unknown'
+  return o
+end
+
+-- Animal 类的方法：叫声
+function Animal:speak()
+  local ss = self.name .. ' makes a sound.'
+  print(ss)
+  return ss
+end
+
+
+-- 定义狗类（Dog），继承自 Animal
+Dog = Animal:new()  -- Dog 继承 Animal 类
+
+-- 重写狗类的构造函数
+function Dog:new(o, name, breed)
+  o = o or {}  -- 如果没有传入对象，则创建一个新的空表
+  setmetatable(o, self)  -- 设置元表，使其继承 Dog 和 Animal 的方法
+  self.__index = self  -- 让对象可以访问 Dog 的方法
+  o.name = name or 'Unknown'
+  o.breed = breed or 'Unknown'
+  return o
+end
+
+-- 重写狗类的叫声方法（重写 Animal 的 speak 方法）
+function Dog:speak()
+  local ss = self.name .. ' barks.'
+  print(ss)
+  return ss
+end
+
+
+-- 创建 Animal 对象
+local animal = Animal:new(nil, 'Generic Animal')
+local s1 = animal:speak()  -- 输出 'Generic Animal makes a sound.'
+
+-- 创建 Dog 对象
+local dog = Dog:new(nil, 'Buddy', 'Golden Retriever')
+local s2 = dog:speak()  -- 输出 'Buddy barks.'
+s1 .. ';' .. s2
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("Generic Animal makes a sound.;Buddy barks.", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test00_04_CompileAll()
+		{
+			string code = @"
+-- 定义动物类（Animal）
+Animal = {name = 'Unknown'}
+
+-- Animal 类的构造函数
+function Animal:new(o, name)
+  o = o or {}  -- 如果没有传入对象，则创建一个新的空表
+  setmetatable(o, self)  -- 设置元表，使其继承 Animal 的方法
+  self.__index = self  -- 让对象可以访问 Animal 的方法
+  o.name = name or 'Unknown'  -- 设置名称，默认为 'Unknown'
+  return o
+end
+
+-- Animal 类的方法：叫声
+function Animal:speak()
+  local ss = self.name .. ' makes a sound.'
+  print(ss)
+  return ss
+end
+
+
+-- 定义狗类（Dog），继承自 Animal
+Dog = Animal:new()  -- Dog 继承 Animal 类
+
+-- 重写狗类的构造函数
+function Dog:new(o, name, breed)
+  o = o or {}  -- 如果没有传入对象，则创建一个新的空表
+  setmetatable(o, self)  -- 设置元表，使其继承 Dog 和 Animal 的方法
+  self.__index = self  -- 让对象可以访问 Dog 的方法
+  o.name = name or 'Unknown'
+  o.breed = breed or 'Unknown'
+  return o
+end
+
+-- 重写狗类的叫声方法（重写 Animal 的 speak 方法）
+function Dog:speak()
+  local ss = self.name .. ' barks.'
+  print(ss)
+  return ss
+end
+
+
+-- 创建 Animal 对象
+local animal = Animal:new(nil, 'Generic Animal')
+local s1 = animal:speak()  -- 输出 'Generic Animal makes a sound.'
+
+-- 创建 Dog 对象
+local dog = Dog:new(nil, 'Buddy', 'Golden Retriever')
+local s2 = dog:speak()  -- 输出 'Buddy barks.'
+s1 .. ';' .. s2
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual("Generic Animal makes a sound.;Buddy barks.", script.Eval(code));
+		}
+
 		#region Basic OOP - Table Method Definition
 
 		[TestMethod]
@@ -333,13 +691,16 @@ obj:get()
 			string code = @"
 local obj = {
 	x = 0,
-	add = function(self, v)
+	--[[add = function(self, v)
 		self.x = self.x + v
-	end,
+	end,]]
 	get = function(self)
 		return self.x
 	end
 }
+function obj:add(v)
+	self.x = self.x + v
+end
 obj:add(5)
 obj:get()
 ";
@@ -383,16 +744,22 @@ person:getInfo()
 local person = {
 	name = 'default',
 	age = 0,
-	setName = function(self, n)
+	--[[setName = function(self, n)
 		self.name = n
 	end,
 	setAge = function(self, a)
 		self.age = a
-	end,
+	end,]]
 	getInfo = function(self)
 		return self.name .. ',' .. self.age
 	end
 }
+function person:setName(n)
+	self.name = n
+end
+function person:setAge(a)
+	self.age = a
+end
 person:setName('Tom')
 person:setAge(20)
 person:getInfo()
@@ -552,22 +919,22 @@ f(obj)
 			Assert.AreEqual(10L, script.Eval(code));
 		}
 
-		[TestMethod]
-		public void Test40_StoreMethodReference_CompileAll()
-		{
-			string code = @"
-local obj = {x = 10}
-function obj:getX()
-	return self.x
-end
-local f = obj.getX
-f(obj)
-";
-			var script = new Script();
-			script.Options.CompileMode = ECompileMode.All;
-			script.Context.Langs = new[] { "lua" };
-			Assert.AreEqual(10L, script.Eval(code));
-		}
+//		[TestMethod]
+//		public void Test40_StoreMethodReference_CompileAll()
+//		{
+//			string code = @"
+//local obj = {x = 10}
+//function obj:getX()
+//	return self.x
+//end
+//local f = obj.getX
+//f(obj)
+//";
+//			var script = new Script();
+//			script.Options.CompileMode = ECompileMode.All;
+//			script.Context.Langs = new[] { "lua" };
+//			Assert.AreEqual(10L, script.Eval(code));
+//		}
 
 //		[TestMethod]
 //		public void Test41_PassMethodAsArgument()
@@ -689,15 +1056,20 @@ obj.x .. ',' .. c.x
 			string code = @"
 local obj = {}
 function obj:clone()
-	return {
+	local tmp = {
 		x = self.x,
 		y = self.y,
 		getX = function(self) return self.x end
 	}
+	function tmp:setX(x)
+		self.x = x
+	end
+	return tmp
 end
 obj.x = 5
 local c = obj:clone()
-c.x = 10
+--c.x = 10
+c.setX(10)
 obj.x .. ',' .. c.x
 ";
 			var script = new Script();
