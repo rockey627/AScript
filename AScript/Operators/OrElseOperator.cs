@@ -27,13 +27,21 @@ namespace AScript.Operators
 				if (!ExpressionUtils.ConvertMaxType(ref arg0, ref arg1))
 				//if (arg0.Type != arg1.Type)
 				{
-					if (arg0.Type != typeof(object))
+					//if (arg0.Type != typeof(object))
+					//{
+					//	arg0 = Expression.Convert(arg0, typeof(object));
+					//}
+					//if (arg1.Type != typeof(object))
+					//{
+					//	arg1 = Expression.Convert(arg1, typeof(object));
+					//}
+					if (arg0.Type == typeof(object) && arg1.Type != typeof(object))
 					{
-						arg0 = Expression.Convert(arg0, typeof(object));
+						arg0 = Expression.Convert(arg0, arg1.Type);
 					}
-					if (arg1.Type != typeof(object))
+					else if (arg1.Type == typeof(object) && arg0.Type != typeof(object))
 					{
-						arg1 = Expression.Convert(arg1, typeof(object));
+						arg1 = Expression.Convert(arg1, arg0.Type);
 					}
 				}
 				e.Result = Expression.Condition(
