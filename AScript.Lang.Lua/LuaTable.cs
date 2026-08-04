@@ -402,8 +402,27 @@ namespace AScript.Lang.Lua
 			var v = this[binder.Name];
 			if (v is CustomFunctionObject customFunctionObject)
 			{
-				v = customFunctionObject.Compile(null);
-				this[binder.Name] = v;
+				//v = customFunctionObject.Compile(null);
+				//this[binder.Name] = v;
+				var parametersLength = customFunctionObject.Function.ArgNames?.Length ?? 0;
+				int argsLength = args == null ? 0 : args.Length;
+				bool needsSelfInsert = parametersLength - argsLength >= 1;
+				if (needsSelfInsert)
+				{
+					if (argsLength == 0)
+					{
+						args = new object[] { this };
+					}
+					else
+					{
+						var newArgs = new object[argsLength + 1];
+						newArgs[0] = this;
+						System.Array.Copy(args, 0, newArgs, 1, args.Length);
+						args = newArgs;
+					}
+				}
+				result = customFunctionObject.DynamicInvoke(args);
+				return true;
 			}
 			if (v is Delegate del)
 			{
@@ -432,9 +451,9 @@ namespace AScript.Lang.Lua
 					}
 					else
 					{
-						var newArgs = new object[args.Length + 1];
+						var newArgs = new object[argsLength + 1];
 						newArgs[0] = this;
-						System.Array.Copy(args, 0, newArgs, 1, args.Length);
+						System.Array.Copy(args, 0, newArgs, 1, argsLength);
 						args = newArgs;
 					}
 				}

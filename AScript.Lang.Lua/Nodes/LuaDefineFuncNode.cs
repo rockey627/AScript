@@ -11,14 +11,15 @@ namespace AScript.Lang.Lua.Nodes
 		private static readonly PropertyInfo LuaTable_Item_Property = typeof(LuaTable).GetProperty("Item");
 
 		public string ClassName { get; set; }
+		public ITreeNode ClassNode { get; set; }
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
-			if (string.IsNullOrEmpty(ClassName))
+			if (this.ClassNode == null)
 			{
 				return base.Eval(context, options, control, out returnType);
 			}
-			var table = context.EvalVar(this.ClassName);
+			var table = this.ClassNode.Eval(context, options, control, out _);
 			if (!(table is LuaTable luaTable))
 			{
 				throw new Exceptions.ScriptRuntimeException($"invalid expression 'function {this.ClassName}:{this.Name}', {this.ClassName} is not a table");
@@ -40,13 +41,12 @@ namespace AScript.Lang.Lua.Nodes
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
-			if (string.IsNullOrEmpty(this.ClassName))
+			if (this.ClassNode == null)
 			{
 				return base.Build(buildContext, scriptContext, options);
 			}
 			// 获取 table 的 Expression
-			var luaTableExpr = new VariableNode(this.ClassName).Build(buildContext, scriptContext, options);
-
+			var luaTableExpr = this.ClassNode.Build(buildContext, scriptContext, options);
 			// 保存 fieldName 并设置 this.Name = null
 			string fieldName = this.Name;
 			this.Name = null;
@@ -74,7 +74,7 @@ namespace AScript.Lang.Lua.Nodes
 		{
 			base.Clear();
 
-			this.ClassName = null;
+			this.ClassNode = null;
 		}
 	}
 }

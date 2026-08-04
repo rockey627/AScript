@@ -29,6 +29,7 @@ namespace AScript.Lang.Lua.TokenHandlers
 			// 函数名
 			var token = analyzer.ValidateNextToken(e.TokenReader);
 			string className = null;
+			ITreeNode classNode = null;
 			string funcName;
 			if (token.Value.IsSymbol("("))
 			{
@@ -43,6 +44,7 @@ namespace AScript.Lang.Lua.TokenHandlers
 				if (nextToken.Value.IsSymbol(":"))
 				{
 					className = funcName;
+					classNode = PoolManage.CreateVariableNode(className);
 					funcName = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word).Value.Value;
 				}
 				else
@@ -112,7 +114,7 @@ namespace AScript.Lang.Lua.TokenHandlers
 						args[i] = new DefineVarNode { Name = argNames[i], SystemType = typeof(object) };
 					}
 				}
-				var defineNode = new LuaDefineFuncNode { ClassName = className, Name = funcName, Args = args, Body = body };
+				var defineNode = new LuaDefineFuncNode { ClassNode = classNode, ClassName = className, Name = funcName, Args = args, Body = body };
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, defineNode);
 			}
 		}
