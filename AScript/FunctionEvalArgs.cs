@@ -130,11 +130,12 @@ namespace AScript
 				else
 				{
 					var value = arg.Eval(this.Context, this.Options, this.Control, out var type);
+					var valueType = value?.GetType() ?? type;
 					this.ArgValues[i] = value;
-					this.ArgTypes[i] = value is CustomFunctionObject ? typeof(Delegate) : type;
+					this.ArgTypes[i] = value is CustomFunctionObject ? typeof(Delegate) : valueType;
 					if (!(arg is ObjectNode))
 					{
-						this.Args[i] = PoolManage.CreateObjectNode(value, type);
+						this.Args[i] = PoolManage.CreateObjectNode(value, valueType);
 					}
 				}
 			}
@@ -157,11 +158,12 @@ namespace AScript
 				else
 				{
 					var result = await arg.EvalAsync(this.Context, this.Options, this.Control, cancellationToken).ConfigureAwait(false);
+					var valueType = result.Value?.GetType() ?? result.Type;
 					this.ArgValues[i] = result.Value;
-					this.ArgTypes[i] = result.Value is CustomFunctionObject ? typeof(Delegate) : result.Type;
+					this.ArgTypes[i] = result.Value is CustomFunctionObject ? typeof(Delegate) : valueType;
 					if (!(arg is ObjectNode))
 					{
-						this.Args[i] = PoolManage.CreateObjectNode(result.Value, result.Type);
+						this.Args[i] = PoolManage.CreateObjectNode(result.Value, valueType);
 					}
 				}
 			}

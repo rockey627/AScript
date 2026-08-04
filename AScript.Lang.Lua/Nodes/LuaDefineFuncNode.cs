@@ -47,6 +47,10 @@ namespace AScript.Lang.Lua.Nodes
 			}
 			// 获取 table 的 Expression
 			var luaTableExpr = this.ClassNode.Build(buildContext, scriptContext, options);
+			if (!typeof(LuaTable).IsAssignableFrom(luaTableExpr.Type))
+			{
+				luaTableExpr = Expression.Convert(luaTableExpr, typeof(LuaTable));
+			}
 			// 保存 fieldName 并设置 this.Name = null
 			string fieldName = this.Name;
 			this.Name = null;

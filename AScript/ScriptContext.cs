@@ -6,13 +6,12 @@ using AScript.TokenHandlers;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
+using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace AScript
 {
@@ -893,6 +892,21 @@ namespace AScript
 						return customFunctionObject.DynamicInvoke(this, functionEvalArgs.ArgValues);
 					}
 				}
+				// dynamic对象
+				if (functionEvalArgs.ArgValues != null && functionEvalArgs.ArgValues.Length > 0)
+				{
+					var arg0 = functionEvalArgs.ArgValues[0];
+					if (arg0 is DynamicObject dynamicObject)
+					{
+						var dynamicArgs = new object[functionEvalArgs.ArgValues.Length - 1];
+						Array.Copy(functionEvalArgs.ArgValues, 1, dynamicArgs, 0, dynamicArgs.Length);
+						if (ScriptUtils.TryInvokeDynamicObject(dynamicObject, name, dynamicArgs, out var dynamicValue))
+						{
+							returnType = dynamicValue?.GetType() ?? typeof(object);
+							return dynamicValue;
+						}
+					}
+				}
 				// 抛出未知函数异常
 				var types = functionEvalArgs.ArgTypes;
 				//// 判断前置/后置运算符或者函数调用
@@ -1009,6 +1023,21 @@ namespace AScript
 						var returnType = customFunctionObject.Function.ReturnType;
 						var result = customFunctionObject.DynamicInvoke(this, functionEvalArgs.ArgValues);
 						return new EvalResult(result, returnType);
+					}
+				}
+				// dynamic对象
+				if (functionEvalArgs.ArgValues != null && functionEvalArgs.ArgValues.Length > 0)
+				{
+					var arg0 = functionEvalArgs.ArgValues[0];
+					if (arg0 is DynamicObject dynamicObject)
+					{
+						var dynamicArgs = new object[functionEvalArgs.ArgValues.Length - 1];
+						Array.Copy(functionEvalArgs.ArgValues, 1, dynamicArgs, 0, dynamicArgs.Length);
+						if (ScriptUtils.TryInvokeDynamicObject(dynamicObject, name, dynamicArgs, out var dynamicValue))
+						{
+							var returnType = dynamicValue?.GetType() ?? typeof(object);
+							return new EvalResult(dynamicValue, returnType);
+						}
 					}
 				}
 				// 抛出未知函数异常
