@@ -30,7 +30,14 @@ namespace AScript
 			{
 				for (int i = 0; i < this.ArgNames.Length; i++)
 				{
-					tempContext.SetVar(this.ArgNames[i], args[i].Eval(context, options, control, out var type), type);
+					if (i < args.Count)
+					{
+						tempContext.SetVar(this.ArgNames[i], args[i].Eval(context, options, control, out var type), type);
+					}
+					else
+					{
+						tempContext.SetVar(this.ArgNames[i], null);
+					}
 				}
 			}
 			if (this.Body == null)
