@@ -26,7 +26,7 @@ namespace AScript.Lang.Lua.TokenHandlers
 				return;
 			}
 
-			// 函数名
+		// 函数名
 			var token = analyzer.ValidateNextToken(e.TokenReader);
 			string className = null;
 			ITreeNode classNode = null;
@@ -38,10 +38,35 @@ namespace AScript.Lang.Lua.TokenHandlers
 			else
 			{
 				funcName = token.Value.Value;
+				var lastName = funcName;
 
-				// function ClassName:name(args) body end
+				// function table1.table2:name(args) body end
 				var nextToken = analyzer.ValidateNextToken(e.TokenReader);
-				if (nextToken.Value.IsSymbol(":"))
+				if (nextToken.Value.IsSymbol("."))
+				{
+					// 支持多个.操作符: table1.table2.table3:name(args)
+					// 必须有:号，className为完整路径如table1.table2
+					classNode = PoolManage.CreateVariableNode(funcName);
+					var classNameBuilder = funcName;
+					while (nextToken.Value.IsSymbol("."))
+					{
+						lastName = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word).Value.Value;
+						classNameBuilder = classNameBuilder + "." + lastName;
+						var opNode = PoolManage.CreateOperatorNode(".", 2, 19);
+						opNode.Left = classNode;
+						opNode.Right = PoolManage.CreateVariableNode(lastName);
+						classNode = opNode;
+						nextToken = analyzer.ValidateNextToken(e.TokenReader);
+					}
+					// 必须有:号
+					if (!nextToken.Value.IsSymbol(":"))
+					{
+						throw new Exceptions.ScriptAnalyzingException($"invalid function syntax at ({e.CurrentToken.Line},{e.CurrentToken.Column}), expect ':' after '.'");
+					}
+					className = classNameBuilder;
+					funcName = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word).Value.Value;
+				}
+				else if (nextToken.Value.IsSymbol(":"))
 				{
 					className = funcName;
 					classNode = PoolManage.CreateVariableNode(className);

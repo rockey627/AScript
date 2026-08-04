@@ -150,7 +150,7 @@ namespace AScript.Lang.Lua
 					return DefaultSyntaxAnalyzer.OperatorPriorities["!"];
 				case "#":
 				//case ":":
-					return DefaultSyntaxAnalyzer.OperatorPriorities["."];
+					return DefaultSyntaxAnalyzer.OperatorPriorities["."] - 1;
 				default:
 					break;
 			}
