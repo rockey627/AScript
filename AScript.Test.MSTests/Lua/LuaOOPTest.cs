@@ -517,8 +517,16 @@ obj:add(5):mult(3):getValue()
 		{
 			string code = @"
 local obj = {value = 0}
-function obj:add(v) self.value = self.value + v return self end
-function obj:mult(v) self.value = self.value * v return self end
+function obj:add(v) 
+	self.value = self.value + v 
+	print('add('..v..'):'..self.value)
+	return self 
+end
+function obj:mult(v) 
+	self.value = self.value * v 
+	print('mult('..v..'):'..self.value)
+	return self 
+end
 function obj:getValue() return self.value end
 obj:add(5):mult(3):getValue()
 ";
@@ -1002,7 +1010,7 @@ function obj:noop() end
 function obj:getValue()
 	return self.value
 end
-obj:value = 100
+obj.value = 100
 obj:getValue()
 ";
 			var script = new Script();
@@ -1019,7 +1027,7 @@ function obj:noop() end
 function obj:getValue()
 	return self.value
 end
-obj:value = 100
+obj.value = 100
 obj:getValue()
 ";
 			var script = new Script();
@@ -1069,7 +1077,7 @@ end
 obj.x = 5
 local c = obj:clone()
 --c.x = 10
-c.setX(10)
+c:setX(10)
 obj.x .. ',' .. c.x
 ";
 			var script = new Script();

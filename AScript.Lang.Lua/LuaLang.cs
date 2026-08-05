@@ -72,7 +72,7 @@ namespace AScript.Lang.Lua
 
 			// 其他运算符
 			AddFunc(".", DotOperator.Instance);
-			//AddFunc(":", DotOperator.Instance);
+			AddFunc(":", LuaColonOperator.Instance);
 			AddFunc("[]", new IndexOperator(false, true));
 			AddFunc("..", ConcatFunction.Instance);
 			AddFunc("#", new LengthFunction(typeof(long)));
@@ -101,9 +101,8 @@ namespace AScript.Lang.Lua
 			AddTokenHandler("break", BreakTokenHandler.Instance);
 			AddTokenHandler("continue", ContinueTokenHandler.Instance);
 			AddTokenHandler("[", new BracketTokenHandler(typeof(List<object>)));
-			//AddTokenHandler("#", new OperatorTokenHandler(".") { DataCount = 1, Prefix = true });
 			AddTokenHandler("#", LuaLenTokenHandler.Instance);
-			AddTokenHandler(":", new OperatorTokenHandler(".", "."));
+			AddTokenHandler(":", LazyTokenHandler.Instance);
 		}
 
 		public override ITokenStream GetTokenStream(CharReader charReader)
@@ -149,8 +148,9 @@ namespace AScript.Lang.Lua
 				case "~":
 					return DefaultSyntaxAnalyzer.OperatorPriorities["!"];
 				case "#":
-				//case ":":
 					return DefaultSyntaxAnalyzer.OperatorPriorities["."] - 1;
+				case ":":
+					return DefaultSyntaxAnalyzer.OperatorPriorities["."];
 				default:
 					break;
 			}

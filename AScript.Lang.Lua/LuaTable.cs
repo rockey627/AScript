@@ -402,25 +402,23 @@ namespace AScript.Lang.Lua
 			var v = this[binder.Name];
 			if (v is CustomFunctionObject customFunctionObject)
 			{
-				//v = customFunctionObject.Compile(null);
-				//this[binder.Name] = v;
-				var parametersLength = customFunctionObject.Function.ArgNames?.Length ?? 0;
-				int argsLength = args == null ? 0 : args.Length;
-				bool needsSelfInsert = parametersLength - argsLength >= 1;
-				if (needsSelfInsert)
-				{
-					if (argsLength == 0)
-					{
-						args = new object[] { this };
-					}
-					else
-					{
-						var newArgs = new object[argsLength + 1];
-						newArgs[0] = this;
-						System.Array.Copy(args, 0, newArgs, 1, args.Length);
-						args = newArgs;
-					}
-				}
+				//var parametersLength = customFunctionObject.Function.ArgNames?.Length ?? 0;
+				//int argsLength = args == null ? 0 : args.Length;
+				//bool needsSelfInsert = parametersLength - argsLength >= 1;
+				//if (needsSelfInsert)
+				//{
+				//	if (argsLength == 0)
+				//	{
+				//		args = new object[] { this };
+				//	}
+				//	else
+				//	{
+				//		var newArgs = new object[argsLength + 1];
+				//		newArgs[0] = this;
+				//		System.Array.Copy(args, 0, newArgs, 1, args.Length);
+				//		args = newArgs;
+				//	}
+				//}
 				result = customFunctionObject.DynamicInvoke(args);
 				return true;
 			}
@@ -428,38 +426,38 @@ namespace AScript.Lang.Lua
 			{
 				// 检查是否需要插入 self 参数
 				var parameters = del.Method.GetParameters();
-				bool needsSelfInsert = false;
+				//bool needsSelfInsert = false;
 				int argsLength = args == null ? 0 : args.Length;
 				int parametersLength = parameters.Length;
 				if (parameters.Length > 0)
 				{
-					int index = 0;
-					if (parameters[index].ParameterType.FullName == "System.Runtime.CompilerServices.Closure")
+					//int index = 0;
+					if (parameters[0].ParameterType.FullName == "System.Runtime.CompilerServices.Closure")
 					{
-						index++;
+						//index++;
 						parametersLength -= 1;
 					}
-					if (//parameters[index].ParameterType == typeof(LuaTable) &&
-						parameters.Length - index > argsLength)
-					{
-						needsSelfInsert = true;
-					}
+					//if (//parameters[index].ParameterType == typeof(LuaTable) &&
+					//	parameters.Length - index > argsLength)
+					//{
+					//	needsSelfInsert = true;
+					//}
 				}
-				if (needsSelfInsert)
-				{
-					if (argsLength == 0)
-					{
-						args = new object[] { this };
-					}
-					else
-					{
-						var newArgs = new object[argsLength + 1];
-						newArgs[0] = this;
-						System.Array.Copy(args, 0, newArgs, 1, argsLength);
-						args = newArgs;
-					}
-					argsLength = args.Length;
-				}
+				//if (needsSelfInsert)
+				//{
+				//	if (argsLength == 0)
+				//	{
+				//		args = new object[] { this };
+				//	}
+				//	else
+				//	{
+				//		var newArgs = new object[argsLength + 1];
+				//		newArgs[0] = this;
+				//		System.Array.Copy(args, 0, newArgs, 1, argsLength);
+				//		args = newArgs;
+				//	}
+				//	argsLength = args.Length;
+				//}
 				if (parametersLength > argsLength)
 				{
 					if (args == null || argsLength == 0)
