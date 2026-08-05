@@ -527,5 +527,44 @@ a+b
 			script.Context.Langs = new[] { "lua" };
 			Assert.AreEqual(3L, script.Eval(s));
 		}
+
+		[TestMethod]
+		public void Test18_return_array()
+		{
+			var s = @"
+function ff(a,b)
+	return b,a,10
+end
+
+local x,y,z=ff(1,2)
+print(x,y,z)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			script.Eval(s);
+			Assert.AreEqual(2L, script.Eval("x"));
+			Assert.AreEqual(1L, script.Eval("y"));
+			Assert.AreEqual(10L, script.Eval("z"));
+		}
+
+		[TestMethod]
+		public void Test18_return_array_CompileAll()
+		{
+			var s = @"
+function ff(a,b)
+	return b,a,10
+end
+
+local x,y,z=ff(1,2)
+print(x,y,z)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			script.Eval(s);
+			Assert.AreEqual(2L, script.Eval("x"));
+			Assert.AreEqual(1L, script.Eval("y"));
+			Assert.AreEqual(10L, script.Eval("z"));
+		}
 	}
 }

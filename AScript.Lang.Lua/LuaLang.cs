@@ -99,7 +99,7 @@ namespace AScript.Lang.Lua
 			AddTokenHandler("for", LuaForTokenHandler.Instance);
 			AddTokenHandler("in", InTokenHandler.Instance);
 			AddTokenHandler("function", LuaFunctionTokenHandler.Instance);
-			AddTokenHandler("return", ReturnTokenHandler.Instance);
+			AddTokenHandler("return", LuaReturnTokenHandler.Instance);
 			AddTokenHandler("break", BreakTokenHandler.Instance);
 			AddTokenHandler("continue", ContinueTokenHandler.Instance);
 			AddTokenHandler("[", new BracketTokenHandler(typeof(List<object>)));
