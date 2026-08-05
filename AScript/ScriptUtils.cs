@@ -1207,6 +1207,10 @@ namespace AScript
 
 			// 调用辅助方法: ScriptUtils.InvokeDynamicObject(target, methodName, args)
 			var method = typeof(ScriptUtils).GetMethod("InvokeDynamicObject", new[] { typeof(DynamicObject), typeof(string), typeof(object[]) });
+			if (target.Type == typeof(object))
+			{
+				target = Expression.Convert(target, typeof(DynamicObject));
+			}
 			return Expression.Call(method, target, Expression.Constant(methodName), argsArray);
 		}
 	}

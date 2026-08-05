@@ -69,7 +69,7 @@ namespace AScript
 		public void SetResult(object result, Type resultType)
 		{
 			this.Result = result;
-			this.ResultType = resultType ?? result?.GetType() ?? typeof(object);
+			this.ResultType = result?.GetType() ?? resultType ?? typeof(object);
 			this.IsHandled = true;
 		}
 
