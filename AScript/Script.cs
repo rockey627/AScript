@@ -1886,29 +1886,34 @@ namespace AScript
 		public static object Eval(ScriptContext context, BuildOptions options, string expression, out Type returnType)
 		{
 			var tokenStream = GetTokenStream(context, expression);
+			if (options == null) options = new BuildOptions(DefaultOptions);
 			return GetSyntaxAnalyzer(context).Eval(context, options, tokenStream, out returnType);
 		}
 
 		public static async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, string expression, CancellationToken cancellationToken = default)
 		{
 			var tokenStream = GetTokenStream(context, expression);
+			if (options == null) options = new BuildOptions(DefaultOptions);
 			return await GetSyntaxAnalyzer(context).EvalAsync(context, options, tokenStream, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static object Eval(ScriptContext context, BuildOptions options, Stream expression, out Type returnType)
 		{
 			var tokenStream = GetTokenStream(context, expression);
+			if (options == null) options = new BuildOptions(DefaultOptions);
 			return GetSyntaxAnalyzer(context).Eval(context, options, tokenStream, out returnType);
 		}
 
 		public static async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, Stream expression, CancellationToken cancellationToken = default)
 		{
 			var tokenStream = GetTokenStream(context, expression);
+			if (options == null) options = new BuildOptions(DefaultOptions);
 			return await GetSyntaxAnalyzer(context).EvalAsync(context, options, tokenStream, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static object Eval(ScriptContext context, BuildOptions options, ITokenStream expression, out Type returnType)
 		{
+			if (options == null) options = new BuildOptions(DefaultOptions);
 			return GetSyntaxAnalyzer(context).Eval(context, options, expression, out returnType);
 		}
 
