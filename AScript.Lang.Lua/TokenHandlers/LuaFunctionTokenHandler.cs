@@ -8,8 +8,12 @@ namespace AScript.Lang.Lua.TokenHandlers
 {
 	/// <summary>
 	/// <![CDATA[
+	/// function(args) body end
 	/// function name(args) body end
+	/// function ClassName.name(args) body end
 	/// function ClassName:name(args) body end
+	/// function ClassName1.ClassName2.name(args) body end
+	/// function ClassName1.ClassName2:name(args) body end
 	/// ]]>
 	/// </summary>
 	public class LuaFunctionTokenHandler : ITokenHandler
@@ -26,9 +30,10 @@ namespace AScript.Lang.Lua.TokenHandlers
 				return;
 			}
 
-		// 函数名
+			// 函数名
 			var token = analyzer.ValidateNextToken(e.TokenReader);
 			string className = null;
+			bool containsColon = false;
 			ITreeNode classNode = null;
 			string funcName;
 			if (token.Value.IsSymbol("("))
@@ -38,8 +43,6 @@ namespace AScript.Lang.Lua.TokenHandlers
 			else
 			{
 				funcName = token.Value.Value;
-				var lastName = funcName;
-
 				// function table1.table2:name(args) body end
 				var nextToken = analyzer.ValidateNextToken(e.TokenReader);
 				if (nextToken.Value.IsSymbol("."))
@@ -47,27 +50,37 @@ namespace AScript.Lang.Lua.TokenHandlers
 					// 支持多个.操作符: table1.table2.table3:name(args)
 					// 必须有:号，className为完整路径如table1.table2
 					classNode = PoolManage.CreateVariableNode(funcName);
-					var classNameBuilder = funcName;
-					while (nextToken.Value.IsSymbol("."))
+					className = funcName;
+					while (true)
 					{
-						lastName = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word).Value.Value;
-						classNameBuilder = classNameBuilder + "." + lastName;
-						var opNode = PoolManage.CreateOperatorNode(".", 2, 19);
-						opNode.Left = classNode;
-						opNode.Right = PoolManage.CreateVariableNode(lastName);
-						classNode = opNode;
+						funcName = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word).Value.Value;
 						nextToken = analyzer.ValidateNextToken(e.TokenReader);
+						if (!nextToken.Value.IsSymbol(".")) break;
+						className = className + "." + funcName;
+						var opNode = PoolManage.CreateOperatorNode(".", 2, 0);
+						opNode.Left = classNode;
+						opNode.Right = PoolManage.CreateVariableNode(funcName);
+						classNode = opNode;
 					}
-					// 必须有:号
-					if (!nextToken.Value.IsSymbol(":"))
+					// 
+					if (nextToken.Value.IsSymbol(":"))
 					{
-						throw new Exceptions.ScriptAnalyzingException($"invalid function syntax at ({e.CurrentToken.Line},{e.CurrentToken.Column}), expect ':' after '.'");
+						containsColon = true;
+						className = className + "." + funcName;
+						var opNode = PoolManage.CreateOperatorNode(".", 2, 0);
+						opNode.Left = classNode;
+						opNode.Right = PoolManage.CreateVariableNode(funcName);
+						classNode = opNode;
+						funcName = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word).Value.Value;
 					}
-					className = classNameBuilder;
-					funcName = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word).Value.Value;
+					else
+					{
+						e.TokenReader.Push(nextToken.Value);
+					}
 				}
 				else if (nextToken.Value.IsSymbol(":"))
 				{
+					containsColon = true;
 					className = funcName;
 					classNode = PoolManage.CreateVariableNode(className);
 					funcName = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word).Value.Value;
@@ -122,7 +135,7 @@ namespace AScript.Lang.Lua.TokenHandlers
 			{
 				// 当使用 function ClassName:name(args) 语法时，需要自动添加 self 参数
 				DefineVarNode[] args;
-				if (!string.IsNullOrEmpty(className))
+				if (containsColon)
 				{
 					args = new DefineVarNode[argNames.Count + 1];
 					args[0] = new DefineVarNode { Name = "self", SystemType = typeof(LuaTable) };
