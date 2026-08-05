@@ -15,7 +15,8 @@ namespace AScript.Test.MSTests.Lua
 		public static void Init(TestContext context)
 		{
 			Script.Langs["lua"] = LuaLang.Instance;
-			LuaLang.Instance.AddModule("module", new FileScriptModule("./Lua/modules/module.lua"));
+			//LuaLang.Instance.AddModule("module", new FileScriptModule("./Lua/modules/module.lua"));
+			LuaLang.Instance.Modules.AddDir("./lua/modules");
 		}
 
 		[ClassCleanup]

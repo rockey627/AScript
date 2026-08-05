@@ -437,11 +437,8 @@ namespace AScript
 			var context = this;
 			while (context != null)
 			{
-				var modules = context._Modules;
-				if (modules != null && modules.TryGetValue(name, out var module))
-				{
-					return module;
-				}
+				var module = context.Modules.Get(name);
+				if (module != null) return module;
 				context = context.Parent;
 			}
 			// 从语言环境获取模块

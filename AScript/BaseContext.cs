@@ -61,12 +61,14 @@ namespace AScript
 		// 支持函数重载
 		protected IDictionary<string, List<Delegate>> _Functions;
 
-		protected IDictionary<string, IScriptModule> _Modules;
 		protected IDictionary<Type, bool> _ObjectMemberEnabledDict;
+
+		public ScriptModuleCollection Modules { get; private set; }
 
 		protected BaseContext(bool threadSafely)
 		{
 			this._ThreadSafely = threadSafely;
+			this.Modules = new ScriptModuleCollection(threadSafely);
 		}
 		protected BaseContext(bool threadSafely, bool ignoreCase) : this(threadSafely)
 		{
@@ -294,31 +296,6 @@ namespace AScript
 			}
 		}
 
-		private void Init_Modules()
-		{
-			if (_Modules == null)
-			{
-				if (_ThreadSafely)
-				{
-					lock (this)
-					{
-						if (_Modules == null)
-						{
-							_Modules = _IgnoreCase ?
-								new ConcurrentDictionary<string, IScriptModule>(StringComparer.OrdinalIgnoreCase) :
-								new ConcurrentDictionary<string, IScriptModule>();
-						}
-					}
-				}
-				else
-				{
-					_Modules = _IgnoreCase ?
-						new Dictionary<string, IScriptModule>(StringComparer.OrdinalIgnoreCase) :
-						new Dictionary<string, IScriptModule>();
-				}
-			}
-		}
-
 		private void Init_ObjectMemberEnabledDict()
 		{
 			if (_ObjectMemberEnabledDict == null)
@@ -342,21 +319,17 @@ namespace AScript
 
 		public void AddModule(string name, IScriptModule obj)
 		{
-			Init_Modules();
-			_Modules[name] = obj;
+			this.Modules.Add(name, obj);
 		}
 
 		public void RemoveModule(string name)
 		{
-			_Modules?.Remove(name);
+			this.Modules.Remove(name);
 		}
 
 		public virtual IScriptModule GetModule(string name)
 		{
-			var modules = _Modules;
-			if (modules == null) return null;
-			modules.TryGetValue(name, out var module);
-			return module;
+			return this.Modules.Get(name);
 		}
 
 		public bool TryInstallModule(string name)
@@ -491,8 +464,8 @@ namespace AScript
 			this._Variables?.Clear();
 			this._VariableTypes?.Clear();
 			this._Functions?.Clear();
-			this._Modules?.Clear();
-			this._ObjectMemberEnabledDict.Clear();
+			this._ObjectMemberEnabledDict?.Clear();
+			this.Modules.Clear();
 		}
 
 		public void AddType(string name, Type type)
