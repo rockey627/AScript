@@ -79,6 +79,8 @@ namespace AScript.Lang.Lua
 			AddFunc<LuaTable, LuaTable, string>("..", (table1, table2) => LuaTable.concat(table1, table2));
 			AddFunc<LuaTable, long>("#", table => table.ArrayLength);
 
+			AddFunc("require", InstallModuleFunction.Instance);
+
 			AddFunc(typeof(Extensions.LuaCommonExtensions));
 			AddFunc(typeof(Extensions.LuaStringExtensions));
 
