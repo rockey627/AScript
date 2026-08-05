@@ -29,15 +29,29 @@ namespace AScript.Test.MSTests.Lua
 		public void Test00_01()
 		{
 			string code = @"
--- test_module.lua 文件
--- module 模块为上文提到到 module.lua
+-- module.lua
 require('module')
- 
 print(module.constant)
 module.func1()
 module.func3()
 ";
 			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			script.Eval(code);
+		}
+
+		[TestMethod]
+		public void Test00_01_CompileAll()
+		{
+			string code = @"
+-- module.lua
+require 'module'
+print(module.constant)
+module.func1()
+module.func3()
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
 			script.Eval(code);
 		}

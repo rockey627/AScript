@@ -105,6 +105,7 @@ namespace AScript.Lang.Lua
 			AddTokenHandler("[", new BracketTokenHandler(typeof(List<object>)));
 			AddTokenHandler("#", LuaLenTokenHandler.Instance);
 			AddTokenHandler(":", LazyTokenHandler.Instance);
+			AddTokenHandler("require", LuaRequireTokenHandler.Instance);
 		}
 
 		public override ITokenStream GetTokenStream(CharReader charReader)
