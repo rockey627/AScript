@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net45</TargetFrameworks>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<Authors>rockey627</Authors>
+		<PackageTags>C# Lua io file Expression Eval Evaluator Execute Function Script Scripting</PackageTags>
+		<PackageLicenseUrl>https://gitee.com/rockey627/ascript/blob/master/LICENSE</PackageLicenseUrl>
+		<PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
+		<Description>
+			<![CDATA[
+Lua io模块；
+快速开始：
+// 注册lua脚本语言
+Script.Langs.Set("lua", LuaLang.Instance);
+// 语言环境中注册io模块
+LuaLang.Instance.AddModule("io", new LuaIOModule());
+// 引入fs并调用相关方法
+string s = @"
+local io = require('io')
+
+";
+var script = new Script();
+script.Context.Langs = new[] { "lua" };
+script.Eval(s);
+			]]>
+		</Description>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<Version>0.0.1.0</Version>
+		<PackageReleaseNotes>初始版本</PackageReleaseNotes>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AScript\AScript.csproj" />
+	</ItemGroup>
+
+</Project>
