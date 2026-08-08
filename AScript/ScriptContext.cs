@@ -1802,6 +1802,24 @@ namespace AScript
 #endif
 		}
 
+		public object EvalFunc(string name, params object[] args)
+		{
+			Type[] argTypes;
+			if (args == null || args.Length == 0)
+			{
+				argTypes = null;
+			}
+			else
+			{
+				argTypes = new Type[args.Length];
+				for (int i = 0; i < args.Length; i++)
+				{
+					argTypes[i] = args[i]?.GetType();
+				}
+			}
+			return EvalFunc(name, args, argTypes);
+		}
+
 		public object EvalFunc(string name, IList<object> argValues, IList<Type> argTypes)
 		{
 			return EvalFunc(name, false, argValues, argTypes, out _);

@@ -657,11 +657,13 @@ namespace AScript.Operators
 				{
 					declaredType = null;
 				}
-				left = null;
-				e.BuildContext.LocalVariables.Add(arg0Node.Name);
-				if (defineVar.Modifier != 0)
+				if (!e.BuildContext.Variables.TryGetValue(arg0Node.Name, out left))
 				{
-					e.BuildContext.VariableModifiers[arg0Node.Name] = defineVar.Modifier;
+					e.BuildContext.LocalVariables.Add(arg0Node.Name);
+					if (defineVar.Modifier != 0)
+					{
+						e.BuildContext.VariableModifiers[arg0Node.Name] = defineVar.Modifier;
+					}
 				}
 			}
 			else

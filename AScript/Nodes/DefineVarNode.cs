@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace AScript.Nodes
 {
-    public class DefineVarNode : VariableNode
+	public class DefineVarNode : VariableNode
 	{
 		public Type SystemType { get; set; }
 		public string Type { get; set; }
@@ -43,6 +43,14 @@ namespace AScript.Nodes
 			if (type == null)
 			{
 				throw new ScriptAnalyzingException("unknown type:" + this.Type);
+			}
+			if (buildContext.Variables.TryGetValue(this.Name, out var existsVar))
+			{
+				if (existsVar.Type != typeof(object) && type != typeof(object) && existsVar.Type != type)
+				{
+					throw new ScriptRuntimeException($"variable '{this.Name}' is exists");
+				}
+				return existsVar;
 			}
 			var v = Expression.Variable(type, this.Name);
 			buildContext.Variables[this.Name] = v;
