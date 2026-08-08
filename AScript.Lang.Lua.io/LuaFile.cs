@@ -22,7 +22,7 @@ namespace AScript.Lang.Lua.io
 			{
 				if (_reader == null)
 				{
-					_reader = new StreamReader(_stream, Encoding.UTF8);
+					_reader = new StreamReader(_stream, Encoding.UTF8, true, 1024, true);
 				}
 				return _reader;
 			}
@@ -34,7 +34,7 @@ namespace AScript.Lang.Lua.io
 			{
 				if (_writer == null)
 				{
-					_writer = new StreamWriter(_stream, Encoding.UTF8, bufferSize: 8192) { AutoFlush = false };
+					_writer = new StreamWriter(_stream, Encoding.UTF8, bufferSize: 8192, true) { AutoFlush = false };
 				}
 				return _writer;
 			}
@@ -185,14 +185,7 @@ namespace AScript.Lang.Lua.io
 
 			foreach (var value in values)
 			{
-				if (value is double d)
-				{
-					Writer.Write(d.ToString());
-				}
-				else if (value != null)
-				{
-					Writer.Write(value.ToString());
-				}
+				Writer.Write(value?.ToString());
 			}
 			return this;
 		}

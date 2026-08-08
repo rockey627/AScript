@@ -663,8 +663,9 @@ require 'io'
 local f = io.open('{file}', 'r+')
 f:seek('set', 0)
 f:write('XY')
+f:flush()
 f:seek('set', 0)
-local content = f:read(4)
+local content = f:read()
 f:close()
 content
 ";
