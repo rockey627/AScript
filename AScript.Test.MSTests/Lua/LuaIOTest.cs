@@ -518,7 +518,7 @@ for line in f:lines() do
 	table.insert(lines, line)
 end
 f:close()
-lines[2] .. '|' .. lines[3] .. '|' .. lines[4]
+lines[1] .. '|' .. lines[2] .. '|' .. lines[3]
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
@@ -538,7 +538,7 @@ for line in f:lines() do
 	table.insert(lines, line)
 end
 f:close()
-lines[2] .. '|' .. lines[3] .. '|' .. lines[4]
+lines[1] .. '|' .. lines[2] .. '|' .. lines[3]
 ";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -561,7 +561,7 @@ lines[2] .. '|' .. lines[3]
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
-			Assert.AreEqual("line1|line2", script.Eval(code));
+			Assert.AreEqual("line2|line3", script.Eval(code));
 		}
 
 		[TestMethod]
@@ -580,7 +580,7 @@ lines[2] .. '|' .. lines[3]
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "lua" };
-			Assert.AreEqual("line1|line2", script.Eval(code));
+			Assert.AreEqual("line2|line3", script.Eval(code));
 		}
 
 		[TestMethod]
