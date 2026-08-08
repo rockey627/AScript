@@ -391,23 +391,31 @@ namespace AScript
 		{
 			if (paramsIndex >= 0)
 			{
-				var parameters = method.GetParameters();
-				var itemType = parameters[parameters.Length - 1].ParameterType.GetElementType();
-				var paramsValues = new object[argValues.Length - paramsIndex];
-				Array.Copy(argValues, paramsIndex, paramsValues, 0, paramsValues.Length);
-				var paramsArr = Array.CreateInstance(itemType, paramsValues.Length);
-				for (int i = 0; i < paramsValues.Length; i++)
+				if (argValues == null || argValues.Length == 0)
 				{
-					paramsArr.SetValue(System.Convert.ChangeType(paramsValues[i], itemType), i);
+					argValues = new object[] { null };
+					argTypes = new Type[] { null };
 				}
-				var newValues = new object[paramsIndex + 1];
-				var newTypes = new Type[newValues.Length];
-				Array.Copy(argValues, 0, newValues, 0, paramsIndex);
-				Array.Copy(argTypes, 0, newTypes, 0, paramsIndex);
-				newValues[paramsIndex] = paramsArr;
-				newTypes[paramsIndex] = paramsArr.GetType();
-				argValues = newValues;
-				argTypes = newTypes;
+				else
+				{
+					var parameters = method.GetParameters();
+					var itemType = parameters[parameters.Length - 1].ParameterType.GetElementType();
+					var paramsValues = new object[argValues.Length - paramsIndex];
+					Array.Copy(argValues, paramsIndex, paramsValues, 0, paramsValues.Length);
+					var paramsArr = Array.CreateInstance(itemType, paramsValues.Length);
+					for (int i = 0; i < paramsValues.Length; i++)
+					{
+						paramsArr.SetValue(System.Convert.ChangeType(paramsValues[i], itemType), i);
+					}
+					var newValues = new object[paramsIndex + 1];
+					var newTypes = new Type[newValues.Length];
+					Array.Copy(argValues, 0, newValues, 0, paramsIndex);
+					Array.Copy(argTypes, 0, newTypes, 0, paramsIndex);
+					newValues[paramsIndex] = paramsArr;
+					newTypes[paramsIndex] = paramsArr.GetType();
+					argValues = newValues;
+					argTypes = newTypes;
+				}
 			}
 			if (useScriptContext)
 			{
@@ -428,9 +436,14 @@ namespace AScript
 				for (int i = 0; i < argValues.Length; i++)
 				{
 					if (i < startIndex) continue;
+					int argTypeIndex = i - startIndex;
 					var paramType = parameters[i].ParameterType;
-					var dataType = argTypes[i - startIndex];
-					if (dataType != paramType)
+					var dataType = argTypes[argTypeIndex];
+					if (dataType == null)
+					{
+						argTypes[argTypeIndex] = paramType;
+					}
+					else if (dataType != paramType)
 					{
 						var arg = argValues[hasClosure ? i - 1 : i];
 						if (arg is IConvertible && !paramType.IsInstanceOfType(arg))
