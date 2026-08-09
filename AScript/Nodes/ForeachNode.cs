@@ -112,13 +112,15 @@ namespace AScript.Nodes
 						if (this.VarDefines != null)
 						{
 							// 解构列表项赋值到各个变量
-							var itemList = new List<object>();
+							IList itemList = null;
 							if (item is IList list)
 							{
-								foreach (var i in list)
-								{
-									itemList.Add(i);
-								}
+								itemList = list;
+								//itemList = new List<object>(list.Count);
+								//foreach (var i in list)
+								//{
+								//	itemList.Add(i);
+								//}
 							}
 							else
 							{
@@ -129,6 +131,7 @@ namespace AScript.Nodes
 									var genericType = itemType.GetGenericTypeDefinition();
 									if (genericType.Name.StartsWith("Tuple`"))
 									{
+										itemList = new List<object>();
 										foreach (var prop in itemType.GetProperties())
 										{
 											itemList.Add(prop.GetValue(item));
@@ -137,6 +140,7 @@ namespace AScript.Nodes
 #if NETSTANDARD
 									else if (genericType.Name.StartsWith("ValueTuple`"))
 									{
+										itemList = new List<object>();
 										foreach (var field in itemType.GetFields())
 										{
 											itemList.Add(field.GetValue(item));
@@ -145,21 +149,24 @@ namespace AScript.Nodes
 #endif
 								}
 							}
-							if (itemList == null)
-							{
-								throw new ScriptAnalyzingException($"cannot unpack item of type {item?.GetType()} into {this.VarDefines.Count} variables");
-							}
-							if (itemList.Count < this.VarDefines.Count)
-							{
-								throw new ScriptAnalyzingException($"not enough values to unpack (expected {this.VarDefines.Count}, got {itemList.Count})");
-							}
+							//if (itemList == null)
+							//{
+							//	throw new ScriptAnalyzingException($"cannot unpack item of type {item?.GetType()} into {this.VarDefines.Count} variables");
+							//}
+							//if (itemList.Count < this.VarDefines.Count)
+							//{
+							//	throw new ScriptAnalyzingException($"not enough values to unpack (expected {this.VarDefines.Count}, got {itemList.Count})");
+							//}
+							int itemIndex = 0;
 							for (int i = 0; i < this.VarDefines.Count; i++)
 							{
 								var varDefine = this.VarDefines[i];
+								if (varDefine == null) continue;
 								if (!IsNiming(varDefine))
 								{
-									tempContext.SetVar(varDefine.Name, itemList[i], null);
+									tempContext.SetVar(varDefine.Name, itemList == null || itemList.Count == 0 ? item : itemList[itemIndex++], null);
 								}
+								if (itemList == null || itemList.Count == 0 || itemIndex >= itemList.Count) break;
 							}
 						}
 						else if (!IsNiming(this.VarDefine))
@@ -276,13 +283,14 @@ namespace AScript.Nodes
 						if (this.VarDefines != null)
 						{
 							// 解构列表项赋值到各个变量
-							var itemList = new List<object>();
+							IList itemList = null;
 							if (item is IList list)
 							{
-								foreach (var i in list)
-								{
-									itemList.Add(i);
-								}
+								itemList = list;
+								//foreach (var i in list)
+								//{
+								//	itemList.Add(i);
+								//}
 							}
 							else
 							{
@@ -293,6 +301,7 @@ namespace AScript.Nodes
 									var genericType = itemType.GetGenericTypeDefinition();
 									if (genericType.Name.StartsWith("Tuple`"))
 									{
+										itemList = new List<object>();
 										foreach (var prop in itemType.GetProperties())
 										{
 											itemList.Add(prop.GetValue(item));
@@ -301,6 +310,7 @@ namespace AScript.Nodes
 #if NETSTANDARD
 									else if (genericType.Name.StartsWith("ValueTuple`"))
 									{
+										itemList = new List<object>();
 										foreach (var field in itemType.GetFields())
 										{
 											itemList.Add(field.GetValue(item));
@@ -309,21 +319,24 @@ namespace AScript.Nodes
 #endif
 								}
 							}
-							if (itemList == null)
-							{
-								throw new ScriptAnalyzingException($"cannot unpack item of type {item?.GetType()} into {this.VarDefines.Count} variables");
-							}
-							if (itemList.Count < this.VarDefines.Count)
-							{
-								throw new ScriptAnalyzingException($"not enough values to unpack (expected {this.VarDefines.Count}, got {itemList.Count})");
-							}
+							//if (itemList == null)
+							//{
+							//	throw new ScriptAnalyzingException($"cannot unpack item of type {item?.GetType()} into {this.VarDefines.Count} variables");
+							//}
+							//if (itemList.Count < this.VarDefines.Count)
+							//{
+							//	throw new ScriptAnalyzingException($"not enough values to unpack (expected {this.VarDefines.Count}, got {itemList.Count})");
+							//}
+							int itemIndex = 0;
 							for (int i = 0; i < this.VarDefines.Count; i++)
 							{
 								var varDefine = this.VarDefines[i];
+								if (varDefine == null) continue;
 								if (!IsNiming(varDefine))
 								{
-									tempContext.SetVar(varDefine.Name, itemList[i], null);
+									tempContext.SetVar(varDefine.Name, itemList == null || itemList.Count == 0 ? item : itemList[itemIndex++], null);
 								}
+								if (itemList == null || itemList.Count == 0 || itemIndex >= itemList.Count) break;
 							}
 						}
 						else if (!IsNiming(this.VarDefine))
@@ -420,17 +433,24 @@ namespace AScript.Nodes
 				for (int i = 0; i < this.VarDefines.Count; i++)
 				{
 					if (itemVars[i] == null) continue;
-					var memberName = "Item" + (i + 1);
 					Expression memberAccess;
 					if (isTuple)
 					{
+						var memberName = "Item" + (i + 1);
 						var prop = itemType.GetProperty(memberName);
 						memberAccess = Expression.Property(itemVar2, prop);
 					}
 					else if (isValueTuple)
 					{
+						var memberName = "Item" + (i + 1);
 						var field = itemType.GetField(memberName);
 						memberAccess = Expression.Field(itemVar2, field);
+					}
+					else if (!typeof(IList).IsAssignableFrom(itemType))
+					{
+						memberAccess = itemVar2;
+						assignExpressions.Add(Expression.Assign(itemVars[i], memberAccess));
+						break;
 					}
 					else
 					{
