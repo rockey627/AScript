@@ -123,18 +123,11 @@ namespace AScript.Lang.Lua.TokenHandlers
 			if (!e.Ignore)
 			{
 				var foreachNode = new ForeachNode();
-				if (iVarName != null)
+				foreachNode.VarDefines = new List<DefineVarNode>
 				{
-					foreachNode.VarDefines = new List<DefineVarNode>
-					{
-						new DefineVarNode(iVarName, null, typeof(long)),
-						new DefineVarNode(vVarName, null, typeof(object))
-					};
-				}
-				else
-				{
-					foreachNode.VarDefine = new DefineVarNode(vVarName, null, typeof(object));
-				}
+					string.IsNullOrEmpty(iVarName) ? null : new DefineVarNode(iVarName, null, typeof(long)),
+					new DefineVarNode(vVarName, null, typeof(object))
+				};
 				foreachNode.Collection = iterator;
 				foreachNode.Body = body;
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, foreachNode);

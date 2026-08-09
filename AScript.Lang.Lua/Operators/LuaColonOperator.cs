@@ -1,4 +1,5 @@
-﻿using AScript.Nodes;
+﻿using AScript.Exceptions;
+using AScript.Nodes;
 using System;
 using System.Dynamic;
 using System.Linq;
@@ -23,8 +24,11 @@ namespace AScript.Lang.Lua.Operators
 			{
 				throw new Exceptions.ScriptRuntimeException($"invalid expression near :");
 			}
+
 			var target = e.BuildArgs(0);
+
 			Expression[] args;
+			Type[] argTypes;
 			if (callFuncNode.Args == null || callFuncNode.Args.Length == 0)
 			{
 #if NET45
@@ -32,53 +36,63 @@ namespace AScript.Lang.Lua.Operators
 #else
 				args = Array.Empty<Expression>();
 #endif
+				argTypes = Type.EmptyTypes;
 			}
 			else
 			{
 				args = new Expression[callFuncNode.Args.Length];
+				argTypes = new Type[callFuncNode.Args.Length];
 				for (int i = 0; i < callFuncNode.Args.Length; i++)
 				{
 					var arg = callFuncNode.Args[i].Build(e.BuildContext, e.ScriptContext, e.Options);
-					if (arg.Type.IsValueType)
-					{
-						arg = Expression.Convert(arg, typeof(object));
-					}
 					args[i] = arg;
+					argTypes[i] = arg.Type;
 				}
 			}
-			var argExpr = Expression.NewArrayInit(typeof(object), args);
-			e.Result = Expression.Call(Method_DynamicInvoke, new Expression[] 
+
+			if (target.Type == typeof(object) || typeof(LuaTable).IsAssignableFrom(target.Type))
 			{
-				e.BuildContext.GetScriptContextParameter(),
-				target,
-				Expression.Constant(callFuncNode.Name),
-				argExpr
-			});
-			//var tableVar = table is ParameterExpression tableParam ? tableParam : Expression.Variable(table.Type);
-			//Expression[] args;
-			//if (callFuncNode.Args == null || callFuncNode.Args.Length == 0)
+				for (int i = 0; i < args.Length; i++)
+				{
+					var arg = args[i];
+					if (arg.Type.IsValueType)
+					{
+						args[i] = Expression.Convert(arg, typeof(object));
+					}
+				}
+				var argExpr = Expression.NewArrayInit(typeof(object), args);
+				e.Result = Expression.Call(Method_DynamicInvoke, new Expression[]
+				{
+					e.BuildContext.GetScriptContextParameter(),
+					target,
+					Expression.Constant(callFuncNode.Name),
+					argExpr
+				});
+				return;
+			}
+
+			if (e.ScriptContext.IsObjectMemberEnabled(target.Type) ?? true)
+			{
+				bool useScriptContext = false, hasClosure = false;
+				int paramsIndex = 0;
+				var method = target.Type.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+					.Where(a => a.Name == callFuncNode.Name && !a.IsGenericMethod)
+					.FirstOrDefault(a => ScriptUtils.IsMatchArgTypes(argTypes, a, out useScriptContext, out hasClosure, out paramsIndex));
+				if (method != null)
+				{
+					e.Result = ScriptUtils.BuildInvoke(e.BuildContext, e.ScriptContext, e.Options, method, target, callFuncNode.Args, args, useScriptContext, hasClosure, paramsIndex);
+					return;
+				}
+			}
+
+			//if (typeof(DynamicObject).IsAssignableFrom(target.Type))
 			//{
-			//	args = new Expression[] { tableVar };
+			//	// 动态调用 DynamicObject 的方法
+			//	e.Result = ScriptUtils.BuildDynamicObject(e.BuildContext, e.ScriptContext, target, callFuncNode.Name, args);
+			//	return;
 			//}
-			//else
-			//{
-			//	args = new Expression[callFuncNode.Args.Length + 1];
-			//	args[0] = tableVar;
-			//	for (int i = 0; i < callFuncNode.Args.Length; i++)
-			//	{
-			//		args[i + 1] = callFuncNode.Args[i].Build(e.BuildContext, e.ScriptContext, e.Options);
-			//	}
-			//}
-			//if (table is ParameterExpression)
-			//{
-			//	e.Result = ScriptUtils.BuildDynamicObject(e.BuildContext, e.ScriptContext, tableVar, callFuncNode.Name, args);
-			//}
-			//else
-			//{
-			//	var assign = Expression.Assign(tableVar, table);
-			//	var invoke = ScriptUtils.BuildDynamicObject(e.BuildContext, e.ScriptContext, tableVar, callFuncNode.Name, args);
-			//	e.Result = Expression.Block(new[] { tableVar }, assign, invoke);
-			//}
+
+			throw new ScriptAnalyzingException($"unknown function: {target.Type}.{callFuncNode.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
 		}
 
 		public void Eval(FunctionEvalArgs e)
@@ -90,20 +104,6 @@ namespace AScript.Lang.Lua.Operators
 			}
 			var target = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
 			object[] args;
-			//if (callFuncNode.Args == null || callFuncNode.Args.Length == 0)
-			//{
-			//	args = new object[] { target };
-			//}
-			//else
-			//{
-			//	args = new object[callFuncNode.Args.Length + 1];
-			//	args[0] = target;
-			//	for (int i = 0; i < callFuncNode.Args.Length; i++)
-			//	{
-			//		args[i + 1] = callFuncNode.Args[i].Eval(e.Context, e.Options, e.Control, out _);
-			//	}
-			//}
-			//var result = ScriptUtils.InvokeDynamicObject((DynamicObject)table, callFuncNode.Name, args);
 			if (callFuncNode.Args == null || callFuncNode.Args.Length == 0)
 			{
 				args = null;

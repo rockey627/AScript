@@ -33,6 +33,7 @@ namespace AScript.Lang.Lua.io
 			switch (mode)
 			{
 				case "r":
+					if (!File.Exists(filename)) return null;
 					fileMode = FileMode.Open;
 					access = FileAccess.Read;
 					break;
@@ -45,6 +46,7 @@ namespace AScript.Lang.Lua.io
 					access = FileAccess.Write;
 					break;
 				case "r+":
+					if (!File.Exists(filename)) return null;
 					fileMode = FileMode.Open;
 					access = FileAccess.ReadWrite;
 					break;

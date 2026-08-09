@@ -68,31 +68,16 @@ namespace AScript.Lang.Lua.io
 			_writer?.Flush();
 		}
 
-		/// <summary>
-		/// 读取文件内容
-		/// </summary>
-		/// <param name="formats">读取格式：nil/*all, 数字n/*line, "l"/*line, "L"/*line+1, "a"/*all</param>
-		/// <returns>读取的内容</returns>
-		public object read(params object[] formats)
+		public string read()
 		{
-			if (_closed) throw new IOException("file is closed");
-			//if (_reader == null) throw new IOException("file not opened for reading");
-
-			if (formats == null || formats.Length == 0)
-				return readAll();
-
-			var results = new List<object>();
-			foreach (var format in formats)
-			{
-				results.Add(readOne(format));
-			}
-			return formats.Length == 1 ? results[0] : results;
+			//Reader.Peek(); // 确保流位置正确
+			return Reader.ReadToEnd();
 		}
 
-		private object readOne(object format)
+		public object read(object format)
 		{
 			if (format == null)
-				return readAll();
+				return read();
 
 			int n = -1;
 			if (format is double d)
@@ -123,7 +108,7 @@ namespace AScript.Lang.Lua.io
 				{
 					case "*a":
 					case "a":
-						return readAll();
+						return read();
 					case "*l":
 					case "l":
 						return readLine();
@@ -145,10 +130,27 @@ namespace AScript.Lang.Lua.io
 			throw new ArgumentException($"invalid format: {format}");
 		}
 
-		private string readAll()
+		/// <summary>
+		/// 读取文件内容
+		/// </summary>
+		/// <param name="formats">读取格式：nil/*all, 数字n/*line, "l"/*line, "L"/*line+1, "a"/*all</param>
+		/// <returns>读取的内容</returns>
+		public List<object> read(object format1, object format2, params object[] formats)
 		{
-			Reader.Peek(); // 确保流位置正确
-			return Reader.ReadToEnd();
+			if (_closed) throw new IOException("file is closed");
+			//if (_reader == null) throw new IOException("file not opened for reading");
+
+			var results = new List<object>(2 + (formats?.Length ?? 0));
+			results.Add(read(format1));
+			results.Add(read(format2));
+			if (formats != null && formats.Length > 0)
+			{
+				foreach (var format in formats)
+				{
+					results.Add(read(format));
+				}
+			}
+			return results;
 		}
 
 		private string readLine()
