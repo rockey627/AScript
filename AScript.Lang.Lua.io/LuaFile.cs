@@ -223,11 +223,27 @@ namespace AScript.Lang.Lua.io
 		/// 设置缓冲模式
 		/// </summary>
 		/// <param name="mode">缓冲模式："no", "full", "line"</param>
+		public void setvbuf(string mode)
+		{
+			setvbuf(mode, 8192);
+		}
+
+		/// <summary>
+		/// 设置缓冲模式
+		/// </summary>
+		/// <param name="mode">缓冲模式："no", "full", "line"</param>
 		/// <param name="size">缓冲区大小</param>
-		public void setvbuf(string mode, int size = 8192)
+		public void setvbuf(string mode, int size)
 		{
 			if (_closed) throw new IOException("file is closed");
-			// 在 .NET 中，我们主要使用默认缓冲，这里只是占位实现
+			if (mode == "no")
+			{
+				Writer.AutoFlush = true;
+			}
+			else if (_writer != null)
+			{
+				_writer.AutoFlush = false;
+			}
 		}
 
 		/// <summary>

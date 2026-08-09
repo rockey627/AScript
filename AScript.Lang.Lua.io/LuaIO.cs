@@ -118,6 +118,11 @@ namespace AScript.Lang.Lua.io
 			return output;
 		}
 
+		public LuaFile output()
+		{
+			return _output;
+		}
+
 		/// <summary>
 		/// 从默认输入读取
 		/// </summary>

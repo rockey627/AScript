@@ -727,7 +727,19 @@ namespace AScript.Operators
 			var rightTypeName = rightType.Name;
 			bool isValueTuple = rightTypeName.StartsWith("ValueTuple`");
 			bool isTuple = !isValueTuple && rightTypeName.StartsWith("Tuple`");
-			var expressions = new List<Expression>(tupleNode.Items.Count);
+			List<Expression> expressions;
+			ParameterExpression rightVar;
+			if (right is ParameterExpression rightParameterExpr)
+			{
+				rightVar = rightParameterExpr;
+				expressions = new List<Expression>(tupleNode.Items.Count);
+			}
+			else
+			{
+				rightVar = Expression.Variable(right.Type);
+				expressions = new List<Expression>(tupleNode.Items.Count + 1);
+				expressions.Add(Expression.Assign(rightVar, right));
+			}
 			int minCount;
 			if (isValueTuple || isTuple)
 			{
@@ -740,7 +752,7 @@ namespace AScript.Operators
 				for (int i = 0; i < minCount; i++)
 				{
 					var item = tupleNode.Items[i];
-					var value = isValueTuple ? Expression.Field(right, $"Item{i + 1}") : Expression.Property(right, $"Item{i + 1}");
+					var value = isValueTuple ? Expression.Field(rightVar, $"Item{i + 1}") : Expression.Property(rightVar, $"Item{i + 1}");
 					var expr = BuildDeconstruct(e, item, value);
 					if (expr != null) expressions.Add(expr);
 				}
@@ -751,7 +763,7 @@ namespace AScript.Operators
 				for (int i = 0; i < minCount; i++)
 				{
 					var item = tupleNode.Items[i];
-					var value = Expression.ArrayAccess(right, Expression.Constant(i));
+					var value = Expression.ArrayAccess(rightVar, Expression.Constant(i));
 					var expr = BuildDeconstruct(e, item, value);
 					if (expr != null) expressions.Add(expr);
 				}
@@ -762,7 +774,7 @@ namespace AScript.Operators
 				for (int i = 0; i < minCount; i++)
 				{
 					var item = tupleNode.Items[i];
-					var value = Expression.Property(right, "Item", Expression.Constant(i));
+					var value = Expression.Property(rightVar, "Item", Expression.Constant(i));
 					var expr = BuildDeconstruct(e, item, value);
 					if (expr != null) expressions.Add(expr);
 				}
@@ -770,7 +782,7 @@ namespace AScript.Operators
 			else
 			{
 				minCount = 1;
-				var expr = BuildDeconstruct(e, tupleNode.Items[0], right);
+				var expr = BuildDeconstruct(e, tupleNode.Items[0], rightVar);
 				if (expr != null) expressions.Add(expr);
 				//throw new ScriptAnalyzingException("invalid expression near =, right side is not a tuple");
 			}
@@ -779,7 +791,14 @@ namespace AScript.Operators
 				expressions.Add(tupleNode.Items[i].Build(e.BuildContext, e.ScriptContext, e.Options));
 			}
 
-			e.Result = Expression.Block(typeof(void), expressions);
+			if (right is ParameterExpression)
+			{
+				e.Result = Expression.Block(typeof(void), expressions);
+			}
+			else
+			{
+				e.Result = Expression.Block(typeof(void), new[] { rightVar }, expressions);
+			}
 		}
 
 		private Expression BuildDeconstruct(FunctionBuildArgs e, ITreeNode item, Expression right)
