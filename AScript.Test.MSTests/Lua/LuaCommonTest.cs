@@ -243,7 +243,10 @@ x
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
 
-			Assert.AreEqual("helloworld", script.Eval("'hello' .. 'world'"));
+			Assert.AreEqual("helloworld", script.Eval("'hello'..'world'"));
+			Assert.AreEqual("hello123", script.Eval("'hello'..123"));
+			Assert.AreEqual("hello12345", script.Eval("'hello'..123..45"));
+			Assert.AreEqual("1012345", script.Eval("10..123..45"));
 		}
 
 		[TestMethod]
@@ -254,6 +257,9 @@ x
 			script.Context.Langs = new[] { "lua" };
 
 			Assert.AreEqual("helloworld", script.Eval("'hello' .. 'world'"));
+			Assert.AreEqual("hello123", script.Eval("'hello'..123"));
+			Assert.AreEqual("hello12345", script.Eval("'hello'..123..45"));
+			Assert.AreEqual("1012345", script.Eval("10..123..45"));
 		}
 
 		[TestMethod]
