@@ -78,12 +78,12 @@ namespace AScript.Readers
 							break;
 						}
 					}
-					var nextChar = _reader.Peek();
-					if (nextChar.HasValue && !IsNumber(nextChar.Value) && nextChar.Value != '.')
-					{
-						_buffer.Append(c.Value);
-						break;
-					}
+					//var nextChar = _reader.Peek();
+					//if (nextChar.HasValue && !IsNumber(nextChar.Value) && nextChar.Value != '.')
+					//{
+					//	_buffer.Append(c.Value);
+					//	break;
+					//}
 					_buffer.Append(c.Value);
 					c = _reader.Read();
 					continue;
@@ -145,9 +145,14 @@ namespace AScript.Readers
 					char startChar2 = _buffer[0];
 					if (startChar2 == '.' && IsNumber(c.Value))
 					{
-						_buffer.Append(c.Value);
-						c = _reader.Read();
-						continue;
+						if (_buffer.Length == 1)
+						{
+							_buffer.Append(c.Value);
+							c = _reader.Read();
+							continue;
+						}
+						_reader.Push(c.Value);
+						break;
 					}
 					if (IsOperator(startChar2))
 					{
@@ -209,19 +214,25 @@ namespace AScript.Readers
 							c = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 							continue;
 						}
-						else
+						else if (startChar != '?' && startChar != '.')
 						{
 							_reader.Push(c.Value);
 							// 如果前面不是数字，则返回前面的
 							break;
 						}
+						//else
+						//{
+						//	_reader.Push(c.Value);
+						//	// 如果前面不是数字，则返回前面的
+						//	break;
+						//}
 					}
-					var nextChar = await _reader.PeekAsync(cancellationToken).ConfigureAwait(false);
-					if (nextChar.HasValue && !IsNumber(nextChar.Value))
-					{
-						_buffer.Append(c.Value);
-						break;
-					}
+					//var nextChar = await _reader.PeekAsync(cancellationToken).ConfigureAwait(false);
+					//if (nextChar.HasValue && !IsNumber(nextChar.Value))
+					//{
+					//	_buffer.Append(c.Value);
+					//	break;
+					//}
 					_buffer.Append(c.Value);
 					c = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 					continue;
@@ -282,9 +293,14 @@ namespace AScript.Readers
 					char startChar2 = _buffer[0];
 					if (startChar2 == '.' && IsNumber(c.Value))
 					{
-						_buffer.Append(c.Value);
-						c = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
-						continue;
+						if (_buffer.Length == 1)
+						{
+							_buffer.Append(c.Value);
+							c = await _reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+							continue;
+						}
+						_reader.Push(c.Value);
+						break;
 					}
 					if (IsOperator(startChar2))
 					{
