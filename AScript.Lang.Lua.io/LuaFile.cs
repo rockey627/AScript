@@ -192,13 +192,19 @@ namespace AScript.Lang.Lua.io
 			return this;
 		}
 
+		public long seek()
+		{
+			if (_closed) throw new IOException("file is closed");
+			return _stream.Position;
+		}
+
 		/// <summary>
 		/// 设置文件位置
 		/// </summary>
 		/// <param name="whence">起始位置："set", "cur", "end"</param>
 		/// <param name="offset">偏移量</param>
 		/// <returns>新位置</returns>
-		public long seek(string whence = "cur", long offset = 0)
+		public long seek(string whence, long offset)
 		{
 			if (_closed) throw new IOException("file is closed");
 
