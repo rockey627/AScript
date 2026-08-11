@@ -75,6 +75,7 @@ namespace AScript.Lang.Lua
 			AddFunc(":", LuaColonOperator.Instance);
 			AddFunc("[]", new IndexOperator(false, true));
 			AddFunc("..", ConcatFunction.Instance);
+			AddFunc("..=", ConcatAssignFunction.Instance);
 			AddFunc("#", new LengthFunction(typeof(long)));
 			AddFunc<LuaTable, LuaTable, string>("..", (table1, table2) => LuaTable.concat(table1, table2));
 			AddFunc<LuaTable, long>("#", table => table.ArrayLength);
@@ -146,6 +147,8 @@ namespace AScript.Lang.Lua
 					return DefaultSyntaxAnalyzer.OperatorPriorities["/"];
 				case "..":
 					return DefaultSyntaxAnalyzer.OperatorPriorities["+"];
+				case "..=":
+					return DefaultSyntaxAnalyzer.OperatorPriorities["="];
 				case "~=":
 					return DefaultSyntaxAnalyzer.OperatorPriorities["!="];
 				case "~":
