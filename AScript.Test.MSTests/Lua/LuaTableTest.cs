@@ -71,11 +71,13 @@ t[3]='a'
 
 			string code = @"
 local t = {}
+t.x = 3
+t.y = 5
 t.sum = function(a,b) 
 	print(a,b)
 	return a+b 
 end
-t.sum(3,5)
+t.sum(t.x,t.y)
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "lua" };
@@ -86,9 +88,12 @@ t.sum(3,5)
 		public void Test00_02_function_CompileAll()
 		{
 			string code = @"
-local t = {}
-t.sum = function(a,b) return a+b end
-t.sum(3,5)
+local t = { x = 3, y = 5 }
+t.sum = function(a,b) 
+	print(a,b)
+	return a+b 
+end
+t.sum(t.x,t.y)
 ";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
@@ -1968,11 +1973,8 @@ t.nonexistent
 		{
 			string code = @"
 local t = {name = 'instance'}
-local mt = {}
-local proto = {}
-proto.name = 'prototype'
-mt.__index = proto
-setmetatable(t, mt)
+local proto = { name = 'prototype' }
+setmetatable(t, { __index = proto })
 t.name
 ";
 			var script = new Script();

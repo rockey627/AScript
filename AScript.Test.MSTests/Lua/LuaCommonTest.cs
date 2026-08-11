@@ -247,6 +247,9 @@ x
 			Assert.AreEqual("hello123", script.Eval("'hello'..123"));
 			Assert.AreEqual("hello12345", script.Eval("'hello'..123..45"));
 			Assert.AreEqual("1012345", script.Eval("10..123..45"));
+			Assert.AreEqual("10123", script.Eval("s=10 s..=123"));
+			Assert.AreEqual("10123", script.Eval("s='10' s..=123"));
+			Assert.AreEqual("10123", script.Eval("s=10 s..='123'"));
 		}
 
 		[TestMethod]
@@ -260,6 +263,9 @@ x
 			Assert.AreEqual("hello123", script.Eval("'hello'..123"));
 			Assert.AreEqual("hello12345", script.Eval("'hello'..123..45"));
 			Assert.AreEqual("1012345", script.Eval("10..123..45"));
+			Assert.AreEqual("10123", script.Eval("s=10 s..=123"));
+			Assert.AreEqual("10123", script.Eval("s='10' s..=123"));
+			Assert.AreEqual("10123", script.Eval("s=10 s..='123'"));
 		}
 
 		[TestMethod]

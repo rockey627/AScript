@@ -48,6 +48,47 @@ namespace AScript.Test.MSTests.Lua
 		}
 
 		[TestMethod]
+		public void Test00_01()
+		{
+			string file = Path.Combine(TestDir, "test01.txt").Replace('\\', '/');
+			string code = @"
+require 'io'
+local f = io.open(file, 'w')
+f:write('hello')
+f:close()
+local f = io.open(file, 'r')
+local content = f:read()
+f:close()
+content
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			script.Context.SetVar("file", file);
+			Assert.AreEqual("hello", script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test00_01_CompileAll()
+		{
+			string file = Path.Combine(TestDir, "test01.txt").Replace('\\', '/');
+			string code = @"
+require 'io'
+local f = io.open(file, 'w')
+f:write('hello')
+f:close()
+local f = io.open(file, 'r')
+local content = f:read()
+f:close()
+content
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			script.Context.SetVar("file", file);
+			Assert.AreEqual("hello", script.Eval(code));
+		}
+
+		[TestMethod]
 		public void Test01_io_open_write_read()
 		{
 			string file = Path.Combine(TestDir, "test01.txt").Replace('\\', '/');

@@ -24,6 +24,49 @@ namespace AScript.Test.MSTests.Lua
 		}
 
 		[TestMethod]
+		public void Test00_01()
+		{
+			string code = @"
+local x = 10
+if x >= 10 and x < 50 then
+	local a = 5
+	local b = 15
+	x = a + b + 80
+elseif x >= 50 and x < 100 then
+	x = 200
+else
+	x = 300
+end
+x
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(100L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test00_01_CompileAll()
+		{
+			string code = @"
+local x = 10
+if x >= 10 and x < 50 then
+	local a = 5
+	local b = 15
+	x = a + b + 80
+elseif x >= 50 and x < 100 then
+	x = 200
+else
+	x = 300
+end
+x
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(100L, script.Eval(code));
+		}
+
+		[TestMethod]
 		public void Test01_If_Basic_True()
 		{
 			string code = @"
