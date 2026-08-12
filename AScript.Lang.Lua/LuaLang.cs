@@ -17,8 +17,6 @@ namespace AScript.Lang.Lua
 	{
 		public static readonly LuaLang Instance = new LuaLang();
 
-		//internal static readonly HashSet<string> EndTokens = new HashSet<string>() { "end", "else", "elseif", "until" };
-
 		internal static readonly HashSet<string> EndTokens_do = new HashSet<string> { "do" };
 		internal static readonly HashSet<string> EndTokens_end = new HashSet<string> { "end" };
 		internal static readonly HashSet<string> EndTokens_until = new HashSet<string> { "until" };

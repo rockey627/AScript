@@ -25,9 +25,9 @@ Assert.AreEqual("tony", list[0].name);
 Assert.AreEqual(10, list[0].age);
 			]]>
 		</Description>
-		<Version>0.0.3.0</Version>
+		<Version>0.0.4.0</Version>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>AScript1.0.4</PackageReleaseNotes>
+		<PackageReleaseNotes>AScript1.0.5</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>

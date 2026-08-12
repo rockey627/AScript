@@ -34,8 +34,8 @@ script.Eval(s);
 			]]>
 		</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>0.0.2.0</Version>
-		<PackageReleaseNotes>移除Http包引用，自定义IHttpClientFactory</PackageReleaseNotes>
+		<Version>0.0.3.0</Version>
+		<PackageReleaseNotes>AScript1.0.5</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>

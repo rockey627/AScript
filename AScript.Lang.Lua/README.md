@@ -30,6 +30,7 @@ install-package AScript.Lang.Lua
     - 泛型for循环: `for v in expr do ... end`
     - 泛型for循环: `for i,v in expr do ... end`
 * 函数定义: `function name(args) ... end`
+* 匿名函数：`local f = function(args) ... end`
 * 局部变量: `local var = value`
 * 表构造器
     - 数组风格: `{ value1, value2, value3 }`
@@ -77,7 +78,7 @@ Assert.AreEqual(230, script.Eval(s));
 ```
 
 #### 字符串连接
-两个字符串连接使用`..`操作符而不是+号操作符。
+两个字符串连接使用`..`操作符而不是`+`操作符。
 ```
 var script = new Script();
 script.Context.Langs = new[] { "lua" };
@@ -85,7 +86,7 @@ Assert.AreEqual("hello123", script.Eval("'hello'..123"));
 ```
 
 #### 数据打包/解包
-* 打包pack
+* pack打包
 ```
 string s = @"
 local format='<i4i4fc10'
@@ -94,13 +95,13 @@ local mp=8700
 local atk=156.5
 local name='john'
 local data = string.pack(format, hp, mp, atk, name)
-print(#data)
+print(#data) -- 控制台输出data长度
 ";
 var script = new Script();
 script.Context.Langs = new[] { "lua" };
 script.Eval(s);
 ```
-* 解包unpack
+* unpack解包
 ```
 script.Eval("local a,b,c,d=string.unpack(format, data)");
 Assert.AreEqual(12500, script.Eval("a"));
@@ -285,11 +286,13 @@ Assert.AreEqual("Generic Animal makes a sound.;Buddy barks.", script.Eval(code))
 ```
 
 #### 模块
-使用`require`引入模块。
+使用`require`引入模块，优先查找`IScriptModule`模块，再查找模块目录中的模块文件。
+
 1. 添加模块目录
 ```
 LuaLang.Instance.Modules.AddDir("./lua/modules");
 ```
+
 2. 模块目录中添加`Person.lua`文件
 ```
 Person = {name = '', age = 0}
@@ -309,6 +312,7 @@ end
 
 return Person
 ```
+
 3. 引入并使用模块
 ```
 string code = @"
@@ -322,14 +326,18 @@ Assert.AreEqual("My name is Alice and I am 30 years old.", script.Eval(code));
 ```
 
 #### io模块
+文件操作，服务端请谨慎使用，避免脚本恶意修改、删除文件。
+
 1. 安装模块
 ```
 install-package AScript.Lang.Lua.io
 ```
+
 2. 注册io模块
 ```
 LuaLang.Instance.Modules.Add("io", new AScript.Lang.Lua.io.LuaIOModule());
 ```
+
 3. 使用io
 ```
 string code = $@"

@@ -17,8 +17,14 @@ Script.Langs.Set("lua", LuaLang.Instance);
 LuaLang.Instance.AddModule("io", new LuaIOModule());
 // 引入fs并调用相关方法
 string s = @"
-local io = require('io')
-
+require 'io'
+local filePath = './test.txt'
+local f = io.open(filePath, 'w')
+f:write('hello')
+f:close()
+local f = io.open(filePath, 'r')
+local content = f:read()
+f:close()
 ";
 var script = new Script();
 script.Context.Langs = new[] { "lua" };

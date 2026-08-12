@@ -30,8 +30,8 @@ Assert.AreEqual("hello world", result);
 			]]>
 		</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>0.0.1.0</Version>
-		<PackageReleaseNotes>js fs文件模块</PackageReleaseNotes>
+		<Version>0.0.2.0</Version>
+		<PackageReleaseNotes>AScript1.0.5</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>

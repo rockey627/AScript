@@ -15,7 +15,6 @@
 Script.Langs.Set("lua", LuaLang.Instance);
 // 执行lua脚本
 string s = @"
-@lang lua
 function sum(a, b)
     return a + b
 end
@@ -23,6 +22,7 @@ local n = 10
 sum(n, 5)
 ";
 var script = new Script();
+script.Context.Langs = new[] { "lua" };
 var result = script.Eval(s);
 Assert.AreEqual(15L, result);
 			]]>
