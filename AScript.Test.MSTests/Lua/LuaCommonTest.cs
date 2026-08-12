@@ -578,5 +578,71 @@ print(x,y,z)
 			Assert.AreEqual(1L, script.Eval("y"));
 			Assert.AreEqual(10L, script.Eval("z"));
 		}
+
+		[TestMethod]
+		public void Test19()
+		{
+			var code = @"
+local a = 10
+local b = 20
+sum(a, b)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			script.Context.AddFunc<long, long, long>("sum", (x, y) => x + y);
+			Assert.AreEqual(30L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test19_CompileAll()
+		{
+			var code = @"
+local a = 10
+local b = 20
+sum(a, b)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			script.Context.AddFunc<long, long, long>("sum", (x, y) => x + y);
+			Assert.AreEqual(30L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test20()
+		{
+			var code = @"
+function sum(x,y)
+	return x+y
+end
+local a = 10
+local b = 20
+sum(a, b)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(30L, script.Eval(code));
+			var sum = script.Context.GetFunc<long, long, long>("sum");
+			Assert.AreEqual(80L, sum(30, 50));
+		}
+
+		[TestMethod]
+		public void Test20_CompileAll()
+		{
+			var code = @"
+function sum(x,y)
+	return x+y
+end
+local a = 10
+local b = 20
+sum(a, b)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "lua" };
+			Assert.AreEqual(30L, script.Eval(code));
+			var sum = script.Context.GetFunc<long, long, long>("sum");
+			Assert.AreEqual(80L, sum(30, 50));
+		}
 	}
 }

@@ -235,6 +235,7 @@ Assert.AreEqual("tom", script.Eval(code));
 
 #### 面向对象(OOP)
 ```
+string code = @"
 -- 定义动物类（Animal）
 Animal = {name = 'Unknown'}
 

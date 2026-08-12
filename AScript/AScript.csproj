@@ -17,8 +17,8 @@ Assert.AreEqual(15, result);
 			]]>
 		</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>1.5.0.0</Version>
-		<PackageReleaseNotes>支持const/readonly语法；支持do..while循环；支持DynamicObject动态类型；优化解构赋值；支持运算符重载；支持0b1100二进制数值</PackageReleaseNotes>
+		<Version>1.5.0.1</Version>
+		<PackageReleaseNotes>优化GetFunc参数类型转换</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
