@@ -2214,122 +2214,118 @@ namespace AScript
 		public Func<TReturn> GetFunc<TReturn>(string name)
 		{
 			var del = GetFunc(name);
-			if (del == null) return null;
-			if (del is Func<TReturn> f) return f;
-			// 类型不匹配时，调用原始委托并转换返回值类型
-			return () => (TReturn)del.DynamicInvoke();
+			return ScriptUtils.ConvertDelegate<Func<TReturn>>(del);
+			//if (del == null) return null;
+			//if (del is Func<TReturn> f) return f;
+			//// 类型不匹配时，调用原始委托并转换返回值类型
+			//return () => (TReturn)del.DynamicInvoke();
 		}
 
 		public Func<T1, TReturn> GetFunc<T1, TReturn>(string name)
 		{
 			var del = GetFunc(name, typeof(T1));
-			if (del == null) return null;
-			if (del is Func<T1, TReturn> f) return f;
-			return (a1) => (TReturn)del.DynamicInvoke(a1);
-			//// 类型不匹配时，用 Expression 构建适配器避免 DynamicInvoke 反射
-			//var method = func.Method;
-			//var p = Expression.Parameter(typeof(T1));
-			//var invoke = Expression.Convert(
-			//	Expression.Call(Expression.Constant(func), method, p),
-			//	typeof(TReturn));
-			//return Expression.Lambda<Func<T1, TReturn>>(invoke, p).Compile();
+			return ScriptUtils.ConvertDelegate<Func<T1, TReturn>>(del);
+			//if (del == null) return null;
+			//if (del is Func<T1, TReturn> f) return f;
+			//return (a1) => (TReturn)del.DynamicInvoke(a1);
 		}
 
 		public Func<T1, T2, TReturn> GetFunc<T1, T2, TReturn>(string name)
 		{
 			var del = GetFunc(name, typeof(T1), typeof(T2));
-			if (del == null) return null;
-			if (del is Func<T1, T2, TReturn> f) return f;
-			return (a1, a2) => (TReturn)del.DynamicInvoke(a1, a2);
-			//// 类型不匹配时，用 Expression 构建适配器避免 DynamicInvoke 反射
-			//var method = func.Method;
-			//var p1 = Expression.Parameter(typeof(T1));
-			//var p2 = Expression.Parameter(typeof(T2));
-			//var invoke = Expression.Convert(
-			//	Expression.Call(method, p1, p2),
-			//	typeof(TReturn));
-			//return Expression.Lambda<Func<T1, T2, TReturn>>(invoke, p1, p2).Compile();
-			//return (Func<T1, T2, TReturn>)GetFunc(name, typeof(T1), typeof(T2));
+			return ScriptUtils.ConvertDelegate<Func<T1, T2, TReturn>>(del);
+			//if (del == null) return null;
+			//if (del is Func<T1, T2, TReturn> f) return f;
+			//return (a1, a2) => (TReturn)del.DynamicInvoke(a1, a2);
 		}
 
 		public Func<T1, T2, T3, TReturn> GetFunc<T1, T2, T3, TReturn>(string name)
 		{
 			var del = GetFunc(name, typeof(T1), typeof(T2), typeof(T3));
-			if (del == null) return null;
-			if (del is Func<T1, T2, T3, TReturn> f) return f;
-			return (a1, a2, a3) => (TReturn)del.DynamicInvoke(a1, a2, a3);
+			return ScriptUtils.ConvertDelegate<Func<T1, T2, T3, TReturn>>(del);
+			//if (del == null) return null;
+			//if (del is Func<T1, T2, T3, TReturn> f) return f;
+			//return (a1, a2, a3) => (TReturn)del.DynamicInvoke(a1, a2, a3);
 			//return (Func<T1, T2, T3, TReturn>)GetFunc(name, typeof(T1), typeof(T2), typeof(T3));
 		}
 
 		public Func<T1, T2, T3, T4, TReturn> GetFunc<T1, T2, T3, T4, TReturn>(string name)
 		{
 			var del = GetFunc(name, typeof(T1), typeof(T2), typeof(T3), typeof(T4));
-			if (del == null) return null;
-			if (del is Func<T1, T2, T3, T4, TReturn> f) return f;
-			return (a1, a2, a3, a4) => (TReturn)del.DynamicInvoke(a1, a2, a3, a4);
+			return ScriptUtils.ConvertDelegate<Func<T1, T2, T3, T4, TReturn>>(del);
+			//if (del == null) return null;
+			//if (del is Func<T1, T2, T3, T4, TReturn> f) return f;
+			//return (a1, a2, a3, a4) => (TReturn)del.DynamicInvoke(a1, a2, a3, a4);
 			//return (Func<T1, T2, T3, T4, TReturn>)GetFunc(name, typeof(T1), typeof(T2), typeof(T3), typeof(T4));
 		}
 
 		public Func<T1, T2, T3, T4, T5, TReturn> GetFunc<T1, T2, T3, T4, T5, TReturn>(string name)
 		{
 			var del = GetFunc(name, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5));
-			if (del == null) return null;
-			if (del is Func<T1, T2, T3, T4, T5, TReturn> f) return f;
-			return (a1, a2, a3, a4, a5) => (TReturn)del.DynamicInvoke(a1, a2, a3, a4, a5);
+			return ScriptUtils.ConvertDelegate<Func<T1, T2, T3, T4, T5, TReturn>>(del);
+			//if (del == null) return null;
+			//if (del is Func<T1, T2, T3, T4, T5, TReturn> f) return f;
+			//return (a1, a2, a3, a4, a5) => (TReturn)del.DynamicInvoke(a1, a2, a3, a4, a5);
 			//return (Func<T1, T2, T3, T4, T5, TReturn>)GetFunc(name, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5));
 		}
 
 		public Action GetAction(string name)
 		{
 			var del = GetFunc(name);
-			if (del == null) return null;
-			if (del is Action act) return act;
-			return () => del.DynamicInvoke();
+			return ScriptUtils.ConvertDelegate<Action>(del);
+			//if (del == null) return null;
+			//if (del is Action act) return act;
+			//return () => del.DynamicInvoke();
 			//return (Action)GetFunc(name);
 		}
 
 		public Action<T1> GetAction<T1>(string name)
 		{
 			var del = GetFunc(name, typeof(T1));
-			if (del == null) return null;
-			if (del is Action<T1> act) return act;
-			return (a1) => del.DynamicInvoke(a1);
+			return ScriptUtils.ConvertDelegate<Action<T1>>(del);
+			//if (del == null) return null;
+			//if (del is Action<T1> act) return act;
+			//return (a1) => del.DynamicInvoke(a1);
 			//return (Action<T1>)GetFunc(name, typeof(T1));
 		}
 
 		public Action<T1, T2> GetAction<T1, T2>(string name)
 		{
 			var del = GetFunc(name, typeof(T1), typeof(T2));
-			if (del == null) return null;
-			if (del is Action<T1, T2> act) return act;
-			return (a1, a2) => del.DynamicInvoke(a1, a2);
+			return ScriptUtils.ConvertDelegate<Action<T1, T2>>(del);
+			//if (del == null) return null;
+			//if (del is Action<T1, T2> act) return act;
+			//return (a1, a2) => del.DynamicInvoke(a1, a2);
 			//return (Action<T1, T2>)GetFunc(name, typeof(T1), typeof(T2));
 		}
 
 		public Action<T1, T2, T3> GetAction<T1, T2, T3>(string name)
 		{
 			var del = GetFunc(name, typeof(T1), typeof(T2), typeof(T3));
-			if (del == null) return null;
-			if (del is Action<T1, T2, T3> act) return act;
-			return (a1, a2, a3) => del.DynamicInvoke(a1, a2, a3);
+			return ScriptUtils.ConvertDelegate<Action<T1, T2, T3>>(del);
+			//if (del == null) return null;
+			//if (del is Action<T1, T2, T3> act) return act;
+			//return (a1, a2, a3) => del.DynamicInvoke(a1, a2, a3);
 			//return (Action<T1, T2, T3>)GetFunc(name, typeof(T1), typeof(T2), typeof(T3));
 		}
 
 		public Action<T1, T2, T3, T4> GetAction<T1, T2, T3, T4>(string name)
 		{
 			var del = GetFunc(name, typeof(T1), typeof(T2), typeof(T3), typeof(T4));
-			if (del == null) return null;
-			if (del is Action<T1, T2, T3, T4> act) return act;
-			return (a1, a2, a3, a4) => del.DynamicInvoke(a1, a2, a3, a4);
+			return ScriptUtils.ConvertDelegate<Action<T1, T2, T3, T4>>(del);
+			//if (del == null) return null;
+			//if (del is Action<T1, T2, T3, T4> act) return act;
+			//return (a1, a2, a3, a4) => del.DynamicInvoke(a1, a2, a3, a4);
 			//return (Action<T1, T2, T3, T4>)GetFunc(name, typeof(T1), typeof(T2), typeof(T3), typeof(T4));
 		}
 
 		public Action<T1, T2, T3, T4, T5> GetAction<T1, T2, T3, T4, T5>(string name)
 		{
 			var del = GetFunc(name, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5));
-			if (del == null) return null;
-			if (del is Action<T1, T2, T3, T4, T5> act) return act;
-			return (a1, a2, a3, a4, a5) => del.DynamicInvoke(a1, a2, a3, a4, a5);
+			return ScriptUtils.ConvertDelegate<Action<T1, T2, T3, T4, T5>>(del);
+			//if (del == null) return null;
+			//if (del is Action<T1, T2, T3, T4, T5> act) return act;
+			//return (a1, a2, a3, a4, a5) => del.DynamicInvoke(a1, a2, a3, a4, a5);
 			//return (Action<T1, T2, T3, T4, T5>)GetFunc(name, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5));
 		}
 

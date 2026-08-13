@@ -20,6 +20,14 @@ namespace AScript
 		public static readonly Expression Constant_string_empty = Expression.Constant(string.Empty);
 		public static readonly Expression Constant_typeof_double = Expression.Constant(typeof(double));
 
+#if NET45
+		public static readonly ParameterExpression[] Empty_ParameterExpressions = new ParameterExpression[0];
+		public static readonly Expression[] Empty_Expressions = new Expression[0];
+#else
+		public static readonly ParameterExpression[] Empty_ParameterExpressions = Array.Empty<ParameterExpression>();
+		public static readonly Expression[] Empty_Expressions = Array.Empty<Expression>();
+#endif
+
 		public static readonly ParameterExpression Parameter_ScriptContext = Expression.Parameter(typeof(ScriptContext));
 
 		public static readonly MethodInfo Method_ScriptUtils_Convert = typeof(ScriptUtils).GetMethod("Convert", new[] { typeof(object), typeof(Type) });

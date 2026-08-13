@@ -1113,6 +1113,70 @@ namespace AScript
 			return target == null ? Delegate.CreateDelegate(delegateType, methodInfo) : Delegate.CreateDelegate(delegateType, target, methodInfo);
 		}
 
+		public static Delegate ConvertDelegate(Delegate del, Type targetDelegateType)
+		{
+			if (del == null) return null;
+			if (del.GetType() == targetDelegateType) return del;
+			var delMethod = del.Method ?? del.GetType().GetMethod("Invoke");
+			var tarMethod = targetDelegateType.GetMethod("Invoke");
+			ParameterExpression[] tarArgs;
+			Expression[] delArgs;
+			var delParameters = delMethod.GetParameters();
+			int delIndex = 0;
+			// 忽略闭包参数
+			if (delParameters.Length > 0 && delParameters[0].ParameterType.FullName == "System.Runtime.CompilerServices.Closure")
+			{
+				delIndex = 1;
+			}
+			// 
+			if (delParameters.Length == delIndex)
+			{
+				tarArgs = ExpressionUtils.Empty_ParameterExpressions;
+				delArgs = ExpressionUtils.Empty_Expressions;
+			}
+			else
+			{
+				var tarParameters = tarMethod.GetParameters();
+				tarArgs = new ParameterExpression[tarParameters.Length];
+				delArgs = new Expression[tarParameters.Length];
+				for (int i = 0; i < tarParameters.Length; i++)
+				{
+					var delParam = delParameters[i + delIndex];
+					var tarParam = tarParameters[i];
+					var tarArg = Expression.Parameter(tarParam.ParameterType);
+					tarArgs[i] = tarArg;
+					if (delParam.ParameterType == tarParam.ParameterType)
+					{
+						delArgs[i] = tarArg;
+					}
+					else
+					{
+						delArgs[i] = Expression.Convert(tarArg, delParam.ParameterType);
+					}
+				}
+			}
+			Expression invoke = Expression.Invoke(Expression.Constant(del), delArgs);
+			if (delMethod.ReturnType == typeof(void))
+			{
+				if (tarMethod.ReturnType != typeof(void))
+				{
+					var defaultValue = Expression.Default(tarMethod.ReturnType);
+					var block = Expression.Block(invoke, defaultValue);
+					invoke = block;
+				}
+			}
+			else if (tarMethod.ReturnType != typeof(void) && tarMethod.ReturnType != delMethod.ReturnType)
+			{
+				invoke = Expression.Convert(invoke, tarMethod.ReturnType);
+			}
+			return Expression.Lambda(targetDelegateType, invoke, tarArgs).Compile();
+		}
+
+		public static TDelegate ConvertDelegate<TDelegate>(Delegate del) where TDelegate : Delegate
+		{
+			return (TDelegate)ConvertDelegate(del, typeof(TDelegate));
+		}
+
 		public static bool Contains(IEnumerable<string> list, string s)
 		{
 			if (list == null) return false;

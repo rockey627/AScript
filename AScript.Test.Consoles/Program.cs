@@ -35,7 +35,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			//Test01_Benchmark();
+			Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -59,7 +59,7 @@ namespace AScript.Test.Consoles
 			//Test22();
 			//Test23();
 			//Test24_Sqlite();
-			Test25_js();
+			//Test25_js();
 			//var p = Expression.Constant(new Person());
 			//Console.WriteLine(Expression.PropertyOrField(p, "name"));
 			Console.WriteLine("end");
@@ -656,6 +656,7 @@ exec2(26)
 			//new Benchmarks.ExpressionTest09().AScript();
 			//new Benchmarks.ExpressionTest10().AScript();
 			//new Benchmarks.ExpressionTest12().AScript();
+			//new Benchmarks.DynamicTest2().Expr();
 		}
 
 	}
