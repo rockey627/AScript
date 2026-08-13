@@ -36,6 +36,8 @@ install-package AScript.Lang.Lua
     - 数组风格: `{ value1, value2, value3 }`
     - 字典风格: `{ key1 = value1, key2 = value2 }`
     - 混合风格: `{ 1, 2, name = "test" }`
+* 单行注释：-- 单行注释
+* 多行注释：--[[ 多行注释 ]]
 
 #### 注册Lua语言
 ```

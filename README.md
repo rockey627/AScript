@@ -16,6 +16,7 @@
 * [AScript之事件处理脚本](https://mp.weixin.qq.com/s/0F6vRWp4KxsXlCB9CdDH7A)
 * [基于AScript的SQL脚本语言发布啦！](https://mp.weixin.qq.com/s/oKDiJ7_Pcd8ODGxYOLWXGQ)
 * [基于AScript的JavaScript脚本语言发布啦](https://mp.weixin.qq.com/s/tefbC2cfZiIWKuJo2Zkx7A)
+* [基于AScript的Lua脚本语言发布啦](https://mp.weixin.qq.com/s/lfYFPPSMK5lxyMjdjSNQDA)
 
 ## 介绍
 
@@ -41,7 +42,7 @@ C#动态脚本解析编译执行引擎
 * 支持try-catch-finally语句
 * 支持自定义语法解析（自定义关键字）
 * 支持流式读取表达式
-* 支持自定义脚本语言，已实现CSharp/Python3/SQL/JavaScript四种语言
+* 支持自定义脚本语言，已实现CSharp/Python3/SQL/JavaScript/Lua五种语言
 * 支持2种执行模式：
 1. 解析执行：解析过程中计算结果，对于非循环语句有较高的性能及低内存，有循环语句则建议使用第2种编译执行方式
 ```C#
