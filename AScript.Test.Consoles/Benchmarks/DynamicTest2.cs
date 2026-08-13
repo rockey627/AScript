@@ -67,5 +67,18 @@ namespace AScript.Test.Consoles.Benchmarks
 				throw new Exception();
 			}
 		}
+
+		[Benchmark]
+		public void Expr3()
+		{
+			Delegate d = Test;
+			var f = ScriptUtils.ConvertDelegate<Func<string, int>>(d);
+			int n = f("hello");
+			//Console.WriteLine(n);
+			if (n != 5)
+			{
+				throw new Exception();
+			}
+		}
 	}
 }
