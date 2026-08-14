@@ -332,7 +332,7 @@ Assert.AreEqual("hello".Length, script.Eval("'hello'.Length"));
 Assert.AreEqual("hello".Substring(1, 2), script.Eval("'hello'.Substring(1, 2)"));
 ```
 
-#### for
+#### for循环
 ```C#
 string s = @"
 int total=0;
@@ -344,7 +344,7 @@ var script = new Script();
 Assert.AreEqual(55, script.Eval(s));
 ```
 
-#### foreach
+#### foreach循环
 ```C#
 string s = @"
 int n=0;
@@ -363,7 +363,7 @@ Assert.AreEqual(25, script.Eval(s));
 Assert.AreEqual(25, script.Eval(s, -1));
 ```
 
-#### while
+#### while循环
 ```C#
 string s = @"
 int total=0;
@@ -377,7 +377,7 @@ var script = new Script();
 Assert.AreEqual(55, script.Eval(s));
 ```
 
-#### case when
+#### case when（AScript定制语法）
 与C#中的switch语法不同，语句块中不需要break，并且整体语句返回对应when或default语句的值。
 ```C#
 var s = @"
@@ -616,7 +616,7 @@ await Assert.ThrowsExceptionAsync<TaskCanceledException>(async () =>
 ```
 
 #### 扩展构造函数
-方法名格式：new_{类型名称}_
+方法名格式：new_{类型名称}
 ```
 string s = @"
 // 脚本中扩展构造函数
