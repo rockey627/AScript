@@ -611,27 +611,30 @@ namespace AScript
 			if (expandBodies != null) list.AddRange(expandBodies);
 			else if (body != null && body.Length > 0) list.AddRange(body);
 			// 
+			int lastExpressionIndex = -1;
+			Expression lastExpression = null;
 			if (list != null && list.Count > 0)
 			{
-				var lastExpression = list[list.Count - 1];
+				lastExpressionIndex = list.Count - 1;
+				lastExpression = list[lastExpressionIndex];
 				// 如果最后一条表达式是void类型（如return语句），不处理返回值赋值
 				if (lastExpression.Type != typeof(void))
 				{
 					if (this.ReturnType != null && this.ReturnType != typeof(void) && this.ReturnType != lastExpression.Type)
 					{
 						lastExpression = Expression.Convert(lastExpression, this.ReturnType);
-						list[list.Count - 1] = lastExpression;
+						list[lastExpressionIndex] = lastExpression;
 					}
 					// 无论是否有本地变量，都需要将最后一个表达式的值作为返回值
-					if (this.ReturnVariableExpression == null)
-					{
-						this.ReturnVariableExpression = Expression.Variable(lastExpression.Type);
-					}
-					if (lastExpression.Type != this.ReturnVariableExpression.Type)
-					{
-						lastExpression = Expression.Convert(lastExpression, this.ReturnVariableExpression.Type);
-					}
-					list[list.Count - 1] = Expression.Assign(this.ReturnVariableExpression, lastExpression);
+					//if (this.ReturnVariableExpression == null)
+					//{
+					//	this.ReturnVariableExpression = Expression.Variable(lastExpression.Type);
+					//}
+					//if (lastExpression.Type != this.ReturnVariableExpression.Type)
+					//{
+					//	lastExpression = Expression.Convert(lastExpression, this.ReturnVariableExpression.Type);
+					//}
+					//list[lastExpressionIndex] = Expression.Assign(this.ReturnVariableExpression, lastExpression);
 				}
 			}
 			// return label
@@ -676,6 +679,18 @@ namespace AScript
 							Expression.Constant(searchParent)));
 					}
 				}
+			}
+			if (this.ReturnType != typeof(void) && lastExpressionIndex > -1 && list.Count - 1 > lastExpressionIndex && lastExpression.Type != typeof(void))
+			{
+				if (this.ReturnVariableExpression == null)
+				{
+					this.ReturnVariableExpression = Expression.Variable(lastExpression.Type);
+				}
+				else if (lastExpression.Type != this.ReturnVariableExpression.Type)
+				{
+					lastExpression = Expression.Convert(lastExpression, this.ReturnVariableExpression.Type);
+				}
+				list[lastExpressionIndex] = Expression.Assign(this.ReturnVariableExpression, lastExpression);
 			}
 			if (this.ReturnVariableExpression != null)
 			{
