@@ -564,15 +564,27 @@ namespace AScript
 		/// <param name="valueType"></param>
 		public virtual void SetVar(string name, object value, Type valueType)
 		{
-			if (valueType == null)
-			{
-				valueType = value?.GetType() ?? typeof(object);
-			}
 			Init_Variables();
-			Init_VariableTypes();
 			this._Variables[name] = value;
-			this._VariableTypes[name] = valueType;
 			this._VariableModifiers?.Remove(name);
+			SetVarType(name, value, valueType);
+		}
+
+		private void SetVarType(string name, object value, Type type)
+		{
+			if (value != null && type == value.GetType())
+			{
+				type = null;
+			}
+			if (type == null)
+			{
+				this._VariableTypes?.Remove(name);
+			}
+			else
+			{
+				Init_VariableTypes();
+				this._VariableTypes[name] = type;
+			}
 		}
 
 		/// <summary>
@@ -663,11 +675,7 @@ namespace AScript
 		{
 			if (_Variables != null && _Variables.TryGetValue(name, out var v))
 			{
-				if (_VariableTypes == null)
-				{
-					type = v?.GetType();
-				}
-				else if (!_VariableTypes.TryGetValue(name, out type))
+				if (_VariableTypes == null || !_VariableTypes.TryGetValue(name, out type))
 				{
 					type = v?.GetType();
 				}

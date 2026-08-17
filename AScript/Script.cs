@@ -152,8 +152,7 @@ namespace AScript
 		public T Eval<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			if (string.IsNullOrEmpty(expression)) return default;
-			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
-			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
 				return func(this.Context);
@@ -181,8 +180,7 @@ namespace AScript
 		public async Task<T> EvalAsync<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
 		{
 			if (string.IsNullOrEmpty(expression)) return default;
-			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
-			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = await CompileGlobalAsync<T>(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
 				return func(this.Context);
@@ -232,9 +230,8 @@ namespace AScript
 			{
 				return default;
 			}
-			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
 			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
-				|| compileMode == ECompileMode.All)
+				|| (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
 				var value = func.DynamicInvoke(this.Context);
@@ -266,9 +263,8 @@ namespace AScript
 				returnType = null;
 				return null;
 			}
-			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
 			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
-				|| compileMode == ECompileMode.All)
+				|| (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
 				returnType = func.Method.ReturnType;
@@ -292,8 +288,7 @@ namespace AScript
 			{
 				return default;
 			}
-			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
-			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
 				return func(this.Context);
@@ -317,8 +312,7 @@ namespace AScript
 			{
 				return default;
 			}
-			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
-			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = await CompileGlobalAsync<T>(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
 				return func(this.Context);
@@ -338,8 +332,7 @@ namespace AScript
 				returnType = null;
 				return null;
 			}
-			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
-			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
 				returnType = func.Method.ReturnType;
@@ -354,8 +347,7 @@ namespace AScript
 			{
 				return default;
 			}
-			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
-			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
 				var value = func.DynamicInvoke(this.Context);
@@ -386,8 +378,7 @@ namespace AScript
 			{
 				return default;
 			}
-			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
-			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
 				return func(this.Context);
@@ -418,8 +409,7 @@ namespace AScript
 			{
 				return default;
 			}
-			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
-			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = await CompileGlobalAsync<T>(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
 				return func(this.Context);
@@ -470,9 +460,8 @@ namespace AScript
 				returnType = null;
 				return null;
 			}
-			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
 			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
-				|| compileMode == ECompileMode.All)
+				|| (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
 				returnType = func.Method.ReturnType;
@@ -487,8 +476,7 @@ namespace AScript
 			{
 				return default;
 			}
-			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
-			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
 				var value = func.DynamicInvoke(this.Context);
@@ -512,8 +500,7 @@ namespace AScript
 			{
 				return default;
 			}
-			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
-			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
 				return func(this.Context);
@@ -544,8 +531,7 @@ namespace AScript
 			{
 				return default;
 			}
-			var compileMode = this.Options.CompileMode ?? ECompileMode.None;
-			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = await CompileGlobalAsync<T>(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
 				return func(this.Context);
@@ -1832,8 +1818,7 @@ namespace AScript
 				returnType = null;
 				return null;
 			}
-			var compileMode = options.CompileMode ?? ECompileMode.None;
-			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			if (cacheTime != 0 || (options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = CompileGlobal(buildContext, scriptContext, options, expression, cacheTime, cacheKey, cacheVersion);
 				returnType = func.Method.ReturnType;
@@ -1873,8 +1858,7 @@ namespace AScript
 			{
 				return default;
 			}
-			var compileMode = options.CompileMode ?? ECompileMode.None;
-			if (cacheTime != 0 || compileMode == ECompileMode.All)
+			if (cacheTime != 0 || (options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = await CompileGlobalAsync(buildContext, scriptContext, options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
 				var value = func.DynamicInvoke(scriptContext);

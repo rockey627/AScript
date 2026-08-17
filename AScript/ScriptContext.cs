@@ -712,16 +712,6 @@ namespace AScript
 		public override object EvalVar(string name, out Type type)
 		{
 			var context = GetOwnerContext(name, out var value, out type, true);
-			//if (context == null)
-			//{
-			//	// 没有变量，则查找类
-			//	var mytype = EvalType(name);
-			//	if (mytype != null)
-			//	{
-			//		type = typeof(TypeWrapper);
-			//		return new TypeWrapper(mytype);
-			//	}
-			//}
 			if (context == null)
 			{
 				// 从语言上下文中搜索
@@ -2331,17 +2321,29 @@ namespace AScript
 
 		public override void SetVar(string name, object value, Type valueType)
 		{
-			if (valueType == null)
-			{
-				valueType = value?.GetType() ?? typeof(object);
-			}
 			base.SetVar(name, value, valueType);
 			if (this._TempVariables != null && this._TempVariables.ContainsKey(name))
 			{
 				// 覆盖临时变量值
 				this._TempVariables[name] = value;
+				SetTempVarType(name, value, valueType);
+			}
+		}
+
+		private void SetTempVarType(string name, object value, Type type)
+		{
+			if (value != null && type == value.GetType())
+			{
+				type = null;
+			}
+			if (type == null)
+			{
+				this._TempVariableTypes?.Remove(name);
+			}
+			else
+			{
 				Init_TempVariableTypes();
-				this._TempVariableTypes[name] = valueType;
+				this._TempVariableTypes[name] = type;
 			}
 		}
 
@@ -2373,18 +2375,20 @@ namespace AScript
 			var context = searchContext ? (GetOwnerContext(name, out _, out _) ?? this) : this;
 			Modifiers.ThrowIfReadOnly(name, context.GetVarModifier(name));
 			context.Init_TempVariables();
-			context.Init_TempVariableTypes();
 			context._TempVariables[name] = value;
-			context._TempVariableTypes[name] = valueType ?? value?.GetType() ?? typeof(object);
+			context.SetTempVarType(name, value, valueType);
+			//context.Init_TempVariableTypes();
+			//context._TempVariableTypes[name] = valueType ?? value?.GetType() ?? typeof(object);
 		}
 
 		public void SetTempConst(string name, object value, Type valueType, bool searchContext)
 		{
 			var context = searchContext ? (GetOwnerContext(name, out _, out _) ?? this) : this;
 			context.Init_TempVariables();
-			context.Init_TempVariableTypes();
 			context._TempVariables[name] = value;
-			context._TempVariableTypes[name] = valueType ?? value?.GetType() ?? typeof(object);
+			context.SetTempVarType(name, value, valueType);
+			//context.Init_TempVariableTypes();
+			//context._TempVariableTypes[name] = valueType ?? value?.GetType() ?? typeof(object);
 			context.SetVarModifier(name, Modifiers.READONLY);
 		}
 
@@ -2405,18 +2409,26 @@ namespace AScript
 		/// <returns>变量的声明类型，如果不存在则返回 null</returns>
 		public Type GetVarType(string name)
 		{
-			// 先检查临时变量
-			if (_TempVariableTypes != null && _TempVariableTypes.TryGetValue(name, out var type))
+			//// 先检查临时变量
+			//if (_TempVariableTypes != null && _TempVariableTypes.TryGetValue(name, out var type))
+			//{
+			//	return type;
+			//}
+			//// 检查普通变量
+			//if (_VariableTypes != null && _VariableTypes.TryGetValue(name, out type))
+			//{
+			//	return type;
+			//}
+			//// 检查父上下文
+			//return Parent?.GetVarType(name);
+
+			var context = GetOwnerContext(name, out _, out var type, true);
+			if (context == null)
 			{
-				return type;
+				// 从语言上下文中搜索
+				EvalVarFromLangs(name, out type);
 			}
-			// 检查普通变量
-			if (_VariableTypes != null && _VariableTypes.TryGetValue(name, out type))
-			{
-				return type;
-			}
-			// 检查父上下文
-			return Parent?.GetVarType(name);
+			return type;
 		}
 
 		public void HandleToken(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)

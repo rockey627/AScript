@@ -33,7 +33,8 @@ namespace AScript
 
 		public bool TryGetValue(string key, string version, out T value)
 		{
-			if (_Cache.TryGetValue(key, out var t) && t.Item2 == version)
+			if (_Cache.TryGetValue(key, out var t) && 
+				(string.IsNullOrEmpty(version) || t.Item2 == version))
 			{
 				value = t.Item3;
 				return true;
@@ -76,6 +77,7 @@ namespace AScript
 				if (timeout <= 0 && timer != null)
 				{
 					timer.Dispose();
+					timer = null;
 				}
 			}
 
