@@ -647,7 +647,7 @@ namespace AScript
 		/// </summary>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		protected int GetVarModifier(string name)
+		public int GetVarModifier(string name)
 		{
 			var modifiers = this._VariableModifiers;
 			if (modifiers == null) return 0;
@@ -677,7 +677,7 @@ namespace AScript
 			{
 				if (_VariableTypes == null || !_VariableTypes.TryGetValue(name, out type))
 				{
-					type = v?.GetType();
+					type = v?.GetType() ?? typeof(object);
 				}
 				return v;
 			}
@@ -690,6 +690,31 @@ namespace AScript
 			}
 			type = null;
 			return null;
+		}
+
+		public T EvalVar<T>(string name)
+		{
+			return EvalVar<T>(name, false);
+		}
+
+		public T EvalVar<T>(string name, bool throwExceptionIfNotExists)
+		{
+			if (!TryEvalVar<T>(name, out var value) && throwExceptionIfNotExists)
+			{
+				throw new Exceptions.ScriptRuntimeException($"variable '{name}' is not exists");
+			}
+			return value;
+		}
+
+		public virtual bool TryEvalVar<T>(string name, out T value)
+		{
+			if (_Variables != null && _Variables.TryGetValue(name, out var v))
+			{
+				value = (T)v;
+				return true;
+			}
+			value = default;
+			return false;
 		}
 
 		public virtual Type EvalType(string name)

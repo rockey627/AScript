@@ -701,7 +701,7 @@ result
 		public void Compile_WhitespaceExpression()
 		{
 			var script = new Script();
-			var func = script.Compile<Action>("   ");
+			var func = script.Compile<object>("   ");
 			func();
 		}
 

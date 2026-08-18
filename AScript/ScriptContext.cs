@@ -565,23 +565,58 @@ namespace AScript
 				context = context.Parent;
 			} while (context != null);
 
-			if (!searchType)
+			//if (!searchType)
+			//{
+			//	value = null;
+			//	type = null;
+			//	modifier = 0;
+			//	return null;
+			//}
+			//var tt = EvalTypeFromLangs(variable);
+			//if (tt == null)
+			//{
+			//	value = null;
+			//	type = null;
+			//	modifier = 0;
+			//	return null;
+			//}
+			//type = typeof(TypeWrapper);
+			//value = new TypeWrapper(variable, tt);
+			value = null;
+			type = null;
+			modifier = 0;
+			return null;
+		}
+
+		/// <summary>
+		/// 获取变量所在的上下文
+		/// </summary>
+		/// <param name="variable"></param>
+		/// <param name="value"></param>
+		/// <param name="modifier‌">变量修饰符</param>
+		/// <returns></returns>
+		public ScriptContext GetOwnerContext<T>(string variable, out T value, out int modifier‌)
+		{
+			var context = this;
+			do
 			{
-				value = null;
-				type = null;
-				modifier = 0;
-				return null;
-			}
-			var tt = EvalTypeFromLangs(variable);
-			if (tt == null)
-			{
-				value = null;
-				type = null;
-				modifier = 0;
-				return null;
-			}
-			type = typeof(TypeWrapper);
-			value = new TypeWrapper(variable, tt);
+				var tempVariables = context._TempVariables;
+				if (tempVariables != null && tempVariables.TryGetValue(variable, out var v1))
+				{
+					value = (T)v1;
+					modifier = context.GetVarModifier(variable);
+					return context;
+				}
+				var variables = context._Variables;
+				if (variables != null && variables.TryGetValue(variable, out var v2))
+				{
+					value = (T)v2;
+					modifier = context.GetVarModifier(variable);
+					return context;
+				}
+				context = context.Parent;
+			} while (context != null);
+			value = default;
 			modifier = 0;
 			return null;
 		}
@@ -727,7 +762,12 @@ namespace AScript
 			return value;
 		}
 
-		private object EvalVarFromLangs(string name, out Type type)
+		public override bool TryEvalVar<T>(string name, out T value)
+		{
+			return base.TryEvalVar(name, out value);
+		}
+
+		public object EvalVarFromLangs(string name, out Type type)
 		{
 			var langs = this.Langs;
 			if (langs == null || langs.Length == 0)
@@ -736,7 +776,11 @@ namespace AScript
 				{
 					if (Script.Langs.TryGetValue(item, out var lang))
 					{
-						return lang.EvalVar(name, out type);
+						var value = lang.EvalVar(name, out type);
+						if (type != null)
+						{
+							return value;
+						}
 					}
 				}
 			}
@@ -746,12 +790,137 @@ namespace AScript
 				{
 					if (Script.Langs.TryGetValue(langs[i], out var lang))
 					{
-						return lang.EvalVar(name, out type);
+						var value = lang.EvalVar(name, out type);
+						if (type != null)
+						{
+							return value;
+						}
 					}
 				}
 			}
 			type = null;
 			return null;
+		}
+
+		public object EvalVarFromLangs(string name, out Type type, out int modifier)
+		{
+			var langs = this.Langs;
+			if (langs == null || langs.Length == 0)
+			{
+				foreach (var item in Script.Langs.GetDefaults())
+				{
+					if (Script.Langs.TryGetValue(item, out var lang))
+					{
+						var value = lang.EvalVar(name, out type);
+						if (type != null)
+						{
+							modifier = lang.GetVarModifier(name);
+							return value;
+						}
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < langs.Length; i++)
+				{
+					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					{
+						var value = lang.EvalVar(name, out type);
+						if (type != null)
+						{
+							modifier = lang.GetVarModifier(name);
+							return value;
+						}
+					}
+				}
+			}
+			type = null;
+			modifier = 0;
+			return null;
+		}
+
+		public T EvalVarFromLangs<T>(string name)
+		{
+			return EvalVarFromLangs<T>(name, false);
+		}
+
+		public T EvalVarFromLangs<T>(string name, bool throwExceptionIfNotExists)
+		{
+			if (!TryEvalVarFromLangs<T>(name, out var value) && throwExceptionIfNotExists)
+			{
+				throw new Exceptions.ScriptRuntimeException($"variable '{name}' is not exists");
+			}
+			return value;
+		}
+
+		public bool TryEvalVarFromLangs<T>(string name, out T value)
+		{
+			var langs = this.Langs;
+			if (langs == null || langs.Length == 0)
+			{
+				foreach (var item in Script.Langs.GetDefaults())
+				{
+					if (Script.Langs.TryGetValue(item, out var lang))
+					{
+						if (lang.TryEvalVar<T>(name, out value))
+						{
+							return true;
+						}
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < langs.Length; i++)
+				{
+					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					{
+						if (lang.TryEvalVar<T>(name, out value))
+						{
+							return true;
+						}
+					}
+				}
+			}
+			value = default;
+			return false;
+		}
+
+		public bool TryEvalVarFromLangs<T>(string name, out T value, out int modifier)
+		{
+			var langs = this.Langs;
+			if (langs == null || langs.Length == 0)
+			{
+				foreach (var item in Script.Langs.GetDefaults())
+				{
+					if (Script.Langs.TryGetValue(item, out var lang))
+					{
+						if (lang.TryEvalVar<T>(name, out value))
+						{
+							modifier = lang.GetVarModifier(name);
+							return true;
+						}
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < langs.Length; i++)
+				{
+					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					{
+						if (lang.TryEvalVar<T>(name, out value))
+						{
+							modifier = lang.GetVarModifier(name);
+							return true;
+						}
+					}
+				}
+			}
+			value = default;
+			modifier = 0;
+			return false;
 		}
 
 		public void EvalAction(BuildOptions options, EvalControl control, string name, IList<ITreeNode> args)
@@ -865,7 +1034,11 @@ namespace AScript
 			try
 			{
 				// 获取Delegate变量
-				GetOwnerContext(name, out var value, out _, false);
+				var ownerContext = GetOwnerContext(name, out var value, out _, false);
+				if (ownerContext == null)
+				{
+					value = EvalVarFromLangs(name, out _);
+				}
 				functionEvalArgs.EvalArgs();
 				if (value is Delegate || value is CustomFunctionObject)
 				{
@@ -996,7 +1169,11 @@ namespace AScript
 			try
 			{
 				// 获取Delegate变量
-				GetOwnerContext(name, out var value, out _, false);
+				var ownerContext = GetOwnerContext(name, out var value, out _, false);
+				if (ownerContext == null)
+				{
+					value = EvalVarFromLangs(name, out _);
+				}
 				functionEvalArgs.EvalArgs();
 				if (value is Delegate || value is CustomFunctionObject)
 				{

@@ -141,7 +141,7 @@ namespace AScript.Lang.JavaScript.Extensions
 			{
 				return s.Select(a => (object)a.ToString()).ToList();
 			}
-#if NETSTANDARD2_1_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
 			return s.Split(pattern).Select(a => (object)a).ToList();
 #else
 			return s.Split(new[] { pattern }, StringSplitOptions.None).Select(a => (object)a).ToList();

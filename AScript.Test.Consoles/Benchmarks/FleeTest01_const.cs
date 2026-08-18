@@ -1,6 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using Iced.Intel;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,7 +30,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		}
 
 		[Benchmark]
-		public void AScript2_NoCache()
+		public void AScript2_Compile()
 		{
 			var script = new AScript.Script();
 			var result = script.Eval<int>(s, ECompileMode.All);
@@ -51,6 +52,50 @@ namespace AScript.Test.Consoles.Benchmarks
 			}
 		}
 
+		private static Script _Script2;
+
+		[Benchmark]
+		public void AScript2_Compile2()
+		{
+			if (_Script2 == null)
+			{
+				_Script2 = new AScript.Script();
+			}
+			var result = _Script2.Eval<int>(s, ECompileMode.All);
+			if (result != r)
+			{
+				throw new Exception("result error");
+			}
+		}
+
+		private static Flee.PublicTypes.ExpressionContext _LeeContext2_2;
+
+		[Benchmark]
+		public void Lee2_2()
+		{
+			if (_LeeContext2_2 == null)
+			{
+				_LeeContext2_2 = new Flee.PublicTypes.ExpressionContext();
+			}
+			var d = _LeeContext2_2.CompileGeneric<int>(s);
+			var result = d.Evaluate();
+			if (result != r)
+			{
+				throw new Exception("result error");
+			}
+		}
+
+		//[Benchmark]
+		//public void AScript3_UseCache()
+		//{
+		//	var script = new AScript.Script();
+		//	var result = script.Eval<int>(s, -1);
+		//	if (result != r)
+		//	{
+		//		throw new Exception("result error");
+		//	}
+		//}
+
 		private static Script _Script3;
 
 		[Benchmark]
@@ -67,17 +112,18 @@ namespace AScript.Test.Consoles.Benchmarks
 			}
 		}
 
-		private static Flee.PublicTypes.ExpressionContext _LeeContext3;
+		private static readonly ConcurrentDictionary<string, Flee.PublicTypes.IGenericExpression<int>> _LeeExpr3Dict = new ConcurrentDictionary<string, Flee.PublicTypes.IGenericExpression<int>>();
 
 		[Benchmark]
 		public void Lee3()
 		{
-			if (_LeeContext3 == null)
+			if (!_LeeExpr3Dict.TryGetValue(s, out var d))
 			{
-				_LeeContext3 = new Flee.PublicTypes.ExpressionContext();
+				var context = new Flee.PublicTypes.ExpressionContext();
+				d = context.CompileGeneric<int>(s);
+				_LeeExpr3Dict[s] = d;
 			}
-			var d = _LeeContext3.CompileDynamic(s);
-			var result = (int)d.Evaluate();
+			var result = d.Evaluate();
 			if (result != r)
 			{
 				throw new Exception("result error");
@@ -101,7 +147,7 @@ namespace AScript.Test.Consoles.Benchmarks
 			}
 		}
 
-		private static Flee.PublicTypes.IDynamicExpression _LeeExpr4 = _LeeContext3.CompileDynamic(s);
+		private static Flee.PublicTypes.IGenericExpression<int> _LeeExpr4;
 
 		[Benchmark]
 		public void Lee4()
@@ -109,9 +155,9 @@ namespace AScript.Test.Consoles.Benchmarks
 			if (_LeeExpr4 == null)
 			{
 				var context = new Flee.PublicTypes.ExpressionContext();
-				_LeeExpr4 = context.CompileDynamic(s);
+				_LeeExpr4 = context.CompileGeneric<int>(s);
 			}
-			var result = (int)_LeeExpr4.Evaluate();
+			var result = _LeeExpr4.Evaluate();
 			if (result != r)
 			{
 				throw new Exception("result error");

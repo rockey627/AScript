@@ -378,10 +378,10 @@ namespace AScript.Nodes
 				if (this.Args == null)
 				{
 					argExprs = null;
-#if NETSTANDARD
-					argTypes = Array.Empty<Type>();
-#else
+#if NET45
 					argTypes = new Type[0];
+#else
+					argTypes = Array.Empty<Type>();
 #endif
 				}
 				else

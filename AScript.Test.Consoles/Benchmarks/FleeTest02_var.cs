@@ -91,8 +91,8 @@ namespace AScript.Test.Consoles.Benchmarks
 				_LeeContext2_2.Variables["b"] = 5;
 				_LeeContext2_2.Variables["c"] = 6;
 			}
-			var d = _LeeContext2_2.CompileDynamic(s);
-			var result = (int)d.Evaluate();
+			var d = _LeeContext2_2.CompileGeneric<int>(s);
+			var result = d.Evaluate();
 			if (result != r)
 			{
 				throw new Exception("result error");
@@ -132,7 +132,7 @@ namespace AScript.Test.Consoles.Benchmarks
 			}
 		}
 
-		private static readonly ConcurrentDictionary<string, Flee.PublicTypes.IDynamicExpression> _LeeExpr3Dict = new ConcurrentDictionary<string, Flee.PublicTypes.IDynamicExpression>();
+		private static readonly ConcurrentDictionary<string, Flee.PublicTypes.IGenericExpression<int>> _LeeExpr3Dict = new ConcurrentDictionary<string, Flee.PublicTypes.IGenericExpression<int>>();
 
 		[Benchmark]
 		public void Lee3()
@@ -143,10 +143,10 @@ namespace AScript.Test.Consoles.Benchmarks
 				context.Variables["a"] = 100;
 				context.Variables["b"] = 5;
 				context.Variables["c"] = 6;
-				d = context.CompileDynamic(s);
+				d = context.CompileGeneric<int>(s);
 				_LeeExpr3Dict[s] = d;
 			}
-			var result = (int)d.Evaluate();
+			var result = d.Evaluate();
 			if (result != r)
 			{
 				throw new Exception("result error");
@@ -173,7 +173,7 @@ namespace AScript.Test.Consoles.Benchmarks
 			}
 		}
 
-		private static Flee.PublicTypes.IDynamicExpression _LeeExpr4;
+		private static Flee.PublicTypes.IGenericExpression<int> _LeeExpr4;
 
 		[Benchmark]
 		public void Lee4()
@@ -184,9 +184,9 @@ namespace AScript.Test.Consoles.Benchmarks
 				context.Variables["a"] = 100;
 				context.Variables["b"] = 5;
 				context.Variables["c"] = 6;
-				_LeeExpr4 = context.CompileDynamic(s);
+				_LeeExpr4 = context.CompileGeneric<int>(s);
 			}
-			var result = (int)_LeeExpr4.Evaluate();
+			var result = _LeeExpr4.Evaluate();
 			if (result != r)
 			{
 				throw new Exception("result error");

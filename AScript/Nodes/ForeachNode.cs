@@ -137,7 +137,7 @@ namespace AScript.Nodes
 											itemList.Add(prop.GetValue(item));
 										}
 									}
-#if NETSTANDARD
+#if !NET45
 									else if (genericType.Name.StartsWith("ValueTuple`"))
 									{
 										itemList = new List<object>();
@@ -307,7 +307,7 @@ namespace AScript.Nodes
 											itemList.Add(prop.GetValue(item));
 										}
 									}
-#if NETSTANDARD
+#if !NET45
 									else if (genericType.Name.StartsWith("ValueTuple`"))
 									{
 										itemList = new List<object>();

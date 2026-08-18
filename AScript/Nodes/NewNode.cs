@@ -167,11 +167,7 @@ namespace AScript.Nodes
 			if (this.Args == null)
 			{
 				argValues = null;
-#if NETSTANDARD
-				argTypes = Array.Empty<Type>();
-#else
-				argTypes = new Type[0];
-#endif
+				argTypes = Type.EmptyTypes;
 			}
 			else
 			{
@@ -599,11 +595,7 @@ namespace AScript.Nodes
 			if (this.Args == null)
 			{
 				argValues = null;
-#if NETSTANDARD
-				argTypes = Array.Empty<Type>();
-#else
-				argTypes = new Type[0];
-#endif
+				argTypes = Type.EmptyTypes;
 			}
 			else
 			{

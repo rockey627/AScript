@@ -659,10 +659,10 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest14_For>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest15_rec>(config);
 			//BenchmarkRunner.Run<Benchmarks.PythonTest01>(config);
-			//BenchmarkRunner.Run<Benchmarks.FleeTest01>(config);
-			//BenchmarkRunner.Run<Benchmarks.FleeTest02_var>(config);
+			//BenchmarkRunner.Run<Benchmarks.FleeTest01_const>(config);
+			BenchmarkRunner.Run<Benchmarks.FleeTest02_var>(config);
 			//BenchmarkRunner.Run<Benchmarks.FleeTest03_call>(config);
-			BenchmarkRunner.Run<Benchmarks.FleeTest04_string>(config);
+			//BenchmarkRunner.Run<Benchmarks.FleeTest04_string>(config);
 			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();
 			//new Benchmarks.ExpressionTest06_Func().AScript1_3();
@@ -673,6 +673,8 @@ exec2(26)
 			//new Benchmarks.ExpressionTest12().AScript();
 			//new Benchmarks.DynamicTest2().Expr();
 			//new Benchmarks.FleeTest02_var().AScript3_UseCache();
+			//new Benchmarks.FleeTest01_const().AScript3_UseCache();
+			//new Benchmarks.FleeTest01_const().AScript3_UseCache();
 		}
 
 	}

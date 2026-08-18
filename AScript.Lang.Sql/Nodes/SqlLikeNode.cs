@@ -10,7 +10,7 @@ namespace AScript.Lang.Sql.Nodes
 		private static readonly Expression Constant_StringComparison_OrdinalIgnoreCase = Expression.Constant(StringComparison.OrdinalIgnoreCase);
 		private static readonly MethodInfo Method_String_EndsWith = typeof(string).GetMethod("EndsWith", new[] { typeof(string), typeof(StringComparison) });
 		private static readonly MethodInfo Method_String_StartsWith = typeof(string).GetMethod("StartsWith", new[] { typeof(string), typeof(StringComparison) });
-#if NETSTANDARD2_1_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
 		private static readonly MethodInfo Method_String_Contains = typeof(string).GetMethod("Contains", new[] { typeof(string), typeof(StringComparison) });
 #else
 		private static readonly MethodInfo Method_String_Contains = typeof(string).GetMethod("Contains", new[] { typeof(string) });
@@ -49,7 +49,7 @@ namespace AScript.Lang.Sql.Nodes
 			}
 			if (mode == 3)
 			{
-#if NETSTANDARD2_1_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
 				return s1.Contains(pattern, StringComparison.OrdinalIgnoreCase);
 #else
 				return s1.Contains(pattern);
@@ -76,7 +76,7 @@ namespace AScript.Lang.Sql.Nodes
 			}
 			if (mode == 3)
 			{
-#if NETSTANDARD2_1_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
 				var contains = Expression.Call(s1, Method_String_Contains, Expression.Constant(pattern), Constant_StringComparison_OrdinalIgnoreCase);
 #else
 				var contains = Expression.Call(s1, Method_String_Contains, Expression.Constant(pattern));

@@ -15,7 +15,7 @@ namespace AScript.Lang.JavaScript.fs
 
 		public async Task<string> readFile(string path, string encodeName)
 		{
-#if NETSTANDARD2_1_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
 			return await File.ReadAllTextAsync(path, Encoding.GetEncoding(encodeName)).ConfigureAwait(false);
 #else
 			using (var stream = File.OpenRead(path))
@@ -45,7 +45,7 @@ namespace AScript.Lang.JavaScript.fs
 
 		public async Task writeFile(string path, string data, string encodeName)
 		{
-#if NETSTANDARD2_1_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
 			await File.WriteAllTextAsync(path, data, Encoding.GetEncoding(encodeName)).ConfigureAwait(false);
 #else
 			using (var writer = new StreamWriter(path, append: false, Encoding.GetEncoding(encodeName)))
@@ -71,7 +71,7 @@ namespace AScript.Lang.JavaScript.fs
 
 		public async Task appendFile(string path, string data, string encodeName)
 		{
-#if NETSTANDARD2_1_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
 			await File.AppendAllTextAsync(path, data, Encoding.GetEncoding(encodeName)).ConfigureAwait(false);
 #else
 			using (var writer = new StreamWriter(path, append: true, Encoding.GetEncoding(encodeName)))

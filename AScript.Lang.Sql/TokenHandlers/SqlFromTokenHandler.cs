@@ -89,10 +89,10 @@ namespace AScript.Lang.Sql.TokenHandlers
 
 		private void BuildFrom(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, QueryNode queryNode)
 		{
-#if NETSTANDARD
-			var tables = queryNode == null ? null : new List<(ITreeNode, string)>();
-#else
+#if NET45
 			var tables = queryNode == null ? null : new List<Tuple<ITreeNode, string>>();
+#else
+			var tables = queryNode == null ? null : new List<(ITreeNode, string)>();
 #endif
 
 			Token? nextToken;
@@ -115,10 +115,10 @@ namespace AScript.Lang.Sql.TokenHandlers
 					{
 						itemName = $"__table__";
 					}
-#if NETSTANDARD
-					tables.Add((table, itemName));
-#else
+#if NET45
 					tables.Add(Tuple.Create(table, itemName));
+#else
+					tables.Add((table, itemName));
 #endif
 				}
 				if (!nextToken.HasValue) break;

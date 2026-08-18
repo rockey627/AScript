@@ -1223,7 +1223,8 @@ namespace AScript
 			{
 				return true;
 			}
-			return false;
+			scriptContext.EvalVarFromLangs(varName, out var type);
+			return type != null;
 		}
 
 		/// <summary>

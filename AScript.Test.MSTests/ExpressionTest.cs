@@ -538,7 +538,7 @@ namespace AScript.Test.MSTests
 			string s = "5+n+6";
 			var script1 = new Script();
 			script1.Context.SetVar("n", 5);
-			var func = script1.CompileGlobal<object>(s);
+			var func = script1.CompileGlobal<int>(s);
 			Assert.AreEqual(16, func(script1.Context));
 
 			var script2 = new Script();
@@ -552,7 +552,7 @@ namespace AScript.Test.MSTests
 			string s = "5+n+6";
 			var script = new Script();
 			script.Context.SetVar("n", 5);
-			var func = script.CompileGlobal<object>(s);
+			var func = script.CompileGlobal<int>(s);
 			Assert.AreEqual(16, func(script.Context));
 			script.Context.SetVar("n", 10);
 			Assert.AreEqual(21, func(script.Context));

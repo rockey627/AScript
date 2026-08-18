@@ -86,6 +86,10 @@ namespace AScript.Nodes
 			}
 			// 是否在执行上下文中存在变量
 			var ownerContext = scriptContext.GetOwnerContext(this.Name, out _, out var type, out int modifier);
+			if (type == null)
+			{
+				scriptContext.EvalVarFromLangs(this.Name, out type, out modifier);
+			}
 			if (ownerContext == null)
 			{
 				buildContext.LocalVariables.Add(this.Name);

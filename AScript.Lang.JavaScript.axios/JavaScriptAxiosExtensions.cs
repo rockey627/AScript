@@ -148,7 +148,7 @@ namespace AScript.Lang.JavaScript.axios
 			return new JavaScriptHttpResponse(response);
 		}
 
-#if NETSTANDARD2_1_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
 		public static Task<JavaScriptHttpResponse> patch(IHttpClientFactory factory, string url)
 		{
 			var client = create(factory);

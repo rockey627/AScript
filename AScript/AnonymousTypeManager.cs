@@ -65,7 +65,7 @@ namespace AScript
 			return Expression.New(constructor, fieldValues, properties);
 		}
 
-#if NETSTANDARD2_0_OR_GREATER
+#if !NET45_OR_GREATER
 		/// <summary>
 		/// 创建匿名类型
 		/// </summary>

@@ -11,10 +11,10 @@ namespace AScript.Functions
 	{
 		public static readonly StringFormatFunction Instance = new StringFormatFunction();
 
-#if NETSTANDARD
-		private static readonly Expression Constant_Array_Object_Empty = Expression.Constant(Array.Empty<object>());
-#else
+#if NET45
 		private static readonly Expression Constant_Array_Object_Empty = Expression.Constant(new object[0]);
+#else
+		private static readonly Expression Constant_Array_Object_Empty = Expression.Constant(Array.Empty<object>());
 #endif
 		private static readonly MethodInfo Method_String_Format_Array = typeof(string).GetMethod("Format", new[] { typeof(string), typeof(object[]) });
 		private static readonly MethodInfo Method_String_Format_Object1 = typeof(string).GetMethod("Format", new[] { typeof(string), typeof(object) });

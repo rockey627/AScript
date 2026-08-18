@@ -1112,6 +1112,7 @@ namespace AScript
 		{
 			var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
 			if (func == null) return null;
+			if (func is Func<ScriptContext, T> t) return t;
 			if (func.Method.ReturnType != typeof(T))
 			{
 				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
@@ -1141,6 +1142,7 @@ namespace AScript
 		{
 			var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
 			if (func == null) return null;
+			if (func is Func<ScriptContext, T> t) return t;
 			if (func.Method.ReturnType != typeof(T))
 			{
 				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
@@ -1169,6 +1171,7 @@ namespace AScript
 		{
 			var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
 			if (func == null) return null;
+			if (func is Func<ScriptContext, T> t) return t;
 			if (func.Method.ReturnType != typeof(T))
 			{
 				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
@@ -1198,6 +1201,7 @@ namespace AScript
 		{
 			var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
 			if (func == null) return null;
+			if (func is Func<ScriptContext, T> t) return t;
 			if (func.Method.ReturnType != typeof(T))
 			{
 				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
@@ -1226,6 +1230,7 @@ namespace AScript
 		{
 			var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
 			if (func == null) return null;
+			if (func is Func<ScriptContext, T> t) return t;
 			if (func.Method.ReturnType != typeof(T))
 			{
 				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
@@ -1255,6 +1260,7 @@ namespace AScript
 		{
 			var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
 			if (func == null) return null;
+			if (func is Func<ScriptContext, T> t) return t;
 			if (func.Method.ReturnType != typeof(T))
 			{
 				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
@@ -1283,6 +1289,7 @@ namespace AScript
 		{
 			var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
 			if (func == null) return null;
+			if (func is Func<ScriptContext, T> t) return t;
 			if (func.Method.ReturnType != typeof(T))
 			{
 				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
@@ -1312,6 +1319,7 @@ namespace AScript
 		{
 			var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
 			if (func == null) return null;
+			if (func is Func<ScriptContext, T> t) return t;
 			if (func.Method.ReturnType != typeof(T))
 			{
 				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);
@@ -1330,6 +1338,7 @@ namespace AScript
 		{
 			var func = CompileGlobal(node);
 			if (func == null) return null;
+			if (func is Func<ScriptContext, T> t) return t;
 			if (func.Method.ReturnType != typeof(T))
 			{
 				T targetFunc(ScriptContext c) => (T)func.DynamicInvoke(c);

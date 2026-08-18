@@ -36,7 +36,8 @@ namespace AScript
 
 		public static readonly MethodInfo Method_ScriptContext_Create1 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(bool) });
 		public static readonly MethodInfo Method_ScriptContext_Create2 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(ScriptContext), typeof(bool) });
-		public static readonly MethodInfo Method_ScriptContext_EvalVar = typeof(ScriptContext).GetMethod("EvalVar", new Type[] { typeof(string) });
+		public static readonly MethodInfo Method_ScriptContext_EvalVar = typeof(ScriptContext).GetMethods(BindingFlags.Instance | BindingFlags.Public).FirstOrDefault(a => a.Name == "EvalVar" && !a.IsGenericMethod && a.GetParameters().Length == 1);
+		//public static readonly MethodInfo Method_ScriptContext_EvalVar = typeof(ScriptContext).GetMethod("EvalVar", new Type[] { typeof(string) });
 		public static readonly MethodInfo Method_ScriptContext_SetTempVar = typeof(ScriptContext).GetMethod("SetTempVar", new Type[] { typeof(string), typeof(object), typeof(Type), typeof(bool) });
 		public static readonly MethodInfo Method_ScriptContext_SetTempConst = typeof(ScriptContext).GetMethod("SetTempConst", new Type[] { typeof(string), typeof(object), typeof(Type), typeof(bool) });
 		public static readonly MethodInfo Method_ScriptContext_EvalFunc_Values = typeof(ScriptContext).GetMethod("EvalFunc", new Type[] { typeof(string), typeof(IList<object>), typeof(IList<Type>) });
