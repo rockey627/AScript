@@ -68,12 +68,22 @@ namespace AScript.Nodes
 				}
 				varExpr = Expression.Variable(type, this.Name);
 				// 从ScriptContext中取值
-				var call = Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_EvalVar, Expression.Constant(this.Name));
-				var assign = Expression.Assign(varExpr, Expression.Convert(call, type));
+				var call = BuildCallEvalVarExpression(buildContext, this.Name, type);
+				var assign = Expression.Assign(varExpr, call);
 				buildContext.Variables[this.Name] = varExpr;
 				buildContext.PrevExpressions.Add(assign);
 				return varExpr;
 			}
+		}
+
+		private static Expression BuildCallEvalVarExpression(BuildContext buildContext, string name, Type type)
+		{
+			if (type == null || type == typeof(object))
+			{
+				return Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_EvalVar, Expression.Constant(name));
+			}
+			var method = ExpressionUtils.Make_ScriptContext_EvalVarT_Method(type);
+			return Expression.Call(buildContext.GetScriptContextParameter(), method, Expression.Constant(name));
 		}
 
 		public ParameterExpression BuildForAssign(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, out BuildContext ownerBuildContext, out Type lastType)
@@ -111,8 +121,10 @@ namespace AScript.Nodes
 			}
 			varExpr = Expression.Variable(type, this.Name);
 			// 从ScriptContext中取值
-			var call = Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_EvalVar, Expression.Constant(this.Name));
-			var assign = Expression.Assign(varExpr, Expression.Convert(call, type));
+			//var call = Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_EvalVar, Expression.Constant(this.Name));
+			//var assign = Expression.Assign(varExpr, Expression.Convert(call, type));
+			var call = BuildCallEvalVarExpression(buildContext, this.Name, type);
+			var assign = Expression.Assign(varExpr, call);
 			buildContext.Variables[this.Name] = varExpr;
 			buildContext.PrevExpressions.Add(assign);
 			return varExpr;

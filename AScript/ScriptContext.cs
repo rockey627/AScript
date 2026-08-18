@@ -565,26 +565,39 @@ namespace AScript
 				context = context.Parent;
 			} while (context != null);
 
-			//if (!searchType)
-			//{
-			//	value = null;
-			//	type = null;
-			//	modifier = 0;
-			//	return null;
-			//}
-			//var tt = EvalTypeFromLangs(variable);
-			//if (tt == null)
-			//{
-			//	value = null;
-			//	type = null;
-			//	modifier = 0;
-			//	return null;
-			//}
-			//type = typeof(TypeWrapper);
-			//value = new TypeWrapper(variable, tt);
 			value = null;
 			type = null;
 			modifier = 0;
+			return null;
+		}
+
+		/// <summary>
+		/// 获取变量所在的上下文
+		/// </summary>
+		/// <param name="variable"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public ScriptContext GetOwnerContext<T>(string variable, out T value)
+		{
+			var context = this;
+			do
+			{
+				var tempVariables = context._TempVariables;
+				if (tempVariables != null && tempVariables.TryGetValue(variable, out var v1))
+				{
+					value = (T)v1;
+					return context;
+				}
+				var variables = context._Variables;
+				if (variables != null && variables.TryGetValue(variable, out var v2))
+				{
+					value = (T)v2;
+					return context;
+				}
+				context = context.Parent;
+			} while (context != null);
+
+			value = default;
 			return null;
 		}
 
@@ -757,14 +770,17 @@ namespace AScript
 			{
 				// 值类型的变量未赋值，则取该变量时初始化
 				value = ScriptUtils.GetDefaultValue(type);
-				(context ?? this)._TempVariables[name] = value;
+				//(context ?? this)._TempVariables[name] = value;
 			}
 			return value;
 		}
 
 		public override bool TryEvalVar<T>(string name, out T value)
 		{
-			return base.TryEvalVar(name, out value);
+			var context = GetOwnerContext<T>(name, out value);
+			if (context != null) return true;
+			// 从语言上下文中搜索
+			return TryEvalVarFromLangs<T>(name, out value);
 		}
 
 		public object EvalVarFromLangs(string name, out Type type)

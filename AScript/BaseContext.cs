@@ -708,7 +708,8 @@ namespace AScript
 
 		public virtual bool TryEvalVar<T>(string name, out T value)
 		{
-			if (_Variables != null && _Variables.TryGetValue(name, out var v))
+			var variables = _Variables;
+			if (variables != null && variables.TryGetValue(name, out var v))
 			{
 				value = (T)v;
 				return true;

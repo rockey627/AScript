@@ -8,6 +8,7 @@ using AScript.Nodes;
 using System.Linq;
 using System.Dynamic;
 using System.Data;
+using System.Collections.Concurrent;
 
 namespace AScript
 {
@@ -37,12 +38,24 @@ namespace AScript
 		public static readonly MethodInfo Method_ScriptContext_Create1 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(bool) });
 		public static readonly MethodInfo Method_ScriptContext_Create2 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(ScriptContext), typeof(bool) });
 		public static readonly MethodInfo Method_ScriptContext_EvalVar = typeof(ScriptContext).GetMethods(BindingFlags.Instance | BindingFlags.Public).FirstOrDefault(a => a.Name == "EvalVar" && !a.IsGenericMethod && a.GetParameters().Length == 1);
+		public static readonly MethodInfo Method_ScriptContext_EvalVar_T = typeof(ScriptContext).GetMethods(BindingFlags.Instance | BindingFlags.Public).FirstOrDefault(a => a.Name == "EvalVar" && a.IsGenericMethod && a.GetParameters().Length == 1);
 		//public static readonly MethodInfo Method_ScriptContext_EvalVar = typeof(ScriptContext).GetMethod("EvalVar", new Type[] { typeof(string) });
 		public static readonly MethodInfo Method_ScriptContext_SetTempVar = typeof(ScriptContext).GetMethod("SetTempVar", new Type[] { typeof(string), typeof(object), typeof(Type), typeof(bool) });
 		public static readonly MethodInfo Method_ScriptContext_SetTempConst = typeof(ScriptContext).GetMethod("SetTempConst", new Type[] { typeof(string), typeof(object), typeof(Type), typeof(bool) });
 		public static readonly MethodInfo Method_ScriptContext_EvalFunc_Values = typeof(ScriptContext).GetMethod("EvalFunc", new Type[] { typeof(string), typeof(IList<object>), typeof(IList<Type>) });
 		public static readonly MethodInfo Method_ScriptContext_AddTempFunc = typeof(ScriptContext).GetMethod("AddTempFunc", new Type[] { typeof(string), typeof(Delegate) });
 		public static readonly MethodInfo Method_ScriptContext_IsTrue = typeof(ScriptContext).GetMethod("IsTrue", new Type[] { typeof(object) });
+
+		private static readonly ConcurrentDictionary<Type, MethodInfo> _ScriptContext_EvalVarT_Methods = new ConcurrentDictionary<Type, MethodInfo>();
+
+		public static MethodInfo Make_ScriptContext_EvalVarT_Method(Type type)
+		{
+			if (_ScriptContext_EvalVarT_Methods.TryGetValue(type, out var method))
+			{
+				return method;
+			}
+			return _ScriptContext_EvalVarT_Methods.GetOrAdd(type, t => Method_ScriptContext_EvalVar_T.MakeGenericMethod(t));
+		}
 
 		public static readonly MethodInfo Method_ITreeNode_Eval = typeof(ITreeNode).GetMethod("Eval", new Type[] { typeof(ScriptContext), typeof(BuildOptions), typeof(EvalControl), typeof(Type).MakeByRefType() });
 
