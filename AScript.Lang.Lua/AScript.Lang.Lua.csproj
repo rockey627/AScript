@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;netstandard2.1;net45;net6.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net45;net6.0;net8.0</TargetFrameworks>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<Authors>rockey627</Authors>
 		<PackageTags>C# Lua Expression Eval Evaluator Execute Function Script Scripting 脚本执行 动态脚本 表达式 计算</PackageTags>
@@ -28,8 +28,8 @@ Assert.AreEqual(15L, result);
 			]]>
 		</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>0.0.1.0</Version>
-		<PackageReleaseNotes>初始版本，支持Lua基础语法</PackageReleaseNotes>
+		<Version>0.1.0.0</Version>
+		<PackageReleaseNotes>AScript1.6.0；添加net6.0/net8.0框架</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>

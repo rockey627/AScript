@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;netstandard2.1;net45;net6.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net45;net6.0;net8.0</TargetFrameworks>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<Authors>rockey627</Authors>
 		<PackageTags>C# sql mysql sqlserver Expression Eval Evaluator Execute Function Compile Compiler Script Scripting 脚本执行 动态脚本 表达式 计算</PackageTags>
@@ -25,9 +25,9 @@ Assert.AreEqual("tony", list[0].name);
 Assert.AreEqual(10, list[0].age);
 			]]>
 		</Description>
-		<Version>0.0.4.0</Version>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>AScript1.0.5</PackageReleaseNotes>
+		<Version>0.1.0.0</Version>
+		<PackageReleaseNotes>AScript1.6.0；添加net6.0/net8.0框架</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
