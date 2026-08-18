@@ -1,5 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
 using Iced.Intel;
+using Microsoft.CodeAnalysis.Scripting;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -12,16 +13,15 @@ namespace AScript.Test.Consoles.Benchmarks
 	[MaxColumn]
 	[MinColumn]
 	[MemoryDiagnoser]
-	public class FleeTest03_call
+	public class FleeTest05_multi
 	{
-		private static readonly string s = "a * Sum(b, 5) * (c-2)";
-		private static readonly int r = 100 * MyFunctions.Sum(5, 5) * (6 - 2);
+		private static readonly string s = "int m = a * (b + 5) * (c-2); int n = b + a / 10 -c; m + n";
+		private static readonly int r = 100 * (5 + 5) * (6 - 2) + 5 + 100 / 10 - 6;
 
 		[Benchmark]
 		public void AScript1()
 		{
 			var script = new AScript.Script();
-			script.Context.AddFunc(typeof(MyFunctions));
 			script.Context.SetVar("a", 100);
 			script.Context.SetVar("b", 5);
 			script.Context.SetVar("c", 6);
@@ -36,7 +36,8 @@ namespace AScript.Test.Consoles.Benchmarks
 		public void AScript2_Compile()
 		{
 			var script = new AScript.Script();
-			script.Context.AddFunc(typeof(MyFunctions));
+			// 不回写脚本中的临时变量
+			script.Options.RewriteVariables = false;
 			script.Context.SetVar("a", 100);
 			script.Context.SetVar("b", 5);
 			script.Context.SetVar("c", 6);
@@ -51,12 +52,14 @@ namespace AScript.Test.Consoles.Benchmarks
 		public void Flee2()
 		{
 			var context = new Flee.PublicTypes.ExpressionContext();
-			context.Imports.AddType(typeof(MyFunctions));
 			context.Variables["a"] = 100;
 			context.Variables["b"] = 5;
 			context.Variables["c"] = 6;
-			var d = context.CompileGeneric<int>(s);
-			var result = d.Evaluate();
+			var engine = new Flee.CalcEngine.PublicTypes.CalculationEngine();
+			engine.Add("m", "a * (b + 5) * (c-2)", context);
+			engine.Add("n", "b + a / 10 -c", context);
+			engine.Add("result", "m + n", context);
+			int result = engine.GetResult<int>("result");
 			if (result != r)
 			{
 				throw new Exception("result error");
@@ -71,7 +74,8 @@ namespace AScript.Test.Consoles.Benchmarks
 			if (_Script3 == null)
 			{
 				_Script3 = new AScript.Script();
-				_Script3.Context.AddFunc(typeof(MyFunctions));
+				// 不回写脚本中的临时变量
+				_Script3.Options.RewriteVariables = false;
 				_Script3.Context.SetVar("a", 100);
 				_Script3.Context.SetVar("b", 5);
 				_Script3.Context.SetVar("c", 6);
@@ -91,13 +95,15 @@ namespace AScript.Test.Consoles.Benchmarks
 			if (_FleeContext3 == null)
 			{
 				_FleeContext3 = new Flee.PublicTypes.ExpressionContext();
-				_FleeContext3.Imports.AddType(typeof(MyFunctions));
 				_FleeContext3.Variables["a"] = 100;
 				_FleeContext3.Variables["b"] = 5;
 				_FleeContext3.Variables["c"] = 6;
 			}
-			var d = _FleeContext3.CompileGeneric<int>(s);
-			var result = d.Evaluate();
+			var engine = new Flee.CalcEngine.PublicTypes.CalculationEngine();
+			engine.Add("m", "a * (b + 5) * (c-2)", _FleeContext3);
+			engine.Add("n", "b + a / 10 -c", _FleeContext3);
+			engine.Add("result", "m + n", _FleeContext3);
+			int result = engine.GetResult<int>("result");
 			if (result != r)
 			{
 				throw new Exception("result error");
@@ -112,7 +118,6 @@ namespace AScript.Test.Consoles.Benchmarks
 			if (_Script4 == null)
 			{
 				_Script4 = new AScript.Script();
-				_Script4.Context.AddFunc(typeof(MyFunctions));
 				_Script4.Context.SetVar("a", 100);
 				_Script4.Context.SetVar("b", 5);
 				_Script4.Context.SetVar("c", 6);
@@ -124,77 +129,5 @@ namespace AScript.Test.Consoles.Benchmarks
 			}
 		}
 
-		private static readonly ConcurrentDictionary<string, Flee.PublicTypes.IGenericExpression<int>> _FleeExpr4Dict = new ConcurrentDictionary<string, Flee.PublicTypes.IGenericExpression<int>>();
-
-		[Benchmark]
-		public void Flee4()
-		{
-			string key = s;
-			if (!_FleeExpr4Dict.TryGetValue(key, out var d))
-			{
-				var context = new Flee.PublicTypes.ExpressionContext();
-				context.Imports.AddType(typeof(MyFunctions));
-				context.Variables["a"] = 100;
-				context.Variables["b"] = 5;
-				context.Variables["c"] = 6;
-				d = context.CompileGeneric<int>(s);
-				_FleeExpr4Dict[key] = d;
-			}
-			var result = d.Evaluate();
-			if (result != r)
-			{
-				throw new Exception("result error");
-			}
-		}
-
-		private static Func<int> _func5;
-
-		[Benchmark]
-		public void AScript5()
-		{
-			if (_func5 == null)
-			{
-				var script = new AScript.Script();
-				script.Context.AddFunc(typeof(MyFunctions));
-				script.Context.SetVar("a", 100);
-				script.Context.SetVar("b", 5);
-				script.Context.SetVar("c", 6);
-				_func5 = script.Compile<int>(s);
-			}
-			var result = _func5();
-			if (result != r)
-			{
-				throw new Exception("result error");
-			}
-		}
-
-		private static Flee.PublicTypes.IGenericExpression<int> _FleeExpr5;
-
-		[Benchmark]
-		public void Flee5()
-		{
-			if (_FleeExpr5 == null)
-			{
-				var context = new Flee.PublicTypes.ExpressionContext();
-				context.Imports.AddType(typeof(MyFunctions));
-				context.Variables["a"] = 100;
-				context.Variables["b"] = 5;
-				context.Variables["c"] = 6;
-				_FleeExpr5 = context.CompileGeneric<int>(s);
-			}
-			var result = _FleeExpr5.Evaluate();
-			if (result != r)
-			{
-				throw new Exception("result error");
-			}
-		}
-
-		public class MyFunctions
-		{
-			public static int Sum(int a, int b)
-			{
-				return a + b;
-			}
-		}
 	}
 }

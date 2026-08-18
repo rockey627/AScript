@@ -370,6 +370,7 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 			Console.WriteLine(d.Evaluate());
 			context.Variables["a"] = 30;
 			Console.WriteLine(d.Evaluate());
+			Console.WriteLine(context.CompileDynamic("a>10 and a<20 or a<>40").Evaluate());
 		}
 
 		static void Test18_CSharpScript()
@@ -660,9 +661,11 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest15_rec>(config);
 			//BenchmarkRunner.Run<Benchmarks.PythonTest01>(config);
 			//BenchmarkRunner.Run<Benchmarks.FleeTest01_const>(config);
-			BenchmarkRunner.Run<Benchmarks.FleeTest02_var>(config);
+			//BenchmarkRunner.Run<Benchmarks.FleeTest02_var>(config);
 			//BenchmarkRunner.Run<Benchmarks.FleeTest03_call>(config);
 			//BenchmarkRunner.Run<Benchmarks.FleeTest04_string>(config);
+			BenchmarkRunner.Run<Benchmarks.FleeTest05_multi>(config);
+			//BenchmarkRunner.Run<Benchmarks.FleeTest06_call>(config);
 			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();
 			//new Benchmarks.ExpressionTest06_Func().AScript1_3();
@@ -675,6 +678,8 @@ exec2(26)
 			//new Benchmarks.FleeTest02_var().AScript3_UseCache();
 			//new Benchmarks.FleeTest01_const().AScript3_UseCache();
 			//new Benchmarks.FleeTest01_const().AScript3_UseCache();
+			//new Benchmarks.FleeTest05_multi().AScript2_Compile2();
+			//new Benchmarks.FleeTest05_multi().AScript2_Compile2();
 		}
 
 	}
