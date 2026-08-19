@@ -1,0 +1,36 @@
+{
+  "$comment": "Colours resolved from the VS Code 2026 themes. Each token key is the TextMate scope the colour was taken from, resolved against the flattened include chain (2026-dark -> dark_modern -> dark_plus -> dark_vs, and the light equivalent). Which xshd colour name maps to which scope lives in XshdScopeMap.",
+  "tokens": {
+    "comment": { "dark": "#8b949e", "light": "#6e7781" },
+    "string": { "dark": "#a5d6ff", "light": "#0a3069" },
+    "string.regexp": { "dark": "#a5d6ff", "light": "#0a3069" },
+    "constant.numeric": { "dark": "#b5cea8", "light": "#098658" },
+    "constant.language": { "dark": "#569cd6", "light": "#0000ff" },
+    "constant.character.escape": { "dark": "#d7ba7d", "light": "#EE0000" },
+    "keyword": { "dark": "#ff7b72", "light": "#cf222e" },
+    "keyword.control": { "dark": "#C586C0", "light": "#AF00DB" },
+    "keyword.operator": { "dark": "#d4d4d4", "light": "#000000" },
+    "storage.modifier": { "dark": "#569cd6", "light": "#0000ff" },
+    "variable": { "dark": "#ffa657", "light": "#953800" },
+    "variable.language": { "dark": "#79c0ff", "light": "#0550ae" },
+    "entity.name.function": { "dark": "#d2a8ff", "light": "#8250df" },
+    "entity.name.type": { "dark": "#4EC9B0", "light": "#267f99" },
+    "entity.name.tag": { "dark": "#7ee787", "light": "#116329" },
+    "entity.other.attribute-name": { "dark": "#9cdcfe", "light": "#e50000" },
+    "entity.other.attribute-name.class.css": { "dark": "#d7ba7d", "light": "#800000" },
+    "support.function": { "dark": "#DCDCAA", "light": "#795E26" },
+    "support.type.property-name": { "dark": "#9cdcfe", "light": "#e50000" },
+    "meta.preprocessor": { "dark": "#569cd6", "light": "#0000ff" },
+    "meta.diff.range": { "dark": "#d2a8ff", "light": "#8250df" },
+    "punctuation.definition.tag": { "dark": "#808080", "light": "#800000" },
+    "invalid.illegal": { "dark": "#ffa198", "light": "#82071e" },
+    "markup.heading": { "dark": "#79c0ff", "light": "#0550ae" },
+    "markup.bold": { "dark": "#c9d1d9", "light": "#1f2328" },
+    "markup.inserted": { "dark": "#7ee787", "light": "#116329" }
+  },
+  "editor": {
+    "background": { "dark": "#121314", "light": "#FFFFFF" },
+    "foreground": { "dark": "#BBBEBF", "light": "#202020" },
+    "lineNumber": { "dark": "#858889", "light": "#606060" }
+  }
+}
