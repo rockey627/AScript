@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AScript.Test.Consoles.Benchmarks
+namespace AScript.Test.Consoles.Benchmarks.FleeTest
 {
 	[MaxColumn]
 	[MinColumn]
@@ -21,7 +21,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		[Benchmark]
 		public void AScript1()
 		{
-			var script = new AScript.Script();
+			var script = new Script();
 			script.Context.SetVar("a", 100);
 			script.Context.SetVar("b", 5);
 			script.Context.SetVar("c", 6);
@@ -35,7 +35,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		[Benchmark]
 		public void AScript2_Compile()
 		{
-			var script = new AScript.Script();
+			var script = new Script();
 			// 不回写脚本中的临时变量
 			script.Options.RewriteVariables = false;
 			script.Context.SetVar("a", 100);
@@ -73,7 +73,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		{
 			if (_Script3 == null)
 			{
-				_Script3 = new AScript.Script();
+				_Script3 = new Script();
 				// 不回写脚本中的临时变量
 				_Script3.Options.RewriteVariables = false;
 				_Script3.Context.SetVar("a", 100);
@@ -117,7 +117,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		{
 			if (_Script4 == null)
 			{
-				_Script4 = new AScript.Script();
+				_Script4 = new Script();
 				_Script4.Context.SetVar("a", 100);
 				_Script4.Context.SetVar("b", 5);
 				_Script4.Context.SetVar("c", 6);

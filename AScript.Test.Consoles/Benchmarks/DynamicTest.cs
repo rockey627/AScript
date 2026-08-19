@@ -12,49 +12,63 @@ namespace AScript.Test.Consoles.Benchmarks
 	[MemoryDiagnoser]
 	public class DynamicTest
 	{
-		[Benchmark]
-		public void Dynamic_GetProperty()
-		{
-			dynamic t = new TestClass();
-			object name = t.Name;
-		}
+		private static readonly TestClass _instanct = new TestClass();
 
-		[Benchmark]
-		public void Reflect_GetProperty()
-		{
-			object t = new TestClass();
-			var propertyInfo = typeof(TestClass).GetProperty("Name");
-			object name = propertyInfo.GetValue(t);
-		}
+		//[Benchmark]
+		//public void Dynamic_GetProperty()
+		//{
+		//	dynamic t = _instanct;
+		//	object name = t.Name;
+		//}
 
-		[Benchmark]
-		public void Dynamic_SetProperty()
-		{
-			dynamic t = new TestClass();
-			t.Name = "hi";
-		}
+		//[Benchmark]
+		//public void Reflect_GetProperty()
+		//{
+		//	var propertyInfo = typeof(TestClass).GetProperty("Name");
+		//	object name = propertyInfo.GetValue(_instanct);
+		//}
 
-		[Benchmark]
-		public void Reflect_SetProperty()
-		{
-			object t = new TestClass();
-			var propertyInfo = typeof(TestClass).GetProperty("Name");
-			propertyInfo.SetValue(t, "hi");
-		}
+		//[Benchmark]
+		//public void Dynamic_SetProperty()
+		//{
+		//	dynamic t = _instanct;
+		//	t.Name = "hi";
+		//}
+
+		//[Benchmark]
+		//public void Reflect_SetProperty()
+		//{
+		//	var propertyInfo = typeof(TestClass).GetProperty("Name");
+		//	propertyInfo.SetValue(_instanct, "hi");
+		//}
 
 		[Benchmark]
 		public void Dynamic_Method()
 		{
-			dynamic t = new TestClass();
+			dynamic t = _instanct;
 			t.Hello("jim");
+		}
+
+		[Benchmark]
+		public void Dynamic_Method2()
+		{
+			var m = _instanct.Hello;
+			dynamic d = m;
+			d("jim");
 		}
 
 		[Benchmark]
 		public void Reflect_Method()
 		{
-			object t = new TestClass();
 			var methodInfo = typeof(TestClass).GetMethod("Hello", new Type[] { typeof(string) });
-			methodInfo.Invoke(t, new object[] { "jim" });
+			methodInfo.Invoke(_instanct, new object[] { "jim" });
+		}
+
+		[Benchmark]
+		public void Delegate_Method()
+		{
+			Delegate del = _instanct.Hello;
+			del.DynamicInvoke("jim");
 		}
 
 		public class TestClass

@@ -1,6 +1,7 @@
 ﻿using AScript.Lang.JavaScript;
 using AScript.Lang.JavaScript.axios;
 using AScript.Lang.Sql;
+using AScript.Test.Consoles.Benchmarks.FleeTest;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using IronPython.Hosting;
@@ -9,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Scripting.Hosting;
 using Microsoft.Scripting.Utils;
 using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Data;
 using System.Dynamic;
@@ -53,6 +55,7 @@ namespace AScript.Test.Consoles
 			//Test17();
 			//Test18_CSharpScript();
 			//Test18_Flee();
+			//Test18_DynamicExpresso();
 			//Test19();
 			//Test20();
 			//Test21_ExpandoObject();
@@ -336,30 +339,44 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 			Console.WriteLine(a + c);
 		}
 
-//		// 无法序列化委托
-//		static void Test19()
-//		{
-//			// 创建一个委托实例
-//			Func<int, int> add = x => x + 5;
+		//		// 无法序列化委托
+		//		static void Test19()
+		//		{
+		//			// 创建一个委托实例
+		//			Func<int, int> add = x => x + 5;
 
-//			// 序列化
-//			BinaryFormatter formatter = new BinaryFormatter();
-//			using (FileStream stream = new FileStream("delegate.dat", FileMode.Create))
-//			{
-//#pragma warning disable SYSLIB0011 // 类型或成员已过时
-//				formatter.Serialize(stream, add);
-//#pragma warning restore SYSLIB0011 // 类型或成员已过时
-//			}
+		//			// 序列化
+		//			BinaryFormatter formatter = new BinaryFormatter();
+		//			using (FileStream stream = new FileStream("delegate.dat", FileMode.Create))
+		//			{
+		//#pragma warning disable SYSLIB0011 // 类型或成员已过时
+		//				formatter.Serialize(stream, add);
+		//#pragma warning restore SYSLIB0011 // 类型或成员已过时
+		//			}
 
-//			// 反序列化
-//			using (FileStream stream = new FileStream("delegate.dat", FileMode.Open))
-//			{
-//#pragma warning disable SYSLIB0011 // 类型或成员已过时
-//				Func<int, int> loadedDelegate = (Func<int, int>)formatter.Deserialize(stream);
-//#pragma warning restore SYSLIB0011 // 类型或成员已过时
-//				Console.WriteLine(loadedDelegate(10));  // 输出 15
-//			}
-//		}
+		//			// 反序列化
+		//			using (FileStream stream = new FileStream("delegate.dat", FileMode.Open))
+		//			{
+		//#pragma warning disable SYSLIB0011 // 类型或成员已过时
+		//				Func<int, int> loadedDelegate = (Func<int, int>)formatter.Deserialize(stream);
+		//#pragma warning restore SYSLIB0011 // 类型或成员已过时
+		//				Console.WriteLine(loadedDelegate(10));  // 输出 15
+		//			}
+		//		}
+
+		static void Test18_DynamicExpresso()
+		{
+			var interpreter = new DynamicExpresso.Interpreter();
+			interpreter.SetVariable("a", 100);
+			interpreter.SetVariable("b", 5);
+			interpreter.SetVariable("c", 6);
+			var func = interpreter.ParseAsDelegate<Func<int>>("a+b+c");
+			Console.WriteLine("dele:" + func());
+			Console.WriteLine("eval:" + interpreter.Eval("a+b+c"));
+			interpreter.SetVariable("c", 8);
+			Console.WriteLine("dele:" + func());
+			Console.WriteLine("eval:" + interpreter.Eval("a+b+c"));
+		}
 
 		static void Test18_Flee()
 		{
@@ -664,8 +681,11 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.FleeTest02_var>(config);
 			//BenchmarkRunner.Run<Benchmarks.FleeTest03_call>(config);
 			//BenchmarkRunner.Run<Benchmarks.FleeTest04_string>(config);
-			BenchmarkRunner.Run<Benchmarks.FleeTest05_multi>(config);
+			//BenchmarkRunner.Run<FleeTest05_multi>(config);
+			//BenchmarkRunner.Run<FleeTest07_bool>(config);
 			//BenchmarkRunner.Run<Benchmarks.FleeTest06_call>(config);
+			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest01_const>(config);
+			BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest02_var>(config);
 			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();
 			//new Benchmarks.ExpressionTest06_Func().AScript1_3();

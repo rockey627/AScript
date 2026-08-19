@@ -27,6 +27,18 @@ namespace AScript.Test.Consoles.Benchmarks
 		}
 
 		[Benchmark]
+		public void Dynamic()
+		{
+			Delegate d = Test;
+			dynamic func = d;
+			int n = func("hello");
+			if (n != 5)
+			{
+				throw new Exception();
+			}
+		}
+
+		[Benchmark]
 		public void Func()
 		{
 			Delegate d = Test;

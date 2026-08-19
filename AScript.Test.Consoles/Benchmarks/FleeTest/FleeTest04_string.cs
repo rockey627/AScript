@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AScript.Test.Consoles.Benchmarks
+namespace AScript.Test.Consoles.Benchmarks.FleeTest
 {
 	[MaxColumn]
 	[MinColumn]
@@ -21,7 +21,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		[Benchmark]
 		public void AScript1()
 		{
-			var script = new AScript.Script();
+			var script = new Script();
 			script.Context.SetVar("a", "hello");
 			script.Context.SetVar("b", "every");
 			script.Context.SetVar("c", "one");
@@ -35,7 +35,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		[Benchmark]
 		public void AScript2_Compile()
 		{
-			var script = new AScript.Script();
+			var script = new Script();
 			script.Context.SetVar("a", "hello");
 			script.Context.SetVar("b", "every");
 			script.Context.SetVar("c", "one");
@@ -68,7 +68,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		{
 			if (_Script2 == null)
 			{
-				_Script2 = new AScript.Script();
+				_Script2 = new Script();
 				_Script2.Context.SetVar("a", "hello");
 				_Script2.Context.SetVar("b", "every");
 				_Script2.Context.SetVar("c", "one");
@@ -121,7 +121,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		{
 			if (_Script3 == null)
 			{
-				_Script3 = new AScript.Script();
+				_Script3 = new Script();
 				_Script3.Context.SetVar("a", "hello");
 				_Script3.Context.SetVar("b", "every");
 				_Script3.Context.SetVar("c", "one");
@@ -161,7 +161,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		{
 			if (_func4 == null)
 			{
-				var script = new AScript.Script();
+				var script = new Script();
 				script.Context.SetVar("a", "hello");
 				script.Context.SetVar("b", "every");
 				script.Context.SetVar("c", "one");

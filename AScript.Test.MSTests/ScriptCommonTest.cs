@@ -13,6 +13,20 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test53()
+		{
+			string s = "a+b+c";
+			var script = new Script();
+			script.Context.SetVar("a", 100);
+			script.Context.SetVar("b", 5);
+			script.Context.SetVar("c", 6);
+			var func = script.Compile<int>(s);
+			Assert.AreEqual(111, func());
+			script.Context.SetVar("c", 8);
+			Assert.AreEqual(113, func());
+		}
+
+		[TestMethod]
 		public void Test52_2()
 		{
 			string s = "int n = 10; (n)+(long)(n+10)";

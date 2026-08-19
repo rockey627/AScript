@@ -6,9 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static AScript.Test.Consoles.Benchmarks.FleeTest03_call;
 
-namespace AScript.Test.Consoles.Benchmarks
+namespace AScript.Test.Consoles.Benchmarks.FleeTest
 {
 	[MaxColumn]
 	[MinColumn]
@@ -21,7 +20,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		[Benchmark]
 		public void AScript1()
 		{
-			var script = new AScript.Script();
+			var script = new Script();
 			var result = script.Eval<int>(s);
 			if (result != r)
 			{
@@ -32,7 +31,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		[Benchmark]
 		public void AScript2_Compile()
 		{
-			var script = new AScript.Script();
+			var script = new Script();
 			var result = script.Eval<int>(s, ECompileMode.All);
 			if (result != r)
 			{
@@ -59,7 +58,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		{
 			if (_Script3 == null)
 			{
-				_Script3 = new AScript.Script();
+				_Script3 = new Script();
 			}
 			var result = _Script3.Eval<int>(s, ECompileMode.All);
 			if (result != r)
@@ -92,7 +91,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		{
 			if (_Script4 == null)
 			{
-				_Script4 = new AScript.Script();
+				_Script4 = new Script();
 			}
 			var result = _Script4.Eval<int>(s, -1);
 			if (result != r)
@@ -127,7 +126,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		{
 			if (_func5 == null)
 			{
-				var script = new AScript.Script();
+				var script = new Script();
 				_func5 = script.Compile<int>(s);
 			}
 			var result = _func5();

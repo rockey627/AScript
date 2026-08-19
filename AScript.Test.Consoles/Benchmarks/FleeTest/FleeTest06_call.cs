@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AScript.Test.Consoles.Benchmarks
+namespace AScript.Test.Consoles.Benchmarks.FleeTest
 {
 	[MaxColumn]
 	[MinColumn]
@@ -20,7 +20,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		[Benchmark]
 		public void AScript1()
 		{
-			var script = new AScript.Script();
+			var script = new Script();
 			script.Context.AddFunc(typeof(MyFunctions));
 			var result = (int)script.Eval(s);
 			if (result != r)
@@ -32,7 +32,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		[Benchmark]
 		public void AScript2_Compile()
 		{
-			var script = new AScript.Script();
+			var script = new Script();
 			script.Context.AddFunc(typeof(MyFunctions));
 			var result = script.Eval<int>(s, ECompileMode.All);
 			if (result != r)
@@ -61,7 +61,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		{
 			if (_Script3 == null)
 			{
-				_Script3 = new AScript.Script();
+				_Script3 = new Script();
 				_Script3.Context.AddFunc(typeof(MyFunctions));
 			}
 			var result = _Script3.Eval<int>(s, ECompileMode.All);
@@ -96,7 +96,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		{
 			if (_Script4 == null)
 			{
-				_Script4 = new AScript.Script();
+				_Script4 = new Script();
 				_Script4.Context.AddFunc(typeof(MyFunctions));
 			}
 			var result = _Script4.Eval<int>(s, -1);
@@ -133,7 +133,7 @@ namespace AScript.Test.Consoles.Benchmarks
 		{
 			if (_func5 == null)
 			{
-				var script = new AScript.Script();
+				var script = new Script();
 				script.Context.AddFunc(typeof(MyFunctions));
 				_func5 = script.Compile<int>(s);
 			}
