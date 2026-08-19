@@ -10,7 +10,11 @@ namespace AScript
 		public bool IsDisposed { get; private set; }
 
 		// 定时器/版本号/数据
+#if NET45
 		private readonly ConcurrentDictionary<string, Tuple<Timer, string, T>> _Cache = new ConcurrentDictionary<string, Tuple<Timer, string, T>>();
+#else
+		private readonly ConcurrentDictionary<string, (Timer, string, T)> _Cache = new ConcurrentDictionary<string, (Timer, string, T)>();
+#endif
 
 		private void Timer_Callback(object state)
 		{
@@ -93,7 +97,11 @@ namespace AScript
 				}
 			}
 
+#if NET45
 			_Cache[key] = Tuple.Create(timer, version, value);
+#else
+			_Cache[key] = (timer, version, value);
+#endif
 		}
 
 		public void Dispose()
