@@ -4,6 +4,7 @@ using AScript.Lang.Sql;
 using AScript.Test.Consoles.Benchmarks.FleeTest;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
+using DynamicExpresso;
 using IronPython.Hosting;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.EntityFrameworkCore;
@@ -36,7 +37,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			Test01_Benchmark();
+			//Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -55,7 +56,7 @@ namespace AScript.Test.Consoles
 			//Test17();
 			//Test18_CSharpScript();
 			//Test18_Flee();
-			//Test18_DynamicExpresso();
+			Test18_DynamicExpresso();
 			//Test19();
 			//Test20();
 			//Test21_ExpandoObject();
@@ -366,7 +367,7 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 
 		static void Test18_DynamicExpresso()
 		{
-			var interpreter = new DynamicExpresso.Interpreter();
+			var interpreter = new DynamicExpresso.Interpreter(InterpreterOptions.Default | InterpreterOptions.LambdaExpressions);
 			interpreter.SetVariable("a", 100);
 			interpreter.SetVariable("b", 5);
 			interpreter.SetVariable("c", 6);
@@ -376,6 +377,13 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 			interpreter.SetVariable("c", 8);
 			Console.WriteLine("dele:" + func());
 			Console.WriteLine("eval:" + interpreter.Eval("a+b+c"));
+
+			interpreter.SetVariable("list", new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+			var list = interpreter.Eval<List<int>>("list.Where(x=>x%2==0).ToList()");
+			Console.WriteLine(string.Join(",", list));
+			Console.WriteLine(interpreter.Eval<int>("list.Where(x=>x%2==0).ToList().Count"));
+
+			//interpreter.Eval("int z = 50");
 		}
 
 		static void Test18_Flee()
@@ -685,7 +693,10 @@ exec2(26)
 			//BenchmarkRunner.Run<FleeTest07_bool>(config);
 			//BenchmarkRunner.Run<Benchmarks.FleeTest06_call>(config);
 			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest01_const>(config);
-			BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest02_var>(config);
+			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest02_var>(config);
+			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest03_linq>(config);
+			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest04_delegate>(config);
+			BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest05_lambda>(config);
 			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();
 			//new Benchmarks.ExpressionTest06_Func().AScript1_3();
