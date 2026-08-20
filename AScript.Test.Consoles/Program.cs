@@ -37,7 +37,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			//Test01_Benchmark();
+			Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -56,7 +56,7 @@ namespace AScript.Test.Consoles
 			//Test17();
 			//Test18_CSharpScript();
 			//Test18_Flee();
-			Test18_DynamicExpresso();
+			//Test18_DynamicExpresso();
 			//Test19();
 			//Test20();
 			//Test21_ExpandoObject();
@@ -686,7 +686,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest15_rec>(config);
 			//BenchmarkRunner.Run<Benchmarks.PythonTest01>(config);
 			//BenchmarkRunner.Run<Benchmarks.FleeTest01_const>(config);
-			//BenchmarkRunner.Run<Benchmarks.FleeTest02_var>(config);
+			//BenchmarkRunner.Run<Benchmarks.FleeTest.FleeTest02_var>(config);
 			//BenchmarkRunner.Run<Benchmarks.FleeTest03_call>(config);
 			//BenchmarkRunner.Run<Benchmarks.FleeTest04_string>(config);
 			//BenchmarkRunner.Run<FleeTest05_multi>(config);
@@ -696,7 +696,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest02_var>(config);
 			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest03_linq>(config);
 			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest04_delegate>(config);
-			BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest05_lambda>(config);
+			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest05_lambda>(config);
 			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();
 			//new Benchmarks.ExpressionTest06_Func().AScript1_3();
@@ -706,7 +706,7 @@ exec2(26)
 			//new Benchmarks.ExpressionTest10().AScript();
 			//new Benchmarks.ExpressionTest12().AScript();
 			//new Benchmarks.DynamicTest2().Expr();
-			//new Benchmarks.FleeTest02_var().AScript3_UseCache();
+			new Benchmarks.FleeTest.FleeTest02_var().AScript2_Compile2();
 			//new Benchmarks.FleeTest01_const().AScript3_UseCache();
 			//new Benchmarks.FleeTest01_const().AScript3_UseCache();
 			//new Benchmarks.FleeTest05_multi().AScript2_Compile2();

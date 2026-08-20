@@ -568,7 +568,8 @@ namespace AScript
 			// 
 			List<ParameterExpression> variables;
 			Expression variableAssignExpression;
-			if (_UsedScriptContext && scriptContextParameter != ExpressionUtils.Parameter_ScriptContext && this.ScriptContextParameter != null)
+			bool standalone = options.Standalone ?? false;
+			if (_UsedScriptContext && !standalone && scriptContextParameter != ExpressionUtils.Parameter_ScriptContext && this.ScriptContextParameter != null)
 			{
 				variables = new List<ParameterExpression>(_VariablesCount + (_VariablesCount == 0 ? 1 : 2));
 				variables.Add(scriptContextParameter);
@@ -643,7 +644,7 @@ namespace AScript
 				list.Add(Expression.Label(this.ReturnLabel));
 			}
 			// 变量回写
-			if (_VariablesCount > 0 && (options?.RewriteVariables ?? true))
+			if (_VariablesCount > 0 && !standalone && (options?.RewriteVariables ?? true))
 			{
 				foreach (var v in _Variables.Values)
 				{
@@ -726,7 +727,7 @@ namespace AScript
 			int parameterIndex;
 			int _ParameterCount = _Parameters == null ? 0 : _Parameters.Count;
 			var scriptContextParameter = GetScriptContextParameter(false);
-			if (!this.IsMain && scriptContextParameter == ExpressionUtils.Parameter_ScriptContext)
+			if (!this.IsMain && !(options.Standalone ?? false) && scriptContextParameter == ExpressionUtils.Parameter_ScriptContext)
 			{
 				parameterIndex = 1;
 				parameters = new ParameterExpression[_ParameterCount + 1];

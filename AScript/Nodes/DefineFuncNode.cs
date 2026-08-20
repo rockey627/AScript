@@ -177,7 +177,7 @@ namespace AScript.Nodes
 			{
 				buildContext.AddTempFunc(this.Name, d);
 				// 将方法添加到上下文
-				if (buildContext.RewriteLocalVariables && (options?.RewriteFunctions ?? true))
+				if (buildContext.RewriteLocalVariables && (options?.RewriteFunctions ?? true) && !(options?.Standalone ?? false))
 				{
 					var addTempFuncExpression = Expression.Call(
 						buildContext.GetScriptContextParameter(),
@@ -194,7 +194,7 @@ namespace AScript.Nodes
 			{
 				buildContext.AddTempFunc(this.Name, d);
 				// 将方法添加到上下文
-				if (buildContext.RewriteLocalVariables && (options?.RewriteFunctions ?? true))
+				if (buildContext.RewriteLocalVariables && (options?.RewriteFunctions ?? true) && !(options?.Standalone ?? false))
 				{
 					var addTempFuncExpression = Expression.Call(
 						buildContext.GetScriptContextParameter(), 

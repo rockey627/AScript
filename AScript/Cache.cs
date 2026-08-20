@@ -16,6 +16,8 @@ namespace AScript
 		private readonly ConcurrentDictionary<string, (Timer, string, T)> _Cache = new ConcurrentDictionary<string, (Timer, string, T)>();
 #endif
 
+		public int Count => _Cache.Count;
+
 		private void Timer_Callback(object state)
 		{
 			if (_Cache.TryRemove((string)state, out var t))

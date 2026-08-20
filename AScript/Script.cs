@@ -39,6 +39,11 @@ namespace AScript
 		public static readonly Cache<Delegate> Cache = new Cache<Delegate>();
 
 		/// <summary>
+		/// BuildOptions.Standalone为true时，编译结果使用该缓存
+		/// </summary>
+		public static readonly Cache<Delegate> StandaloneCache = new Cache<Delegate>();
+
+		/// <summary>
 		/// 匿名类型管理
 		/// </summary>
 		public static readonly AnonymousTypeManager AnonymousTypes = new AnonymousTypeManager();
@@ -234,7 +239,7 @@ namespace AScript
 				|| (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
-				var value = func.DynamicInvoke(this.Context);
+				var value = (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 				return new EvalResult(value, func.Method.ReturnType);
 			}
 			return await EvalAsync(this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false);
@@ -268,7 +273,7 @@ namespace AScript
 			{
 				var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
 				returnType = func.Method.ReturnType;
-				return func.DynamicInvoke(this.Context);
+				return (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 			}
 			return Eval(this.Context, this.Options, expression, out returnType);
 		}
@@ -336,7 +341,7 @@ namespace AScript
 			{
 				var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
 				returnType = func.Method.ReturnType;
-				return func.DynamicInvoke(this.Context);
+				return (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 			}
 			return Eval(this.Context, this.Options, expression(), out returnType);
 		}
@@ -350,7 +355,7 @@ namespace AScript
 			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
-				var value = func.DynamicInvoke(this.Context);
+				var value = (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 				return new EvalResult(value, func.Method.ReturnType);
 			}
 			return await EvalAsync(this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false);
@@ -465,7 +470,7 @@ namespace AScript
 			{
 				var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
 				returnType = func.Method.ReturnType;
-				return func.DynamicInvoke(this.Context);
+				return (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 			}
 			return Eval(this.Context, this.Options, expression(), out returnType);
 		}
@@ -479,7 +484,7 @@ namespace AScript
 			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
-				var value = func.DynamicInvoke(this.Context);
+				var value = (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 				return new EvalResult(value, func.Method.ReturnType);
 			}
 			return await EvalAsync(this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false);
@@ -568,7 +573,7 @@ namespace AScript
 			{
 				var func = CompileGlobal(expression);
 				returnType = func.Method.ReturnType;
-				return func.DynamicInvoke(this.Context);
+				return (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
 			return Eval(this.Context, options, expression, out returnType);
@@ -590,7 +595,7 @@ namespace AScript
 			if (compileMode == ECompileMode.All)
 			{
 				var func = await CompileGlobalAsync(expression, cancellationToken: cancellationToken).ConfigureAwait(false);
-				var value = func.DynamicInvoke(this.Context);
+				var value = (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 				return new EvalResult(value, func.Method.ReturnType);
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
@@ -612,6 +617,7 @@ namespace AScript
 			}
 			if (compileMode == ECompileMode.All)
 			{
+				Compile<T>(expression);
 				var func = CompileGlobal<T>(expression);
 				return func(this.Context);
 			}
@@ -671,7 +677,7 @@ namespace AScript
 			{
 				var func = CompileGlobal(expression);
 				returnType = func.Method.ReturnType;
-				return func.DynamicInvoke(this.Context);
+				return (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
 			return Eval(this.Context, options, expression, out returnType);
@@ -693,7 +699,7 @@ namespace AScript
 			if (compileMode == ECompileMode.All)
 			{
 				var func = await CompileGlobalAsync(expression, cancellationToken: cancellationToken).ConfigureAwait(false);
-				var value = func.DynamicInvoke(this.Context);
+				var value = (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 				return new EvalResult(value, func.Method.ReturnType);
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
@@ -771,7 +777,7 @@ namespace AScript
 			{
 				var func = CompileGlobal(node);
 				returnType = func.Method.ReturnType;
-				return func.DynamicInvoke(this.Context);
+				return (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 			}
 			return node.Eval(this.Context, this.Options, new EvalControl(), out returnType);
 		}
@@ -883,6 +889,7 @@ namespace AScript
 			if (expression == null) return null;
 
 			string s = null;
+			Cache<Delegate> cache = null;
 			if (cacheTime != 0)
 			{
 				if (string.IsNullOrEmpty(cacheKey))
@@ -891,7 +898,8 @@ namespace AScript
 					if (string.IsNullOrEmpty(s)) return null;
 					cacheKey = s;
 				}
-				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				cache = (this.Options.Standalone ?? false) ? StandaloneCache : Cache;
+				if (cache.TryGetValue(cacheKey, cacheVersion, out var d))
 				{
 					return d;
 				}
@@ -901,7 +909,7 @@ namespace AScript
 
 			if (cacheTime != 0)
 			{
-				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
 			}
 
 			return func;
@@ -928,6 +936,7 @@ namespace AScript
 			if (expression == null) return null;
 
 			string s = null;
+			Cache<Delegate> cache = null;
 			if (cacheTime != 0)
 			{
 				if (string.IsNullOrEmpty(cacheKey))
@@ -936,7 +945,8 @@ namespace AScript
 					if (string.IsNullOrEmpty(s)) return null;
 					cacheKey = s;
 				}
-				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				cache = (this.Options.Standalone ?? false) ? StandaloneCache : Cache;
+				if (cache.TryGetValue(cacheKey, cacheVersion, out var d))
 				{
 					return d;
 				}
@@ -946,7 +956,7 @@ namespace AScript
 
 			if (cacheTime != 0)
 			{
-				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
 			}
 
 			return func;
@@ -971,17 +981,21 @@ namespace AScript
 		{
 			if (expression == null) return null;
 
-			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
-				&& Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+			Cache<Delegate> cache = null;
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
 			{
-				return d;
+				cache = (this.Options.Standalone ?? false) ? StandaloneCache : Cache;
+				if (cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				{
+					return d;
+				}
 			}
 
 			var func = Compile(null, this.Context, this.Options, expression());
 
 			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
 			{
-				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
 			}
 
 			return func;
@@ -1007,17 +1021,21 @@ namespace AScript
 		{
 			if (expression == null) return null;
 
-			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
-				&& Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+			Cache<Delegate> cache = null;
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
 			{
-				return d;
+				cache = (this.Options.Standalone ?? false) ? StandaloneCache : Cache;
+				if (cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				{
+					return d;
+				}
 			}
 
 			var func = await CompileAsync(null, this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false);
 
 			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
 			{
-				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
 			}
 
 			return func;
@@ -1833,7 +1851,7 @@ namespace AScript
 				returnType = func.Method.ReturnType;
 				try
 				{
-					return func.DynamicInvoke(scriptContext);
+					return (options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(scriptContext);
 				}
 				catch (System.Reflection.TargetInvocationException ex)
 				{
@@ -1870,7 +1888,7 @@ namespace AScript
 			if (cacheTime != 0 || (options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = await CompileGlobalAsync(buildContext, scriptContext, options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
-				var value = func.DynamicInvoke(scriptContext);
+				var value = (options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(scriptContext);
 				return new EvalResult(value, func.Method.ReturnType);
 			}
 			return await EvalAsync(scriptContext, options, expression, cancellationToken).ConfigureAwait(false);
@@ -1937,10 +1955,12 @@ namespace AScript
 		{
 			if (string.IsNullOrEmpty(expression)) return null;
 
+			Cache<Delegate> cache = null;
 			if (cacheTime != 0)
 			{
 				if (string.IsNullOrEmpty(cacheKey)) cacheKey = expression;
-				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				cache = (options?.Standalone ?? false) ? StandaloneCache : Cache;
+				if (cache.TryGetValue(cacheKey, cacheVersion, out var d))
 				{
 					return d;
 				}
@@ -1950,7 +1970,7 @@ namespace AScript
 
 			if (cacheTime != 0)
 			{
-				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
 			}
 
 			return func;
@@ -1979,10 +1999,12 @@ namespace AScript
 		{
 			if (string.IsNullOrEmpty(expression)) return null;
 
+			Cache<Delegate> cache = null;
 			if (cacheTime != 0)
 			{
 				if (string.IsNullOrEmpty(cacheKey)) cacheKey = expression;
-				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				cache = (options?.Standalone ?? false) ? StandaloneCache : Cache;
+				if (cache.TryGetValue(cacheKey, cacheVersion, out var d))
 				{
 					return d;
 				}
@@ -1992,7 +2014,7 @@ namespace AScript
 
 			if (cacheTime != 0)
 			{
-				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
 			}
 
 			return func;
@@ -2020,17 +2042,21 @@ namespace AScript
 		{
 			if (expression == null || expression.Length == 0L) return null;
 
-			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
-				&& Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+			Cache<Delegate> cache = null;
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
 			{
-				return d;
+				cache = (options?.Standalone ?? false) ? StandaloneCache : Cache;
+				if (cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				{
+					return d;
+				}
 			}
 
 			var func = Compile(buildContext, scriptContext, options, expression);
 
-			if (cacheTime != 0)
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
 			{
-				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
 			}
 
 			return func;
@@ -2059,17 +2085,21 @@ namespace AScript
 		{
 			if (expression == null || expression.Length == 0L) return null;
 
-			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
-				&& Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+			Cache<Delegate> cache = null;
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
 			{
-				return d;
+				cache = (options?.Standalone ?? false) ? StandaloneCache : Cache;
+				if (cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				{
+					return d;
+				}
 			}
 
 			var func = await CompileAsync(buildContext, scriptContext, options, expression, cancellationToken).ConfigureAwait(false);
 
-			if (cacheTime != 0)
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
 			{
-				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
 			}
 
 			return func;

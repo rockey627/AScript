@@ -67,11 +67,20 @@ namespace AScript.Nodes
 					type = value.GetType();
 				}
 				varExpr = Expression.Variable(type, this.Name);
-				// 从ScriptContext中取值
-				var call = BuildCallEvalVarExpression(buildContext, this.Name, type);
-				var assign = Expression.Assign(varExpr, call);
+				if (options.Standalone ?? false)
+				{
+					var assign = Expression.Assign(varExpr, Expression.Constant(value, type));
+					buildContext.PrevExpressions.Add(assign);
+					buildContext.LocalVariables.Add(this.Name);
+				}
+				else
+				{
+					// 从ScriptContext中取值
+					var call = BuildCallEvalVarExpression(buildContext, this.Name, type);
+					var assign = Expression.Assign(varExpr, call);
+					buildContext.PrevExpressions.Add(assign);
+				}
 				buildContext.Variables[this.Name] = varExpr;
-				buildContext.PrevExpressions.Add(assign);
 				return varExpr;
 			}
 		}
@@ -95,7 +104,7 @@ namespace AScript.Nodes
 				return varExpr;
 			}
 			// 是否在执行上下文中存在变量
-			var ownerContext = scriptContext.GetOwnerContext(this.Name, out _, out var type, out int modifier);
+			var ownerContext = scriptContext.GetOwnerContext(this.Name, out var value, out var type, out int modifier);
 			if (type == null)
 			{
 				scriptContext.EvalVarFromLangs(this.Name, out type, out modifier);
@@ -123,10 +132,19 @@ namespace AScript.Nodes
 			// 从ScriptContext中取值
 			//var call = Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_EvalVar, Expression.Constant(this.Name));
 			//var assign = Expression.Assign(varExpr, Expression.Convert(call, type));
-			var call = BuildCallEvalVarExpression(buildContext, this.Name, type);
-			var assign = Expression.Assign(varExpr, call);
+			if (options.Standalone ?? false)
+			{
+				var assign = Expression.Assign(varExpr, Expression.Constant(value, type));
+				buildContext.PrevExpressions.Add(assign);
+				buildContext.LocalVariables.Add(this.Name);
+			}
+			else
+			{
+				var call = BuildCallEvalVarExpression(buildContext, this.Name, type);
+				var assign = Expression.Assign(varExpr, call);
+				buildContext.PrevExpressions.Add(assign);
+			}
 			buildContext.Variables[this.Name] = varExpr;
-			buildContext.PrevExpressions.Add(assign);
 			return varExpr;
 		}
 

@@ -11,6 +11,7 @@ namespace AScript
 		private bool? _RewriteVariables;
 		private bool? _RewriteFunctions;
 		private bool? _Dynamic;
+		private bool? _Standalone;
 
 		/// <summary>
 		/// 
@@ -70,6 +71,17 @@ namespace AScript
 		{
 			get => _Dynamic ?? this.Parent?.Dynamic;
 			set => _Dynamic = value;
+		}
+		/// <summary>
+		/// <para>编译结果是否脱离上下文（默认为false）</para>
+		/// <para>在编译模式下生效</para>
+		/// <para>如果为true，则编译生成的Lambda或委托没有ScriptContext参数，依赖于上下文的变量值将直接编译到结果中</para>
+		/// <para>编译结果明确不依赖上下文时，可设置Standalone为true，提高性能</para>
+		/// </summary>
+		public bool? Standalone
+		{
+			get => _Standalone ?? this.Parent?.Standalone;
+			set => _Standalone = value;
 		}
 
 		public BuildOptions() { }
