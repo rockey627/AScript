@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
+using Microsoft.CodeAnalysis.Scripting;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -48,6 +49,7 @@ namespace AScript.Test.Consoles.Benchmarks.DynamicExpressoTest
 			if (_Script3 == null)
 			{
 				_Script3 = new Script();
+				_Script3.Options.Standalone = true;
 			}
 			var result = _Script3.Eval<int>(s, -1);
 			if (result != r) throw new Exception("result error");

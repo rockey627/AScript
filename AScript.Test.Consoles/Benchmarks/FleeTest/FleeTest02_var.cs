@@ -46,21 +46,6 @@ namespace AScript.Test.Consoles.Benchmarks.FleeTest
 		}
 
 		[Benchmark]
-		public void AScript2_Compile2()
-		{
-			var script = new Script();
-			script.Options.Standalone = true;
-			script.Context.SetVar("a", 100);
-			script.Context.SetVar("b", 5);
-			script.Context.SetVar("c", 6);
-			var result = script.Eval<int>(s, ECompileMode.All);
-			if (result != r)
-			{
-				throw new Exception("result error");
-			}
-		}
-
-		[Benchmark]
 		public void Flee2()
 		{
 			var context = new Flee.PublicTypes.ExpressionContext();
@@ -133,26 +118,6 @@ namespace AScript.Test.Consoles.Benchmarks.FleeTest
 			}
 		}
 
-		private static Script _Script4_2;
-
-		[Benchmark]
-		public void AScript4_Cache2()
-		{
-			if (_Script4_2 == null)
-			{
-				_Script4_2 = new Script();
-				_Script4_2.Options.Standalone = true;
-				_Script4_2.Context.SetVar("a", 100);
-				_Script4_2.Context.SetVar("b", 5);
-				_Script4_2.Context.SetVar("c", 6);
-			}
-			var result = _Script4_2.Eval<int>(s, -1);
-			if (result != r)
-			{
-				throw new Exception("result error");
-			}
-		}
-
 		private static readonly ConcurrentDictionary<string, Flee.PublicTypes.IGenericExpression<int>> _LeeExpr4Dict = new ConcurrentDictionary<string, Flee.PublicTypes.IGenericExpression<int>>();
 
 		[Benchmark]
@@ -188,27 +153,6 @@ namespace AScript.Test.Consoles.Benchmarks.FleeTest
 				_func5 = script.Compile<int>(s);
 			}
 			var result = _func5();
-			if (result != r)
-			{
-				throw new Exception("result error");
-			}
-		}
-
-		private static Func<int> _func5_2;
-
-		[Benchmark]
-		public void AScript5_2()
-		{
-			if (_func5_2 == null)
-			{
-				var script = new Script();
-				script.Options.Standalone = true;
-				script.Context.SetVar("a", 100);
-				script.Context.SetVar("b", 5);
-				script.Context.SetVar("c", 6);
-				_func5_2 = script.Compile<int>(s);
-			}
-			var result = _func5_2();
 			if (result != r)
 			{
 				throw new Exception("result error");

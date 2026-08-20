@@ -60,5 +60,19 @@ namespace AScript.Test.MSTests
 			var result = script.Eval<int>(s, ECompileMode.All);
 			Assert.AreEqual(r, result);
 		}
+
+		[TestMethod]
+		public void Test05()
+		{
+			string s = "a * (b + 5) * (c-2)";
+			int r = 100 * (5 + 5) * (6 - 2);
+			var script = new Script();
+			script.Options.Standalone = true;
+			script.Context.SetVar("a", 100);
+			script.Context.SetVar("b", 5);
+			script.Context.SetVar("c", 6);
+			var result = script.Eval<int>(s, -1);
+			Assert.AreEqual(r, result);
+		}
 	}
 }

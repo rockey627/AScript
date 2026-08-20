@@ -294,7 +294,7 @@ namespace AScript.Test.MSTests
 		public void Compile_WithArgs_SingleArg()
 		{
 			var script = new Script();
-			var func = script.Compile("a * 2", new[] { typeof(int) }, new[] { "a" }, typeof(int));
+			var func = script.Compile("a * 2", new[] { "a" }, new[] { typeof(int) }, typeof(int));
 			Assert.IsNotNull(func);
 			var result = func.DynamicInvoke(5);
 			Assert.AreEqual(10, result);
@@ -304,7 +304,7 @@ namespace AScript.Test.MSTests
 		public void Compile_WithArgs_TwoArgs()
 		{
 			var script = new Script();
-			var func = script.Compile("a + b", new[] { typeof(int), typeof(int) }, new[] { "a", "b" }, typeof(int));
+			var func = script.Compile("a + b", new[] { "a", "b" }, new[] { typeof(int), typeof(int) }, typeof(int));
 			Assert.IsNotNull(func);
 			var result = func.DynamicInvoke(3, 4);
 			Assert.AreEqual(7, result);
@@ -314,7 +314,7 @@ namespace AScript.Test.MSTests
 		public void Compile_WithArgs_ThreeArgs()
 		{
 			var script = new Script();
-			var func = script.Compile("a + b + c", new[] { typeof(int), typeof(int), typeof(int) }, new[] { "a", "b", "c" }, typeof(int));
+			var func = script.Compile("a + b + c", new[] { "a", "b", "c" }, new[] { typeof(int), typeof(int), typeof(int) }, typeof(int));
 			Assert.IsNotNull(func);
 			var result = func.DynamicInvoke(1, 2, 3);
 			Assert.AreEqual(6, result);
@@ -324,7 +324,7 @@ namespace AScript.Test.MSTests
 		public void Compile_WithArgs_StringArg()
 		{
 			var script = new Script();
-			var func = script.Compile("a.Length", new[] { typeof(string) }, new[] { "a" }, typeof(int));
+			var func = script.Compile("a.Length", new[] { "a" }, new[] { typeof(string) }, typeof(int));
 			Assert.IsNotNull(func);
 			var result = func.DynamicInvoke("hello");
 			Assert.AreEqual(5, result);
@@ -344,7 +344,7 @@ namespace AScript.Test.MSTests
 		public void Compile_WithArgs_TypeMismatch()
 		{
 			var script = new Script();
-			var func = script.Compile("a + b", new[] { typeof(string), typeof(string) }, new[] { "a", "b" }, typeof(string));
+			var func = script.Compile("a + b", new[] { "a", "b" }, new[] { typeof(string), typeof(string) }, typeof(string));
 			Assert.IsNotNull(func);
 			var result = func.DynamicInvoke("hello", "world");
 			Assert.AreEqual("helloworld", result);
@@ -356,7 +356,7 @@ namespace AScript.Test.MSTests
 			var script = new Script();
 			try
 			{
-				script.Compile("a + b", new[] { typeof(int) }, new[] { "a", "b" }, typeof(int));
+				script.Compile("a + b", new[] { "a", "b" }, new[] { typeof(int) }, typeof(int));
 				Assert.Fail("Expected exception");
 			}
 			catch (Exception ex)
@@ -369,7 +369,7 @@ namespace AScript.Test.MSTests
 		public void Compile_WithArgs_EmptyExpression()
 		{
 			var script = new Script();
-			var func = script.Compile("", new[] { typeof(int) }, new[] { "a" }, typeof(int));
+			var func = script.Compile("", new[] { "a" }, new[] { typeof(int) }, typeof(int));
 			Assert.IsNull(func);
 		}
 
@@ -382,7 +382,7 @@ namespace AScript.Test.MSTests
 		{
 			var script = new Script();
 			var stream = new MemoryStream(Encoding.UTF8.GetBytes("a * 10"));
-			var func = script.Compile(stream, new[] { typeof(int) }, new[] { "a" }, typeof(int));
+			var func = script.Compile(stream, new[] { "a" }, new[] { typeof(int) }, typeof(int));
 			Assert.IsNotNull(func);
 			var result = func.DynamicInvoke(7);
 			Assert.AreEqual(70, result);
@@ -393,7 +393,7 @@ namespace AScript.Test.MSTests
 		{
 			var script = new Script();
 			var stream = new MemoryStream(Encoding.UTF8.GetBytes("a - b"));
-			var func = script.Compile(stream, new[] { typeof(int), typeof(int) }, new[] { "a", "b" }, typeof(int));
+			var func = script.Compile(stream, new[] { "a", "b" }, new[] { typeof(int), typeof(int) }, typeof(int));
 			Assert.IsNotNull(func);
 			var result = func.DynamicInvoke(10, 3);
 			Assert.AreEqual(7, result);
@@ -403,7 +403,7 @@ namespace AScript.Test.MSTests
 		public void Compile_Stream_WithArgs_NullStream()
 		{
 			var script = new Script();
-			var func = script.Compile((Stream)null, new[] { typeof(int) }, new[] { "a" }, typeof(int));
+			var func = script.Compile((Stream)null, new[] { "a" }, new[] { typeof(int) }, typeof(int));
 			Assert.IsNull(func);
 		}
 
@@ -642,7 +642,7 @@ result
 		public void Compile_Complex_Conditional()
 		{
 			var script = new Script();
-			var func = script.Compile("a > b ? a : b", new[] { typeof(int), typeof(int) }, new[] { "a", "b" }, typeof(int));
+			var func = script.Compile("a > b ? a : b", new[] { "a", "b" }, new[] { typeof(int), typeof(int) }, typeof(int));
 			Assert.IsNotNull(func);
 			Assert.AreEqual(10, func.DynamicInvoke(10, 5));
 			Assert.AreEqual(10, func.DynamicInvoke(5, 10));

@@ -372,11 +372,11 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 			interpreter.SetVariable("b", 5);
 			interpreter.SetVariable("c", 6);
 			var func = interpreter.ParseAsDelegate<Func<int>>("a+b+c");
-			Console.WriteLine("dele:" + func());
-			Console.WriteLine("eval:" + interpreter.Eval("a+b+c"));
+			Console.WriteLine("dele:" + func()); // 111
+			Console.WriteLine("eval:" + interpreter.Eval("a+b+c")); // 111
 			interpreter.SetVariable("c", 8);
-			Console.WriteLine("dele:" + func());
-			Console.WriteLine("eval:" + interpreter.Eval("a+b+c"));
+			Console.WriteLine("dele:" + func()); // 111
+			Console.WriteLine("eval:" + interpreter.Eval("a+b+c")); // 113
 
 			interpreter.SetVariable("list", new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
 			var list = interpreter.Eval<List<int>>("list.Where(x=>x%2==0).ToList()");
@@ -392,9 +392,9 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 			var context = new Flee.PublicTypes.ExpressionContext();
 			context.Variables["a"] = 10;
 			var d = context.CompileDynamic(code);
-			Console.WriteLine(d.Evaluate());
+			Console.WriteLine(d.Evaluate()); // 30
 			context.Variables["a"] = 30;
-			Console.WriteLine(d.Evaluate());
+			Console.WriteLine(d.Evaluate()); // 50
 			Console.WriteLine(context.CompileDynamic("a>10 and a<20 or a<>40").Evaluate());
 		}
 
@@ -696,7 +696,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest02_var>(config);
 			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest03_linq>(config);
 			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest04_delegate>(config);
-			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest05_lambda>(config);
+			BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest05_lambda>(config);
 			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();
 			//new Benchmarks.ExpressionTest06_Func().AScript1_3();
@@ -706,7 +706,7 @@ exec2(26)
 			//new Benchmarks.ExpressionTest10().AScript();
 			//new Benchmarks.ExpressionTest12().AScript();
 			//new Benchmarks.DynamicTest2().Expr();
-			new Benchmarks.FleeTest.FleeTest02_var().AScript2_Compile2();
+			//new Benchmarks.FleeTest.FleeTest02_var().AScript4_Cache();
 			//new Benchmarks.FleeTest01_const().AScript3_UseCache();
 			//new Benchmarks.FleeTest01_const().AScript3_UseCache();
 			//new Benchmarks.FleeTest05_multi().AScript2_Compile2();
