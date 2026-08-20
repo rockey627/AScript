@@ -547,7 +547,11 @@ namespace AScript
 				{
 					if (body == null || body.Length == 0)
 					{
-						return Expression.Empty();
+						if (this.ReturnType == null || this.ReturnType == typeof(void))
+						{
+							return Expression.Empty();
+						}
+						return Expression.Default(this.ReturnType);
 					}
 					if (this.ReturnType == null || this.ReturnType == body[body.Length - 1].Type)
 					{

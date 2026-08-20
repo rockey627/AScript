@@ -74,9 +74,9 @@ namespace AScript
 		}
 		/// <summary>
 		/// <para>编译结果是否脱离上下文（默认为false）</para>
-		/// <para>在编译模式下生效</para>
+		/// <para>在编译模式下生效，编译结果不缓存</para>
 		/// <para>如果为true，则编译生成的Lambda或委托没有ScriptContext参数，依赖于上下文的变量值将直接编译到结果中</para>
-		/// <para>编译结果明确不依赖上下文时，可设置Standalone为true，提高性能</para>
+		/// <para>当编译结果明确不依赖上下文时，可设置Standalone为true，提高性能</para>
 		/// </summary>
 		public bool? Standalone
 		{

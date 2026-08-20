@@ -39,11 +39,6 @@ namespace AScript
 		public static readonly Cache<Delegate> Cache = new Cache<Delegate>();
 
 		/// <summary>
-		/// BuildOptions.Standalone为true时，编译结果使用该缓存
-		/// </summary>
-		public static readonly Cache<Delegate> StandaloneCache = new Cache<Delegate>();
-
-		/// <summary>
 		/// 匿名类型管理
 		/// </summary>
 		public static readonly AnonymousTypeManager AnonymousTypes = new AnonymousTypeManager();
@@ -157,11 +152,35 @@ namespace AScript
 		public T Eval<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			if (string.IsNullOrEmpty(expression)) return default;
+
 			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
-				var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
-				return func(this.Context);
+				//var func = Compile<T>(expression, cacheTime, cacheKey, cacheVersion);
+				//return func();
+
+				bool standalone = this.Options.Standalone ?? false;
+				if (cacheTime != 0 && !standalone)
+				{
+					if (string.IsNullOrEmpty(cacheKey)) cacheKey = expression;
+					if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+					{
+						return ((Func<ScriptContext, T>)d)(this.Context);
+					}
+				}
+
+				var buildContext = new BuildContext { ReturnType = typeof(T) };
+				var func = Compile(buildContext, this.Context, this.Options, expression);
+				if (func == null) return default;
+				if (standalone) return ((Func<T>)func)();
+
+				if (cacheTime != 0)
+				{
+					Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				}
+
+				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
+
 			return (T)Eval(this.Context, this.Options, expression, out _);
 		}
 
@@ -187,8 +206,30 @@ namespace AScript
 			if (string.IsNullOrEmpty(expression)) return default;
 			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
-				var func = await CompileGlobalAsync<T>(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
-				return func(this.Context);
+				//var func = await CompileAsync<T>(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				//return func();
+
+				bool standalone = this.Options.Standalone ?? false;
+				if (cacheTime != 0 && !standalone)
+				{
+					if (string.IsNullOrEmpty(cacheKey)) cacheKey = expression;
+					if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+					{
+						return ((Func<ScriptContext, T>)d)(this.Context);
+					}
+				}
+
+				var buildContext = new BuildContext { ReturnType = typeof(T) };
+				var func = await CompileAsync(buildContext, this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false);
+				if (func == null) return default;
+				if (standalone) return ((Func<T>)func)();
+
+				if (cacheTime != 0)
+				{
+					Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				}
+
+				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
 			return (T)(await EvalAsync(this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false)).Value;
 		}
@@ -268,12 +309,13 @@ namespace AScript
 				returnType = null;
 				return null;
 			}
-			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
+			bool standalone = this.Options.Standalone ?? false;
+			if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey)
 				|| (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
 				returnType = func.Method.ReturnType;
-				return (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
+				return standalone ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 			}
 			return Eval(this.Context, this.Options, expression, out returnType);
 		}
@@ -289,14 +331,32 @@ namespace AScript
 		/// <returns></returns>
 		public T Eval<T>(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			if (expression == null || expression.Length == 0L)
-			{
-				return default;
-			}
+			if (expression == null || expression.Length == 0L) return default;
 			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
-				var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
-				return func(this.Context);
+				//var func = Compile<T>(expression, cacheTime, cacheKey, cacheVersion);
+				//return func();
+
+				bool standalone = this.Options.Standalone ?? false;
+				if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey))
+				{
+					if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+					{
+						return ((Func<ScriptContext, T>)d)(this.Context);
+					}
+				}
+
+				var buildContext = new BuildContext { ReturnType = typeof(T) };
+				var func = Compile(buildContext, this.Context, this.Options, expression);
+				if (func == null) return default;
+				if (standalone) return ((Func<T>)func)();
+
+				if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
+				{
+					Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				}
+
+				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
 			return (T)Eval(this.Context, this.Options, expression, out _);
 		}
@@ -313,14 +373,32 @@ namespace AScript
 		/// <returns></returns>
 		public async Task<T> EvalAsync<T>(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
 		{
-			if (expression == null || expression.Length == 0L)
-			{
-				return default;
-			}
+			if (expression == null || expression.Length == 0L) return default;
 			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
-				var func = await CompileGlobalAsync<T>(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
-				return func(this.Context);
+				//var func = await CompileAsync<T>(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				//return func();
+
+				bool standalone = this.Options.Standalone ?? false;
+				if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey))
+				{
+					if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+					{
+						return ((Func<ScriptContext, T>)d)(this.Context);
+					}
+				}
+
+				var buildContext = new BuildContext { ReturnType = typeof(T) };
+				var func = await CompileAsync(buildContext, this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false);
+				if (func == null) return default;
+				if (standalone) return ((Func<T>)func)();
+
+				if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
+				{
+					Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				}
+
+				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
 			return (T)(await EvalAsync(this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false)).Value;
 		}
@@ -337,21 +415,19 @@ namespace AScript
 				returnType = null;
 				return null;
 			}
-			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			bool standalone = this.Options.Standalone ?? false;
+			if (cacheTime != 0 && !standalone || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
 				returnType = func.Method.ReturnType;
-				return (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
+				return standalone ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 			}
 			return Eval(this.Context, this.Options, expression(), out returnType);
 		}
 
 		public async Task<EvalResult> EvalAsync(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
 		{
-			if (expression == null)
-			{
-				return default;
-			}
+			if (expression == null) return default;
 			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
@@ -379,14 +455,38 @@ namespace AScript
 		/// <returns></returns>
 		public T Eval<T>(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			if (expression == null)
-			{
-				return default;
-			}
+			if (expression == null) return default;
 			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
-				var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
-				return func(this.Context);
+				//var func = Compile<T>(expression, cacheTime, cacheKey, cacheVersion);
+				//return func();
+				string s = null;
+				bool standalone = this.Options.Standalone ?? false;
+				if (cacheTime != 0 && !standalone)
+				{
+					if (string.IsNullOrEmpty(cacheKey))
+					{
+						s = expression();
+						if (string.IsNullOrEmpty(s)) return default;
+						cacheKey = s;
+					}
+					if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+					{
+						return ((Func<ScriptContext, T>)d)(this.Context);
+					}
+				}
+
+				var buildContext = new BuildContext { ReturnType = typeof(T) };
+				var func = Compile(buildContext, this.Context, this.Options, s ?? expression());
+				if (func == null) return default;
+				if (standalone) return ((Func<T>)func)();
+
+				if (cacheTime != 0)
+				{
+					Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				}
+
+				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
 			return (T)Eval(this.Context, this.Options, expression(), out _);
 		}
@@ -416,8 +516,35 @@ namespace AScript
 			}
 			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
-				var func = await CompileGlobalAsync<T>(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
-				return func(this.Context);
+				//var func = await CompileAsync<T>(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				//return func();
+				string s = null;
+				bool standalone = this.Options.Standalone ?? false;
+				if (cacheTime != 0 && !standalone)
+				{
+					if (string.IsNullOrEmpty(cacheKey))
+					{
+						s = expression();
+						if (string.IsNullOrEmpty(s)) return default;
+						cacheKey = s;
+					}
+					if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+					{
+						return ((Func<ScriptContext, T>)d)(this.Context);
+					}
+				}
+
+				var buildContext = new BuildContext { ReturnType = typeof(T) };
+				var func = await CompileAsync(buildContext, this.Context, this.Options, s ?? expression(), cancellationToken).ConfigureAwait(false);
+				if (func == null) return default;
+				if (standalone) return ((Func<T>)func)();
+
+				if (cacheTime != 0)
+				{
+					Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				}
+
+				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
 			return (T)(await EvalAsync(this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false)).Value;
 		}
@@ -465,22 +592,20 @@ namespace AScript
 				returnType = null;
 				return null;
 			}
-			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey)
+			bool standalone = this.Options.Standalone ?? false;
+			if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey)
 				|| (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
 				returnType = func.Method.ReturnType;
-				return (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
+				return standalone ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 			}
 			return Eval(this.Context, this.Options, expression(), out returnType);
 		}
 
 		public async Task<EvalResult> EvalAsync(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
 		{
-			if (expression == null)
-			{
-				return default;
-			}
+			if (expression == null) return default;
 			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
@@ -501,14 +626,31 @@ namespace AScript
 		/// <returns></returns>
 		public T Eval<T>(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			if (expression == null)
-			{
-				return default;
-			}
+			if (expression == null) return default;
 			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
-				var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
-				return func(this.Context);
+				//var func = Compile<T>(expression, cacheTime, cacheKey, cacheVersion);
+				//return func();
+				bool standalone = this.Options.Standalone ?? false;
+				if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey))
+				{
+					if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+					{
+						return ((Func<ScriptContext, T>)d)(this.Context);
+					}
+				}
+
+				var buildContext = new BuildContext { ReturnType = typeof(T) };
+				var func = Compile(buildContext, this.Context, this.Options, expression());
+				if (func == null) return default;
+				if (standalone) return ((Func<T>)func)();
+
+				if (cacheTime != 0)
+				{
+					Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				}
+
+				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
 			return (T)Eval(this.Context, this.Options, expression(), out _);
 		}
@@ -532,14 +674,31 @@ namespace AScript
 		/// <returns></returns>
 		public async Task<T> EvalAsync<T>(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
 		{
-			if (expression == null)
-			{
-				return default;
-			}
+			if (expression == null) return default;
 			if (cacheTime != 0 || (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
-				var func = await CompileGlobalAsync<T>(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
-				return func(this.Context);
+				//var func = await CompileAsync<T>(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				//return func();
+				bool standalone = this.Options.Standalone ?? false;
+				if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey))
+				{
+					if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+					{
+						return ((Func<ScriptContext, T>)d)(this.Context);
+					}
+				}
+
+				var buildContext = new BuildContext { ReturnType = typeof(T) };
+				var func = await CompileAsync(buildContext, this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false);
+				if (func == null) return default;
+				if (standalone) return ((Func<T>)func)();
+
+				if (cacheTime != 0)
+				{
+					Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				}
+
+				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
 			return (T)(await EvalAsync(this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false)).Value;
 		}
@@ -571,7 +730,8 @@ namespace AScript
 			}
 			if (compileMode == ECompileMode.All)
 			{
-				var func = CompileGlobal(expression);
+				//var func = CompileGlobal(expression);
+				var func = Compile(null, this.Context, this.Options, expression);
 				returnType = func.Method.ReturnType;
 				return (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 			}
@@ -611,15 +771,17 @@ namespace AScript
 		/// <returns></returns>
 		public T Eval<T>(string expression, ECompileMode compileMode)
 		{
-			if (string.IsNullOrEmpty(expression))
-			{
-				return default;
-			}
+			if (string.IsNullOrEmpty(expression)) return default;
+
 			if (compileMode == ECompileMode.All)
 			{
-				Compile<T>(expression);
-				var func = CompileGlobal<T>(expression);
-				return func(this.Context);
+				//var func = Compile<T>(expression);
+				//return func();
+				var buildContext = new BuildContext { ReturnType = typeof(T) };
+				var func = Compile(buildContext, this.Context, this.Options, expression);
+				if (func == null) return default;
+				if (this.Options.Standalone ?? false) return ((Func<T>)func)();
+				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
 			return (T)Eval(this.Context, options, expression, out _);
@@ -641,8 +803,13 @@ namespace AScript
 			}
 			if (compileMode == ECompileMode.All)
 			{
-				var func = await CompileGlobalAsync<T>(expression, cancellationToken: cancellationToken).ConfigureAwait(false);
-				return func(this.Context);
+				//var func = await CompileAsync<T>(expression, cancellationToken: cancellationToken).ConfigureAwait(false);
+				//return func();
+				var buildContext = new BuildContext { ReturnType = typeof(T) };
+				var func = await CompileAsync(buildContext, this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false);
+				if (func == null) return default;
+				if (this.Options.Standalone ?? false) return ((Func<T>)func)();
+				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
 			return (T)(await EvalAsync(this.Context, options, expression, cancellationToken).ConfigureAwait(false)).Value;
@@ -675,7 +842,8 @@ namespace AScript
 			}
 			if (compileMode == ECompileMode.All)
 			{
-				var func = CompileGlobal(expression);
+				//var func = CompileGlobal(expression);
+				var func = Compile(null, this.Context, this.Options, expression);
 				returnType = func.Method.ReturnType;
 				return (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 			}
@@ -721,8 +889,13 @@ namespace AScript
 			}
 			if (compileMode == ECompileMode.All)
 			{
-				var func = CompileGlobal<T>(expression);
-				return func(this.Context);
+				//var func = Compile<T>(expression);
+				//return func();
+				var buildContext = new BuildContext { ReturnType = typeof(T) };
+				var func = Compile(buildContext, this.Context, this.Options, expression);
+				if (func == null) return default;
+				if (this.Options.Standalone ?? false) return ((Func<T>)func)();
+				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
 			return (T)Eval(this.Context, options, expression, out _);
@@ -734,6 +907,7 @@ namespace AScript
 		/// <typeparam name="T"></typeparam>
 		/// <param name="expression"></param>
 		/// <param name="compileMode"></param>
+		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public async Task<T> EvalAsync<T>(Stream expression, ECompileMode compileMode, CancellationToken cancellationToken = default)
 		{
@@ -743,8 +917,13 @@ namespace AScript
 			}
 			if (compileMode == ECompileMode.All)
 			{
-				var func = await CompileGlobalAsync<T>(expression, cancellationToken: cancellationToken).ConfigureAwait(false);
-				return func(this.Context);
+				//var func = await CompileAsync<T>(expression, cancellationToken: cancellationToken).ConfigureAwait(false);
+				//return func();
+				var buildContext = new BuildContext { ReturnType = typeof(T) };
+				var func = await CompileAsync(buildContext, this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false);
+				if (func == null) return default;
+				if (this.Options.Standalone ?? false) return ((Func<T>)func)();
+				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
 			return (T)(await EvalAsync(this.Context, options, expression, cancellationToken).ConfigureAwait(false)).Value;
@@ -775,7 +954,8 @@ namespace AScript
 			}
 			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
-				var func = CompileGlobal(node);
+				//var func = CompileGlobal(node);
+				var func = Compile(null, this.Context, this.Options, node);
 				returnType = func.Method.ReturnType;
 				return (this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
 			}
@@ -790,14 +970,16 @@ namespace AScript
 		/// <returns></returns>
 		public T Eval<T>(ITreeNode node)
 		{
-			if (node == null)
-			{
-				return default;
-			}
+			if (node == null) return default;
 			if ((this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
-				var func = CompileGlobal<T>(node);
-				return func(this.Context);
+				//var func = Compile<T>(node);
+				//return func();
+				var buildContext = new BuildContext { ReturnType = typeof(T) };
+				var func = Compile(buildContext, this.Context, this.Options, node);
+				if (func == null) return default;
+				if (this.Options.Standalone ?? false) return ((Func<T>)func)();
+				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
 			return (T)node.Eval(this.Context, this.Options, new EvalControl(), out _);
 		}
@@ -836,12 +1018,12 @@ namespace AScript
 
 		public Delegate CompileGlobal(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			return CompileGlobal(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion);
+			return Compile(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion);
 		}
 
 		public Task<Delegate> CompileGlobalAsync(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
 		{
-			return CompileGlobalAsync(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken);
+			return CompileAsync(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken);
 		}
 
 		/// <summary>
@@ -861,12 +1043,12 @@ namespace AScript
 		/// <returns></returns>
 		public Delegate CompileGlobal(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			return CompileGlobal(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion);
+			return Compile(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion);
 		}
 
 		public Task<Delegate> CompileGlobalAsync(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
 		{
-			return CompileGlobalAsync(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken);
+			return CompileAsync(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken);
 		}
 
 		/// <summary>
@@ -889,8 +1071,8 @@ namespace AScript
 			if (expression == null) return null;
 
 			string s = null;
-			Cache<Delegate> cache = null;
-			if (cacheTime != 0)
+			bool standalone = this.Options.Standalone ?? false;
+			if (cacheTime != 0 && !standalone)
 			{
 				if (string.IsNullOrEmpty(cacheKey))
 				{
@@ -898,18 +1080,18 @@ namespace AScript
 					if (string.IsNullOrEmpty(s)) return null;
 					cacheKey = s;
 				}
-				cache = (this.Options.Standalone ?? false) ? StandaloneCache : Cache;
-				if (cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
 				{
 					return d;
 				}
 			}
 
 			var func = Compile(null, this.Context, this.Options, s ?? expression());
+			if (func == null) return null;
 
-			if (cacheTime != 0)
+			if (cacheTime != 0 && !standalone)
 			{
-				cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
 			}
 
 			return func;
@@ -936,8 +1118,8 @@ namespace AScript
 			if (expression == null) return null;
 
 			string s = null;
-			Cache<Delegate> cache = null;
-			if (cacheTime != 0)
+			bool standalone = this.Options.Standalone ?? false;
+			if (cacheTime != 0 && !standalone)
 			{
 				if (string.IsNullOrEmpty(cacheKey))
 				{
@@ -945,18 +1127,18 @@ namespace AScript
 					if (string.IsNullOrEmpty(s)) return null;
 					cacheKey = s;
 				}
-				cache = (this.Options.Standalone ?? false) ? StandaloneCache : Cache;
-				if (cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
 				{
 					return d;
 				}
 			}
 
 			var func = await CompileAsync(null, this.Context, this.Options, s ?? expression(), cancellationToken).ConfigureAwait(false);
+			if (func == null) return null;
 
-			if (cacheTime != 0)
+			if (cacheTime != 0 && !standalone)
 			{
-				cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
 			}
 
 			return func;
@@ -981,21 +1163,21 @@ namespace AScript
 		{
 			if (expression == null) return null;
 
-			Cache<Delegate> cache = null;
-			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
+			bool standalone = this.Options.Standalone ?? false;
+			if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey))
 			{
-				cache = (this.Options.Standalone ?? false) ? StandaloneCache : Cache;
-				if (cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
 				{
 					return d;
 				}
 			}
 
 			var func = Compile(null, this.Context, this.Options, expression());
+			if (func == null) return null;
 
-			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
+			if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey))
 			{
-				cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
 			}
 
 			return func;
@@ -1021,21 +1203,21 @@ namespace AScript
 		{
 			if (expression == null) return null;
 
-			Cache<Delegate> cache = null;
-			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
+			bool standalone = this.Options.Standalone ?? false;
+			if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey))
 			{
-				cache = (this.Options.Standalone ?? false) ? StandaloneCache : Cache;
-				if (cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
 				{
 					return d;
 				}
 			}
 
 			var func = await CompileAsync(null, this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false);
+			if (func == null) return null;
 
-			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
+			if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey))
 			{
-				cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
 			}
 
 			return func;
@@ -1064,7 +1246,7 @@ namespace AScript
 			return buildContext.Compile(this.Context, buildOptions, body);
 		}
 
-		public Delegate CompileGlobal(string expression, Type[] argTypes, string[] argNames)
+		public Delegate CompileGlobal(string expression, string[] argNames, Type[] argTypes)
 		{
 			if (string.IsNullOrEmpty(expression)) return null;
 			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
@@ -1086,8 +1268,8 @@ namespace AScript
 			}
 			return Compile(buildContext, this.Context, this.Options, expression);
 		}
-
-		public Delegate CompileGlobal(Stream expression, Type[] argTypes, string[] argNames)
+		
+		public Delegate CompileGlobal(Stream expression, string[] argNames, Type[] argTypes)
 		{
 			if (expression == null) return null;
 			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
@@ -1425,10 +1607,120 @@ namespace AScript
 		/// <returns></returns>
 		public Func<T> Compile<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
+			if (string.IsNullOrEmpty(expression)) return null;
+
+			bool standalone = this.Options.Standalone ?? false;
+			if (cacheTime != 0 && !standalone)
+			{
+				if (string.IsNullOrEmpty(cacheKey)) cacheKey = expression;
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				{
+					T targetFunc1() => ((Func<ScriptContext, T>)d)(this.Context);
+					return targetFunc1;
+				}
+			}
+
+			var buildContext = new BuildContext { ReturnType = typeof(T) };
+			var func = Compile(buildContext, this.Context, this.Options, expression);
 			if (func == null) return null;
-			T targetFunc() => func(this.Context);
+			if (standalone) return (Func<T>)func;
+
+			if (cacheTime != 0)
+			{
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+			}
+
+			T targetFunc() => ((Func<ScriptContext, T>)func)(this.Context);
 			return targetFunc;
+
+			//var buildContext = new BuildContext
+			//{
+			//	ReturnType = typeof(T)
+			//};
+			//var func = Compile(buildContext, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion);
+			//if (func == null) return null;
+			//if (this.Options.Standalone ?? false)
+			//{
+			//	return (Func<T>)func;
+			//}
+			//T targetFunc() => ((Func<ScriptContext, T>)func)(this.Context);
+			//return targetFunc;
+
+			//var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
+			//if (func == null) return null;
+			//if (func is Func<ScriptContext, T> t2)
+			//{
+			//	T targetFunc() => t2(this.Context);
+			//	return targetFunc;
+			//}
+			//if (func is Func<T> t1) return t1;
+			//if (func.Method.ReturnType != typeof(T))
+			//{
+			//	T targetFunc() => (T)((this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context));
+			//	return targetFunc;
+			//}
+			//return (Func<T>)func;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<Func<T>> CompileAsync<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (string.IsNullOrEmpty(expression)) return null;
+
+			bool standalone = this.Options.Standalone ?? false;
+			if (cacheTime != 0 && !standalone)
+			{
+				if (string.IsNullOrEmpty(cacheKey)) cacheKey = expression;
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				{
+					T targetFunc1() => ((Func<ScriptContext, T>)d)(this.Context);
+					return targetFunc1;
+				}
+			}
+
+			var buildContext = new BuildContext { ReturnType = typeof(T) };
+			var func = await CompileAsync(buildContext, this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false);
+			if (func == null) return null;
+			if (standalone) return (Func<T>)func;
+
+			if (cacheTime != 0)
+			{
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+			}
+
+			T targetFunc() => ((Func<ScriptContext, T>)func)(this.Context);
+			return targetFunc;
+
+			//var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+			//if (func == null) return null;
+			//if (func is Func<T> t1) return t1;
+			//if (func is Func<ScriptContext, T> t2)
+			//{
+			//	T targetFunc() => t2(this.Context);
+			//	return targetFunc;
+			//}
+			//if (func.Method.ReturnType != typeof(T))
+			//{
+			//	T targetFunc() => (T)((this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context));
+			//	return targetFunc;
+			//}
+			//return (Func<T>)func;
 		}
 
 		/// <summary>
@@ -1449,10 +1741,105 @@ namespace AScript
 		/// <returns></returns>
 		public Func<T> Compile<T>(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
+			if (expression == null || expression.Length == 0L) return null;
+
+			bool standalone = this.Options.Standalone ?? false;
+			if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey))
+			{
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				{
+					T targetFunc1() => ((Func<ScriptContext, T>)d)(this.Context);
+					return targetFunc1;
+				}
+			}
+
+			var buildContext = new BuildContext { ReturnType = typeof(T) };
+			var func = Compile(buildContext, this.Context, this.Options, expression);
 			if (func == null) return null;
-			T targetFunc() => func(this.Context);
+			if (standalone) return (Func<T>)func;
+
+			if (cacheTime != 0)
+			{
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+			}
+
+			T targetFunc() => ((Func<ScriptContext, T>)func)(this.Context);
 			return targetFunc;
+
+			//var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
+			//if (func == null) return null;
+			//if (func is Func<T> t1) return t1;
+			//if (func is Func<ScriptContext, T> t2)
+			//{
+			//	T targetFunc() => t2(this.Context);
+			//	return targetFunc;
+			//}
+			//if (func.Method.ReturnType != typeof(T))
+			//{
+			//	T targetFunc() => (T)((this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context));
+			//	return targetFunc;
+			//}
+			//return (Func<T>)func;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<Func<T>> CompileAsync<T>(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (expression == null || expression.Length == 0L) return null;
+
+			bool standalone = this.Options.Standalone ?? false;
+			if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey))
+			{
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				{
+					T targetFunc1() => ((Func<ScriptContext, T>)d)(this.Context);
+					return targetFunc1;
+				}
+			}
+
+			var buildContext = new BuildContext { ReturnType = typeof(T) };
+			var func = await CompileAsync(buildContext, this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false);
+			if (func == null) return null;
+			if (standalone) return (Func<T>)func;
+
+			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
+			{
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+			}
+
+			T targetFunc() => ((Func<ScriptContext, T>)func)(this.Context);
+			return targetFunc;
+
+			//var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+			//if (func == null) return null;
+			//if (func is Func<T> t1) return t1;
+			//if (func is Func<ScriptContext, T> t2)
+			//{
+			//	T targetFunc() => t2(this.Context);
+			//	return targetFunc;
+			//}
+			//if (func.Method.ReturnType != typeof(T))
+			//{
+			//	T targetFunc() => (T)((this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context));
+			//	return targetFunc;
+			//}
+			//return (Func<T>)func;
 		}
 
 		/// <summary>
@@ -1473,11 +1860,88 @@ namespace AScript
 		/// <returns></returns>
 		public Func<T> Compile<T>(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
-			if (func == null) return null;
-			T targetFunc() => func(this.Context);
+			string s = null;
+			bool standalone = this.Options.Standalone ?? false;
+			if (cacheTime != 0 && !standalone)
+			{
+				if (string.IsNullOrEmpty(cacheKey))
+				{
+					s = expression?.Invoke();
+					if (string.IsNullOrEmpty(s)) return default;
+					cacheKey = s;
+				}
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				{
+					T targetFunc1() => ((Func<ScriptContext, T>)d)(this.Context);
+					return targetFunc1;
+				}
+			}
+
+			if (s == null) s = expression?.Invoke();
+			if (string.IsNullOrEmpty(s)) return null;
+			var buildContext = new BuildContext { ReturnType = typeof(T) };
+			var func = Compile(buildContext, this.Context, this.Options, s);
+			if (func == null) return default;
+			if (standalone) return (Func<T>)func;
+
+			if (cacheTime != 0)
+			{
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+			}
+
+			T targetFunc() => ((Func<ScriptContext, T>)func)(this.Context);
 			return targetFunc;
+
+			//var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
+			//if (func == null) return null;
+			//if (func is Func<T> t1) return t1;
+			//if (func is Func<ScriptContext, T> t2)
+			//{
+			//	T targetFunc() => t2(this.Context);
+			//	return targetFunc;
+			//}
+			//if (func.Method.ReturnType != typeof(T))
+			//{
+			//	T targetFunc() => (T)((this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context));
+			//	return targetFunc;
+			//}
+			//return (Func<T>)func;
 		}
+
+		///// <summary>
+		///// 编译生成委托
+		///// </summary>
+		///// <typeparam name="T"></typeparam>
+		///// <param name="expression"></param>
+		///// <param name="cacheTime">
+		///// <para>缓存时长</para>
+		///// <para>为0表示不使用缓存（默认）；</para>
+		///// <para>-1表示永久缓存；</para>
+		///// <para>大于0表示缓存时长（单位：毫秒）</para>
+		///// </param>
+		///// <param name="cacheKey">
+		///// 缓存key（如果为空则取表达式字符串）
+		///// </param>
+		///// <param name="cacheVersion"></param>
+		///// <param name="cancellationToken"></param>
+		///// <returns></returns>
+		//public async Task<Func<T>> CompileAsync<T>(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		//{
+		//	var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+		//	if (func == null) return null;
+		//	if (func is Func<T> t1) return t1;
+		//	if (func is Func<ScriptContext, T> t2)
+		//	{
+		//		T targetFunc() => t2(this.Context);
+		//		return targetFunc;
+		//	}
+		//	if (func.Method.ReturnType != typeof(T))
+		//	{
+		//		T targetFunc() => (T)((this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context));
+		//		return targetFunc;
+		//	}
+		//	return (Func<T>)func;
+		//}
 
 		/// <summary>
 		/// 编译生成委托
@@ -1497,10 +1961,105 @@ namespace AScript
 		/// <returns></returns>
 		public Func<T> Compile<T>(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			var func = CompileGlobal<T>(expression, cacheTime, cacheKey, cacheVersion);
-			if (func == null) return null;
-			T targetFunc() => func(this.Context);
+			bool standalone = this.Options.Standalone ?? false;
+			if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey))
+			{
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				{
+					T targetFunc1() => ((Func<ScriptContext, T>)d)(this.Context);
+					return targetFunc1;
+				}
+			}
+
+			var s = expression?.Invoke();
+			if (s == null) return null;
+			var buildContext = new BuildContext { ReturnType = typeof(T) };
+			var func = Compile(buildContext, this.Context, this.Options, s);
+			if (func == null) return default;
+			if (standalone) return (Func<T>)func;
+
+			if (cacheTime != 0)
+			{
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+			}
+
+			T targetFunc() => ((Func<ScriptContext, T>)func)(this.Context);
 			return targetFunc;
+
+			//var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
+			//if (func == null) return null;
+			//if (func is Func<T> t1) return t1;
+			//if (func is Func<ScriptContext, T> t2)
+			//{
+			//	T targetFunc() => t2(this.Context);
+			//	return targetFunc;
+			//}
+			//if (func.Method.ReturnType != typeof(T))
+			//{
+			//	T targetFunc() => (T)((this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context));
+			//	return targetFunc;
+			//}
+			//return (Func<T>)func;
+		}
+
+		/// <summary>
+		/// 编译生成委托
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public async Task<Func<T>> CompileAsync<T>(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			bool standalone = this.Options.Standalone ?? false;
+			if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey))
+			{
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				{
+					T targetFunc1() => ((Func<ScriptContext, T>)d)(this.Context);
+					return targetFunc1;
+				}
+			}
+
+			var s = expression?.Invoke();
+			if (s == null) return null;
+			var buildContext = new BuildContext { ReturnType = typeof(T) };
+			var func = await CompileAsync(buildContext, this.Context, this.Options, s, cancellationToken).ConfigureAwait(false);
+			if (func == null) return default;
+			if (standalone) return (Func<T>)func;
+
+			if (cacheTime != 0)
+			{
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+			}
+
+			T targetFunc() => ((Func<ScriptContext, T>)func)(this.Context);
+			return targetFunc;
+
+			//var func = await CompileGlobalAsync(expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+			//if (func == null) return null;
+			//if (func is Func<T> t1) return t1;
+			//if (func is Func<ScriptContext, T> t2)
+			//{
+			//	T targetFunc() => t2(this.Context);
+			//	return targetFunc;
+			//}
+			//if (func.Method.ReturnType != typeof(T))
+			//{
+			//	T targetFunc() => (T)((this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context));
+			//	return targetFunc;
+			//}
+			//return (Func<T>)func;
 		}
 
 		/// <summary>
@@ -1511,25 +2070,43 @@ namespace AScript
 		/// <returns></returns>
 		public Func<T> Compile<T>(ITreeNode node)
 		{
-			var func = CompileGlobal<T>(node);
-			if (func == null) return null;
-			T targetFunc() => func(this.Context);
+			if (node == null) return null;
+			var buildContext = new BuildContext { ReturnType = typeof(T) };
+			var func = Compile(buildContext, this.Context, this.Options, node);
+			if (func == null) return default;
+			if (this.Options.Standalone ?? false) return (Func<T>)func;
+			T targetFunc() => ((Func<ScriptContext, T>)func)(this.Context);
 			return targetFunc;
+
+			//var func = CompileGlobal(node);
+			//if (func == null) return null;
+			//if (func is Func<T> t1) return t1;
+			//if (func is Func<ScriptContext, T> t2)
+			//{
+			//	T targetFunc() => t2(this.Context);
+			//	return targetFunc;
+			//}
+			//if (func.Method.ReturnType != typeof(T))
+			//{
+			//	T targetFunc() => (T)((this.Options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(this.Context));
+			//	return targetFunc;
+			//}
+			//return (Func<T>)func;
 		}
 
-		public Delegate Compile(string expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		public Delegate Compile(string expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
-			return Lambda(expression, argTypes, argNames, returnType)?.Compile();
+			return Lambda(expression, argNames, argTypes, returnType)?.Compile();
 		}
 
-		public Delegate Compile(Stream expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		public Delegate Compile(Stream expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
-			return Lambda(expression, argTypes, argNames, returnType)?.Compile();
+			return Lambda(expression, argNames, argTypes, returnType)?.Compile();
 		}
 
-		public Delegate Compile(ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		public Delegate Compile(ITreeNode expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
-			return Lambda(expression, argTypes, argNames, returnType)?.Compile();
+			return Lambda(expression, argNames, argTypes, returnType)?.Compile();
 		}
 
 		public TDelegate Compile<TDelegate>(string expression, string[] argNames) where TDelegate : Delegate
@@ -1549,65 +2126,65 @@ namespace AScript
 
 		public Func<T1, TReturn> Compile<T1, TReturn>(string expression, string argName)
 		{
-			return (Func<T1, TReturn>)Compile(expression, new[] { typeof(T1) }, new[] { argName }, typeof(TReturn));
+			return (Func<T1, TReturn>)Compile(expression, new[] { argName }, new[] { typeof(T1) }, typeof(TReturn));
 		}
 
 		public Func<T1, TReturn> Compile<T1, TReturn>(Stream expression, string argName)
 		{
-			return (Func<T1, TReturn>)Compile(expression, new[] { typeof(T1) }, new[] { argName }, typeof(TReturn));
+			return (Func<T1, TReturn>)Compile(expression, new[] { argName }, new[] { typeof(T1) }, typeof(TReturn));
 		}
 
 		public Func<T1, T2, TReturn> Compile<T1, T2, TReturn>(string expression, string argName1, string argName2)
 		{
-			return (Func<T1, T2, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2) }, new[] { argName1, argName2 }, typeof(TReturn));
+			return (Func<T1, T2, TReturn>)Compile(expression, new[] { argName1, argName2 }, new[] { typeof(T1), typeof(T2) }, typeof(TReturn));
 		}
 
 		public Func<T1, T2, TReturn> Compile<T1, T2, TReturn>(Stream expression, string argName1, string argName2)
 		{
-			return (Func<T1, T2, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2) }, new[] { argName1, argName2 }, typeof(TReturn));
+			return (Func<T1, T2, TReturn>)Compile(expression, new[] { argName1, argName2 }, new[] { typeof(T1), typeof(T2) }, typeof(TReturn));
 		}
 
 		public Func<T1, T2, T3, TReturn> Compile<T1, T2, T3, TReturn>(string expression, string argName1, string argName2, string argName3)
 		{
-			return (Func<T1, T2, T3, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3) }, new[] { argName1, argName2, argName3 }, typeof(TReturn));
+			return (Func<T1, T2, T3, TReturn>)Compile(expression, new[] { argName1, argName2, argName3 }, new[] { typeof(T1), typeof(T2), typeof(T3) }, typeof(TReturn));
 		}
 
 		public Func<T1, T2, T3, TReturn> Compile<T1, T2, T3, TReturn>(Stream expression, string argName1, string argName2, string argName3)
 		{
-			return (Func<T1, T2, T3, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3) }, new[] { argName1, argName2, argName3 }, typeof(TReturn));
+			return (Func<T1, T2, T3, TReturn>)Compile(expression, new[] { argName1, argName2, argName3 }, new[] { typeof(T1), typeof(T2), typeof(T3) }, typeof(TReturn));
 		}
 
 		public Func<T1, T2, T3, T4, TReturn> Compile<T1, T2, T3, T4, TReturn>(string expression, string argName1, string argName2, string argName3, string argName4)
 		{
-			return (Func<T1, T2, T3, T4, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, new[] { argName1, argName2, argName3, argName4 }, typeof(TReturn));
+			return (Func<T1, T2, T3, T4, TReturn>)Compile(expression, new[] { argName1, argName2, argName3, argName4 }, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, typeof(TReturn));
 		}
 
 		public Func<T1, T2, T3, T4, TReturn> Compile<T1, T2, T3, T4, TReturn>(Stream expression, string argName1, string argName2, string argName3, string argName4)
 		{
-			return (Func<T1, T2, T3, T4, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, new[] { argName1, argName2, argName3, argName4 }, typeof(TReturn));
+			return (Func<T1, T2, T3, T4, TReturn>)Compile(expression, new[] { argName1, argName2, argName3, argName4 }, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, typeof(TReturn));
 		}
 
 		public Func<T1, T2, T3, T4, T5, TReturn> Compile<T1, T2, T3, T4, T5, TReturn>(string expression, string argName1, string argName2, string argName3, string argName4, string argName5)
 		{
-			return (Func<T1, T2, T3, T4, T5, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, new[] { argName1, argName2, argName3, argName4, argName5 }, typeof(TReturn));
+			return (Func<T1, T2, T3, T4, T5, TReturn>)Compile(expression, new[] { argName1, argName2, argName3, argName4, argName5 }, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, typeof(TReturn));
 		}
 
 		public Func<T1, T2, T3, T4, T5, TReturn> Compile<T1, T2, T3, T4, T5, TReturn>(Stream expression, string argName1, string argName2, string argName3, string argName4, string argName5)
 		{
-			return (Func<T1, T2, T3, T4, T5, TReturn>)Compile(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, new[] { argName1, argName2, argName3, argName4, argName5 }, typeof(TReturn));
+			return (Func<T1, T2, T3, T4, T5, TReturn>)Compile(expression, new[] { argName1, argName2, argName3, argName4, argName5 }, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, typeof(TReturn));
 		}
 
-		public LambdaExpression Lambda(string expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		public LambdaExpression Lambda(string expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
 			return Lambda(this.Context, this.Options, expression, argTypes, argNames, returnType);
 		}
 
-		public LambdaExpression Lambda(Stream expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		public LambdaExpression Lambda(Stream expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
 			return Lambda(this.Context, this.Options, expression, argTypes, argNames, returnType);
 		}
 
-		public LambdaExpression Lambda(ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		public LambdaExpression Lambda(ITreeNode expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
 			return Lambda(this.Context, this.Options, expression, argTypes, argNames, returnType);
 		}
@@ -1629,7 +2206,7 @@ namespace AScript
 			{
 				returnType = typeof(void);
 			}
-			return (Expression<TDelegate>)Lambda(expression, argTypes, argNames, returnType);
+			return (Expression<TDelegate>)Lambda(expression, argNames, argTypes, returnType);
 		}
 
 		public Expression<TDelegate> Lambda<TDelegate>(Stream expression, string[] argNames) where TDelegate : Delegate
@@ -1649,7 +2226,7 @@ namespace AScript
 			{
 				returnType = typeof(void);
 			}
-			return (Expression<TDelegate>)Lambda(expression, argTypes, argNames, returnType);
+			return (Expression<TDelegate>)Lambda(expression, argNames, argTypes, returnType);
 		}
 
 		public Expression<TDelegate> Lambda<TDelegate>(ITreeNode expression, string[] argNames) where TDelegate : Delegate
@@ -1669,61 +2246,61 @@ namespace AScript
 			{
 				returnType = typeof(void);
 			}
-			return (Expression<TDelegate>)Lambda(expression, argTypes, argNames, returnType);
+			return (Expression<TDelegate>)Lambda(expression, argNames, argTypes, returnType);
 		}
 
 		public Expression<Func<T1, TReturn>> Lambda<T1, TReturn>(string expression, string argName)
 		{
-			return (Expression<Func<T1, TReturn>>)Lambda(expression, new[] { typeof(T1) }, new[] { argName }, typeof(TReturn));
+			return (Expression<Func<T1, TReturn>>)Lambda(expression, new[] { argName }, new[] { typeof(T1) }, typeof(TReturn));
 		}
 
 		public Expression<Func<T1, TReturn>> Lambda<T1, TReturn>(Stream expression, string argName)
 		{
-			return (Expression<Func<T1, TReturn>>)Lambda(expression, new[] { typeof(T1) }, new[] { argName }, typeof(TReturn));
+			return (Expression<Func<T1, TReturn>>)Lambda(expression, new[] { argName }, new[] { typeof(T1) }, typeof(TReturn));
 		}
 
 		public Expression<Func<T1, T2, TReturn>> Lambda<T1, T2, TReturn>(string expression, string argName1, string argName2)
 		{
-			return (Expression<Func<T1, T2, TReturn>>)Lambda(expression, new[] { typeof(T1), typeof(T2) }, new[] { argName1, argName2 }, typeof(TReturn));
+			return (Expression<Func<T1, T2, TReturn>>)Lambda(expression, new[] { argName1, argName2 }, new[] { typeof(T1), typeof(T2) }, typeof(TReturn));
 		}
 
 		public Expression<Func<T1, T2, TReturn>> Lambda<T1, T2, TReturn>(Stream expression, string argName1, string argName2)
 		{
-			return (Expression<Func<T1, T2, TReturn>>)Lambda(expression, new[] { typeof(T1), typeof(T2) }, new[] { argName1, argName2 }, typeof(TReturn));
+			return (Expression<Func<T1, T2, TReturn>>)Lambda(expression, new[] { argName1, argName2 }, new[] { typeof(T1), typeof(T2) }, typeof(TReturn));
 		}
 
 		public Expression<Func<T1, T2, T3, TReturn>> Lambda<T1, T2, T3, TReturn>(string expression, string argName1, string argName2, string argName3)
 		{
-			return (Expression<Func<T1, T2, T3, TReturn>>)Lambda(expression, new[] { typeof(T1), typeof(T2), typeof(T3) }, new[] { argName1, argName2, argName3 }, typeof(TReturn));
+			return (Expression<Func<T1, T2, T3, TReturn>>)Lambda(expression, new[] { argName1, argName2, argName3 }, new[] { typeof(T1), typeof(T2), typeof(T3) }, typeof(TReturn));
 		}
 
 		public Expression<Func<T1, T2, T3, TReturn>> Lambda<T1, T2, T3, TReturn>(Stream expression, string argName1, string argName2, string argName3)
 		{
-			return (Expression<Func<T1, T2, T3, TReturn>>)Lambda(expression, new[] { typeof(T1), typeof(T2), typeof(T3) }, new[] { argName1, argName2, argName3 }, typeof(TReturn));
+			return (Expression<Func<T1, T2, T3, TReturn>>)Lambda(expression, new[] { argName1, argName2, argName3 }, new[] { typeof(T1), typeof(T2), typeof(T3) }, typeof(TReturn));
 		}
 
 		public Expression<Func<T1, T2, T3, T4, TReturn>> Lambda<T1, T2, T3, T4, TReturn>(string expression, string argName1, string argName2, string argName3, string argName4)
 		{
-			return (Expression<Func<T1, T2, T3, T4, TReturn>>)Lambda(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, new[] { argName1, argName2, argName3, argName4 }, typeof(TReturn));
+			return (Expression<Func<T1, T2, T3, T4, TReturn>>)Lambda(expression, new[] { argName1, argName2, argName3, argName4 }, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, typeof(TReturn));
 		}
 
 		public Expression<Func<T1, T2, T3, T4, TReturn>> Lambda<T1, T2, T3, T4, TReturn>(Stream expression, string argName1, string argName2, string argName3, string argName4)
 		{
-			return (Expression<Func<T1, T2, T3, T4, TReturn>>)Lambda(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, new[] { argName1, argName2, argName3, argName4 }, typeof(TReturn));
+			return (Expression<Func<T1, T2, T3, T4, TReturn>>)Lambda(expression, new[] { argName1, argName2, argName3, argName4 }, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, typeof(TReturn));
 		}
 
 		public Expression<Func<T1, T2, T3, T4, T5, TReturn>> Lambda<T1, T2, T3, T4, T5, TReturn>(string expression, string argName1, string argName2, string argName3, string argName4, string argName5)
 		{
-			return (Expression<Func<T1, T2, T3, T4, T5, TReturn>>)Lambda(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, new[] { argName1, argName2, argName3, argName4, argName5 }, typeof(TReturn));
+			return (Expression<Func<T1, T2, T3, T4, T5, TReturn>>)Lambda(expression, new[] { argName1, argName2, argName3, argName4, argName5 }, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, typeof(TReturn));
 		}
 
 		public Expression<Func<T1, T2, T3, T4, T5, TReturn>> Lambda<T1, T2, T3, T4, T5, TReturn>(Stream expression, string argName1, string argName2, string argName3, string argName4, string argName5)
 		{
-			return (Expression<Func<T1, T2, T3, T4, T5, TReturn>>)Lambda(expression, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, new[] { argName1, argName2, argName3, argName4, argName5 }, typeof(TReturn));
+			return (Expression<Func<T1, T2, T3, T4, T5, TReturn>>)Lambda(expression, new[] { argName1, argName2, argName3, argName4, argName5 }, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, typeof(TReturn));
 		}
 
 		/// <summary>
-		/// 构建表达式树
+		/// 构建语法树
 		/// </summary>
 		/// <param name="expression"></param>
 		/// <returns></returns>
@@ -1733,7 +2310,7 @@ namespace AScript
 		}
 
 		/// <summary>
-		/// 构建表达式树
+		/// 构建语法树
 		/// </summary>
 		/// <param name="expression"></param>
 		/// <returns></returns>
@@ -1751,9 +2328,10 @@ namespace AScript
 		}
 
 		/// <summary>
-		/// 异步构建表达式树
+		/// 异步构建语法树
 		/// </summary>
 		/// <param name="expression"></param>
+		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public async Task<ITreeNode> BuildNodeAsync(Stream expression, CancellationToken cancellationToken = default)
 		{
@@ -1769,7 +2347,7 @@ namespace AScript
 		}
 
 		/// <summary>
-		/// 构建表达式树
+		/// 构建语法树
 		/// </summary>
 		/// <param name="buildContext"></param>
 		/// <param name="scriptContext"></param>
@@ -1792,12 +2370,13 @@ namespace AScript
 		}
 
 		/// <summary>
-		/// 异步构建表达式树
+		/// 异步构建语法树
 		/// </summary>
 		/// <param name="buildContext"></param>
 		/// <param name="scriptContext"></param>
 		/// <param name="options"></param>
 		/// <param name="expression"></param>
+		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public static async Task<ITreeNode> BuildNodeAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, CancellationToken cancellationToken = default)
 		{
@@ -1847,7 +2426,7 @@ namespace AScript
 			}
 			if (cacheTime != 0 || (options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
-				var func = CompileGlobal(buildContext, scriptContext, options, expression, cacheTime, cacheKey, cacheVersion);
+				var func = Compile(buildContext, scriptContext, options, expression, cacheTime, cacheKey, cacheVersion);
 				returnType = func.Method.ReturnType;
 				try
 				{
@@ -1887,7 +2466,7 @@ namespace AScript
 			}
 			if (cacheTime != 0 || (options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
-				var func = await CompileGlobalAsync(buildContext, scriptContext, options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				var func = await CompileAsync(buildContext, scriptContext, options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
 				var value = (options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(scriptContext);
 				return new EvalResult(value, func.Method.ReturnType);
 			}
@@ -1951,26 +2530,26 @@ namespace AScript
 		/// </param>
 		/// <param name="cacheVersion"></param>
 		/// <returns></returns>
-		public static Delegate CompileGlobal(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		public static Delegate Compile(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, int cacheTime, string cacheKey = null, string cacheVersion = null)
 		{
 			if (string.IsNullOrEmpty(expression)) return null;
 
-			Cache<Delegate> cache = null;
-			if (cacheTime != 0)
+			bool standalone = options?.Standalone ?? false;
+			if (cacheTime != 0 && !standalone)
 			{
 				if (string.IsNullOrEmpty(cacheKey)) cacheKey = expression;
-				cache = (options?.Standalone ?? false) ? StandaloneCache : Cache;
-				if (cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
 				{
 					return d;
 				}
 			}
 
 			var func = Compile(buildContext, scriptContext, options, expression);
+			if (func == null) return null;
 
-			if (cacheTime != 0)
+			if (cacheTime != 0 && !standalone)
 			{
-				cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
 			}
 
 			return func;
@@ -1995,26 +2574,26 @@ namespace AScript
 		/// <param name="cacheVersion"></param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
-		public static async Task<Delegate> CompileGlobalAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		public static async Task<Delegate> CompileAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression, int cacheTime, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
 		{
 			if (string.IsNullOrEmpty(expression)) return null;
 
-			Cache<Delegate> cache = null;
-			if (cacheTime != 0)
+			bool standalone = options?.Standalone ?? false;
+			if (cacheTime != 0 && !standalone)
 			{
 				if (string.IsNullOrEmpty(cacheKey)) cacheKey = expression;
-				cache = (options?.Standalone ?? false) ? StandaloneCache : Cache;
-				if (cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
 				{
 					return d;
 				}
 			}
 
 			var func = await CompileAsync(buildContext, scriptContext, options, expression, cancellationToken).ConfigureAwait(false);
+			if (func == null) return null;
 
-			if (cacheTime != 0)
+			if (cacheTime != 0 && !standalone)
 			{
-				cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
 			}
 
 			return func;
@@ -2038,25 +2617,25 @@ namespace AScript
 		/// </param>
 		/// <param name="cacheVersion"></param>
 		/// <returns></returns>
-		public static Delegate CompileGlobal(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		public static Delegate Compile(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression, int cacheTime, string cacheKey = null, string cacheVersion = null)
 		{
 			if (expression == null || expression.Length == 0L) return null;
 
-			Cache<Delegate> cache = null;
-			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
+			bool standalone = options?.Standalone ?? false;
+			if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey))
 			{
-				cache = (options?.Standalone ?? false) ? StandaloneCache : Cache;
-				if (cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
 				{
 					return d;
 				}
 			}
 
 			var func = Compile(buildContext, scriptContext, options, expression);
+			if (func == null) return null;
 
-			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
+			if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey))
 			{
-				cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
 			}
 
 			return func;
@@ -2081,25 +2660,25 @@ namespace AScript
 		/// <param name="cacheVersion"></param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
-		public static async Task<Delegate> CompileGlobalAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		public static async Task<Delegate> CompileAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression, int cacheTime, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
 		{
 			if (expression == null || expression.Length == 0L) return null;
 
-			Cache<Delegate> cache = null;
-			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
+			bool standalone = options?.Standalone ?? false;
+			if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey))
 			{
-				cache = (options?.Standalone ?? false) ? StandaloneCache : Cache;
-				if (cache.TryGetValue(cacheKey, cacheVersion, out var d))
+				if (Cache.TryGetValue(cacheKey, cacheVersion, out var d))
 				{
 					return d;
 				}
 			}
 
 			var func = await CompileAsync(buildContext, scriptContext, options, expression, cancellationToken).ConfigureAwait(false);
+			if (func == null) return null;
 
-			if (cacheTime != 0 && !string.IsNullOrEmpty(cacheKey))
+			if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey))
 			{
-				cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
+				Cache.SetValue(cacheKey, func, cacheTime, cacheVersion);
 			}
 
 			return func;
@@ -2124,6 +2703,11 @@ namespace AScript
 		public static async Task<Delegate> CompileAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression, CancellationToken cancellationToken = default)
 		{
 			return (await LambdaAsync(buildContext, scriptContext, options, expression, cancellationToken).ConfigureAwait(false)).Compile();
+		}
+
+		public static Delegate Compile(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, ITreeNode expression)
+		{
+			return Lambda(buildContext, scriptContext, options, expression).Compile();
 		}
 
 		public static Delegate Compile(ScriptContext context, BuildOptions options, ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
@@ -2227,6 +2811,27 @@ namespace AScript
 			return buildContext.Build(scriptContext, buildOptions, bodys);
 		}
 
+		public static LambdaExpression Lambda(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, ITreeNode expression)
+		{
+			if (buildContext == null) buildContext = new BuildContext();
+			BuildOptions buildOptions;
+			if (options == null)
+			{
+				buildOptions = new BuildOptions(DefaultOptions) { CompileMode = ECompileMode.All };
+			}
+			else if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				buildOptions = options;
+			}
+			else
+			{
+				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
+			}
+			var body = expression.Build(buildContext, scriptContext, buildOptions);
+			var bodys = body == null ? null : new[] { body };
+			return buildContext.Build(scriptContext, buildOptions, bodys);
+		}
+
 		public static LambdaExpression Lambda(ScriptContext context, BuildOptions options, string expression, Type[] argTypes, string[] argNames, Type returnType = null)
 		{
 			if (string.IsNullOrEmpty(expression)) return null;
@@ -2251,20 +2856,7 @@ namespace AScript
 					buildContext.Parameters.Add(name, Expression.Parameter(type, name));
 				}
 			}
-			BuildOptions buildOptions;
-			if (options == null)
-			{
-				buildOptions = new BuildOptions(DefaultOptions) { CompileMode = ECompileMode.All };
-			}
-			else if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
-			{
-				buildOptions = options;
-			}
-			else
-			{
-				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
-			}
-			return Lambda(buildContext, context, buildOptions, expression);
+			return Lambda(buildContext, context, options, expression);
 		}
 
 		public static LambdaExpression Lambda(ScriptContext context, BuildOptions options, Stream expression, Type[] argTypes, string[] argNames, Type returnType = null)
@@ -2291,20 +2883,7 @@ namespace AScript
 					buildContext.Parameters.Add(name, Expression.Parameter(type, name));
 				}
 			}
-			BuildOptions buildOptions;
-			if (options == null)
-			{
-				buildOptions = new BuildOptions(DefaultOptions) { CompileMode = ECompileMode.All };
-			}
-			else if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
-			{
-				buildOptions = options;
-			}
-			else
-			{
-				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
-			}
-			return Lambda(buildContext, context, buildOptions, expression);
+			return Lambda(buildContext, context, options, expression);
 		}
 
 		public static LambdaExpression Lambda(ScriptContext context, BuildOptions options, ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
