@@ -33,19 +33,7 @@ namespace AScript.Test.Consoles.Benchmarks.JavaScriptTest
 		public void AScript2_Compile()
 		{
 			var script = new Script();
-			script.EvalFile(filePath);
-			var result = script.Eval<int>(s, ECompileMode.All);
-			if (result != r) throw new Exception("result error");
-		}
-
-		[Benchmark]
-		public void AScript2_Compile2()
-		{
-			var script = new Script();
-			// 关闭变量/函数回写上下文功能（脚本中定义的变量和函数不用回写到上下文）
-			script.Options.RewriteVariables = false;
-			script.Options.RewriteFunctions = false;
-			script.EvalFile(filePath);
+			script.EvalFile(filePath, ECompileMode.All);
 			var result = script.Eval<int>(s, ECompileMode.All);
 			if (result != r) throw new Exception("result error");
 		}
@@ -68,7 +56,7 @@ namespace AScript.Test.Consoles.Benchmarks.JavaScriptTest
 			{
 				_Script3 = new Script();
 			}
-			_Script3.EvalFile(filePath);
+			_Script3.EvalFile(filePath, ECompileMode.All);
 			var result = _Script3.Eval<int>(s, ECompileMode.All);
 			if (result != r) throw new Exception("result error");
 		}

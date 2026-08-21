@@ -700,7 +700,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest01_const>(config);
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest02_local>(config);
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest03_call>(config);
-			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest04_file>(config);
+			BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest04_file>(config);
 			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();
 			//new Benchmarks.ExpressionTest06_Func().AScript1_3();
@@ -717,7 +717,7 @@ exec2(26)
 			//new Benchmarks.FleeTest05_multi().AScript2_Compile2();
 			//new Benchmarks.JavaScriptTest.JavaScriptTest04_file().Jurassic2();
 			//new Benchmarks.JavaScriptTest.JavaScriptTest04_file().AScript1();
-			new Benchmarks.JavaScriptTest.JavaScriptTest04_file().AScript2_Compile();
+			//new Benchmarks.JavaScriptTest.JavaScriptTest04_file().AScript2_Compile();
 		}
 
 	}
