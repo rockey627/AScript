@@ -91,6 +91,11 @@ namespace AScript
 			}
 		}
 
+		public static T Convert<T>(object v)
+		{
+			return (T)Convert(v, typeof(T));
+		}
+
 		public static bool IsMatchArgType(Type inType, Type defineType)
 		{
 			if (inType == null) return true;

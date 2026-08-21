@@ -180,8 +180,8 @@ namespace AScript
 
 				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
-
-			return (T)Eval(this.Context, this.Options, expression, out _);
+			var value = Eval(this.Context, this.Options, expression, out _);
+			return ScriptUtils.Convert<T>(value);
 		}
 
 		/// <summary>
@@ -231,7 +231,8 @@ namespace AScript
 
 				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
-			return (T)(await EvalAsync(this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false)).Value;
+			var value = (await EvalAsync(this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false)).Value;
+			return ScriptUtils.Convert<T>(value);
 		}
 
 		/// <summary>
@@ -358,7 +359,8 @@ namespace AScript
 
 				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
-			return (T)Eval(this.Context, this.Options, expression, out _);
+			var value = Eval(this.Context, this.Options, expression, out _);
+			return ScriptUtils.Convert<T>(value);
 		}
 
 		/// <summary>
@@ -400,7 +402,8 @@ namespace AScript
 
 				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
-			return (T)(await EvalAsync(this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false)).Value;
+			var value = (await EvalAsync(this.Context, this.Options, expression, cancellationToken).ConfigureAwait(false)).Value;
+			return ScriptUtils.Convert<T>(value);
 		}
 
 		public object Eval(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
@@ -488,7 +491,8 @@ namespace AScript
 
 				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
-			return (T)Eval(this.Context, this.Options, expression(), out _);
+			var value = Eval(this.Context, this.Options, expression(), out _);
+			return ScriptUtils.Convert<T>(value);
 		}
 
 		/// <summary>
@@ -546,7 +550,8 @@ namespace AScript
 
 				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
-			return (T)(await EvalAsync(this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false)).Value;
+			var value = (await EvalAsync(this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false)).Value;
+			return ScriptUtils.Convert<T>(value);
 		}
 
 		/// <summary>
@@ -652,7 +657,8 @@ namespace AScript
 
 				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
-			return (T)Eval(this.Context, this.Options, expression(), out _);
+			var value = Eval(this.Context, this.Options, expression(), out _);
+			return ScriptUtils.Convert<T>(value);
 		}
 
 		/// <summary>
@@ -700,7 +706,8 @@ namespace AScript
 
 				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
-			return (T)(await EvalAsync(this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false)).Value;
+			var value = (await EvalAsync(this.Context, this.Options, expression(), cancellationToken).ConfigureAwait(false)).Value;
+			return ScriptUtils.Convert<T>(value);
 		}
 
 		/// <summary>
@@ -784,7 +791,8 @@ namespace AScript
 				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
-			return (T)Eval(this.Context, options, expression, out _);
+			var value = Eval(this.Context, options, expression, out _);
+			return ScriptUtils.Convert<T>(value);
 		}
 
 		/// <summary>
@@ -812,7 +820,8 @@ namespace AScript
 				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
-			return (T)(await EvalAsync(this.Context, options, expression, cancellationToken).ConfigureAwait(false)).Value;
+			var value = (await EvalAsync(this.Context, options, expression, cancellationToken).ConfigureAwait(false)).Value;
+			return ScriptUtils.Convert<T>(value);
 		}
 
 		/// <summary>
@@ -898,7 +907,8 @@ namespace AScript
 				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
-			return (T)Eval(this.Context, options, expression, out _);
+			var value = Eval(this.Context, options, expression, out _);
+			return ScriptUtils.Convert<T>(value);
 		}
 
 		/// <summary>
@@ -926,7 +936,8 @@ namespace AScript
 				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
 			var options = new BuildOptions(this.Options) { CompileMode = compileMode };
-			return (T)(await EvalAsync(this.Context, options, expression, cancellationToken).ConfigureAwait(false)).Value;
+			var value = (await EvalAsync(this.Context, options, expression, cancellationToken).ConfigureAwait(false)).Value;
+			return ScriptUtils.Convert<T>(value);
 		}
 
 		/// <summary>
@@ -981,7 +992,8 @@ namespace AScript
 				if (this.Options.Standalone ?? false) return ((Func<T>)func)();
 				return ((Func<ScriptContext, T>)func)(this.Context);
 			}
-			return (T)node.Eval(this.Context, this.Options, new EvalControl(), out _);
+			var value = node.Eval(this.Context, this.Options, new EvalControl(), out _);
+			return ScriptUtils.Convert<T>(value);
 		}
 
 		/// <summary>
@@ -1014,6 +1026,49 @@ namespace AScript
 		public Task<EvalResult> EvalAsync(ITokenStream tokenStream, CancellationToken cancellationToken = default)
 		{
 			return EvalAsync(this.Context, this.Options, tokenStream, cancellationToken);
+		}
+
+		/// <summary>
+		/// 执行文件脚本
+		/// </summary>
+		/// <param name="filePath"></param>
+		/// <param name="cacheTime"></param>
+		/// <param name="cacheKey"></param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public object EvalFile(string filePath, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			if (cacheTime == 0)
+			{
+				return Eval(System.IO.File.OpenRead(filePath));
+			}
+			if (string.IsNullOrEmpty(cacheKey))
+			{
+				cacheKey = Path.GetFullPath(filePath);
+			}
+			return Eval(() => System.IO.File.OpenRead(filePath), cacheTime, cacheKey, cacheVersion);
+		}
+
+		/// <summary>
+		/// 异步执行文件脚本
+		/// </summary>
+		/// <param name="filePath"></param>
+		/// <param name="cacheTime"></param>
+		/// <param name="cacheKey"></param>
+		/// <param name="cacheVersion"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
+		public Task<EvalResult> EvalFileAsync(string filePath, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (cacheTime == 0)
+			{
+				return EvalAsync(System.IO.File.OpenRead(filePath), cancellationToken: cancellationToken);
+			}
+			if (string.IsNullOrEmpty(cacheKey))
+			{
+				cacheKey = Path.GetFullPath(filePath);
+			}
+			return EvalAsync(() => System.IO.File.OpenRead(filePath), cacheTime, cacheKey, cacheVersion, cancellationToken);
 		}
 
 		public Delegate CompileGlobal(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
