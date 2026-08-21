@@ -11,6 +11,7 @@
 		<PackageReference Include="DynamicExpresso.Core" Version="2.19.3" />
 		<PackageReference Include="Flee" Version="2.0.0" />
 		<PackageReference Include="IronPython" Version="3.4.2" />
+		<PackageReference Include="Jurassic" Version="3.2.9" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.3.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.2" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.2">
@@ -34,6 +35,9 @@
 		</None>
 		<None Update="Benchmarks\ExpressionTest12.txt">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Benchmarks\JavaScriptTest\utils.js">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 

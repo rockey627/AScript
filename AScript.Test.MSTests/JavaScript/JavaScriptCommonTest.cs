@@ -108,6 +108,44 @@ factorial(5);
 		}
 
 		[TestMethod]
+		public void Test05_Function_Recursive_CompileAll()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			// 递归函数 - 阶乘
+			string code = @"
+function factorial(n) {
+	if (n <= 1) {
+		return 1;
+	}
+	return n * factorial(n - 1);
+}
+";
+			script.Eval(code);
+			Assert.AreEqual(120, script.Eval<int>("factorial(5)", ECompileMode.All));
+		}
+
+		[TestMethod]
+		public void Test05_Function_Recursive_CompileAll2()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+
+			// 递归函数 - 阶乘
+			string code = @"
+function factorial(n) {
+	if (n <= 1) {
+		return 1;
+	}
+	return n * factorial(n - 1);
+}
+";
+			script.Eval(code, ECompileMode.All);
+			Assert.AreEqual(120, script.Eval<int>("factorial(5)", ECompileMode.All));
+		}
+
+		[TestMethod]
 		public void Test06_Function_Recursive2()
 		{
 			var script = new Script();
@@ -1865,6 +1903,22 @@ m;
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(2.0, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test69()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(10, script.Eval<int>("4+6"));
+		}
+
+		[TestMethod]
+		public void Test69_CompileAll()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(10, script.Eval<int>("4+6", ECompileMode.All));
 		}
 	}
 }
