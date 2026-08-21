@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace AScript.Test.Consoles.Benchmarks.JavaScriptTest
 {
+	[MaxColumn]
+	[MinColumn]
+	[MemoryDiagnoser]
 	public class JavaScriptTest04_file
 	{
 		private static readonly string filePath = "./Benchmarks/JavaScriptTest/utils.js";

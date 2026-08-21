@@ -20,6 +20,9 @@ namespace AScript
 		private HashSet<string> _ChangedVariables;
 		private Dictionary<string, Expression> _Events;
 
+		// 用于递归函数定义
+		private Dictionary<string, List<DelegateDefine>> _DelegateDefines;
+
 		private LabelTarget _ContinueLabel;
 		private LabelTarget _BreakLabel;
 
@@ -364,6 +367,43 @@ namespace AScript
 			return false;
 		}
 
+		public DelegateDefine AddDelegateDefine(string name, Type[] argTypes, Type returnType)
+		{
+			List<DelegateDefine> list;
+			if (_DelegateDefines == null)
+			{
+				_DelegateDefines = new Dictionary<string, List<DelegateDefine>>();
+				_DelegateDefines[name] = list = new List<DelegateDefine>();
+			}
+			else if (!_DelegateDefines.TryGetValue(name, out list))
+			{
+				_DelegateDefines[name] = list = new List<DelegateDefine>();
+			}
+			var delegateDefine = new DelegateDefine(name, argTypes, returnType);
+			list.Add(delegateDefine);
+			return delegateDefine;
+			//return null;
+		}
+
+		public bool HasDelegateDefine(string name)
+		{
+			return _DelegateDefines != null && _DelegateDefines.ContainsKey(name);
+		}
+
+		public ParameterExpression GetDelegateDefine(string name, IList<Type> inArgTypes)
+		{
+			if (_DelegateDefines == null || _DelegateDefines.Count == 0) return null;
+			if (!_DelegateDefines.TryGetValue(name, out var list)) return null;
+			if (list.Count == 0) return null;
+			var delegateDefine = list.FirstOrDefault(a => ScriptUtils.IsMatchArgTypes(inArgTypes, a.ArgTypes));
+			if (delegateDefine == null) return null;
+			if (delegateDefine.Variable == null)
+			{
+				delegateDefine.Variable = Expression.Variable(ScriptUtils.GetDelegateType(delegateDefine.ArgTypes, delegateDefine.ReturnType ?? typeof(object)), delegateDefine.Name);
+			}
+			return delegateDefine.Variable;
+		}
+
 		public Expression GetEvent(ScriptContext scriptContext, string name, Type delegateType)
 		{
 			string eventKey = $"{name}_{delegateType.GetHashCode()}";
@@ -699,7 +739,14 @@ namespace AScript
 			}
 			if (this.ReturnVariableExpression != null)
 			{
-				list.Add(this.ReturnVariableExpression);
+				if (this.ReturnType != null && this.ReturnType != typeof(void) && this.ReturnType != this.ReturnVariableExpression.Type)
+				{
+					list.Add(ExpressionUtils.Convert(this.ReturnVariableExpression, this.ReturnType));
+				}
+				else
+				{
+					list.Add(this.ReturnVariableExpression);
+				}
 				if (variables == null)
 				{
 					variables = new List<ParameterExpression> { this.ReturnVariableExpression };

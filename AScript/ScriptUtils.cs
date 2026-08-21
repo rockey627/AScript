@@ -1109,6 +1109,44 @@ namespace AScript
 			}
 		}
 
+		/// <summary>
+		/// 根据方法签名获取对应的 Delegate 类型
+		/// </summary>
+		/// <returns>对应的 Delegate 类型</returns>
+		public static Type GetDelegateType(Type[] argTypes, Type returnType)
+		{
+			if (argTypes == null) argTypes = Type.EmptyTypes;
+			try
+			{
+				if (returnType == typeof(void))
+				{
+					if (argTypes.Length == 0) return typeof(Action);
+					if (argTypes.Length == 1) return typeof(Action<>).MakeGenericType(argTypes[0]);
+					if (argTypes.Length == 2) return typeof(Action<,>).MakeGenericType(argTypes[0], argTypes[1]);
+					if (argTypes.Length == 3) return typeof(Action<,,>).MakeGenericType(argTypes[0], argTypes[1], argTypes[2]);
+					if (argTypes.Length == 4) return typeof(Action<,,,>).MakeGenericType(argTypes[0], argTypes[1], argTypes[2], argTypes[3]);
+					if (argTypes.Length == 5) return typeof(Action<,,,,>).MakeGenericType(argTypes[0], argTypes[1], argTypes[2], argTypes[3], argTypes[4]);
+					if (argTypes.Length == 6) return typeof(Action<,,,,>).MakeGenericType(argTypes[0], argTypes[1], argTypes[2], argTypes[3], argTypes[4], argTypes[5]);
+					if (argTypes.Length == 7) return typeof(Action<,,,,>).MakeGenericType(argTypes[0], argTypes[1], argTypes[2], argTypes[3], argTypes[4], argTypes[5], argTypes[6]);
+					return null;
+				}
+
+				if (argTypes.Length == 0) return typeof(Func<>).MakeGenericType(returnType);
+				if (argTypes.Length == 1) return typeof(Func<,>).MakeGenericType(argTypes[0], returnType);
+				if (argTypes.Length == 2) return typeof(Func<,,>).MakeGenericType(argTypes[0], argTypes[1], returnType);
+				if (argTypes.Length == 3) return typeof(Func<,,,>).MakeGenericType(argTypes[0], argTypes[1], argTypes[2], returnType);
+				if (argTypes.Length == 4) return typeof(Func<,,,,>).MakeGenericType(argTypes[0], argTypes[1], argTypes[2], argTypes[3], returnType);
+				if (argTypes.Length == 5) return typeof(Func<,,,,,>).MakeGenericType(argTypes[0], argTypes[1], argTypes[2], argTypes[3], argTypes[4], returnType);
+				if (argTypes.Length == 6) return typeof(Func<,,,,,>).MakeGenericType(argTypes[0], argTypes[1], argTypes[2], argTypes[3], argTypes[4], argTypes[5], returnType);
+				if (argTypes.Length == 7) return typeof(Func<,,,,,>).MakeGenericType(argTypes[0], argTypes[1], argTypes[2], argTypes[3], argTypes[4], argTypes[5], argTypes[6], returnType);
+				return null;
+			}
+			catch
+			{
+				return null;
+			}
+		}
+
 		public static Delegate CreateDelegate(MethodInfo methodInfo, object target = null)
 		{
 			if (methodInfo == null) return null;

@@ -1508,6 +1508,25 @@ namespace AScript
 			{
 				var result = BuildFunc(buildContext, options, tempBuildContext.TempFunctions, name, args, ref argExprs, ref argTypes);
 				if (result != null) return result;
+				if (tempBuildContext.HasDelegateDefine(name))
+				{
+					if (args != null && args.Count > 0 && argExprs == null)
+					{
+						argExprs = new Expression[args.Count];
+						argTypes = new Type[args.Count];
+						for (int i = 0; i < args.Count; i++)
+						{
+							var arg = args[i].Build(buildContext, this, options);
+							argExprs[i] = arg;
+							argTypes[i] = arg.Type;
+						}
+					}
+					var del = tempBuildContext.GetDelegateDefine(name, argTypes);
+					if (del != null)
+					{
+						return Expression.Invoke(del, argExprs);
+					}
+				}
 				tempBuildContext = tempBuildContext.Parent;
 			}
 			// 获取变量
@@ -1516,16 +1535,19 @@ namespace AScript
 				if (args != null && args.Count > 0)
 				{
 					var parameters = v.Type.GetMethod("Invoke").GetParameters();
-					argExprs = new Expression[args.Count];
-					for (int i = 0; i < args.Count; i++)
+					if (argExprs == null)
 					{
-						var arg = args[i].Build(buildContext, this, options);
-						var p = parameters[i];
-						if (arg.Type != p.ParameterType)
+						argExprs = new Expression[args.Count];
+						for (int i = 0; i < args.Count; i++)
 						{
-							arg = Expression.Convert(arg, p.ParameterType);
+							var arg = args[i].Build(buildContext, this, options);
+							var p = parameters[i];
+							if (arg.Type != p.ParameterType)
+							{
+								arg = Expression.Convert(arg, p.ParameterType);
+							}
+							argExprs[i] = arg;
 						}
-						argExprs[i] = arg;
 					}
 				}
 				return Expression.Invoke(v, argExprs);
@@ -1627,6 +1649,25 @@ namespace AScript
 			{
 				var result = BuildFunc(buildContext, options, tmpBuildContext.TempFunctions, name, args, ref argExprs, ref argTypes);
 				if (result != null) return result;
+				if (tmpBuildContext.HasDelegateDefine(name))
+				{
+					if (args != null && args.Count > 0 && argExprs == null)
+					{
+						argExprs = new Expression[args.Count];
+						argTypes = new Type[args.Count];
+						for (int i = 0; i < args.Count; i++)
+						{
+							var arg = args[i].Build(buildContext, this, options);
+							argExprs[i] = arg;
+							argTypes[i] = arg.Type;
+						}
+					}
+					var del = tmpBuildContext.GetDelegateDefine(name, argTypes);
+					if (del != null)
+					{
+						return Expression.Invoke(del, argExprs);
+					}
+				}
 				tmpBuildContext = tmpBuildContext.Parent;
 			}
 
@@ -2296,47 +2337,6 @@ namespace AScript
 				{
 					return d;
 				}
-				//var methodParameters = d.Parameters;
-				//if (methodParameters.Count < argTypesCount) continue;
-				//if (methodParameters.Count == argTypesCount)
-				//{
-				//	if (argTypesCount == 0)
-				//	{
-				//		useScriptContext = false;
-				//		hasClosure = false;
-				//		return d;
-				//	}
-				//}
-				//int index = 0;
-				//hasClosure = false;
-				//useScriptContext = false;
-				//if (methodParameters[index].Type.FullName == "System.Runtime.CompilerServices.Closure")
-				//{
-				//	index++;
-				//	hasClosure = true;
-				//}
-				//if (methodParameters[index].Type == typeof(ScriptContext))
-				//{
-				//	index++;
-				//	useScriptContext = true;
-				//}
-				//if (methodParameters.Count - argTypesCount > index)
-				//{
-				//	continue;
-				//}
-				//bool matched = true;
-				//for (int j = 0; j < argTypesCount; j++)
-				//{
-				//	if (!ScriptUtils.IsMatchArgType(argTypes[j], methodParameters[j + index].Type))
-				//	{
-				//		matched = false;
-				//		break;
-				//	}
-				//}
-				//if (matched)
-				//{
-				//	return d;
-				//}
 			}
 			hasClosure = false;
 			useScriptContext = false;

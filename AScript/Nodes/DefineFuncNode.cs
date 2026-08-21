@@ -130,8 +130,10 @@ namespace AScript.Nodes
 				DelegateType = this.DelegateType,
 				IsMain = true
 			};
-			if (this.Args != null)
+			Type[] argTypes = null;
+			if (this.Args != null && this.Args.Length > 0)
 			{
+				argTypes = new Type[this.Args.Length];
 				for (int i = 0; i < this.Args.Length; i++)
 				{
 					var arg = this.Args[i];
@@ -140,40 +142,67 @@ namespace AScript.Nodes
 					{
 						throw new ScriptAnalyzingException($"unknown parameter type {arg.Type} in function {this.Name}");
 					}
+					argTypes[i] = type;
 					string argName = arg.Name;
 					if (argName == "_") argName += i;
 					tempBuildContext.Parameters[argName] = Expression.Parameter(type, argName);
 				}
 			}
+			var delegateDefine = IsNiming(this.Name) ? null : buildContext.AddDelegateDefine(this.Name, argTypes, funcReturnType);
 			//var buildOptions = new BuildOptions(options) { DynamicVariableType = true };
 			var body = this.Body.Build(tempBuildContext, scriptContext, options);
 			// 有闭包参数，只能通过DynamicInvoke调用，无法用Expression.Call调用
 			//var d = tempBuildContext.Compile(scriptContext, body);
 			//var dExpr = Expression.Constant(d);
+			if (funcReturnType == null && delegateDefine?.Variable != null)
+			{
+				tempBuildContext.ReturnType = typeof(object);
+			}
 			var d = tempBuildContext.Build(scriptContext, options, body);
+			if (delegateDefine?.Variable != null)
+			{
+				var assignDefine = Expression.Assign(delegateDefine.Variable, d);
+				//var selfType = ScriptUtils.GetDelegateType(null, delegateDefine.Variable.Type);
+				//var selfLambda = Expression.Lambda(selfType, selfBlock);
+				//var selfLambda = Expression.Lambda(selfBlock);
+				//var self = Expression.Invoke(selfLambda);
+				var ps1 = new ParameterExpression[d.Parameters.Count];
+				for (int i = 0; i < ps1.Length; i++)
+				{
+					ps1[i] = Expression.Parameter(d.Parameters[i].Type);
+				}
+				var selfBlock = Expression.Block(new[] { delegateDefine.Variable }, 
+					assignDefine, 
+					Expression.Invoke(delegateDefine.Variable, ps1));
+				var newD = Expression.Lambda(delegateDefine.Variable.Type, selfBlock, ps1);
+				d = newD;
+			}
 #if NET45
 			// NET45框架下，如果Lambda有闭包参数直接Invoke会报错：System.Security.VerificationException:操作可能会破坏运行时稳定性
 			// 需要Expression.Quote来包装
-			Expression dExpr;
+			Expression quoteExpr;
 			ParameterExpression[] ps;
 			if (d == null)
 			{
-				dExpr = null;
+				quoteExpr = null;
 				ps = null;
 			}
 			else
 			{
-				dExpr = Expression.Quote(d);
+				quoteExpr = Expression.Quote(d);
 				ps = new ParameterExpression[d.Parameters.Count];
 				for (int i = 0; i < ps.Length; i++)
 				{
 					ps[i] = Expression.Parameter(d.Parameters[i].Type);
 				}
 			}
-			var inner = tempBuildContext.DelegateType == null ?
-				Expression.Lambda(dExpr == null ? (Expression)Expression.Empty() : Expression.Invoke(dExpr, ps), ps) :
-				Expression.Lambda(tempBuildContext.DelegateType, Expression.Invoke(dExpr, ps), ps);
-			if (!string.IsNullOrEmpty(this.Name) && this.Name != "_")
+			var dExpr = tempBuildContext.DelegateType == null ?
+				Expression.Lambda(quoteExpr == null ? (Expression)Expression.Empty() : Expression.Invoke(quoteExpr, ps), ps) :
+				Expression.Lambda(tempBuildContext.DelegateType, Expression.Invoke(quoteExpr, ps), ps);
+#else
+			var dExpr = d;
+#endif
+			if (!IsNiming(this.Name))
 			{
 				buildContext.AddTempFunc(this.Name, d);
 				// 将方法添加到上下文
@@ -183,29 +212,11 @@ namespace AScript.Nodes
 						buildContext.GetScriptContextParameter(),
 						ExpressionUtils.Method_ScriptContext_AddTempFunc,
 						Expression.Constant(this.Name),
-						inner);
-					return Expression.Block(addTempFuncExpression, inner);
-				}
-			}
-			return inner;
-#else
-			var dExpr = d;
-			if (!string.IsNullOrEmpty(this.Name) && this.Name != "_")
-			{
-				buildContext.AddTempFunc(this.Name, d);
-				// 将方法添加到上下文
-				if (buildContext.RewriteLocalVariables && (options?.RewriteFunctions ?? true) && !(options?.Standalone ?? false))
-				{
-					var addTempFuncExpression = Expression.Call(
-						buildContext.GetScriptContextParameter(), 
-						ExpressionUtils.Method_ScriptContext_AddTempFunc, 
-						Expression.Constant(this.Name), 
 						dExpr);
 					return Expression.Block(addTempFuncExpression, dExpr);
 				}
 			}
 			return dExpr;
-#endif
 
 			//return Expression.Constant(d);
 			//var lambda = tempBuildContext.Build(scriptContext, body);
@@ -221,6 +232,11 @@ namespace AScript.Nodes
 			//return Expression.Block(new[] { tempResultVariable }, tempResultAssignExpression, addTempFuncExpression, tempResultVariable); ;
 
 			//return ExpressionUtils.BuildEval(buildContext, options, null, this);
+		}
+
+		private static bool IsNiming(string name)
+		{
+			return string.IsNullOrEmpty(name) || name == "_";
 		}
 
 		//public override void Clear()
