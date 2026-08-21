@@ -627,7 +627,7 @@ namespace AScript
 				{
 					if (this.ReturnType != null && this.ReturnType != typeof(void) && this.ReturnType != lastExpression.Type)
 					{
-						lastExpression = Expression.Convert(lastExpression, this.ReturnType);
+						lastExpression = ExpressionUtils.Convert(lastExpression, this.ReturnType);
 						list[lastExpressionIndex] = lastExpression;
 					}
 					// 无论是否有本地变量，都需要将最后一个表达式的值作为返回值

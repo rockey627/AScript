@@ -63,7 +63,7 @@ namespace AScript
 				case TypeCode.Decimal:
 					return System.Convert.ToDecimal(v);
 				case TypeCode.Double:
-					return System.Convert.ChangeType(v, typeof(double));
+					return System.Convert.ToDouble(v);
 				case TypeCode.Empty:
 					return v;
 				case TypeCode.Int16:

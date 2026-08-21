@@ -1071,6 +1071,16 @@ namespace AScript
 			return EvalAsync(() => System.IO.File.OpenRead(filePath), cacheTime, cacheKey, cacheVersion, cancellationToken);
 		}
 
+		public object EvalFile(string filePath, ECompileMode compileMode)
+		{
+			return Eval(System.IO.File.OpenRead(filePath), compileMode);
+		}
+
+		public Task<EvalResult> EvalFileAsync(string filePath, ECompileMode compileMode, CancellationToken cancellationToken = default)
+		{
+			return EvalAsync(System.IO.File.OpenRead(filePath), compileMode, cancellationToken);
+		}
+
 		public Delegate CompileGlobal(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			return Compile(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion);

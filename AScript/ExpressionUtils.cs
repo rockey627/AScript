@@ -576,7 +576,8 @@ namespace AScript
 
 		public static Expression Convert(Expression v, Type type)
 		{
-			if (v.Type == type || type.IsAssignableFrom(v.Type)) return v;
+			if (v.Type == type) return v;
+			if (type.IsAssignableFrom(v.Type)) return Expression.Convert(v, type);
 
 			switch (Type.GetTypeCode(type))
 			{
