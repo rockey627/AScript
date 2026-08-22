@@ -1530,27 +1530,38 @@ namespace AScript
 				tempBuildContext = tempBuildContext.Parent;
 			}
 			// 获取变量
-			if (buildContext.TryGetVariableOrParameter(name, out var v) && typeof(Delegate).IsAssignableFrom(v.Type))
+			if (buildContext.TryGetVariableOrParameter(name, out var v))
 			{
-				if (args != null && args.Count > 0)
+				if (!buildContext.LastTypes.TryGetValue(name, out var type))
 				{
-					var parameters = v.Type.GetMethod("Invoke").GetParameters();
-					if (argExprs == null)
+					type = v.Type;
+				}
+				if (typeof(Delegate).IsAssignableFrom(type))
+				{
+					if (args != null && args.Count > 0)
 					{
-						argExprs = new Expression[args.Count];
-						for (int i = 0; i < args.Count; i++)
+						var parameters = type.GetMethod("Invoke").GetParameters();
+						if (argExprs == null)
 						{
-							var arg = args[i].Build(buildContext, this, options);
-							var p = parameters[i];
-							if (arg.Type != p.ParameterType)
+							argExprs = new Expression[args.Count];
+							for (int i = 0; i < args.Count; i++)
 							{
-								arg = Expression.Convert(arg, p.ParameterType);
+								var arg = args[i].Build(buildContext, this, options);
+								var p = parameters[i];
+								if (arg.Type != p.ParameterType)
+								{
+									arg = Expression.Convert(arg, p.ParameterType);
+								}
+								argExprs[i] = arg;
 							}
-							argExprs[i] = arg;
 						}
 					}
+					if (type == v.Type)
+					{
+						return Expression.Invoke(v, argExprs);
+					}
+					return Expression.Invoke(Expression.Convert(v, type), argExprs);
 				}
-				return Expression.Invoke(v, argExprs);
 			}
 
 			// 从脚本上下文环境中构建
@@ -1946,7 +1957,7 @@ namespace AScript
 			return Expression.Invoke(Expression.Constant(d), argExprs);
 		}
 
-		protected Expression BuildFunc(BuildContext buildContext, BuildOptions options, IDictionary<string, List<LambdaExpression>> functions, string name, IList<ITreeNode> args, ref Expression[] argExprs, ref Type[] argTypes)
+		protected Expression BuildFunc(BuildContext buildContext, BuildOptions options, IDictionary<string, List<Expression>> functions, string name, IList<ITreeNode> args, ref Expression[] argExprs, ref Type[] argTypes)
 		{
 			if (functions == null || !functions.TryGetValue(name, out var list3)) return null;
 
@@ -2005,14 +2016,30 @@ namespace AScript
 			//}
 			if (argExprs != null)
 			{
-				var parameters = d.Parameters;
-				for (int i = 0; i < argExprs.Length; i++)
+				if (d is LambdaExpression lambda)
 				{
-					var p = parameters[hasClosure ? i + 1 : i];
-					var arg = argExprs[i];
-					if (arg.Type != p.Type)
+					var parameters = lambda.Parameters;
+					for (int i = 0; i < argExprs.Length; i++)
 					{
-						argExprs[i] = Expression.Convert(arg, p.Type);
+						var p = parameters[hasClosure ? i + 1 : i];
+						var arg = argExprs[i];
+						if (arg.Type != p.Type)
+						{
+							argExprs[i] = Expression.Convert(arg, p.Type);
+						}
+					}
+				}
+				else
+				{
+					var parameters = d.Type.GetMethod("Invoke").GetParameters();
+					for (int i = 0; i < argExprs.Length; i++)
+					{
+						var p = parameters[hasClosure ? i + 1 : i];
+						var arg = argExprs[i];
+						if (arg.Type != p.ParameterType)
+						{
+							argExprs[i] = Expression.Convert(arg, p.ParameterType);
+						}
 					}
 				}
 			}
@@ -2327,15 +2354,25 @@ namespace AScript
 			return null;
 		}
 
-		public static LambdaExpression GetFunc(List<LambdaExpression> list, IList<Type> argTypes, out bool useScriptContext, out bool hasClosure)
+		public static Expression GetFunc(List<Expression> list, IList<Type> argTypes, out bool useScriptContext, out bool hasClosure)
 		{
 			int argTypesCount = argTypes == null ? 0 : argTypes.Count;
 			for (int i = list.Count - 1; i >= 0; i--)
 			{
 				var d = list[i];
-				if (ScriptUtils.IsMatchArgTypes(argTypes, d, out useScriptContext, out hasClosure))
+				if (d is LambdaExpression lambda)
 				{
-					return d;
+					if (ScriptUtils.IsMatchArgTypes(argTypes, lambda, out useScriptContext, out hasClosure))
+					{
+						return d;
+					}
+				}
+				else
+				{
+					if (ScriptUtils.IsMatchArgTypes(argTypes, d.Type.GetMethod("Invoke"), out useScriptContext, out hasClosure, out _))
+					{
+						return d;
+					}
 				}
 			}
 			hasClosure = false;

@@ -13,6 +13,8 @@ namespace AScript
 {
 	public class ScriptUtils
 	{
+		public static readonly MethodInfo Method_ScriptUtils_Add = typeof(ScriptUtils).GetMethod("Add", new[] { typeof(object), typeof(object) });
+
 		private static readonly ConcurrentDictionary<Type, int> _TypeSize = new ConcurrentDictionary<Type, int>
 		{
 			[typeof(byte)] = 10,
@@ -1220,6 +1222,34 @@ namespace AScript
 			return (TDelegate)ConvertDelegate(del, typeof(TDelegate));
 		}
 
+		public static Expression ConvertDelegate(Expression expr, Type targetDelegateType)
+		{
+			if (expr is LambdaExpression lambda)
+			{
+				Delegate d;
+				if (lambda.Type == targetDelegateType)
+				{
+					d = lambda.Compile();
+				}
+				else
+				{
+					d = Expression.Lambda(targetDelegateType, lambda.Body, lambda.Parameters).Compile();
+				}
+				return Expression.Constant(d);
+			}
+			if (expr.Type == targetDelegateType) return expr;
+			var method = expr.Type.GetMethod("Invoke");
+			var methodArgs = method.GetParameters();
+			var parameters = new ParameterExpression[methodArgs.Length];
+			for (int i = 0; i < methodArgs.Length; i++)
+			{
+				parameters[i] = Expression.Parameter(methodArgs[i].ParameterType);
+			}
+			return Expression.Lambda(targetDelegateType, Expression.Invoke(expr, parameters), parameters);
+			//var func = Expression.Lambda(targetDelegateType, Expression.Invoke(expr, parameters), parameters).Compile();
+			//return Expression.Constant(func);
+		}
+
 		public static bool Contains(IEnumerable<string> list, string s)
 		{
 			if (list == null) return false;
@@ -1333,6 +1363,16 @@ namespace AScript
 				target = Expression.Convert(target, typeof(DynamicObject));
 			}
 			return Expression.Call(method, target, Expression.Constant(methodName), argsArray);
+		}
+
+		public static object Add(object v1, object v2)
+		{
+			return ((dynamic)v1) + ((dynamic)v2);
+		}
+
+		public static Expression Add(Expression v1, Expression v2)
+		{
+			return null;
 		}
 	}
 }

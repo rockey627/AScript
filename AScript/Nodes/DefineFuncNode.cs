@@ -158,53 +158,56 @@ namespace AScript.Nodes
 			{
 				tempBuildContext.ReturnType = typeof(object);
 			}
-			var d = tempBuildContext.Build(scriptContext, options, body);
-			if (delegateDefine?.Variable != null)
-			{
-				var assignDefine = Expression.Assign(delegateDefine.Variable, d);
-				//var selfType = ScriptUtils.GetDelegateType(null, delegateDefine.Variable.Type);
-				//var selfLambda = Expression.Lambda(selfType, selfBlock);
-				//var selfLambda = Expression.Lambda(selfBlock);
-				//var self = Expression.Invoke(selfLambda);
-				var ps1 = new ParameterExpression[d.Parameters.Count];
-				for (int i = 0; i < ps1.Length; i++)
-				{
-					ps1[i] = Expression.Parameter(d.Parameters[i].Type);
-				}
-				var selfBlock = Expression.Block(new[] { delegateDefine.Variable }, 
-					assignDefine, 
-					Expression.Invoke(delegateDefine.Variable, ps1));
-				var newD = Expression.Lambda(delegateDefine.Variable.Type, selfBlock, ps1);
-				d = newD;
-			}
-#if NET45
-			// NET45框架下，如果Lambda有闭包参数直接Invoke会报错：System.Security.VerificationException:操作可能会破坏运行时稳定性
-			// 需要Expression.Quote来包装
-			Expression quoteExpr;
-			ParameterExpression[] ps;
-			if (d == null)
-			{
-				quoteExpr = null;
-				ps = null;
-			}
-			else
-			{
-				quoteExpr = Expression.Quote(d);
-				ps = new ParameterExpression[d.Parameters.Count];
-				for (int i = 0; i < ps.Length; i++)
-				{
-					ps[i] = Expression.Parameter(d.Parameters[i].Type);
-				}
-			}
-			var dExpr = tempBuildContext.DelegateType == null ?
-				Expression.Lambda(quoteExpr == null ? (Expression)Expression.Empty() : Expression.Invoke(quoteExpr, ps), ps) :
-				Expression.Lambda(tempBuildContext.DelegateType, Expression.Invoke(quoteExpr, ps), ps);
-#else
-			var dExpr = d;
-#endif
+			var lambda = tempBuildContext.Build(scriptContext, options, body);
+			var tmpVar = delegateDefine?.Variable ?? Expression.Variable(lambda.Type);
+			var assign = Expression.Assign(tmpVar, lambda);
+			int hashCode = tmpVar.GetHashCode();
+			string tmpVarName = hashCode > 0 ? $"<>$tmpVar_{hashCode}" : $"<>$tmpVar__{-hashCode}";
+			buildContext.Variables[tmpVarName] = tmpVar;
+			buildContext.LocalVariables.Add(tmpVarName);
+			buildContext.PrevExpressions.Add(assign);
+			//if (delegateDefine?.Variable != null)
+			//{
+				//var assignDefine = Expression.Assign(delegateDefine.Variable, lambda);
+				//var ps1 = new ParameterExpression[lambda.Parameters.Count];
+				//for (int i = 0; i < ps1.Length; i++)
+				//{
+				//	ps1[i] = Expression.Parameter(lambda.Parameters[i].Type);
+				//}
+				//var selfBlock = Expression.Block(new[] { delegateDefine.Variable }, 
+				//	assignDefine, 
+				//	Expression.Invoke(delegateDefine.Variable, ps1));
+				//var newD = Expression.Lambda(delegateDefine.Variable.Type, selfBlock, ps1);
+				//lambda = newD;
+			//}
+//#if NET45
+//			// NET45框架下，如果Lambda有闭包参数直接Invoke会报错：System.Security.VerificationException:操作可能会破坏运行时稳定性
+//			// 需要Expression.Quote来包装
+//			Expression quoteExpr;
+//			ParameterExpression[] ps;
+//			if (lambda == null)
+//			{
+//				quoteExpr = null;
+//				ps = null;
+//			}
+//			else
+//			{
+//				quoteExpr = Expression.Quote(lambda);
+//				ps = new ParameterExpression[lambda.Parameters.Count];
+//				for (int i = 0; i < ps.Length; i++)
+//				{
+//					ps[i] = Expression.Parameter(lambda.Parameters[i].Type);
+//				}
+//			}
+//			var dExpr = tempBuildContext.DelegateType == null ?
+//				Expression.Lambda(quoteExpr == null ? (Expression)Expression.Empty() : Expression.Invoke(quoteExpr, ps), ps) :
+//				Expression.Lambda(tempBuildContext.DelegateType, Expression.Invoke(quoteExpr, ps), ps);
+//#else
+//			var dExpr = lambda;
+//#endif
 			if (!IsNiming(this.Name))
 			{
-				buildContext.AddTempFunc(this.Name, d);
+				buildContext.AddTempFunc(this.Name, tmpVar);
 				// 将方法添加到上下文
 				if (buildContext.RewriteLocalVariables && (options?.RewriteFunctions ?? true) && !(options?.Standalone ?? false))
 				{
@@ -212,11 +215,11 @@ namespace AScript.Nodes
 						buildContext.GetScriptContextParameter(),
 						ExpressionUtils.Method_ScriptContext_AddTempFunc,
 						Expression.Constant(this.Name),
-						dExpr);
-					return Expression.Block(addTempFuncExpression, dExpr);
+						tmpVar);
+					return Expression.Block(addTempFuncExpression, tmpVar);
 				}
 			}
-			return dExpr;
+			return tmpVar;
 
 			//return Expression.Constant(d);
 			//var lambda = tempBuildContext.Build(scriptContext, body);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace AScript.Operators
 {
@@ -20,7 +21,8 @@ namespace AScript.Operators
 				var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 				if (!ExpressionUtils.ConvertMaxType(ref left, ref right))
 				{
-					e.Result = Expression.Dynamic(ExpressionUtils.Binder_Add, typeof(object), left, right);
+					//e.Result = Expression.Dynamic(ExpressionUtils.Binder_Add, typeof(object), left, right);
+					e.Result = Expression.Call(ScriptUtils.Method_ScriptUtils_Add, Expression.Convert(left, typeof(object)), Expression.Convert(right, typeof(object)));
 				}
 				else if (left.Type == typeof(string) && right.Type == typeof(string))
 				{

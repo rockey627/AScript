@@ -149,7 +149,7 @@ namespace AScript
 		/// 编译的临时函数
 		/// </summary>
 		//public Dictionary<string, List<Delegate>> TempFunctions { get; set; }
-		public Dictionary<string, List<LambdaExpression>> TempFunctions { get; set; }
+		public Dictionary<string, List<Expression>> TempFunctions { get; set; }
 		/// <summary>
 		/// 是否回写本地变量
 		/// </summary>
@@ -337,17 +337,17 @@ namespace AScript
 		//	list.Add(d);
 		//}
 
-		public void AddTempFunc(string name, LambdaExpression d)
+		public void AddTempFunc(string name, Expression d)
 		{
-			List<LambdaExpression> list;
+			List<Expression> list;
 			if (this.TempFunctions == null)
 			{
-				this.TempFunctions = new Dictionary<string, List<LambdaExpression>>();
-				this.TempFunctions[name] = list = new List<LambdaExpression>();
+				this.TempFunctions = new Dictionary<string, List<Expression>>();
+				this.TempFunctions[name] = list = new List<Expression>();
 			}
 			else if (!this.TempFunctions.TryGetValue(name, out list))
 			{
-				this.TempFunctions[name] = list = new List<LambdaExpression>();
+				this.TempFunctions[name] = list = new List<Expression>();
 			}
 			list.Add(d);
 		}
@@ -445,26 +445,43 @@ namespace AScript
 				var tempFunctions = context.TempFunctions;
 				if (tempFunctions != null && tempFunctions.TryGetValue(name, out var list3))
 				{
-					var lambda = ScriptContext.GetFunc(list3, argTypes, out _, out _);
-					if (lambda != null)
+					var func = ScriptContext.GetFunc(list3, argTypes, out _, out _);
+					if (func != null)
 					{
 						if (context._Events == null)
 						{
 							context._Events = new Dictionary<string, Expression>();
 						}
-						Delegate d;
-						if (lambda.Type == delegateType)
+						var expr = ScriptUtils.ConvertDelegate(func, delegateType);
+						if (expr != func)
 						{
-							d = lambda.Compile();
+							var tmpVar = Expression.Variable(expr.Type);
+							context.PrevExpressions.Add(Expression.Assign(tmpVar, expr));
+							int hashCode = tmpVar.GetHashCode();
+							string tmpVarName = hashCode > 0 ? $"<>$tmpVar_{hashCode}" : $"<>$tmpVar__{-hashCode}";
+							context.Variables[tmpVarName] = tmpVar;
+							context.LocalVariables.Add(tmpVarName);
+							expr = tmpVar;
 						}
-						else
-						{
-							d = Expression.Lambda(delegateType, lambda.Body, lambda.Parameters).Compile();
-						}
-						var expr = Expression.Constant(d);
 						context._Events[eventKey] = expr;
 						isLocal = true;
 						return expr;
+						//if (func is LambdaExpression lambda)
+						//{
+						//	Delegate d;
+						//	if (lambda.Type == delegateType)
+						//	{
+						//		d = lambda.Compile();
+						//	}
+						//	else
+						//	{
+						//		d = Expression.Lambda(delegateType, lambda.Body, lambda.Parameters).Compile();
+						//	}
+						//	var expr = Expression.Constant(d);
+						//	context._Events[eventKey] = expr;
+						//	isLocal = true;
+						//	return expr;
+						//}
 					}
 				}
 				context = context.Parent;
@@ -800,7 +817,7 @@ namespace AScript
 			var block = BuildBlock(scriptContext, options, body);
 			if (block == null)
 			{
-				if (parameters.Length == 0) return null;
+				//if (parameters.Length == 0) return null;
 				block = Expression.Empty();
 			}
 			return this.DelegateType == null ? Expression.Lambda(block, parameters) : Expression.Lambda(this.DelegateType, block, parameters);
