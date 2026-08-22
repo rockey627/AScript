@@ -432,12 +432,16 @@ var fs = require('fs');
 var result = '';
 var reader = fs.createReadStream(testFile);
 reader.on('data', function(chunk) {
+	console.log(1,new Date().toString('ss.fff'));
     result = result + chunk;
+    //result += chunk;
+	console.log(2,new Date().toString('ss.fff'));
 });
 reader.on('end', function() {
     // nothing
 });
 sleep(50);
+console.log(3,new Date().toString('ss.fff'));
 result
 ";
 			var script = CreateScriptCompileAll();

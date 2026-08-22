@@ -56,34 +56,8 @@ namespace AScript.Test.Consoles.Benchmarks.JavaScriptTest
 			if (result != r) throw new Exception("result error");
 		}
 
-		private static Script _Script3;
-
 		[Benchmark]
-		public void AScript3_Context()
-		{
-			if (_Script3 == null)
-			{
-				_Script3 = new Script();
-			}
-			var result = _Script3.Eval<int>(s, ECompileMode.All);
-			if (result != r) throw new Exception("result error");
-		}
-
-		private static Jurassic.ScriptEngine _JurassicEngine3;
-
-		[Benchmark]
-		public void Jurassic3()
-		{
-			if (_JurassicEngine3 == null)
-			{
-				_JurassicEngine3 = new Jurassic.ScriptEngine();
-			}
-			var result = _JurassicEngine3.Evaluate<int>(s);
-			if (result != r) throw new Exception("result error");
-		}
-
-		[Benchmark]
-		public void AScript4_Cache()
+		public void AScript3_Cache()
 		{
 			var script = new Script();
 			var result = script.Eval<int>(s, -1);
