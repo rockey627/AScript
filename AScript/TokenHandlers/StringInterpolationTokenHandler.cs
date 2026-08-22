@@ -92,12 +92,12 @@ namespace AScript.TokenHandlers
 							Expression vs;
 							if (v.Type.IsValueType)
 							{
-								vs = Expression.Call(v, ExpressionUtils.Method_Object_ToString);
+								vs = Expression.Call(v, ScriptUtils.Method_Object_ToString);
 							}
 							else
 							{
-								var testNull = Expression.ReferenceEqual(v, ExpressionUtils.Constant_null);
-								vs = Expression.Condition(testNull, ExpressionUtils.Constant_string_empty, Expression.Call(v, ExpressionUtils.Method_Object_ToString));
+								var testNull = Expression.ReferenceEqual(v, ScriptUtils.Constant_null);
+								vs = Expression.Condition(testNull, ScriptUtils.Constant_string_empty, Expression.Call(v, ScriptUtils.Method_Object_ToString));
 							}
 							if (exprs == null) exprs = new List<Expression>();
 							if (_buffer.Length > 0)
@@ -194,7 +194,7 @@ namespace AScript.TokenHandlers
 						exprs.Add(Expression.Constant(_buffer.ToString()));
 					}
 					var a = Expression.NewArrayInit(typeof(string), exprs);
-					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateExpressionNode(Expression.Call(null, ExpressionUtils.Method_String_Concat_list, a)));
+					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateExpressionNode(Expression.Call(null, ScriptUtils.Method_String_Concat_list, a)));
 				}
 			}
 		}

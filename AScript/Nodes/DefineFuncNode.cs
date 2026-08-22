@@ -213,7 +213,7 @@ namespace AScript.Nodes
 				{
 					var addTempFuncExpression = Expression.Call(
 						buildContext.GetScriptContextParameter(),
-						ExpressionUtils.Method_ScriptContext_AddTempFunc,
+						ScriptUtils.Method_ScriptContext_AddTempFunc,
 						Expression.Constant(this.Name),
 						tmpVar);
 					return Expression.Block(addTempFuncExpression, tmpVar);

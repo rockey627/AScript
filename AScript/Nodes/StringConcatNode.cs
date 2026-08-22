@@ -12,7 +12,7 @@ namespace AScript.Nodes
 		{
 			if (this.Args == null || this.Args.Count == 0)
 			{
-				return ExpressionUtils.Constant_null;
+				return ScriptUtils.Constant_null;
 			}
 			var arr = new Expression[this.Args.Count];
 			for (int i = 0; i < this.Args.Count; i++)
@@ -21,17 +21,17 @@ namespace AScript.Nodes
 				Expression vs;
 				if (v.Type.IsValueType)
 				{
-					vs = Expression.Call(v, ExpressionUtils.Method_Object_ToString);
+					vs = Expression.Call(v, ScriptUtils.Method_Object_ToString);
 				}
 				else
 				{
-					var testNull = Expression.ReferenceEqual(v, ExpressionUtils.Constant_null);
-					vs = Expression.Condition(testNull, ExpressionUtils.Constant_string_empty, Expression.Call(v, ExpressionUtils.Method_Object_ToString));
+					var testNull = Expression.ReferenceEqual(v, ScriptUtils.Constant_null);
+					vs = Expression.Condition(testNull, ScriptUtils.Constant_string_empty, Expression.Call(v, ScriptUtils.Method_Object_ToString));
 				}
 				arr[i] = vs;
 			}
 			var arrExpr = Expression.NewArrayInit(typeof(string), arr);
-			return Expression.Call(null, ExpressionUtils.Method_String_Concat_list, arrExpr);
+			return Expression.Call(null, ScriptUtils.Method_String_Concat_list, arrExpr);
 		}
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)

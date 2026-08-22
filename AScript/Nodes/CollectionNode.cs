@@ -155,7 +155,7 @@ namespace AScript.Nodes
 				var lambda = Expression.Lambda(bodyExpr, (ParameterExpression)itemVar);
 
 				// 获取 Enumerable.Select 泛型方法
-				var selectMethod = ExpressionUtils.Method_Enumerable_Select1;
+				var selectMethod = ScriptUtils.Method_Enumerable_Select1;
 				selectMethod = selectMethod.MakeGenericMethod(elementType2, bodyExpr.Type);
 
 				// 生成表达式: Enumerable.Select(collection, lambda)
@@ -164,14 +164,14 @@ namespace AScript.Nodes
 				// 根据 CollectionType 决定是 ToArray 还是 ToList 并直接返回
 				if (CollectionType == typeof(Array))
 				{
-					var toArrayMethod = ExpressionUtils.Method_Enumerable_ToArray;
+					var toArrayMethod = ScriptUtils.Method_Enumerable_ToArray;
 					toArrayMethod = toArrayMethod.MakeGenericMethod(bodyExpr.Type);
 					return Expression.Call(null, toArrayMethod, selectExpr);
 				}
 				else
 				{
 					// List<T>
-					var toListMethod = ExpressionUtils.Method_Enumerable_ToList;
+					var toListMethod = ScriptUtils.Method_Enumerable_ToList;
 					toListMethod = toListMethod.MakeGenericMethod(bodyExpr.Type);
 					return Expression.Call(null, toListMethod, selectExpr);
 				}

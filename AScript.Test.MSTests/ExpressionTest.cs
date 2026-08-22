@@ -32,9 +32,9 @@ namespace AScript.Test.MSTests
 			var assignExpr = Expression.Assign(v, Expression.Constant(1, typeof(object)));
 			// dynamic方式使用+=无效
 			//var addAssignExpr = Expression.Dynamic(ExpressionUtils.Binder_AddAssign, typeof(object), v, Expression.Constant(2));
-			var addExpr1 = Expression.Dynamic(ExpressionUtils.Binder_Add, typeof(object), v, Expression.Constant(2));
+			var addExpr1 = ExpressionUtils.Add(v, Expression.Constant(2));
 			var assignExpr2 = Expression.Assign(v, addExpr1);
-			var addExpr = Expression.Dynamic(ExpressionUtils.Binder_Add, typeof(object), v, Expression.Constant(3));
+			var addExpr = ExpressionUtils.Add(v, Expression.Constant(3));
 			var block = Expression.Block(new[] { v }, assignExpr, assignExpr2, addExpr);
 			var lambda = Expression.Lambda(block);
 			var f = lambda.Compile();

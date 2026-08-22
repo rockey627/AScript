@@ -45,11 +45,15 @@ namespace AScript.Operators
 				if (right.Type != typeof(double)) right = Expression.Convert(right, typeof(double));
 			}
 			if (left2.Type == typeof(object) || right.Type == typeof(object)
-				|| !ExpressionUtils.ConvertMaxType(ref left2, ref right))
+				|| !ScriptUtils.ConvertMaxType(ref left2, ref right))
 			{
 				// dynamic方式作用/=无效
 				//e.Result = Expression.Dynamic(ExpressionUtils.Binder_AddAssign, typeof(object), left, right);
-				var expr = Expression.Dynamic(ExpressionUtils.Binder_Divide, typeof(object), left2, right);
+				//var expr = Expression.Dynamic(ExpressionUtils.Binder_Divide, typeof(object), left2, right);
+				//var expr = ExpressionUtils.Divide(left2, right, _Double);
+				if (left2.Type.IsValueType) left2 = Expression.Convert(left2, typeof(object));
+				if (right.Type.IsValueType) right = Expression.Convert(right, typeof(object));
+				var expr = Expression.Call(ExpressionUtils.Method_Divide, left2, right, Expression.Constant(_Double));
 				//e.Result = Expression.Assign(left, expr);
 				if (expr.Type != left.Type)
 				{

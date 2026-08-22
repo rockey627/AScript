@@ -111,7 +111,7 @@ namespace AScript.Nodes
 			if (conditionExpression.Type != typeof(bool))
 			{
 				if (conditionExpression.Type.IsValueType) conditionExpression = Expression.Convert(conditionExpression, typeof(object));
-				conditionExpression = Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_IsTrue, conditionExpression);
+				conditionExpression = Expression.Call(buildContext.GetScriptContextParameter(), ScriptUtils.Method_ScriptContext_IsTrue, conditionExpression);
 			}
 			// 循环体
 			var breakLabel = Expression.Label();

@@ -149,7 +149,7 @@ namespace AScript.Nodes
 								// 使用 IDictionary interface 添加属性
 								statements.Add(Expression.Call(
 									Expression.Convert(instanceVar, typeof(IDictionary<string, object>)),
-									ExpressionUtils.Method_IDictionary_string_object_Add,
+									ScriptUtils.Method_IDictionary_string_object_Add,
 									Expression.Constant(propNameNode.Name),
 									propValue.Type == typeof(object) ? propValue : Expression.Convert(propValue, typeof(object))
 								));
@@ -303,7 +303,7 @@ namespace AScript.Nodes
 								var property = type.GetProperty(propNameNode.Name, flags);
 								if (propValue.Type != property.PropertyType)
 								{
-									propValue = ExpressionUtils.Convert(propValue, property.PropertyType);
+									propValue = ScriptUtils.Convert(propValue, property.PropertyType);
 								}
 								initBindings.Add(Expression.Bind(property, propValue));
 							}

@@ -18,7 +18,7 @@ namespace AScript.Operators
 				var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 				var v1 = Expression.Convert(left, typeof(double));
 				var v2 = Expression.Convert(right, typeof(double));
-				var v = Expression.Call(ExpressionUtils.Method_Math_Power, v1, v2);
+				var v = Expression.Call(ScriptUtils.Method_Math_Power, v1, v2);
 				var maxType = ScriptUtils.GetMaxType(left.Type, right.Type);
 				e.Result = Expression.Convert(v, maxType);
 			}

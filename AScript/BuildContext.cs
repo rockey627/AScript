@@ -505,7 +505,7 @@ namespace AScript
 				}
 				context = context.Parent;
 			} while (context != null);
-			return ExpressionUtils.Parameter_ScriptContext;
+			return ScriptUtils.Parameter_ScriptContext;
 		}
 
 		///// <summary>
@@ -598,7 +598,7 @@ namespace AScript
 			int _VariablesCount = _Variables == null ? 0 : _Variables.Count;
 			int _PrevExpressionsCount = _PrevExpressions == null ? 0 : _PrevExpressions.Count;
 			List<Expression> expandBodies;
-			if (_PrevExpressionsCount == 0 && (!_UsedScriptContext || scriptContextParameter == ExpressionUtils.Parameter_ScriptContext) && this.ReturnVariableExpression == null)
+			if (_PrevExpressionsCount == 0 && (!_UsedScriptContext || scriptContextParameter == ScriptUtils.Parameter_ScriptContext) && this.ReturnVariableExpression == null)
 			{
 				if (_VariablesCount == 0)
 				{
@@ -630,7 +630,7 @@ namespace AScript
 			List<ParameterExpression> variables;
 			Expression variableAssignExpression;
 			bool standalone = options.Standalone ?? false;
-			if (_UsedScriptContext && !standalone && scriptContextParameter != ExpressionUtils.Parameter_ScriptContext && this.ScriptContextParameter != null)
+			if (_UsedScriptContext && !standalone && scriptContextParameter != ScriptUtils.Parameter_ScriptContext && this.ScriptContextParameter != null)
 			{
 				variables = new List<ParameterExpression>(_VariablesCount + (_VariablesCount == 0 ? 1 : 2));
 				variables.Add(scriptContextParameter);
@@ -644,7 +644,7 @@ namespace AScript
 				}
 				else
 				{
-					variableAssignExpression = Expression.Assign(scriptContextParameter, Expression.Call(ExpressionUtils.Method_ScriptContext_Create2, this.Parent.GetScriptContextParameter(), ExpressionUtils.Constant_false));
+					variableAssignExpression = Expression.Assign(scriptContextParameter, Expression.Call(ScriptUtils.Method_ScriptContext_Create2, this.Parent.GetScriptContextParameter(), ScriptUtils.Constant_false));
 				}
 			}
 			else
@@ -684,7 +684,7 @@ namespace AScript
 				{
 					if (this.ReturnType != null && this.ReturnType != typeof(void) && this.ReturnType != lastExpression.Type)
 					{
-						lastExpression = ExpressionUtils.Convert(lastExpression, this.ReturnType);
+						lastExpression = ScriptUtils.Convert(lastExpression, this.ReturnType);
 						list[lastExpressionIndex] = lastExpression;
 					}
 					// 无论是否有本地变量，都需要将最后一个表达式的值作为返回值
@@ -724,7 +724,7 @@ namespace AScript
 					{
 						list.Add(Expression.Call(
 							scriptContextParameter,
-							ExpressionUtils.Method_ScriptContext_SetTempConst,
+							ScriptUtils.Method_ScriptContext_SetTempConst,
 							Expression.Constant(v.Name),
 							Expression.Convert(v, typeof(object)),
 							Expression.Constant(v.Type),
@@ -734,7 +734,7 @@ namespace AScript
 					{
 						list.Add(Expression.Call(
 							scriptContextParameter,
-							ExpressionUtils.Method_ScriptContext_SetTempVar,
+							ScriptUtils.Method_ScriptContext_SetTempVar,
 							Expression.Constant(v.Name),
 							Expression.Convert(v, typeof(object)),
 							Expression.Constant(v.Type),
@@ -758,7 +758,7 @@ namespace AScript
 			{
 				if (this.ReturnType != null && this.ReturnType != typeof(void) && this.ReturnType != this.ReturnVariableExpression.Type)
 				{
-					list.Add(ExpressionUtils.Convert(this.ReturnVariableExpression, this.ReturnType));
+					list.Add(ScriptUtils.Convert(this.ReturnVariableExpression, this.ReturnType));
 				}
 				else
 				{
@@ -795,7 +795,7 @@ namespace AScript
 			int parameterIndex;
 			int _ParameterCount = _Parameters == null ? 0 : _Parameters.Count;
 			var scriptContextParameter = GetScriptContextParameter(false);
-			if (!this.IsMain && !(options.Standalone ?? false) && scriptContextParameter == ExpressionUtils.Parameter_ScriptContext)
+			if (!this.IsMain && !(options.Standalone ?? false) && scriptContextParameter == ScriptUtils.Parameter_ScriptContext)
 			{
 				parameterIndex = 1;
 				parameters = new ParameterExpression[_ParameterCount + 1];

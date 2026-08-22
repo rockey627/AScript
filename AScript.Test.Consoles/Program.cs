@@ -497,7 +497,7 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 			var v = Expression.Variable(typeof(object));
 			var block = Expression.Block(new[] { v },
 				Expression.Assign(v, Expression.Convert(p, typeof(object))),
-				Expression.Call(ExpressionUtils.Method_ScriptUtils_Convert, v, ExpressionUtils.Constant_typeof_double));
+				Expression.Call(ScriptUtils.Method_ScriptUtils_Convert, v, ScriptUtils.Constant_typeof_double));
 			var expr = Expression.Lambda<Func<object, object>>(block, new ParameterExpression[] { p });
 			var func = expr.Compile();
 			Console.WriteLine(func(5L).GetType());
@@ -541,8 +541,8 @@ exec2(26)
 				.FirstOrDefault(a => a.Name == "ToInt32");
 			//var d = methodInfo.CreateDelegate()
 
-			var s1 = ExpressionUtils.Method_Enumerable_Select1;
-			var s2 = ExpressionUtils.Method_Enumerable_Select2;
+			var s1 = ScriptUtils.Method_Enumerable_Select1;
+			var s2 = ScriptUtils.Method_Enumerable_Select2;
 		}
 
 		static void Test10_Lambda()
@@ -673,7 +673,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest03_Func>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest04_Var>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest05_Var>(config);
-			//BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func>(config);
+			BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func2>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest07_Type>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest08_For>(config);
@@ -715,7 +715,7 @@ exec2(26)
 			//new Benchmarks.FleeTest01_const().AScript3_UseCache();
 			//new Benchmarks.FleeTest05_multi().AScript2_Compile2();
 			//new Benchmarks.FleeTest05_multi().AScript2_Compile2();
-			new Benchmarks.JavaScriptTest.JavaScriptTest02_local().AScript2_Compile2();
+			//new Benchmarks.JavaScriptTest.JavaScriptTest02_local().AScript2_Compile2();
 			//new Benchmarks.JavaScriptTest.JavaScriptTest04_file().Jurassic2();
 			//new Benchmarks.JavaScriptTest.JavaScriptTest04_file().AScript1();
 			//new Benchmarks.JavaScriptTest.JavaScriptTest04_file().AScript2_Compile();

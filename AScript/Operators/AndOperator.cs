@@ -12,15 +12,16 @@ namespace AScript.Operators
 			if (e.Args.Count != 2) return;
 			var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-			if (left.Type == typeof(object) || right.Type == typeof(object)
-					|| !ExpressionUtils.ConvertMaxType(ref left, ref right))
-			{
-				e.Result = Expression.Dynamic(ExpressionUtils.Binder_And, typeof(object), left, right);
-			}
-			else
-			{
-				e.Result = Expression.And(left, right);
-			}
+			e.Result = ExpressionUtils.And(left, right);
+			//if (left.Type == typeof(object) || right.Type == typeof(object)
+			//		|| !ScriptUtils.ConvertMaxType(ref left, ref right))
+			//{
+			//	e.Result = Expression.Dynamic(ExpressionUtils.Binder_And, typeof(object), left, right);
+			//}
+			//else
+			//{
+			//	e.Result = Expression.And(left, right);
+			//}
 		}
 
 		public void Eval(FunctionEvalArgs e)

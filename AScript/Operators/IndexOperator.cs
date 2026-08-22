@@ -154,7 +154,7 @@ namespace AScript.Operators
 					Expression result = Expression.Call(target, getChars, adjustedIndex);
 					if (_Char2String)
 					{
-						result = Expression.Call(result, ExpressionUtils.Method_Object_ToString);
+						result = Expression.Call(result, ScriptUtils.Method_Object_ToString);
 					}
 					e.Result = result;
 				}

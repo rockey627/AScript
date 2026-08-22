@@ -7,7 +7,6 @@ namespace AScript.Operators
 	public class SubtractOperator : IFunctionEvaluator, IFunctionBuilder
 	{
 		private static readonly MethodInfo Method_Negate = typeof(SubtractOperator).GetMethod("Negate", BindingFlags.Static | BindingFlags.NonPublic);
-		private static readonly MethodInfo Method_Subtract = typeof(SubtractOperator).GetMethod("Subtract", BindingFlags.Static | BindingFlags.NonPublic);
 
 		public static readonly SubtractOperator Instance = new SubtractOperator();
 
@@ -29,16 +28,17 @@ namespace AScript.Operators
 			{
 				var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
 				var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-				if (left.Type == typeof(object) || right.Type == typeof(object)
-					|| !ExpressionUtils.ConvertMaxType(ref left, ref right))
-				{
-					//e.Result = Expression.Dynamic(ExpressionUtils.Binder_Subtract, typeof(object), left, right);
-					e.Result = Expression.Call(Method_Subtract, Expression.Convert(left, typeof(object)), Expression.Convert(right, typeof(object)));
-				}
-				else
-				{
-					e.Result = Expression.Subtract(left, right);
-				}
+				e.Result = ExpressionUtils.Subtract(left, right);
+				//if (left.Type == typeof(object) || right.Type == typeof(object)
+				//	|| !ExpressionUtils.ConvertMaxType(ref left, ref right))
+				//{
+				//	//e.Result = Expression.Dynamic(ExpressionUtils.Binder_Subtract, typeof(object), left, right);
+				//	e.Result = Expression.Call(Method_Subtract, Expression.Convert(left, typeof(object)), Expression.Convert(right, typeof(object)));
+				//}
+				//else
+				//{
+				//	e.Result = Expression.Subtract(left, right);
+				//}
 			}
 		}
 
@@ -48,18 +48,14 @@ namespace AScript.Operators
 			return -d;
 		}
 
-		private static object Subtract(object v1, object v2)
-		{
-			return ((dynamic)v1) - ((dynamic)v2);
-		}
-
 		public void Eval(FunctionEvalArgs e)
 		{
 			if (e.Args.Count == 2)
 			{
-				dynamic arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
-				dynamic arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
-				e.SetResult(arg0 - arg1);
+				var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
+				var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
+				e.SetResult(ExpressionUtils.Subtract(arg0, arg1));
+				//e.SetResult(arg0 - arg1);
 			}
 			else if (e.Args.Count == 1)
 			{

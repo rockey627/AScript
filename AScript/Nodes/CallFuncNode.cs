@@ -354,7 +354,7 @@ namespace AScript.Nodes
 							var arg = this.Args[i];
 							if (arg == null)
 							{
-								argExprs[i] = ExpressionUtils.Constant_null;
+								argExprs[i] = ScriptUtils.Constant_null;
 							}
 							else if (arg is ExpressionNode exprNode)
 							{

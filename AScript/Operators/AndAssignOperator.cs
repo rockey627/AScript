@@ -32,7 +32,12 @@ namespace AScript.Operators
 			{
 				// dynamic方式作用+=无效
 				//e.Result = Expression.Dynamic(ExpressionUtils.Binder_AndAssign, typeof(object), left, right);
-				var expr = Expression.Dynamic(ExpressionUtils.Binder_And, typeof(object), left, right);
+				//var expr = Expression.Dynamic(ExpressionUtils.Binder_And, typeof(object), left, right);
+				//var expr = ExpressionUtils.And(left, right);
+				var leftExpr = left;
+				if (leftExpr.Type.IsValueType) leftExpr = Expression.Convert(leftExpr, typeof(object));
+				if (right.Type.IsValueType) right = Expression.Convert(right, typeof(object));
+				var expr = Expression.Call(ExpressionUtils.Method_And, leftExpr, right);
 				if (expr.Type != left.Type)
 				{
 					e.Result = Expression.Assign(left, Expression.Convert(expr, left.Type));

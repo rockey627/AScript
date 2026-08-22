@@ -20,13 +20,13 @@ namespace AScript.Functions
 			expressionExpr = e.BuildArgs(0);
 			// 
 			if (argsCount >= 2) cacheTimeExpr = e.BuildArgs(1);
-			else cacheTimeExpr = ExpressionUtils.Constant_zero;
+			else cacheTimeExpr = ScriptUtils.Constant_zero;
 			// 
 			if (argsCount >= 3) cacheKeyExpr = e.BuildArgs(2);
-			else cacheKeyExpr = ExpressionUtils.Constant_string_empty;
+			else cacheKeyExpr = ScriptUtils.Constant_string_empty;
 			// 
 			if (argsCount >= 4) cacheVersionExpr = e.BuildArgs(3);
-			else cacheVersionExpr = ExpressionUtils.Constant_string_empty;
+			else cacheVersionExpr = ScriptUtils.Constant_string_empty;
 			// 
 			if (expressionExpr is ConstantExpression expressionConstantExpression
 				&& cacheTimeExpr is ConstantExpression cacheTimeConstantExpression

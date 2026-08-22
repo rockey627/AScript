@@ -27,9 +27,14 @@ namespace AScript.Operators
 			}
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 			if (left.Type == typeof(object) || right.Type == typeof(object)
-					|| !ExpressionUtils.ConvertMaxType(ref left, ref right))
+					|| !ScriptUtils.ConvertMaxType(ref left, ref right))
 			{
-				var expr = Expression.Dynamic(ExpressionUtils.Binder_LeftShift, typeof(object), left, right);
+				//var expr = Expression.Dynamic(ExpressionUtils.Binder_LeftShift, typeof(object), left, right);
+				//var expr = ExpressionUtils.LeftShift(left, right);
+				var leftExpr = left;
+				if (leftExpr.Type.IsValueType) leftExpr = Expression.Convert(leftExpr, typeof(object));
+				if (right.Type.IsValueType) right = Expression.Convert(right, typeof(object));
+				var expr = Expression.Call(ExpressionUtils.Method_LeftShift, leftExpr, right);
 				//e.Result = Expression.Assign(left, expr);
 				if (expr.Type != left.Type)
 				{

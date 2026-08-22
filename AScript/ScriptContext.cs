@@ -1631,7 +1631,7 @@ namespace AScript
 
 			//throw new Exceptions.ScriptRuntimeException("unkown function for build:" + name);
 			// 构建context.EvalFunc方法调用
-			return ExpressionUtils.BuildEval(buildContext, this, options, name, args);
+			return ScriptUtils.BuildEval(buildContext, this, options, name, args);
 			//string funcName = argTypes == null || argTypes.Length == 0 ? 
 			//	$"{name}()" : 
 			//	$"{name}({string.Join(",", argTypes.Select(a => (a ?? typeof(object)).FullName))})";
@@ -1755,7 +1755,7 @@ namespace AScript
 
 			//throw new Exceptions.ScriptRuntimeException("unkown function for build:" + name);
 			// 构建context.EvalFunc方法调用
-			return ExpressionUtils.BuildEval(buildContext, this, options, name, argExprs);
+			return ScriptUtils.BuildEval(buildContext, this, options, name, argExprs);
 		}
 
 		internal Expression BuildFunc(BuildContext buildContext, BuildOptions options, IDictionary<string, List<Delegate>> functions, string name, IList<ITreeNode> args, ref Expression[] argExprs, ref Type[] argTypes)

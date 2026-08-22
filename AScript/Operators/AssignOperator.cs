@@ -120,7 +120,7 @@ namespace AScript.Operators
 				var startExpr = Expression.Convert(start, typeof(int));
 				var endExpr = Expression.Convert(end, typeof(int));
 				var valuesExpr = Expression.Convert(values, typeof(IList));
-				e.Result = Expression.Call(ExpressionUtils.Method_ScriptUtils_SliceAssign, listExpr, startExpr, endExpr, valuesExpr);
+				e.Result = Expression.Call(ScriptUtils.Method_ScriptUtils_SliceAssign, listExpr, startExpr, endExpr, valuesExpr);
 			}
 			else if (arg0 is TupleNode tupleNode)
 			{
@@ -868,7 +868,7 @@ namespace AScript.Operators
 						{
 							defaultValue = Expression.Convert(defaultValue, right.Type);
 						}
-						var right2 = Expression.Condition(Expression.Equal(tmpVar, ExpressionUtils.Constant_null), defaultValue, tmpVar);
+						var right2 = Expression.Condition(Expression.Equal(tmpVar, ScriptUtils.Constant_null), defaultValue, tmpVar);
 						right = Expression.Block(new[] { tmpVar }, tmpAssign, right2);
 					}
 					return BuildDeconstruct(e, leftVar, right);
@@ -895,19 +895,19 @@ namespace AScript.Operators
 				if (item is VariableNode varNode)
 				{
 					if (varNode.Name == "_") continue;
-					var value0 = ExpressionUtils.GetValue(value, varNode.Name);
+					var value0 = ScriptUtils.GetValue(value, varNode.Name);
 					expressions.Add(BuildDeconstruct(e, item, value0));
 				}
 				else if (item is OperatorNode opNode && opNode.Name == "=" && opNode.Left is VariableNode leftVar)
 				{
 					if (leftVar.Name == "_") continue;
 					var defaultValue = opNode.Right.Build(e.BuildContext, e.ScriptContext, e.Options);
-					var value0 = ExpressionUtils.GetValue(value, leftVar.Name, defaultValue: defaultValue);
+					var value0 = ScriptUtils.GetValue(value, leftVar.Name, defaultValue: defaultValue);
 					expressions.Add(BuildDeconstruct(e, leftVar, value0));
 				}
 				else if (item is PropertyMapNode propertyMapNode)
 				{
-					var value0 = ExpressionUtils.GetValue(value, propertyMapNode.PropertyName);
+					var value0 = ScriptUtils.GetValue(value, propertyMapNode.PropertyName);
 					expressions.Add(BuildDeconstruct(e, propertyMapNode.MapNode, value0));
 				}
 				else

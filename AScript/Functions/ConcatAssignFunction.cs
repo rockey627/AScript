@@ -33,7 +33,7 @@ namespace AScript.Functions
 			{
 				if (rightExpr.Type == typeof(string))
 				{
-					result = Expression.Call(ExpressionUtils.Method_String_Concat2, left, rightExpr);
+					result = Expression.Call(ScriptUtils.Method_String_Concat2, left, rightExpr);
 				}
 				else
 				{
@@ -41,7 +41,7 @@ namespace AScript.Functions
 					{
 						rightExpr = Expression.Convert(rightExpr, typeof(object));
 					}
-					result = Expression.Call(ExpressionUtils.Method_String_Concat2_object, left, rightExpr);
+					result = Expression.Call(ScriptUtils.Method_String_Concat2_object, left, rightExpr);
 				}
 			}
 			else
@@ -55,7 +55,7 @@ namespace AScript.Functions
 				{
 					rightExpr = Expression.Convert(rightExpr, typeof(object));
 				}
-				result = Expression.Call(ExpressionUtils.Method_String_Concat2_object, leftExpr, rightExpr);
+				result = Expression.Call(ScriptUtils.Method_String_Concat2_object, leftExpr, rightExpr);
 			}
 			e.Result = Expression.Assign(left, result);
 		}

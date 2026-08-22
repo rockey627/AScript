@@ -69,7 +69,7 @@ namespace AScript.Nodes
 			if (testExpr.Type != typeof(bool))
 			{
 				if (testExpr.Type.IsValueType) testExpr = Expression.Convert(testExpr, typeof(object));
-				var isTrue0 = Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_IsTrue, testExpr);
+				var isTrue0 = Expression.Call(buildContext.GetScriptContextParameter(), ScriptUtils.Method_ScriptContext_IsTrue, testExpr);
 				testExpr = isTrue0;
 			}
 			var ifTrueExpr = this.Body.Build(buildContext, scriptContext, options);

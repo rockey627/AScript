@@ -89,9 +89,9 @@ namespace AScript.Nodes
 		{
 			if (type == null || type == typeof(object))
 			{
-				return Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_EvalVar, Expression.Constant(name));
+				return Expression.Call(buildContext.GetScriptContextParameter(), ScriptUtils.Method_ScriptContext_EvalVar, Expression.Constant(name));
 			}
-			var method = ExpressionUtils.Make_ScriptContext_EvalVarT_Method(type);
+			var method = ScriptUtils.Make_ScriptContext_EvalVarT_Method(type);
 			return Expression.Call(buildContext.GetScriptContextParameter(), method, Expression.Constant(name));
 		}
 

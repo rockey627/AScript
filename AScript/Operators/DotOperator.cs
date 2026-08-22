@@ -52,13 +52,13 @@ namespace AScript.Operators
 
 			if (typeof(DataRow).IsAssignableFrom(instance.Type))
 			{
-				return Expression.Property(instance, ExpressionUtils.Property_DataRow_Item_String, Expression.Constant(propertyOrFieldName));
+				return Expression.Property(instance, ScriptUtils.Property_DataRow_Item_String, Expression.Constant(propertyOrFieldName));
 			}
 
 			if (typeof(ExpandoObject).IsAssignableFrom(instance.Type))
 			{
 				var d = Expression.Convert(instance, typeof(IDictionary<string, object>));
-				return Expression.Property(d, ExpressionUtils.Property_IDictionary_String_Object_Item, Expression.Constant(propertyOrFieldName));
+				return Expression.Property(d, ScriptUtils.Property_IDictionary_String_Object_Item, Expression.Constant(propertyOrFieldName));
 			}
 
 			if (instance.Type == typeof(object))
@@ -96,7 +96,7 @@ namespace AScript.Operators
 				//field = instance.Type.GetField(propertyOrFieldName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.IgnoreCase | BindingFlags.FlattenHierarchy);
 				//if (field != null) return Expression.Field(instance, field);
 
-				var memberExpr = ExpressionUtils.PropertyOrField(instance, propertyOrFieldName);
+				var memberExpr = ScriptUtils.PropertyOrField(instance, propertyOrFieldName);
 				if (memberExpr != null) return memberExpr;
 
 				var m = instance.Type.GetMethod("dynamic_get");

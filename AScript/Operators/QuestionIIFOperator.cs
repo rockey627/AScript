@@ -28,7 +28,7 @@ namespace AScript.Operators
 				if (b.Type != typeof(bool))
 				{
 					if (b.Type.IsValueType) b = Expression.Convert(b, typeof(object));
-					b = Expression.Call(e.BuildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_IsTrue, b);
+					b = Expression.Call(e.BuildContext.GetScriptContextParameter(), ScriptUtils.Method_ScriptContext_IsTrue, b);
 				}
 				var ifTrue = opNode.Left.Build(e.BuildContext, e.ScriptContext, e.Options);
 				var ifFalse = opNode.Right.Build(e.BuildContext, e.ScriptContext, e.Options);

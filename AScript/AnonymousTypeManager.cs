@@ -428,7 +428,7 @@ namespace AScript
 			var stringBuilderType = typeof(System.Text.StringBuilder);
 			var stringBuilderCtor = stringBuilderType.GetConstructor(Type.EmptyTypes);
 			var appendMethod = stringBuilderType.GetMethod("Append", new[] { typeof(string) });
-			var toStringMethod = ExpressionUtils.Method_Object_ToString;
+			var toStringMethod = ScriptUtils.Method_Object_ToString;
 
 			// 创建 StringBuilder 实例
 			il.Emit(OpCodes.Newobj, stringBuilderCtor);

@@ -11,14 +11,15 @@ namespace AScript.Operators
 		{
 			if (e.Args.Count != 1) return;
 			var arg = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
-			if (arg.Type == typeof(object))
-			{
-				e.Result = Expression.Dynamic(ExpressionUtils.Binder_Not, typeof(object), arg);
-			}
-			else
-			{
-				e.Result = Expression.Not(arg);
-			}
+			e.Result = ExpressionUtils.Not(arg);
+			//if (arg.Type == typeof(object))
+			//{
+			//	e.Result = Expression.Dynamic(ExpressionUtils.Binder_Not, typeof(object), arg);
+			//}
+			//else
+			//{
+			//	e.Result = Expression.Not(arg);
+			//}
 		}
 
 		public void Eval(FunctionEvalArgs e)

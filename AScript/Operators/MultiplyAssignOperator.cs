@@ -27,11 +27,15 @@ namespace AScript.Operators
 			}
 			var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
 			if (left.Type == typeof(object) || right.Type == typeof(object)
-				|| !ExpressionUtils.ConvertMaxType(ref left, ref right))
+				|| !ScriptUtils.ConvertMaxType(ref left, ref right))
 			{
 				// dynamic方式作用*=无效
 				//e.Result = Expression.Dynamic(ExpressionUtils.Binder_AddAssign, typeof(object), left, right);
-				var expr = Expression.Dynamic(ExpressionUtils.Binder_Multiply, typeof(object), left, right);
+				//var expr = Expression.Dynamic(ExpressionUtils.Binder_Multiply, typeof(object), left, right);
+				var leftExpr = left;
+				if (leftExpr.Type.IsValueType) leftExpr = Expression.Convert(leftExpr, typeof(object));
+				if (right.Type.IsValueType) right = Expression.Convert(right, typeof(object));
+				var expr = Expression.Call(ExpressionUtils.Method_Multiply, leftExpr, right);
 				//e.Result = Expression.Assign(left, expr);
 				if (expr.Type != left.Type)
 				{

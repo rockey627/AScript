@@ -45,7 +45,7 @@ namespace AScript.Functions
 				else
 				{
 					if (arg0.Type != typeof(object)) arg0 = Expression.Convert(arg0, typeof(object));
-					return Expression.Call(ExpressionUtils.Method_String_Concat_object, arg0);
+					return Expression.Call(ScriptUtils.Method_String_Concat_object, arg0);
 				}
 			}
 			else if (args.Count == 2)
@@ -54,13 +54,13 @@ namespace AScript.Functions
 				var arg1 = args[1];
 				if (arg0.Type == typeof(string) && arg1.Type == typeof(string))
 				{
-					return Expression.Call(ExpressionUtils.Method_String_Concat2, arg0, arg1);
+					return Expression.Call(ScriptUtils.Method_String_Concat2, arg0, arg1);
 				}
 				else
 				{
 					if (arg0.Type != typeof(object)) arg0 = Expression.Convert(arg0, typeof(object));
 					if (arg1.Type != typeof(object)) arg1 = Expression.Convert(arg1, typeof(object));
-					return Expression.Call(ExpressionUtils.Method_String_Concat2_object, arg0, arg1);
+					return Expression.Call(ScriptUtils.Method_String_Concat2_object, arg0, arg1);
 				}
 			}
 			else if (args.Count == 3)
@@ -70,14 +70,14 @@ namespace AScript.Functions
 				var arg2 = args[2];
 				if (arg0.Type == typeof(string) && arg1.Type == typeof(string) && arg2.Type == typeof(string))
 				{
-					return Expression.Call(ExpressionUtils.Method_String_Concat3, arg0, arg1, arg2);
+					return Expression.Call(ScriptUtils.Method_String_Concat3, arg0, arg1, arg2);
 				}
 				else
 				{
 					if (arg0.Type != typeof(object)) arg0 = Expression.Convert(arg0, typeof(object));
 					if (arg1.Type != typeof(object)) arg1 = Expression.Convert(arg1, typeof(object));
 					if (arg2.Type != typeof(object)) arg2 = Expression.Convert(arg2, typeof(object));
-					return Expression.Call(ExpressionUtils.Method_String_Concat3_object, arg0, arg1, arg2);
+					return Expression.Call(ScriptUtils.Method_String_Concat3_object, arg0, arg1, arg2);
 				}
 			}
 			else if (args.Count == 4)
@@ -88,7 +88,7 @@ namespace AScript.Functions
 				var arg3 = args[3];
 				if (arg0.Type == typeof(string) && arg1.Type == typeof(string) && arg2.Type == typeof(string) && arg3.Type == typeof(string))
 				{
-					return Expression.Call(ExpressionUtils.Method_String_Concat4, arg0, arg1, arg2, arg3);
+					return Expression.Call(ScriptUtils.Method_String_Concat4, arg0, arg1, arg2, arg3);
 				}
 				else
 				{
@@ -96,13 +96,13 @@ namespace AScript.Functions
 					if (arg1.Type != typeof(object)) arg1 = Expression.Convert(arg1, typeof(object));
 					if (arg2.Type != typeof(object)) arg2 = Expression.Convert(arg2, typeof(object));
 					if (arg3.Type != typeof(object)) arg3 = Expression.Convert(arg3, typeof(object));
-					return Expression.Call(ExpressionUtils.Method_String_Concat4_object, arg0, arg1, arg2, arg3);
+					return Expression.Call(ScriptUtils.Method_String_Concat4_object, arg0, arg1, arg2, arg3);
 				}
 			}
 			else if (args.All(a => a.Type == typeof(string)))
 			{
 				var arr = args is Expression[] argsArr ? Expression.NewArrayInit(typeof(string), argsArr) : Expression.NewArrayInit(typeof(string), args);
-				return Expression.Call(ExpressionUtils.Method_String_Concat_array, arr);
+				return Expression.Call(ScriptUtils.Method_String_Concat_array, arr);
 			}
 			else
 			{
@@ -114,7 +114,7 @@ namespace AScript.Functions
 					argsArr[i] = arg;
 				}
 				var arr = Expression.NewArrayInit(typeof(object), argsArr);
-				return Expression.Call(ExpressionUtils.Method_String_Concat_array_object, arr);
+				return Expression.Call(ScriptUtils.Method_String_Concat_array_object, arr);
 			}
 		}
 
