@@ -57,6 +57,9 @@ namespace AScript.Test.Consoles
 			//Test18_CSharpScript();
 			//Test18_Flee();
 			//Test18_DynamicExpresso();
+			//Test18_Jurassic();
+			//Test18_ClearScript();
+			//Test18_Jint();
 			//Test19();
 			//Test20();
 			//Test21_ExpandoObject();
@@ -364,6 +367,44 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 		//				Console.WriteLine(loadedDelegate(10));  // 输出 15
 		//			}
 		//		}
+
+		static void Test18_Jint()
+		{
+			var engine = new Jint.Engine();
+			engine.SetValue("c", 10);
+			var result = engine.Evaluate("var a=5; var b = 8; a+b+c");
+			Console.WriteLine(result);
+		}
+
+		static void Test18_ClearScript()
+		{
+			var engine = new Microsoft.ClearScript.Windows.JScriptEngine();
+			var result = engine.Evaluate("var a = 10; var b = 20; var c = a + b;");
+			Console.WriteLine(result); // 输出 30
+			
+		}
+
+		static void Test18_Jurassic()
+		{
+			{
+				var engine = new Jurassic.ScriptEngine();
+				var result = engine.Evaluate("var a = 15; var b = 6; var c=a+b; a='hello'; a+c");
+				Console.WriteLine(result);
+				Console.WriteLine(engine.GetGlobalValue("a"));
+			}
+			//// 不支持
+			//{
+			//	var engine = new Jurassic.ScriptEngine();
+			//	var result = engine.Evaluate("var [name, age] = ['Alice', 25]; name");
+			//	Console.WriteLine(result);
+			//}
+			//// 不支持
+			//{
+			//	var engine = new Jurassic.ScriptEngine();
+			//	var result = engine.Evaluate("var {name, age} = {name: 'Alice', age: 25}; name");
+			//	Console.WriteLine(result);
+			//}
+		}
 
 		static void Test18_DynamicExpresso()
 		{
@@ -673,7 +714,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest03_Func>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest04_Var>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest05_Var>(config);
-			BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func>(config);
+			//BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func2>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest07_Type>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest08_For>(config);
@@ -699,8 +740,11 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest05_lambda>(config);
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest01_const>(config);
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest02_local>(config);
-			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest03_call>(config);
-			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest04_file>(config);
+			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest03_var>(config);
+			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest04_call>(config);
+			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest05_file>(config);
+			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest06_object>(config);
+			BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest07_for>(config);
 			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();
 			//new Benchmarks.ExpressionTest06_Func().AScript1_3();
@@ -715,10 +759,16 @@ exec2(26)
 			//new Benchmarks.FleeTest01_const().AScript3_UseCache();
 			//new Benchmarks.FleeTest05_multi().AScript2_Compile2();
 			//new Benchmarks.FleeTest05_multi().AScript2_Compile2();
+			//new Benchmarks.JavaScriptTest.JavaScriptTest01_const().Jint1();
+			//new Benchmarks.JavaScriptTest.JavaScriptTest01_const().AScript2_Compile();
 			//new Benchmarks.JavaScriptTest.JavaScriptTest02_local().AScript2_Compile2();
-			//new Benchmarks.JavaScriptTest.JavaScriptTest04_file().Jurassic2();
-			//new Benchmarks.JavaScriptTest.JavaScriptTest04_file().AScript1();
-			//new Benchmarks.JavaScriptTest.JavaScriptTest04_file().AScript2_Compile();
+			//new Benchmarks.JavaScriptTest.JavaScriptTest05_file().AScript1();
+			//new Benchmarks.JavaScriptTest.JavaScriptTest05_file().Jint1();
+			//new Benchmarks.JavaScriptTest.JavaScriptTest05_file().Jurassic2();
+			//new Benchmarks.JavaScriptTest.JavaScriptTest05_file().AScript2_Compile();
+			//new Benchmarks.JavaScriptTest.JavaScriptTest06_object().Jint1();
+			//new Benchmarks.JavaScriptTest.JavaScriptTest07_for().Jint1();
+			//new Benchmarks.JavaScriptTest.JavaScriptTest07_for().AScript2_Compile();
 		}
 
 	}

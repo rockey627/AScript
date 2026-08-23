@@ -1,6 +1,4 @@
-﻿using AScript.Lang.JavaScript;
-using BenchmarkDotNet.Attributes;
-using Microsoft.CodeAnalysis.Scripting;
+﻿using BenchmarkDotNet.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,14 +10,20 @@ namespace AScript.Test.Consoles.Benchmarks.JavaScriptTest
 	[MaxColumn]
 	[MinColumn]
 	[MemoryDiagnoser]
-	public class JavaScriptTest01_const
+	public class JavaScriptTest07_for
 	{
-		private static readonly string s = "100 * (5 + 5) * (6-2)";
-		private static readonly int r = 100 * (5 + 5) * (6 - 2);
+		private static readonly string s = @"
+var n = 0;
+for (var i = 0; i < 10000; i++) {
+	n += i;
+}
+n
+";
+		private static readonly int r = 9999 * 5000;
 
-		static JavaScriptTest01_const()
+		static JavaScriptTest07_for()
 		{
-			Script.Langs.Set("js", JavaScriptLang.Instance, true);
+			Script.Langs.Set("js", AScript.Lang.JavaScript.JavaScriptLang.Instance, true);
 		}
 
 		[Benchmark]

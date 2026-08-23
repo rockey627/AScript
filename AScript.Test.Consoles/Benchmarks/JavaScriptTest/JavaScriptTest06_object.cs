@@ -1,6 +1,4 @@
-﻿using AScript.Lang.JavaScript;
-using BenchmarkDotNet.Attributes;
-using Microsoft.CodeAnalysis.Scripting;
+﻿using BenchmarkDotNet.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,21 +10,24 @@ namespace AScript.Test.Consoles.Benchmarks.JavaScriptTest
 	[MaxColumn]
 	[MinColumn]
 	[MemoryDiagnoser]
-	public class JavaScriptTest01_const
+	public class JavaScriptTest06_object
 	{
-		private static readonly string s = "100 * (5 + 5) * (6-2)";
-		private static readonly int r = 100 * (5 + 5) * (6 - 2);
+		private static readonly string s = @"
+var obj = { name: 'Alice', address: { city: 'Beijing' } };
+obj.address.city
+";
+		private static readonly string r = "Beijing";
 
-		static JavaScriptTest01_const()
+		static JavaScriptTest06_object()
 		{
-			Script.Langs.Set("js", JavaScriptLang.Instance, true);
+			Script.Langs.Set("js", AScript.Lang.JavaScript.JavaScriptLang.Instance, true);
 		}
 
 		[Benchmark]
 		public void AScript1()
 		{
 			var script = new Script();
-			var result = script.Eval<int>(s);
+			var result = script.Eval<string>(s);
 			if (result != r) throw new Exception("result error");
 		}
 
@@ -42,7 +43,7 @@ namespace AScript.Test.Consoles.Benchmarks.JavaScriptTest
 		public void AScript2_Compile()
 		{
 			var script = new Script();
-			var result = script.Eval<int>(s, ECompileMode.All);
+			var result = script.Eval<string>(s, ECompileMode.All);
 			if (result != r) throw new Exception("result error");
 		}
 
@@ -50,7 +51,7 @@ namespace AScript.Test.Consoles.Benchmarks.JavaScriptTest
 		public void Jurassic2()
 		{
 			var engine = new Jurassic.ScriptEngine();
-			var result = engine.Evaluate<int>(s);
+			var result = engine.Evaluate<string>(s);
 			if (result != r) throw new Exception("result error");
 		}
 
@@ -58,7 +59,7 @@ namespace AScript.Test.Consoles.Benchmarks.JavaScriptTest
 		public void AScript3_Cache()
 		{
 			var script = new Script();
-			var result = script.Eval<int>(s, -1);
+			var result = script.Eval<string>(s, -1);
 			if (result != r) throw new Exception("result error");
 		}
 
