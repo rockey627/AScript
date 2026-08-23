@@ -15,6 +15,19 @@ namespace AScript.Nodes
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
+			//var mode = options.CompileMode;
+			//bool compileLoop = mode.HasValue && ((mode.Value & ECompileMode.Loop) == ECompileMode.Loop);
+			//if (compileLoop)
+			//{
+			//	// 编译循环
+			//	var loopOptions = new BuildOptions(options)
+			//	{
+			//		CompileMode = ECompileMode.All,
+			//		RewriteVariables = false,
+			//		RewriteFunctions = false,
+			//	};
+			//	var loop = Script.Compile(null, context, loopOptions,)
+			//}
 			var tempContext = ScriptContext.Create(context);
 			var tempControl = new EvalControl(control, true);
 			// 执行初始语句

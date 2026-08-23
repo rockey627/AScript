@@ -49,7 +49,9 @@ namespace AScript
 			set => _ThrowIfVariableNotExists = value;
 		}
 		/// <summary>
-		/// 是否回写变量到上下文，默认为true，如果设置为false可提高性能
+		/// <para>是否回写变量到上下文（默认为true）</para>
+		/// <para>编译执行模式下有效</para>
+		/// <para>如果设置为false，则脚本中定义的变量或者修改变量，不回写到上下文，可提高性能</para>
 		/// </summary>
 		public bool? RewriteVariables
 		{
@@ -57,7 +59,8 @@ namespace AScript
 			set => _RewriteVariables = value;
 		}
 		/// <summary>
-		/// 是否回写函数到上下文，默认为true，如果设置为false可提高性能
+		/// <para>是否回写函数到上下文（默认为true）</para>
+		/// <para>如果设置为false，则脚本中定义的函数不回写到上下文，可提高性能</para>
 		/// </summary>
 		public bool? RewriteFunctions
 		{

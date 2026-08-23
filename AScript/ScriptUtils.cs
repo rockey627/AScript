@@ -1858,7 +1858,13 @@ namespace AScript
 		public static Expression Convert(Expression v, Type type)
 		{
 			if (v.Type == type) return v;
-			if (type.IsAssignableFrom(v.Type)) return Expression.Convert(v, type);
+			// 值类型->任意类型：强制转换
+			// 任意类型->引用类型：强制转换
+			// 非object/string类型->值类型：强制转换
+			// object/string类型->值类型：方法转换
+			if (v.Type.IsValueType || !type.IsValueType) return Expression.Convert(v, type);
+			if (v.Type != typeof(object) && v.Type != typeof(string)) return Expression.Convert(v, type);
+			//if (type.IsAssignableFrom(v.Type)) return Expression.Convert(v, type);
 
 			switch (Type.GetTypeCode(type))
 			{
@@ -1994,21 +2000,36 @@ namespace AScript
 					}
 				case TypeCode.Int32:
 					{
-						MethodInfo method;
-						if (v.Type == typeof(object))
-						{
-							method = Method_Convert_ToInt32_object;
-						}
-						else
-						{
-							method = typeof(Convert).GetMethod("ToInt32", new[] { v.Type });
-							if (method == null)
-							{
-								method = Method_Convert_ToInt32_object;
-								v = Expression.Convert(v, typeof(object));
-							}
-						}
-						return Expression.Call(method, v);
+						//switch (Type.GetTypeCode(v.Type))
+						//{
+						//	case TypeCode.Byte:
+						//	case TypeCode.Double:
+						//	case TypeCode.Int16:
+						//	case TypeCode.Int32:
+						//	case TypeCode.Int64:
+						//	case TypeCode.SByte:
+						//	case TypeCode.Single:
+						//	case TypeCode.UInt16:
+						//	case TypeCode.UInt32:
+						//	case TypeCode.UInt64:
+						//		return Expression.Convert(v, type);
+						//	default:
+								MethodInfo method;
+								if (v.Type == typeof(object))
+								{
+									method = Method_Convert_ToInt32_object;
+								}
+								else
+								{
+									method = typeof(Convert).GetMethod("ToInt32", new[] { v.Type });
+									if (method == null)
+									{
+										method = Method_Convert_ToInt32_object;
+										v = Expression.Convert(v, typeof(object));
+									}
+								}
+								return Expression.Call(method, v);
+						//}
 					}
 				case TypeCode.Int64:
 					{

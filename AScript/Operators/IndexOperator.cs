@@ -6,19 +6,19 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Microsoft.CSharp.RuntimeBinder;
+//using Microsoft.CSharp.RuntimeBinder;
 
 namespace AScript.Operators
 {
 	public class IndexOperator : IFunctionEvaluator, IFunctionBuilder
 	{
-		/// <summary>
-		/// 动态索引访问Binder
-		/// </summary>
-		private static readonly CallSiteBinder IndexBinder = Microsoft.CSharp.RuntimeBinder.Binder.GetIndex(
-			CSharpBinderFlags.None,
-			typeof(object),
-			new[] { CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null), CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null) });
+		///// <summary>
+		///// 动态索引访问Binder
+		///// </summary>
+		//private static readonly CallSiteBinder IndexBinder = Microsoft.CSharp.RuntimeBinder.Binder.GetIndex(
+		//	CSharpBinderFlags.None,
+		//	typeof(object),
+		//	new[] { CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null), CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null) });
 
 		private static readonly MethodInfo Method_GetItem = typeof(IndexOperator).GetMethod("GetItem");
 

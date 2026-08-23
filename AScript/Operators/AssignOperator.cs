@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Microsoft.CSharp.RuntimeBinder;
+//using Microsoft.CSharp.RuntimeBinder;
 using AScript.Nodes;
 using System.Collections;
 using System.Linq;
@@ -93,13 +93,14 @@ namespace AScript.Operators
 						}
 						else
 						{
-							// 使用动态表达式进行动态赋值
-							e.Result = Expression.Dynamic(
-								IndexSetBinder,
-								typeof(object),
-								obj,
-								idx,
-								value);
+							//// 使用动态表达式进行动态赋值
+							//e.Result = Expression.Dynamic(
+							//	IndexSetBinder,
+							//	typeof(object),
+							//	obj,
+							//	idx,
+							//	value);
+							e.Result = ExpressionUtils.setItem(obj, idx, value);
 						}
 					}
 				}
@@ -1004,13 +1005,13 @@ namespace AScript.Operators
 			return Expression.Block(typeof(void), expressions);
 		}
 
-		/// <summary>
-		/// 动态索引赋值Binder
-		/// </summary>
-		private static readonly CallSiteBinder IndexSetBinder = Microsoft.CSharp.RuntimeBinder.Binder.SetIndex(
-			CSharpBinderFlags.None,
-			typeof(object),
-			new[] { CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null), CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null), CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null) });
+		///// <summary>
+		///// 动态索引赋值Binder
+		///// </summary>
+		//private static readonly CallSiteBinder IndexSetBinder = Microsoft.CSharp.RuntimeBinder.Binder.SetIndex(
+		//	CSharpBinderFlags.None,
+		//	typeof(object),
+		//	new[] { CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null), CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null), CSharpArgumentInfo.Create(CSharpArgumentInfoFlags.None, null) });
 
 		/// <summary>
 		/// 获取索引类型

@@ -48,6 +48,17 @@ namespace AScript
 		public static readonly MethodInfo Method_LessThanOrEqual = typeof(ExpressionUtils).GetMethod("LessThanOrEqual", new[] { typeof(object), typeof(object) });
 		public static readonly MethodInfo Method_LeftShift = typeof(ExpressionUtils).GetMethod("LeftShift", new[] { typeof(object), typeof(object) });
 		public static readonly MethodInfo Method_RightShift = typeof(ExpressionUtils).GetMethod("RightShift", new[] { typeof(object), typeof(object) });
+		public static readonly MethodInfo Method_setItem = typeof(ExpressionUtils).GetMethod("setItem", new[] { typeof(object), typeof(object), typeof(object) });
+
+		public static void setItem(object obj, object index, object value)
+		{
+			((dynamic)obj)[(dynamic)index] = (dynamic)value;
+		}
+
+		public static Expression setItem(Expression obj, Expression index, Expression value)
+		{
+			return Expression.Call(Method_setItem, obj, index, value);
+		}
 
 		public static object Add(object v1, object v2)
 		{
