@@ -12,6 +12,7 @@ namespace AScript
 		private bool? _RewriteFunctions;
 		private bool? _Dynamic;
 		private bool? _Standalone;
+		private bool? _UseCompletionResult;
 
 		/// <summary>
 		/// 
@@ -85,6 +86,14 @@ namespace AScript
 		{
 			get => _Standalone ?? this.Parent?.Standalone;
 			set => _Standalone = value;
+		}
+		/// <summary>
+		/// 是否使用<c>CompletionResult</c>返回结果对象
+		/// </summary>
+		public bool? UseCompletionResult
+		{
+			get => _UseCompletionResult ?? this.Parent?.UseCompletionResult;
+			set => _UseCompletionResult = value;
 		}
 
 		public BuildOptions() { }

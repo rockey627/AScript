@@ -15,19 +15,34 @@ namespace AScript.Nodes
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
-			//var mode = options.CompileMode;
-			//bool compileLoop = mode.HasValue && ((mode.Value & ECompileMode.Loop) == ECompileMode.Loop);
-			//if (compileLoop)
-			//{
-			//	// 编译循环
-			//	var loopOptions = new BuildOptions(options)
-			//	{
-			//		CompileMode = ECompileMode.All,
-			//		RewriteVariables = false,
-			//		RewriteFunctions = false,
-			//	};
-			//	var loop = Script.Compile(null, context, loopOptions,)
-			//}
+			var mode = options.CompileMode;
+			bool compileLoop = mode.HasValue && ((mode.Value & ECompileMode.Loop) == ECompileMode.Loop);
+			if (compileLoop)
+			{
+				// 编译循环
+				var loopOptions = new BuildOptions(options)
+				{
+					CompileMode = ECompileMode.All,
+					UseCompletionResult = true,
+					RewriteVariables = true,
+					RewriteFunctions = false,
+					Standalone = false
+				};
+				var loop = Script.Compile(null, context, loopOptions, this);
+				var loopResult = loop.DynamicInvoke(context);
+				if (loopResult is CompletionResult completionResult)
+				{
+					if (completionResult.CompletionType == ECompletionType.Return)
+					{
+						control.Terminal = true;
+					}
+					returnType = completionResult.ValueType;
+					return completionResult.Value;
+				}
+				returnType = loopResult?.GetType() ?? loop.Method.ReturnType;
+				return loopResult;
+			}
+			// 
 			var tempContext = ScriptContext.Create(context);
 			var tempControl = new EvalControl(control, true);
 			// 执行初始语句
@@ -72,6 +87,32 @@ namespace AScript.Nodes
 
 		public override async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
 		{
+			var mode = options.CompileMode;
+			bool compileLoop = mode.HasValue && ((mode.Value & ECompileMode.Loop) == ECompileMode.Loop);
+			if (compileLoop)
+			{
+				// 编译循环
+				var loopOptions = new BuildOptions(options)
+				{
+					CompileMode = ECompileMode.All,
+					UseCompletionResult = true,
+					RewriteVariables = true,
+					RewriteFunctions = false,
+					Standalone = false
+				};
+				var loop = Script.Compile(null, context, loopOptions, this);
+				var loopResult = loop.DynamicInvoke(context);
+				if (loopResult is CompletionResult completionResult)
+				{
+					if (completionResult.CompletionType == ECompletionType.Return)
+					{
+						control.Terminal = true;
+					}
+					return new EvalResult(completionResult.Value, completionResult.ValueType);
+				}
+				return new EvalResult(loopResult, loopResult?.GetType() ?? loop.Method.ReturnType);
+			}
+			// 
 			var tempContext = ScriptContext.Create(context);
 			var tempControl = new EvalControl(control, true);
 			// 执行初始语句

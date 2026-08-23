@@ -17,7 +17,7 @@ namespace AScript.Nodes
 		public ITreeNode Collection { get; set; }
 		public ITreeNode Body { get; set; }
 
-		public override object Eval(ScriptContext context, BuildOptions options, EvalControl controll, out Type returnType)
+		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
 			if (this.VarDefine == null && this.VarDefines == null)
 			{
@@ -27,8 +27,35 @@ namespace AScript.Nodes
 			{
 				throw new ScriptAnalyzingException("require collection in foreach statement");
 			}
+			var mode = options.CompileMode;
+			bool compileLoop = mode.HasValue && ((mode.Value & ECompileMode.Loop) == ECompileMode.Loop);
+			if (compileLoop)
+			{
+				// 编译循环
+				var loopOptions = new BuildOptions(options)
+				{
+					CompileMode = ECompileMode.All,
+					UseCompletionResult = true,
+					RewriteVariables = true,
+					RewriteFunctions = false,
+					Standalone = false
+				};
+				var loop = Script.Compile(null, context, loopOptions, this);
+				var loopResult = loop.DynamicInvoke(context);
+				if (loopResult is CompletionResult completionResult)
+				{
+					if (completionResult.CompletionType == ECompletionType.Return)
+					{
+						control.Terminal = true;
+					}
+					returnType = completionResult.ValueType;
+					return completionResult.Value;
+				}
+				returnType = loopResult?.GetType() ?? loop.Method.ReturnType;
+				return loopResult;
+			}
 			// 计算集合
-			var listResult = this.Collection.Eval(context, options, controll, out var listType);
+			var listResult = this.Collection.Eval(context, options, control, out var listType);
 			if (listResult == null)
 			{
 				returnType = null;
@@ -44,7 +71,7 @@ namespace AScript.Nodes
 			if (this.Body != null)
 			{
 				var tempContext = ScriptContext.Create(context);
-				var tempController = new EvalControl(controll, true);
+				var tempController = new EvalControl(control, true);
 				// 定义变量
 				if (this.VarDefines != null)
 				{
@@ -193,6 +220,31 @@ namespace AScript.Nodes
 			if (this.Collection == null)
 			{
 				throw new ScriptAnalyzingException("require collection in foreach statement");
+			}
+			var mode = options.CompileMode;
+			bool compileLoop = mode.HasValue && ((mode.Value & ECompileMode.Loop) == ECompileMode.Loop);
+			if (compileLoop)
+			{
+				// 编译循环
+				var loopOptions = new BuildOptions(options)
+				{
+					CompileMode = ECompileMode.All,
+					UseCompletionResult = true,
+					RewriteVariables = true,
+					RewriteFunctions = false,
+					Standalone = false
+				};
+				var loop = Script.Compile(null, context, loopOptions, this);
+				var loopResult = loop.DynamicInvoke(context);
+				if (loopResult is CompletionResult completionResult)
+				{
+					if (completionResult.CompletionType == ECompletionType.Return)
+					{
+						control.Terminal = true;
+					}
+					return new EvalResult(completionResult.Value, completionResult.ValueType);
+				}
+				return new EvalResult(loopResult, loopResult?.GetType() ?? loop.Method.ReturnType);
 			}
 			// 计算集合
 			var evalResult = await this.Collection.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);

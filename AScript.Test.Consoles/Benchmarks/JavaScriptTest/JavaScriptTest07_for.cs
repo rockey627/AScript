@@ -35,6 +35,15 @@ n
 		}
 
 		[Benchmark]
+		public void AScript1_Loop()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.Loop;
+			var result = script.Eval<int>(s);
+			if (result != r) throw new Exception("result error");
+		}
+
+		[Benchmark]
 		public void Jint1()
 		{
 			var engine = new Jint.Engine();

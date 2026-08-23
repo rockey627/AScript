@@ -2772,7 +2772,8 @@ namespace AScript
 
 		public static Delegate Compile(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, ITreeNode expression)
 		{
-			return Lambda(buildContext, scriptContext, options, expression).Compile();
+			var lambda = Lambda(buildContext, scriptContext, options, expression);
+			return lambda.Compile();
 		}
 
 		public static Delegate Compile(ScriptContext context, BuildOptions options, ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)

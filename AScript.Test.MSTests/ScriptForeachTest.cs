@@ -11,6 +11,22 @@ namespace AScript.Test.MSTests
 	public class ScriptForeachTest
 	{
 		[TestMethod]
+		public void Test05_3()
+		{
+			// foreach 遍历
+			var code1 = @"
+total = 0
+foreach(var (x,y) in [(1,2), (2,3), (3,4)]){
+    total += x + y;
+}
+total
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.Loop;
+			Assert.AreEqual(15, script.Eval(code1));
+		}
+
+		[TestMethod]
 		public void Test05_2()
 		{
 			// foreach 遍历
@@ -68,6 +84,31 @@ total
 		}
 
 		[TestMethod]
+		public void Test03_3()
+		{
+			string s = @"
+var list2 = new List<int>();
+foreach(var item in list)
+{
+	if (item % 2 == 0) list2.Add(item);
+}
+list2";
+
+			var list = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.Loop;
+			script.Context.SetVar("list", list);
+			var list2 = script.Eval<List<int>>(s);
+			Assert.AreEqual(6, list2.Count);
+			Assert.AreEqual(2, list2[0]);
+			Assert.AreEqual(4, list2[1]);
+			Assert.AreEqual(6, list2[2]);
+			Assert.AreEqual(8, list2[3]);
+			Assert.AreEqual(10, list2[4]);
+			Assert.AreEqual(12, list2[5]);
+		}
+
+		[TestMethod]
 		public void Test03_2()
 		{
 			string s = @"
@@ -113,6 +154,39 @@ list2";
 			Assert.AreEqual(8, list2[3]);
 			Assert.AreEqual(10, list2[4]);
 			Assert.AreEqual(12, list2[5]);
+		}
+
+		[TestMethod]
+		public void Test02_3()
+		{
+			string s = @"
+int n=0;
+foreach(var item in list)
+{
+	// 跳过偶数
+	if (item % 2 == 0) continue;
+	if (item >/*不超过10*/10) break;
+	n+=item;
+}
+n+10";
+
+			var list = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+			int n = 0;
+			foreach (var item in list)
+			{
+				// 跳过偶数
+				if (item % 2 == 0) continue;
+				if (item >/*不超过10*/ 10) break;
+				n += item;
+			}
+
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.Loop;
+			script.Context.SetVar("list", list);
+			Assert.AreEqual(n + 10, script.Eval(s));
+			Assert.AreEqual(n, script.Context.EvalVar("n"));
+			Assert.IsNull(script.Context.EvalVar("item", out var type));
+			Assert.IsNull(type);
 		}
 
 		[TestMethod]

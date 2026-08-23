@@ -370,10 +370,25 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 
 		static void Test18_Jint()
 		{
-			var engine = new Jint.Engine();
-			engine.SetValue("c", 10);
-			var result = engine.Evaluate("var a=5; var b = 8; a+b+c");
-			Console.WriteLine(result);
+			{
+				var engine = new Jint.Engine();
+				engine.SetValue("c", 10);
+				var result = engine.Evaluate("var a=5; var b = 8; a+b+c");
+				Console.WriteLine(result);
+				Console.WriteLine("a=" + engine.GetValue("a"));
+			}
+
+			{
+				var engine = new Jint.Engine();
+				var result = engine.Evaluate("var {name, age} = {name: 'Alice', age: 25}; name + age");
+				Console.WriteLine(result);
+			}
+
+			{
+				var engine = new Jint.Engine();
+				var result = engine.Evaluate("var [name, age] = ['Alice', 25]; name + age");
+				Console.WriteLine(result);
+			}
 		}
 
 		static void Test18_ClearScript()
@@ -381,7 +396,7 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 			var engine = new Microsoft.ClearScript.Windows.JScriptEngine();
 			var result = engine.Evaluate("var a = 10; var b = 20; var c = a + b;");
 			Console.WriteLine(result); // 输出 30
-			
+
 		}
 
 		static void Test18_Jurassic()

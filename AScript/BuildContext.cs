@@ -43,6 +43,20 @@ namespace AScript
 			}
 		}
 
+		public BuildContext Main
+		{
+			get
+			{
+				var r = this;
+				while (r.Parent != null)
+				{
+					if (r.IsMain) return r;
+					r = r.Parent;
+				}
+				return r;
+			}
+		}
+
 		/// <summary>
 		/// 指定ScriptContext参数
 		/// </summary>

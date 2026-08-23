@@ -62,13 +62,26 @@ namespace AScript.Nodes
 			}
 			if (body == null)
 			{
-				return Expression.Return(returnBuildContext.ReturnLabel);
+				if (options.UseCompletionResult ?? false)
+				{
+					body = Expression.New(ScriptUtils.Constructor_CompletionResult_1, Expression.Constant(ECompletionType.Return));
+				}
+				else
+				{
+					return Expression.Return(returnBuildContext.ReturnLabel);
+				}
+			}
+			if (body.Type != typeof(CompletionResult) && (options.UseCompletionResult ?? false))
+			{
+				if (body.Type.IsValueType) body = Expression.Convert(body, typeof(object));
+				var result = Expression.New(ScriptUtils.Constructor_CompletionResult_2, Expression.Constant(ECompletionType.Return), body);
+				body = result;
 			}
 			if (returnBuildContext.ReturnVariableExpression == null)
 			{
 				returnBuildContext.ReturnVariableExpression = Expression.Variable(body.Type);
 			}
-			if (body.Type != returnBuildContext.ReturnVariableExpression.Type)
+			else if (body.Type != returnBuildContext.ReturnVariableExpression.Type)
 			{
 				body = Expression.Convert(body, returnBuildContext.ReturnVariableExpression.Type);
 			}

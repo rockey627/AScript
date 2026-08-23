@@ -11,6 +11,77 @@ namespace AScript.Test.MSTests
 	public class ScriptWhileTest
 	{
 		[TestMethod]
+		public void Test03_3()
+		{
+			string s = @"
+while(n>0){
+	m++;
+	n--;
+	if (n==3) break;
+}
+m+10";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.Loop;
+			script.Context.SetVar("n", 6);
+			script.Context.SetVar("m", 10);
+			Assert.AreEqual(23, script.Eval(s));
+			Assert.AreEqual(3, script.Context.EvalVar("n"));
+		}
+
+		[TestMethod]
+		public void Test03_2()
+		{
+			string s = @"
+while(n>0){
+	m++;
+	n--;
+	if (n==3) break;
+}
+m+10";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("n", 6);
+			script.Context.SetVar("m", 10);
+			Assert.AreEqual(23, script.Eval(s));
+			Assert.AreEqual(3, script.Context.EvalVar("n"));
+		}
+
+		[TestMethod]
+		public void Test03()
+		{
+			string s = @"
+while(n>0){
+	m++;
+	n--;
+	if (n==3) break;
+}
+m+10";
+			var script = new Script();
+			script.Context.SetVar("n", 6);
+			script.Context.SetVar("m", 10);
+			Assert.AreEqual(23, script.Eval(s));
+			Assert.AreEqual(3, script.Context.EvalVar("n"));
+		}
+
+		[TestMethod]
+		public void Test02_3()
+		{
+			string s = @"
+int n = 6;
+int m=10;
+while(n>0){
+	m++;
+	n--;
+	if (n==3) break;
+}
+m+10";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.Loop;
+			Assert.AreEqual(23, script.Eval(s));
+			Assert.AreEqual(3, script.Context.EvalVar("n"));
+		}
+
+		[TestMethod]
 		public void Test02_2()
 		{
 			string s = @"

@@ -46,17 +46,6 @@ namespace AScript
 		public static readonly MethodInfo Method_ScriptContext_AddTempFunc = typeof(ScriptContext).GetMethod("AddTempFunc", new Type[] { typeof(string), typeof(Delegate) });
 		public static readonly MethodInfo Method_ScriptContext_IsTrue = typeof(ScriptContext).GetMethod("IsTrue", new Type[] { typeof(object) });
 
-		private static readonly ConcurrentDictionary<Type, MethodInfo> _ScriptContext_EvalVarT_Methods = new ConcurrentDictionary<Type, MethodInfo>();
-
-		public static MethodInfo Make_ScriptContext_EvalVarT_Method(Type type)
-		{
-			if (_ScriptContext_EvalVarT_Methods.TryGetValue(type, out var method))
-			{
-				return method;
-			}
-			return _ScriptContext_EvalVarT_Methods.GetOrAdd(type, t => Method_ScriptContext_EvalVar_T.MakeGenericMethod(t));
-		}
-
 		public static readonly MethodInfo Method_ITreeNode_Eval = typeof(ITreeNode).GetMethod("Eval", new Type[] { typeof(ScriptContext), typeof(BuildOptions), typeof(EvalControl), typeof(Type).MakeByRefType() });
 
 		public static readonly MethodInfo Method_LambdaExpression_Compile = typeof(LambdaExpression).GetMethod("Compile", new Type[0]);
@@ -118,6 +107,10 @@ namespace AScript
 
 		public static readonly PropertyInfo Property_DataRow_Item_String = typeof(DataRow).GetProperty("Item", new[] { typeof(string) });
 
+		public static readonly ConstructorInfo Constructor_CompletionResult_1 = typeof(CompletionResult).GetConstructor(new[] { typeof(ECompletionType) });
+		public static readonly ConstructorInfo Constructor_CompletionResult_2 = typeof(CompletionResult).GetConstructor(new[] { typeof(ECompletionType), typeof(object) });
+		public static readonly ConstructorInfo Constructor_CompletionResult_3 = typeof(CompletionResult).GetConstructor(new[] { typeof(ECompletionType), typeof(object), typeof(Type) });
+
 		private static readonly ConcurrentDictionary<Type, int> _TypeSize = new ConcurrentDictionary<Type, int>
 		{
 			[typeof(byte)] = 10,
@@ -132,6 +125,17 @@ namespace AScript
 			[typeof(double)] = 100,
 			[typeof(string)] = 500,
 		};
+
+		private static readonly ConcurrentDictionary<Type, MethodInfo> _ScriptContext_EvalVarT_Methods = new ConcurrentDictionary<Type, MethodInfo>();
+
+		public static MethodInfo Make_ScriptContext_EvalVarT_Method(Type type)
+		{
+			if (_ScriptContext_EvalVarT_Methods.TryGetValue(type, out var method))
+			{
+				return method;
+			}
+			return _ScriptContext_EvalVarT_Methods.GetOrAdd(type, t => Method_ScriptContext_EvalVar_T.MakeGenericMethod(t));
+		}
 
 		public static bool IsIntegerType(Type type)
 		{

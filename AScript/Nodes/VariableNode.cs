@@ -66,21 +66,22 @@ namespace AScript.Nodes
 				{
 					type = value.GetType();
 				}
+				var mainBuildContext = buildContext.Main;
 				varExpr = Expression.Variable(type, this.Name);
 				if (options.Standalone ?? false)
 				{
 					var assign = Expression.Assign(varExpr, Expression.Constant(value, type));
-					buildContext.PrevExpressions.Add(assign);
-					buildContext.LocalVariables.Add(this.Name);
+					mainBuildContext.PrevExpressions.Add(assign);
+					mainBuildContext.LocalVariables.Add(this.Name);
 				}
 				else
 				{
 					// 从ScriptContext中取值
-					var call = BuildCallEvalVarExpression(buildContext, this.Name, type);
+					var call = BuildCallEvalVarExpression(mainBuildContext.Root, this.Name, type);
 					var assign = Expression.Assign(varExpr, call);
-					buildContext.PrevExpressions.Add(assign);
+					mainBuildContext.PrevExpressions.Add(assign);
 				}
-				buildContext.Variables[this.Name] = varExpr;
+				mainBuildContext.Variables[this.Name] = varExpr;
 				return varExpr;
 			}
 		}
@@ -103,6 +104,7 @@ namespace AScript.Nodes
 				ownerBuildContext.ChangedVariables.Add(this.Name);
 				return varExpr;
 			}
+			var mainBuildContext = buildContext.Main;
 			// 是否在执行上下文中存在变量
 			var ownerContext = scriptContext.GetOwnerContext(this.Name, out var value, out var type, out int modifier);
 			if (type == null)
@@ -117,7 +119,7 @@ namespace AScript.Nodes
 			{
 				Modifiers.ThrowIfReadOnly(this.Name, modifier);
 				// 标记变量有变化
-				buildContext.ChangedVariables.Add(this.Name);
+				mainBuildContext.ChangedVariables.Add(this.Name);
 			}
 			if (type == null)
 			{
@@ -135,16 +137,16 @@ namespace AScript.Nodes
 			if (options.Standalone ?? false)
 			{
 				var assign = Expression.Assign(varExpr, Expression.Constant(value, type));
-				buildContext.PrevExpressions.Add(assign);
-				buildContext.LocalVariables.Add(this.Name);
+				mainBuildContext.PrevExpressions.Add(assign);
+				mainBuildContext.LocalVariables.Add(this.Name);
 			}
 			else
 			{
-				var call = BuildCallEvalVarExpression(buildContext, this.Name, type);
+				var call = BuildCallEvalVarExpression(mainBuildContext.Root, this.Name, type);
 				var assign = Expression.Assign(varExpr, call);
-				buildContext.PrevExpressions.Add(assign);
+				mainBuildContext.PrevExpressions.Add(assign);
 			}
-			buildContext.Variables[this.Name] = varExpr;
+			mainBuildContext.Variables[this.Name] = varExpr;
 			return varExpr;
 		}
 

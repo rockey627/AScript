@@ -149,8 +149,8 @@ namespace AScript.Nodes
 				}
 			}
 			var delegateDefine = IsNiming(this.Name) ? null : buildContext.AddDelegateDefine(this.Name, argTypes, funcReturnType);
-			//var buildOptions = new BuildOptions(options) { DynamicVariableType = true };
-			var body = this.Body.Build(tempBuildContext, scriptContext, options);
+			var buildOptions = new BuildOptions(options) { UseCompletionResult = false };
+			var body = this.Body.Build(tempBuildContext, scriptContext, buildOptions);
 			// 有闭包参数，只能通过DynamicInvoke调用，无法用Expression.Call调用
 			//var d = tempBuildContext.Compile(scriptContext, body);
 			//var dExpr = Expression.Constant(d);
@@ -158,7 +158,7 @@ namespace AScript.Nodes
 			{
 				tempBuildContext.ReturnType = typeof(object);
 			}
-			var lambda = tempBuildContext.Build(scriptContext, options, body);
+			var lambda = tempBuildContext.Build(scriptContext, buildOptions, body);
 			var tmpVar = delegateDefine?.Variable ?? Expression.Variable(lambda.Type);
 			var assign = Expression.Assign(tmpVar, lambda);
 			int hashCode = tmpVar.GetHashCode();

@@ -12,6 +12,28 @@ namespace AScript.Test.MSTests
 	public class ScriptForTest
 	{
 		[TestMethod]
+		public void Test13_3()
+		{
+			string s = @"
+int sum(int a) => a+1;
+int n = 0;
+for(var i=1;i<=12;i++)
+{
+	if (i % 2 == 0) n+=sum(i);
+}
+n";
+			Func<int, int> sum = a => a + 1;
+			int n = 0;
+			for (var i = 1; i <= 12; i++)
+			{
+				if (i % 2 == 0) n += sum(i);
+			}
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.Loop;
+			Assert.AreEqual(n, script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test13_2()
 		{
 			string s = @"
@@ -98,6 +120,23 @@ list2";
 		}
 
 		[TestMethod]
+		public void Test11_2()
+		{
+			string s = @"
+int n = 0;
+for(int i =0;i<10;i++){
+	if (i == 11) {return n+100;};
+	n+=3;
+}
+n+10
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.Loop;
+			Assert.AreEqual(40, script.Eval(s));
+			Assert.AreEqual(30, script.Context.EvalVar("n"));
+		}
+
+		[TestMethod]
 		public void Test11()
 		{
 			string s = @"
@@ -112,6 +151,23 @@ n+10
 			script.Options.CompileMode = ECompileMode.All;
 			Assert.AreEqual(40, script.Eval(s));
 			Assert.AreEqual(30, script.Context.EvalVar("n"));
+		}
+
+		[TestMethod]
+		public void Test10_6()
+		{
+			string s = @"
+int n = 0;
+for(int i =0;i<10;i++){
+	if (i == 5) return n+100;
+	n+=3;
+}
+n+10
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.Loop;
+			Assert.AreEqual(115, script.Eval(s));
+			Assert.AreEqual(15, script.Context.EvalVar("n"));
 		}
 
 		[TestMethod]
@@ -722,6 +778,56 @@ m+15";
 			Assert.AreEqual(38, script.Eval(s));
 			Assert.AreEqual(23, script.Context.EvalVar("m"));
 			Assert.AreEqual(10, script.Context.EvalVar("n"));
+		}
+
+		[TestMethod]
+		public void Test01_6()
+		{
+			string s = "for(n=0; n<10;n++) m+=2;m+=3;m+15";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("m", 0);
+			script.Context.SetVar("n", 0);
+			Assert.AreEqual(38, script.Eval(s));
+			Assert.AreEqual(23, script.Context.EvalVar("m"));
+			Assert.AreEqual(10, script.Context.EvalVar("n"));
+		}
+
+		[TestMethod]
+		public void Test01_5()
+		{
+			string s = "for(int n=a; n<max;n++) m+=2;m+=3;m+15";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("m", 0);
+			script.Context.SetVar("a", 0);
+			script.Context.SetVar("max", 10);
+			Assert.AreEqual(38, script.Eval(s));
+			Assert.AreEqual(23, script.Context.EvalVar("m"));
+			Assert.AreEqual(null, script.Context.EvalVar("n"));
+		}
+
+		[TestMethod]
+		public void Test01_4()
+		{
+			string s = "for(int n=0; n<10;n++) m+=2;m+=3;m+15";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("m", 0);
+			Assert.AreEqual(38, script.Eval(s));
+			Assert.AreEqual(23, script.Context.EvalVar("m"));
+			Assert.AreEqual(null, script.Context.EvalVar("n"));
+		}
+
+		[TestMethod]
+		public void Test01_3()
+		{
+			string s = "for(int n=0; n<10;n++) m+=2;m+=3;m+15";
+			var script = new Script();
+			script.Context.SetVar("m", 0);
+			Assert.AreEqual(38, script.Eval(s));
+			Assert.AreEqual(23, script.Context.EvalVar("m"));
+			Assert.AreEqual(null, script.Context.EvalVar("n"));
 		}
 
 		[TestMethod]
