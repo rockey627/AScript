@@ -101,6 +101,36 @@ namespace AScript.Nodes
 					return context.EvalFunc($"{wrapper.Name}_{this.Name}", argValues, argTypes, out returnType);
 				}
 
+				if (v0 is ExpandoObject expandoObj)
+				{
+					var value = ScriptUtils.DynamicInvoke(context, expandoObj, this.Name, argValues);
+					returnType = value?.GetType() ?? typeof(object);
+					return value;
+					//var dict = (IDictionary<string, object>)v0;
+					//if (!dict.TryGetValue(this.Name, out var func))
+					//{
+					//	throw new ScriptAnalyzingException($"unknown function: {t0}.{this.Name}");
+					//}
+					//if (func is CustomFunctionObject cfo)
+					//{
+					//	var value = cfo.DynamicInvoke(context, argValues);
+					//	returnType = value?.GetType() ?? cfo.Function.ReturnType;
+					//	return value;
+					//}
+					//if (func is ScriptFunctionObject sfo)
+					//{
+					//	var value = sfo.DynamicInvoke(context, argValues);
+					//	returnType = value?.GetType() ?? typeof(object);
+					//	return value;
+					//}
+					//if (func is Delegate del)
+					//{
+					//	var value = del.DynamicInvoke(argValues);
+					//	returnType = value?.GetType() ?? del.Method.ReturnType;
+					//	return value;
+					//}
+				}
+
 				//MethodInfo methodInfo = null;
 				if (context.IsObjectMemberEnabled(t0) ?? true)
 				{
@@ -268,6 +298,36 @@ namespace AScript.Nodes
 					return await context.EvalFuncAsync($"{wrapper.Name}_{this.Name}", argValues, argTypes).ConfigureAwait(false);
 				}
 
+				if (v0 is ExpandoObject expandoObj)
+				{
+					var value = ScriptUtils.DynamicInvoke(context, expandoObj, this.Name, argValues);
+					var returnType = value?.GetType() ?? typeof(object);
+					return new EvalResult(value, returnType);
+					//var dict = (IDictionary<string, object>)v0;
+					//if (!dict.TryGetValue(this.Name, out var func))
+					//{
+					//	throw new ScriptAnalyzingException($"unknown function: {t0}.{this.Name}");
+					//}
+					//if (func is CustomFunctionObject cfo)
+					//{
+					//	var value = cfo.DynamicInvoke(context, argValues);
+					//	var returnType = value?.GetType() ?? cfo.Function.ReturnType;
+					//	return new EvalResult(value, returnType);
+					//}
+					//if (func is ScriptFunctionObject sfo)
+					//{
+					//	var value = sfo.DynamicInvoke(context, argValues);
+					//	var returnType = value?.GetType() ?? typeof(object);
+					//	return new EvalResult(value, returnType);
+					//}
+					//if (func is Delegate del)
+					//{
+					//	var value = del.DynamicInvoke(argValues);
+					//	var returnType = value?.GetType() ?? del.Method.ReturnType;
+					//	return new EvalResult(value, returnType);
+					//}
+				}
+
 				if (context.IsObjectMemberEnabled(t0) ?? true)
 				{
 					bool useScriptContext = false, hasClosure = false;
@@ -425,6 +485,27 @@ namespace AScript.Nodes
 						throw new ScriptAnalyzingException($"unknown function: {wrapper.Name}.{this.Name}({string.Join(", ", argTypes.Select(t => t?.Name))})");
 					}
 					throw new ScriptAnalyzingException($"unknown function: {wrapper.Name}.{this.Name}()");
+				}
+
+				if (typeof(ExpandoObject).IsAssignableFrom(v0.Type))
+				{
+					if (argExprs != null && argExprs.Length > 0)
+					{
+						for (int i = 0; i < argExprs.Length; i++)
+						{
+							var arg = argExprs[i];
+							if (arg.Type.IsValueType)
+							{
+								argExprs[i] = Expression.Convert(arg, typeof(object));
+							}
+						}
+					}
+					return Expression.Call(ScriptUtils.Method_ScriptUtils_DynamicInvoke_ExpandoObject,
+						buildContext.GetScriptContextParameter(),
+						v0,
+						Expression.Constant(this.Name),
+						Expression.NewArrayInit(typeof(object), argExprs)
+						);
 				}
 
 				if (scriptContext.IsObjectMemberEnabled(v0.Type) ?? true)

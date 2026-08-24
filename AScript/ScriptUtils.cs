@@ -34,6 +34,8 @@ namespace AScript
 		public static readonly MethodInfo Method_ScriptUtils_Convert = typeof(ScriptUtils).GetMethod("Convert", new[] { typeof(object), typeof(Type) });
 		public static readonly MethodInfo Method_ScriptUtils_SliceAssign = typeof(ScriptUtils).GetMethod("SliceAssign");
 		public static readonly MethodInfo Method_ScriptUtils_IsIntegerType = typeof(ScriptUtils).GetMethod("IsIntegerType", new[] { typeof(Type) });
+		public static readonly MethodInfo Method_ScriptUtils_DynamicInvoke_ExpandoObject = typeof(ScriptUtils).GetMethod("DynamicInvoke", new[] { typeof(ScriptContext), typeof(ExpandoObject), typeof(string), typeof(object[]) });
+		public static readonly MethodInfo Method_ScriptUtils_DynamicInvoke_Object = typeof(ScriptUtils).GetMethod("DynamicInvoke", new[] { typeof(ScriptContext), typeof(string), typeof(object), typeof(object[]) });
 		
 		public static readonly MethodInfo Method_ScriptContext_Create1 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(bool) });
 		public static readonly MethodInfo Method_ScriptContext_Create2 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(ScriptContext), typeof(bool) });
@@ -586,6 +588,57 @@ namespace AScript
 				}
 			}
 			return DynamicInvoke(context, method, target, argValues, argTypes, useScriptContext, hasClosure, paramsIndex);
+		}
+
+		public static object DynamicInvoke(ScriptContext context, ExpandoObject expandoObj, string funcName, params object[] args)
+		{
+			var dict = (IDictionary<string, object>)expandoObj;
+			if (!dict.TryGetValue(funcName, out var func))
+			{
+				throw new Exceptions.ScriptRuntimeException($"unknown function: {funcName}");
+			}
+			if (func is CustomFunctionObject cfo)
+			{
+				var value = cfo.DynamicInvoke(context, args);
+				//var returnType = value?.GetType() ?? cfo.Function.ReturnType;
+				return value;
+			}
+			if (func is ScriptFunctionObject sfo)
+			{
+				var value = sfo.DynamicInvoke(context, args);
+				//var returnType = value?.GetType() ?? typeof(object);
+				return value;
+			}
+			if (func is Delegate del)
+			{
+				var value = del.DynamicInvoke(args);
+				//var returnType = value?.GetType() ?? del.Method.ReturnType;
+				return value;
+			}
+			throw new Exceptions.ScriptRuntimeException($"{funcName} is not a method");
+		}
+
+		public static object DynamicInvoke(ScriptContext context, string funcName, object func, params object[] args)
+		{
+			if (func is CustomFunctionObject cfo)
+			{
+				var value = cfo.DynamicInvoke(context, args);
+				//var returnType = value?.GetType() ?? cfo.Function.ReturnType;
+				return value;
+			}
+			if (func is ScriptFunctionObject sfo)
+			{
+				var value = sfo.DynamicInvoke(context, args);
+				//var returnType = value?.GetType() ?? typeof(object);
+				return value;
+			}
+			if (func is Delegate del)
+			{
+				var value = del.DynamicInvoke(args);
+				//var returnType = value?.GetType() ?? del.Method.ReturnType;
+				return value;
+			}
+			throw new Exceptions.ScriptRuntimeException($"{funcName} is not a method");
 		}
 
 		public static Expression BuildInvoke(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, MethodInfo method, object target, IList<ITreeNode> argNodes, Expression[] argExprs, bool useScriptContext, bool hasClosure, int paramsIndex)

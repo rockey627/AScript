@@ -1056,18 +1056,21 @@ namespace AScript
 					value = EvalVarFromLangs(name, out _);
 				}
 				functionEvalArgs.EvalArgs();
-				if (value is Delegate || value is CustomFunctionObject)
+				if (value is Delegate del)
 				{
-					if (value is Delegate del)
-					{
-						returnType = del.Method.ReturnType;
-						return del.DynamicInvoke(functionEvalArgs.ArgValues);
-					}
-					if (value is CustomFunctionObject customFunctionObject)
-					{
-						returnType = customFunctionObject.Function.ReturnType;
-						return customFunctionObject.DynamicInvoke(this, functionEvalArgs.ArgValues);
-					}
+					returnType = del.Method.ReturnType;
+					return del.DynamicInvoke(functionEvalArgs.ArgValues);
+				}
+				if (value is CustomFunctionObject customFunctionObject)
+				{
+					returnType = customFunctionObject.Function.ReturnType;
+					return customFunctionObject.DynamicInvoke(this, functionEvalArgs.ArgValues);
+				}
+				if (value is ScriptFunctionObject sfo)
+				{
+					var result = sfo.DynamicInvoke(this, functionEvalArgs.ArgValues);
+					returnType = result?.GetType() ?? typeof(object);
+					return result;
 				}
 				// dynamic对象
 				if (functionEvalArgs.ArgValues != null && functionEvalArgs.ArgValues.Length > 0)
@@ -1561,6 +1564,38 @@ namespace AScript
 						return Expression.Invoke(v, argExprs);
 					}
 					return Expression.Invoke(Expression.Convert(v, type), argExprs);
+				}
+				if (type == typeof(object))
+				{
+					if (argExprs == null)
+					{
+						argExprs = new Expression[args.Count];
+						for (int i = 0; i < args.Count; i++)
+						{
+							var arg = args[i].Build(buildContext, this, options);
+							if (arg.Type.IsValueType)
+							{
+								arg = Expression.Convert(arg, typeof(object));
+							}
+							argExprs[i] = arg;
+						}
+					}
+					else
+					{
+						for (int i = 0; i < argExprs.Length; i++)
+						{
+							var arg = argExprs[i];
+							if (arg.Type.IsValueType)
+							{
+								argExprs[i] = Expression.Convert(arg, typeof(object));
+							}
+						}
+					}
+					return Expression.Call(ScriptUtils.Method_ScriptUtils_DynamicInvoke_Object,
+						buildContext.GetScriptContextParameter(),
+						Expression.Constant(name),
+						v,
+						Expression.NewArrayInit(typeof(object), argExprs ?? ScriptUtils.Empty_Expressions));
 				}
 			}
 

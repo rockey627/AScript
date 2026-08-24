@@ -74,7 +74,7 @@ namespace AScript
 		/// <summary>
 		/// 计算表达式，返回结果
 		/// </summary>
-		/// <param name="expression"></param>
+		/// <param name="expression">脚本</param>
 		/// <param name="cacheTime">
 		/// <para>缓存时长</para>
 		/// <para>为0表示不使用缓存（默认）；</para>
@@ -84,7 +84,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public object Eval(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -104,7 +106,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public Task<EvalResult> EvalAsync(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
@@ -126,7 +130,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public object Eval(string expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -147,7 +153,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public T Eval<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -198,7 +206,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public async Task<T> EvalAsync<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
@@ -248,7 +258,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则不缓存）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public object Eval(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -268,7 +280,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则不缓存）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public async Task<EvalResult> EvalAsync(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
@@ -301,7 +315,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则不缓存）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public object Eval(Stream expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -326,9 +342,18 @@ namespace AScript
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="expression"></param>
-		/// <param name="cacheTime"></param>
-		/// <param name="cacheKey"></param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public T Eval<T>(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -368,9 +393,18 @@ namespace AScript
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="expression"></param>
-		/// <param name="cacheTime"></param>
-		/// <param name="cacheKey"></param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public async Task<T> EvalAsync<T>(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
@@ -406,11 +440,46 @@ namespace AScript
 			return ScriptUtils.Convert<T>(value);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
+		/// <returns></returns>
 		public object Eval(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			return Eval(expression, out _, cacheTime, cacheKey, cacheVersion);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="returnType"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
+		/// <returns></returns>
 		public object Eval(Func<string> expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			if (expression == null)
@@ -428,6 +497,24 @@ namespace AScript
 			return Eval(this.Context, this.Options, expression(), out returnType);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public async Task<EvalResult> EvalAsync(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
 		{
 			if (expression == null) return default;
@@ -454,7 +541,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public T Eval<T>(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -509,7 +598,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public async Task<T> EvalAsync<T>(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
@@ -567,7 +658,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则不缓存）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public object Eval(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -588,7 +681,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则不缓存）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public object Eval(Func<Stream> expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -608,6 +703,24 @@ namespace AScript
 			return Eval(this.Context, this.Options, expression(), out returnType);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public async Task<EvalResult> EvalAsync(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
 		{
 			if (expression == null) return default;
@@ -625,9 +738,18 @@ namespace AScript
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="expression"></param>
-		/// <param name="cacheTime"></param>
-		/// <param name="cacheKey"></param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public T Eval<T>(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -675,7 +797,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public async Task<T> EvalAsync<T>(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
@@ -1031,10 +1155,19 @@ namespace AScript
 		/// <summary>
 		/// 执行文件脚本
 		/// </summary>
-		/// <param name="filePath"></param>
-		/// <param name="cacheTime"></param>
-		/// <param name="cacheKey"></param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="filePath">文件路径</param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public object EvalFile(string filePath, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -1052,10 +1185,19 @@ namespace AScript
 		/// <summary>
 		/// 异步执行文件脚本
 		/// </summary>
-		/// <param name="filePath"></param>
-		/// <param name="cacheTime"></param>
-		/// <param name="cacheKey"></param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="filePath">文件路径</param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public Task<EvalResult> EvalFileAsync(string filePath, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
@@ -1071,21 +1213,69 @@ namespace AScript
 			return EvalAsync(() => System.IO.File.OpenRead(filePath), cacheTime, cacheKey, cacheVersion, cancellationToken);
 		}
 
+		/// <summary>
+		/// 执行文件
+		/// </summary>
+		/// <param name="filePath"></param>
+		/// <param name="compileMode"></param>
+		/// <returns></returns>
 		public object EvalFile(string filePath, ECompileMode compileMode)
 		{
 			return Eval(System.IO.File.OpenRead(filePath), compileMode);
 		}
 
+		/// <summary>
+		/// 异步执行文件
+		/// </summary>
+		/// <param name="filePath"></param>
+		/// <param name="compileMode"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public Task<EvalResult> EvalFileAsync(string filePath, ECompileMode compileMode, CancellationToken cancellationToken = default)
 		{
 			return EvalAsync(System.IO.File.OpenRead(filePath), compileMode, cancellationToken);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
+		/// <returns></returns>
 		public Delegate CompileGlobal(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			return Compile(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public Task<Delegate> CompileGlobalAsync(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
 		{
 			return CompileAsync(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken);
@@ -1104,13 +1294,33 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则不缓存）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public Delegate CompileGlobal(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			return Compile(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion);
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则不缓存）
+		/// </param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
+		/// <param name="cancellationToken"></param>
+		/// <returns></returns>
 		public Task<Delegate> CompileGlobalAsync(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
 		{
 			return CompileAsync(null, this.Context, this.Options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken);
@@ -1129,7 +1339,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public Delegate CompileGlobal(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -1175,7 +1387,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public async Task<Delegate> CompileGlobalAsync(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
@@ -1222,7 +1436,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则不缓存）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public Delegate CompileGlobal(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -1261,7 +1477,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则不缓存）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public async Task<Delegate> CompileGlobalAsync(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
@@ -1371,7 +1589,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public Func<ScriptContext, T> CompileGlobal<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -1400,7 +1620,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public async Task<Func<ScriptContext, T>> CompileGlobalAsync<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
@@ -1430,7 +1652,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则不缓存）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public Func<ScriptContext, T> CompileGlobal<T>(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -1459,7 +1683,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public async Task<Func<ScriptContext, T>> CompileGlobalAsync<T>(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
@@ -1489,7 +1715,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public Func<ScriptContext, T> CompileGlobal<T>(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -1518,7 +1746,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public async Task<Func<ScriptContext, T>> CompileGlobalAsync<T>(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
@@ -1548,7 +1778,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则不缓存）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public Func<ScriptContext, T> CompileGlobal<T>(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -1577,7 +1809,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public async Task<Func<ScriptContext, T>> CompileGlobalAsync<T>(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
@@ -1668,7 +1902,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public Func<T> Compile<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -1741,7 +1977,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public async Task<Func<T>> CompileAsync<T>(string expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
@@ -1802,7 +2040,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则不缓存）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public Func<T> Compile<T>(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -1861,7 +2101,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public async Task<Func<T>> CompileAsync<T>(Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
@@ -1921,7 +2163,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public Func<T> Compile<T>(Func<string> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -2022,7 +2266,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则不缓存）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <returns></returns>
 		public Func<T> Compile<T>(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
@@ -2081,7 +2327,9 @@ namespace AScript
 		/// <param name="cacheKey">
 		/// 缓存key（如果为空则取表达式字符串）
 		/// </param>
-		/// <param name="cacheVersion"></param>
+		/// <param name="cacheVersion">
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </param>
 		/// <param name="cancellationToken"></param>
 		/// <returns></returns>
 		public async Task<Func<T>> CompileAsync<T>(Func<Stream> expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
