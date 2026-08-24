@@ -605,7 +605,7 @@ namespace AScript
 			}
 			if (func is ScriptFunctionObject sfo)
 			{
-				var value = sfo.DynamicInvoke(context, args);
+				var value = sfo.DynamicInvoke(args);
 				//var returnType = value?.GetType() ?? typeof(object);
 				return value;
 			}
@@ -628,7 +628,7 @@ namespace AScript
 			}
 			if (func is ScriptFunctionObject sfo)
 			{
-				var value = sfo.DynamicInvoke(context, args);
+				var value = sfo.DynamicInvoke(args);
 				//var returnType = value?.GetType() ?? typeof(object);
 				return value;
 			}

@@ -1068,7 +1068,7 @@ namespace AScript
 				}
 				if (value is ScriptFunctionObject sfo)
 				{
-					var result = sfo.DynamicInvoke(this, functionEvalArgs.ArgValues);
+					var result = sfo.DynamicInvoke(functionEvalArgs.ArgValues);
 					returnType = result?.GetType() ?? typeof(object);
 					return result;
 				}
