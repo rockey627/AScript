@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,6 +11,17 @@ namespace AScript.Test.MSTests
 	[TestClass]
 	public class ScriptLambdaTest
 	{
+		[TestMethod]
+		public void Test06()
+		{
+			var script = new Script();
+			var expr = script.Lambda<Func<int>>("5 + 6", argNames: null);
+			Assert.IsNotNull(expr);
+			Console.WriteLine(expr.ToString());
+			var func = expr.Compile();
+			Assert.AreEqual(11, func());
+		}
+
 		[TestMethod]
 		public void Test05()
 		{
@@ -49,7 +61,7 @@ namespace AScript.Test.MSTests
 		public void Test02()
 		{
 			var script = new Script();
-			var expr = script.Lambda<int, bool>("a>0 && a<10", "a");
+			Expression<Func<int, bool>> expr = script.Lambda<int, bool>("a>0 && a<10", "a");
 			Assert.IsNotNull(expr);
 			Console.WriteLine(expr.ToString());
 			Assert.AreEqual("a => ((a > 0) AndAlso (a < 10))", expr.ToString());

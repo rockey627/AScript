@@ -124,6 +124,8 @@ namespace AScript.Lang.JavaScript
 			AddTokenHandler("/", JavaScriptRegexPatternTokenHandler.Instance);
 			AddTokenHandler("`", JavaScriptStringInterpolationTokenHandler.Instance);
 			AddTokenHandler("undefined", JavaScriptUndefinedTokenHandler.Instance);
+			AddTokenHandler("export", JavaScriptExportTokenHandler.Instance);
+			AddTokenHandler("import", JavaScriptImportTokenHandler.Instance);
 		}
 
 		public override bool IsDynamic()

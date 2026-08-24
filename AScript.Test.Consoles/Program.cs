@@ -37,7 +37,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			Test01_Benchmark();
+			//Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -66,7 +66,7 @@ namespace AScript.Test.Consoles
 			//Test22();
 			//Test23();
 			//Test24_Sqlite();
-			//Test25_js();
+			Test25_js();
 			//var p = Expression.Constant(new Person());
 			//Console.WriteLine(Expression.PropertyOrField(p, "name"));
 			Console.WriteLine("end");
@@ -77,7 +77,24 @@ namespace AScript.Test.Consoles
 		{
 			Script.Langs.Set("js", JavaScriptLang.Instance);
 			JavaScriptLang.Instance.AddModule("axios", new JavaScriptAxiosModule());
-			var s = @"
+
+			{
+				// Test import syntax
+				var s = @"
+import axios from 'axios';
+axios.createMock({a:1});
+axios.createMock({a:1});
+axios.createMock({a:1});
+";
+				var script = new Script();
+				script.Context.Langs = new[] { "js" };
+				script.Eval(s);
+				Console.WriteLine("Import syntax test passed!");
+			}
+
+			{
+				// Original test with require
+				var s = @"
 var axios = require('axios');
 axios.get('https://www.runoob.com/try/ajax/json_demo.json')
 	.then(res=>{
@@ -87,9 +104,10 @@ axios.get('https://www.runoob.com/try/ajax/json_demo.json')
 		console.log(error);
     });
 ";
-			var script = new Script();
-			script.Context.Langs = new[] { "js" };
-			script.Eval(s);
+				var script = new Script();
+				script.Context.Langs = new[] { "js" };
+				script.Eval(s);
+			}
 		}
 
 		static void Test24_Sqlite()
@@ -389,6 +407,24 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 				var result = engine.Evaluate("var [name, age] = ['Alice', 25]; name + age");
 				Console.WriteLine(result);
 			}
+
+			{
+				var engine = new Jint.Engine();
+				var result = engine.EvaluateAsync("new Promise((resolve, reject) => resolve(42)).then(x => 2 * x)").Result;
+				Console.WriteLine(result);
+			}
+
+			{
+				var engine = new Jint.Engine();
+				engine.SetValue("name", "world");
+				var result = engine.Evaluate("`hello ${name}`");
+				Console.WriteLine(result);
+				Console.WriteLine(engine.Evaluate("5**2"));
+				Console.WriteLine(engine.Evaluate("'5'.padStart(4,'0')"));
+				engine.SetValue("mymethod", new Func<string, int, string>((s, n) => s + n));
+				Console.WriteLine(engine.Evaluate("mymethod('hello', 60)"));
+				//Console.WriteLine(engine.Evaluate("'hello'.mymethod(60)")); // 不支持
+			}
 		}
 
 		static void Test18_ClearScript()
@@ -407,6 +443,21 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 				Console.WriteLine(result);
 				Console.WriteLine(engine.GetGlobalValue("a"));
 			}
+			{
+				var engine = new Jurassic.ScriptEngine();
+				engine.SetGlobalValue("name", "world");
+				var result = engine.Evaluate("`hello ${name}`");
+				Console.WriteLine(result);
+				Console.WriteLine(engine.Evaluate("5**2"));
+				//Console.WriteLine(engine.Evaluate("'5'.padStart(4,'0')")); // 不支持
+			}
+			//// 不支持await，不支持 ()=>{}
+			//{
+			//	var engine = new Jurassic.ScriptEngine();
+			//	//var result = engine.Evaluate("new Promise((resolve, reject) => resolve(42)).then(x => 2 * x)");
+			//	var result = engine.Evaluate("function a(resolve, reject) { resolve(42); } function b(x) { return 2 * x; } var t = new Promise(a).then(b); await t;");
+			//	Console.WriteLine(result);
+			//}
 			//// 不支持
 			//{
 			//	var engine = new Jurassic.ScriptEngine();
