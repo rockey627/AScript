@@ -10,6 +10,11 @@ namespace AScript
 		private IDictionary<string, IScriptModule> _Modules;
 		private List<string> _Dirs;
 
+		/// <summary>
+		/// 文件执行选项设置
+		/// </summary>
+		public BuildOptions FileOptions { get; private set; } = new BuildOptions();
+
 		public ScriptModuleCollection(bool threadSafely)
 		{
 			_ThreadSafely = threadSafely;
@@ -120,7 +125,7 @@ namespace AScript
 			var file = GetFile(name);
 			if (!string.IsNullOrEmpty(file))
 			{
-				return new FileScriptModule(file);
+				return new FileScriptModule(file) { Options = new BuildOptions(this.FileOptions) };
 			}
 			return null;
 		}

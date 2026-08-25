@@ -6,6 +6,7 @@ namespace AScript
 	{
 		public string[] Langs { get; private set; }
 		public string FilePath { get; private set; }
+		public BuildOptions Options { get; set; }
 
 		public FileScriptModule(string filePath)
 		{
@@ -24,13 +25,13 @@ namespace AScript
 			}
 			if (Langs == null)
 			{
-				return Script.Eval(scriptContext, null, System.IO.File.OpenRead(FilePath), out _);
+				return Script.Eval(scriptContext, this.Options, System.IO.File.OpenRead(FilePath), out _);
 			}
 			var oldLangs = scriptContext.Langs;
 			try
 			{
 				scriptContext.Langs = Langs;
-				return Script.Eval(scriptContext, null, System.IO.File.OpenRead(FilePath), out _);
+				return Script.Eval(scriptContext, this.Options, System.IO.File.OpenRead(FilePath), out _);
 			}
 			finally
 			{
