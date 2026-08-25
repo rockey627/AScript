@@ -757,6 +757,20 @@ namespace AScript
 			return null;
 		}
 
+		public object EvalVar(string name, bool searchParent)
+		{
+			return EvalVar(name, out _, searchParent);
+		}
+
+		public object EvalVar(string name, out Type type, bool searchParent)
+		{
+			if (!searchParent)
+			{
+				return base.EvalVar(name, out type);
+			}
+			return EvalVar(name, out type);
+		}
+
 		public override object EvalVar(string name, out Type type)
 		{
 			var context = GetOwnerContext(name, out var value, out type, true);
@@ -1064,7 +1078,7 @@ namespace AScript
 				if (value is CustomFunctionObject customFunctionObject)
 				{
 					returnType = customFunctionObject.Function.ReturnType;
-					return customFunctionObject.DynamicInvoke(this, functionEvalArgs.ArgValues);
+					return customFunctionObject.DynamicInvoke(functionEvalArgs.ArgValues);
 				}
 				if (value is ScriptFunctionObject sfo)
 				{
@@ -1194,20 +1208,22 @@ namespace AScript
 					value = EvalVarFromLangs(name, out _);
 				}
 				functionEvalArgs.EvalArgs();
-				if (value is Delegate || value is CustomFunctionObject)
+				if (value is Delegate del)
 				{
-					if (value is Delegate del)
-					{
-						var returnType = del.Method.ReturnType;
-						var result = del.DynamicInvoke(functionEvalArgs.ArgValues);
-						return new EvalResult(result, returnType);
-					}
-					if (value is CustomFunctionObject customFunctionObject)
-					{
-						var returnType = customFunctionObject.Function.ReturnType;
-						var result = customFunctionObject.DynamicInvoke(this, functionEvalArgs.ArgValues);
-						return new EvalResult(result, returnType);
-					}
+					var returnType = del.Method.ReturnType;
+					var result = del.DynamicInvoke(functionEvalArgs.ArgValues);
+					return new EvalResult(result, returnType);
+				}
+				if (value is CustomFunctionObject customFunctionObject)
+				{
+					var returnType = customFunctionObject.Function.ReturnType;
+					var result = customFunctionObject.DynamicInvoke(functionEvalArgs.ArgValues);
+					return new EvalResult(result, returnType);
+				}
+				if (value is ScriptFunctionObject sfo)
+				{
+					var result = sfo.DynamicInvoke(functionEvalArgs.ArgValues);
+					return new EvalResult(result, result?.GetType() ?? typeof(object));
 				}
 				// dynamic对象
 				if (functionEvalArgs.ArgValues != null && functionEvalArgs.ArgValues.Length > 0)
@@ -1565,7 +1581,7 @@ namespace AScript
 					}
 					return Expression.Invoke(Expression.Convert(v, type), argExprs);
 				}
-				if (type == typeof(object))
+				if (type == typeof(object) || type == typeof(CustomFunctionObject) || type == typeof(ScriptFunctionObject))
 				{
 					if (argExprs == null)
 					{
