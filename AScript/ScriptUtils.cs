@@ -599,7 +599,7 @@ namespace AScript
 			}
 			if (func is CustomFunctionObject cfo)
 			{
-				var value = cfo.DynamicInvoke(context, args);
+				var value = cfo.DynamicInvoke(args);
 				//var returnType = value?.GetType() ?? cfo.Function.ReturnType;
 				return value;
 			}
@@ -622,7 +622,7 @@ namespace AScript
 		{
 			if (func is CustomFunctionObject cfo)
 			{
-				var value = cfo.DynamicInvoke(context, args);
+				var value = cfo.DynamicInvoke(args);
 				//var returnType = value?.GetType() ?? cfo.Function.ReturnType;
 				return value;
 			}
