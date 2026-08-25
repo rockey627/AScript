@@ -1,6 +1,6 @@
-﻿using AScript.Nodes;
+﻿using AScript.Lang.JavaScript.Nodes;
+using AScript.Nodes;
 using AScript.Syntaxs;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -18,10 +18,10 @@ namespace AScript.Lang.JavaScript.TokenHandlers
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;
+			e.End = true;
 
 			if (e.TreeBuilder.IsFullStatement())
 			{
-				e.End = true;
 				e.TokenReader.Push(e.CurrentToken);
 				return;
 			}
@@ -29,97 +29,49 @@ namespace AScript.Lang.JavaScript.TokenHandlers
 			var nextToken = analyzer.ValidateNextToken(e.TokenReader);
 			if (nextToken.Value.IsSymbol("default"))
 			{
-				e.End = true;
-				/*
-				export default {
-					sum,
-					add: function(a, b) { a+b },
-					function fib(a) { a-1 }
-				}
-				*/
-				var obj = BuildObject(analyzer, e);
+				var obj1 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
 				if (!e.Ignore)
 				{
-					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, obj);
+					var exportNode = new JavaScriptExportNode { Default = true, Value = obj1 };
+					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, exportNode);
 				}
+				return;
 			}
-			else
+
+			// export const name = '';
+			// export function sum(a, b) { a + b }
+			if (nextToken.Value.IsSymbol("const")
+				|| nextToken.Value.IsSymbol("var")
+				|| nextToken.Value.IsSymbol("let")
+				|| nextToken.Value.IsSymbol("function"))
 			{
+				var varNameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+				string varName2 = varNameToken.Value.Value;
+				e.TokenReader.Push(varNameToken.Value);
 				e.TokenReader.Push(nextToken.Value);
+				var obj2 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+				if (!e.Ignore)
+				{
+					var exportNode = new JavaScriptExportNode { Name = varName2, Value = obj2 };
+					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, exportNode);
+				}
+				return;
+			}
+
+			// export add = (a, b) => a + b;
+			var nextToken2 = analyzer.ValidateNextToken(e.TokenReader, "=");
+			string varName = nextToken.Value.Value;
+			e.TokenReader.Push(nextToken2.Value);
+			e.TokenReader.Push(nextToken.Value);
+			var obj = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+			if (!e.Ignore)
+			{
+				var exportNode = new JavaScriptExportNode { Name = varName, Value = obj };
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, exportNode);
 			}
 		}
 
-		private static NewNode BuildObject(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
-		{
-			analyzer.ValidateNextToken(e.TokenReader, "{");
-			var nextToken = analyzer.ValidateNextToken(e.TokenReader);
-			if (nextToken.Value.IsSymbol("}"))
-			{
-				if (e.Ignore) return null;
-				return new NewNode { SystemType = typeof(ExpandoObject) };
-			}
-			e.TokenReader.Push(nextToken.Value);
-			var initProperties = e.Ignore ? null : new List<ITreeNode>();
-			while (true)
-			{
-				var token = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
-				if (token.Value.IsSymbol("function"))
-				{
-					var funcNameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
-					var funcName = funcNameToken.Value.Value;
-					e.TokenReader.Push(funcNameToken.Value);
-					e.TokenReader.Push(token.Value);
-					var func = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
-					initProperties?.Add(new OperatorNode("=", DefaultSyntaxAnalyzer.OperatorPriorities["="], 2)
-					{
-						Left = new VariableNode(funcName),
-						Right = func
-					});
-					// 
-					nextToken = e.TokenReader.Read();
-					if (!nextToken.HasValue) break;
-					if (nextToken.Value.IsSymbol(",")) continue;
-					if (nextToken.Value.IsSymbol("}")) break;
-					throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
-				}
-				nextToken = e.TokenReader.Read();
-				if (!nextToken.HasValue || nextToken.Value.IsSymbol("}"))
-				{
-					initProperties?.Add(new OperatorNode("=", DefaultSyntaxAnalyzer.OperatorPriorities["="], 2)
-					{
-						Left = new VariableNode(token.Value.Value),
-						Right = new VariableNode(token.Value.Value)
-					});
-					break;
-				}
-				if (nextToken.Value.IsSymbol(","))
-				{
-					initProperties?.Add(new OperatorNode("=", DefaultSyntaxAnalyzer.OperatorPriorities["="], 2)
-					{
-						Left = new VariableNode(token.Value.Value),
-						Right = new VariableNode(token.Value.Value)
-					});
-					continue;
-				}
-				if (nextToken.Value.IsSymbol(":"))
-				{
-					var value = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
-					initProperties?.Add(new OperatorNode("=", DefaultSyntaxAnalyzer.OperatorPriorities["="], 2)
-					{
-						Left = new VariableNode(token.Value.Value),
-						Right = value
-					});
-					// 
-					nextToken = e.TokenReader.Read();
-					if (!nextToken.HasValue) break;
-					if (nextToken.Value.IsSymbol(",")) continue;
-					if (nextToken.Value.IsSymbol("}")) break;
-				}
-				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{nextToken.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
-			}
-			if (e.Ignore) return null;
-			return new NewNode { SystemType = typeof(ExpandoObject), InitProperties = initProperties };
-		}
+
 
 	}
 }

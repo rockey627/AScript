@@ -11,6 +11,7 @@ namespace AScript.Test.MSTests.JavaScript
 		public static void Init(TestContext context)
 		{
 			Script.Langs["js"] = JavaScriptLang.Instance;
+			JavaScriptLang.Instance.Modules.FileOptions.CompileMode = ECompileMode.All;
 			JavaScriptLang.Instance.Modules.AddDir("./JavaScript/modules");
 		}
 
