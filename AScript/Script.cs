@@ -321,20 +321,21 @@ namespace AScript
 		/// <returns></returns>
 		public object Eval(Stream expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
-			if (expression == null || expression.Length == 0L)
-			{
-				returnType = null;
-				return null;
-			}
-			bool standalone = this.Options.Standalone ?? false;
-			if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey)
-				|| (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
-			{
-				var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
-				returnType = func.Method.ReturnType;
-				return standalone ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
-			}
-			return Eval(this.Context, this.Options, expression, out returnType);
+			return Eval(null, this.Context, this.Options, expression, out returnType, cacheTime, cacheKey, cacheVersion);
+			//if (expression == null || expression.Length == 0L)
+			//{
+			//	returnType = null;
+			//	return null;
+			//}
+			//bool standalone = this.Options.Standalone ?? false;
+			//if (cacheTime != 0 && !standalone && !string.IsNullOrEmpty(cacheKey)
+			//	|| (this.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			//{
+			//	var func = CompileGlobal(expression, cacheTime, cacheKey, cacheVersion);
+			//	returnType = func.Method.ReturnType;
+			//	return standalone ? func.DynamicInvoke() : func.DynamicInvoke(this.Context);
+			//}
+			//return Eval(this.Context, this.Options, expression, out returnType);
 		}
 
 		/// <summary>
@@ -2737,6 +2738,7 @@ namespace AScript
 				returnType = null;
 				return null;
 			}
+			if (options == null) options = new BuildOptions(DefaultOptions);
 			if (cacheTime != 0 || (options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = Compile(buildContext, scriptContext, options, expression, cacheTime, cacheKey, cacheVersion);
@@ -2750,7 +2752,54 @@ namespace AScript
 					throw ex.InnerException;
 				}
 			}
-			return Eval(scriptContext, options, expression, out returnType);
+			var tokenStream = GetTokenStream(scriptContext, expression);
+			return GetSyntaxAnalyzer(scriptContext).Eval(scriptContext, options, tokenStream, out returnType);
+			//return Eval(scriptContext, options, expression, out returnType);
+		}
+
+		/// <summary>
+		/// 计算表达式，返回结果和类型（结果可能为null，此时returnType可以判断返回类型）
+		/// </summary>
+		/// <param name="buildContext"></param>
+		/// <param name="scriptContext"></param>
+		/// <param name="options"></param>
+		/// <param name="expression"></param>
+		/// <param name="returnType"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public static object Eval(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression, out Type returnType, int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
+		{
+			if (expression == null)
+			{
+				returnType = null;
+				return null;
+			}
+			if (options == null) options = new BuildOptions(DefaultOptions);
+			if (cacheTime != 0 || (options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				var func = Compile(buildContext, scriptContext, options, expression, cacheTime, cacheKey, cacheVersion);
+				returnType = func.Method.ReturnType;
+				try
+				{
+					return (options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(scriptContext);
+				}
+				catch (System.Reflection.TargetInvocationException ex)
+				{
+					throw ex.InnerException;
+				}
+			}
+			var tokenStream = GetTokenStream(scriptContext, expression);
+			return GetSyntaxAnalyzer(scriptContext).Eval(scriptContext, options, tokenStream, out returnType);
+			//return Eval(scriptContext, options, expression, out returnType);
 		}
 
 		/// <summary>
@@ -2777,41 +2826,84 @@ namespace AScript
 			{
 				return default;
 			}
+			if (options == null) options = new BuildOptions(DefaultOptions);
 			if (cacheTime != 0 || (options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
 				var func = await CompileAsync(buildContext, scriptContext, options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
 				var value = (options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(scriptContext);
 				return new EvalResult(value, func.Method.ReturnType);
 			}
-			return await EvalAsync(scriptContext, options, expression, cancellationToken).ConfigureAwait(false);
+			var tokenStream = GetTokenStream(scriptContext, expression);
+			return await GetSyntaxAnalyzer(scriptContext).EvalAsync(scriptContext, options, tokenStream, cancellationToken).ConfigureAwait(false);
+			//return await EvalAsync(scriptContext, options, expression, cancellationToken).ConfigureAwait(false);
+		}
+
+		/// <summary>
+		/// 异步计算表达式，返回结果和类型（结果可能为null，此时returnType可以判断返回类型）
+		/// </summary>
+		/// <param name="buildContext"></param>
+		/// <param name="scriptContext"></param>
+		/// <param name="options"></param>
+		/// <param name="expression"></param>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// 缓存key（如果为空则取表达式字符串）
+		/// </param>
+		/// <param name="cacheVersion"></param>
+		/// <returns></returns>
+		public static async Task<EvalResult> EvalAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, Stream expression, int cacheTime = 0, string cacheKey = null, string cacheVersion = null, CancellationToken cancellationToken = default)
+		{
+			if (expression == null)
+			{
+				return default;
+			}
+			if (options == null) options = new BuildOptions(DefaultOptions);
+			if (cacheTime != 0 || (options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
+			{
+				var func = await CompileAsync(buildContext, scriptContext, options, expression, cacheTime, cacheKey, cacheVersion, cancellationToken).ConfigureAwait(false);
+				var value = (options.Standalone ?? false) ? func.DynamicInvoke() : func.DynamicInvoke(scriptContext);
+				return new EvalResult(value, func.Method.ReturnType);
+			}
+			var tokenStream = GetTokenStream(scriptContext, expression);
+			return await GetSyntaxAnalyzer(scriptContext).EvalAsync(scriptContext, options, tokenStream, cancellationToken).ConfigureAwait(false);
+			//return await EvalAsync(scriptContext, options, expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static object Eval(ScriptContext context, BuildOptions options, string expression, out Type returnType)
 		{
-			var tokenStream = GetTokenStream(context, expression);
-			if (options == null) options = new BuildOptions(DefaultOptions);
-			return GetSyntaxAnalyzer(context).Eval(context, options, tokenStream, out returnType);
+			//var tokenStream = GetTokenStream(context, expression);
+			//if (options == null) options = new BuildOptions(DefaultOptions);
+			//return GetSyntaxAnalyzer(context).Eval(context, options, tokenStream, out returnType);
+			return Eval(null, context, options, expression, out returnType);
 		}
 
-		public static async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, string expression, CancellationToken cancellationToken = default)
+		public static Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, string expression, CancellationToken cancellationToken = default)
 		{
-			var tokenStream = GetTokenStream(context, expression);
-			if (options == null) options = new BuildOptions(DefaultOptions);
-			return await GetSyntaxAnalyzer(context).EvalAsync(context, options, tokenStream, cancellationToken).ConfigureAwait(false);
+			return EvalAsync(null, context, options, expression, cancellationToken: cancellationToken);
+			//var tokenStream = GetTokenStream(context, expression);
+			//if (options == null) options = new BuildOptions(DefaultOptions);
+			//return await GetSyntaxAnalyzer(context).EvalAsync(context, options, tokenStream, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static object Eval(ScriptContext context, BuildOptions options, Stream expression, out Type returnType)
 		{
-			var tokenStream = GetTokenStream(context, expression);
-			if (options == null) options = new BuildOptions(DefaultOptions);
-			return GetSyntaxAnalyzer(context).Eval(context, options, tokenStream, out returnType);
+			//var tokenStream = GetTokenStream(context, expression);
+			//if (options == null) options = new BuildOptions(DefaultOptions);
+			//return GetSyntaxAnalyzer(context).Eval(context, options, tokenStream, out returnType);
+			return Eval(null, context, options, expression, out returnType);
 		}
 
-		public static async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, Stream expression, CancellationToken cancellationToken = default)
+		public static Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, Stream expression, CancellationToken cancellationToken = default)
 		{
-			var tokenStream = GetTokenStream(context, expression);
-			if (options == null) options = new BuildOptions(DefaultOptions);
-			return await GetSyntaxAnalyzer(context).EvalAsync(context, options, tokenStream, cancellationToken).ConfigureAwait(false);
+			return EvalAsync(null, context, options, expression, cancellationToken: cancellationToken);
+			//var tokenStream = GetTokenStream(context, expression);
+			//if (options == null) options = new BuildOptions(DefaultOptions);
+			//return await GetSyntaxAnalyzer(context).EvalAsync(context, options, tokenStream, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static object Eval(ScriptContext context, BuildOptions options, ITokenStream expression, out Type returnType)
