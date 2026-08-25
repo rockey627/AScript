@@ -13,7 +13,7 @@ namespace AScript
 		/// <summary>
 		/// 文件执行选项设置
 		/// </summary>
-		public BuildOptions FileOptions { get; private set; } = new BuildOptions();
+		public BuildOptions FileOptions { get; private set; } = new BuildOptions(Script.DefaultOptions);
 
 		public ScriptModuleCollection(bool threadSafely)
 		{

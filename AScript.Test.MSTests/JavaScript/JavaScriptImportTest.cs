@@ -29,10 +29,13 @@ namespace AScript.Test.MSTests.JavaScript
 			script.Context.Langs = new[] { "js" };
 
 			var code = @"
-import m from 'mymodule';
+import m, { getTotal } from 'mymodule';
 m.sum(1, 2) + m.fib(3);
 ";
 			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(2L, script.Eval("getTotal()"));
+			Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));
+			Assert.AreEqual(3L, script.Eval("getTotal()"));
 		}
 
 		[TestMethod]
@@ -43,10 +46,13 @@ m.sum(1, 2) + m.fib(3);
 			script.Context.Langs = new[] { "js" };
 
 			var code = @"
-import m from 'mymodule';
+import m, { getTotal } from 'mymodule';
 m.sum(1, 2) + m.fib(3);
 ";
 			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(2L, script.Eval("getTotal()"));
+			Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));
+			Assert.AreEqual(3L, script.Eval("getTotal()"));
 		}
 
 		[TestMethod]
@@ -60,6 +66,7 @@ import { sum, fib as fib2 } from 'mymodule';
 sum(1, 2) + fib2(3);
 ";
 			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(21L, script.Eval("sum(13, 8)"));
 		}
 
 		[TestMethod]
@@ -74,6 +81,45 @@ import { sum, fib as fib2 } from 'mymodule';
 sum(1, 2) + fib2(3);
 ";
 			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(21L, script.Eval("sum(13, 8)"));
+		}
+
+		[TestMethod]
+		public void Test03_getTotal()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			var code = @"
+import { sum, getTotal } from 'mymodule';
+sum(1, 2);
+";
+			Assert.AreEqual(3L, script.Eval(code));
+			Assert.AreEqual(2L, script.Eval("getTotal()"));
+			Assert.AreEqual(21L, script.Eval("sum(13, 8)"));
+			Assert.AreEqual(3L, script.Eval("getTotal()"));
+			script.Eval("import { getTotal as getTotal2 } from 'mymodule'");
+			Assert.AreEqual(3L, script.Eval("getTotal2()"));
+		}
+
+		[TestMethod]
+		public void Test03_getTotal_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+
+			var code = @"
+import { sum, getTotal } from 'mymodule';
+sum(1, 2);
+";
+			Assert.AreEqual(3L, script.Eval(code));
+			Assert.AreEqual(2L, script.Eval("getTotal()"));
+			Assert.AreEqual(21L, script.Eval("sum(13, 8)"));
+			Assert.AreEqual(3L, script.Eval("getTotal()"));
+			script.Eval("import { getTotal as getTotal2 } from 'mymodule'");
+			Assert.AreEqual(3L, script.Eval("getTotal2()"));
 		}
 	}
 }
