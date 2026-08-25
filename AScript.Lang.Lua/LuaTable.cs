@@ -422,6 +422,11 @@ namespace AScript.Lang.Lua
 				result = customFunctionObject.DynamicInvoke(args);
 				return true;
 			}
+			if (v is ScriptFunctionObject fso)
+			{
+				result = fso.DynamicInvoke(args);
+				return true;
+			}
 			if (v is Delegate del)
 			{
 				// 检查是否需要插入 self 参数
