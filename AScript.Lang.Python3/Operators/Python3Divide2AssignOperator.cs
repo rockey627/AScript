@@ -23,19 +23,19 @@ namespace AScript.Lang.Python3.Operators
 
 				Expression leftExpr, rightExpr;
 				// 
-				if (leftType == typeof(object)) leftExpr = Expression.Call(ExpressionUtils.Method_ScriptUtils_Convert, left, ExpressionUtils.Constant_typeof_double);
+				if (leftType == typeof(object)) leftExpr = Expression.Call(ScriptUtils.Method_ScriptUtils_Convert, left, ScriptUtils.Constant_typeof_double);
 				else if (left.Type == typeof(double)) leftExpr = left;
 				else if (lastType == null || left.Type == lastType) leftExpr = Expression.Convert(left, typeof(double));
 				else leftExpr = Expression.Convert(Expression.Convert(left, lastType), typeof(double));
 				// 
-				if (right.Type == typeof(object)) rightExpr = Expression.Call(ExpressionUtils.Method_ScriptUtils_Convert, right, ExpressionUtils.Constant_typeof_double);
+				if (right.Type == typeof(object)) rightExpr = Expression.Call(ScriptUtils.Method_ScriptUtils_Convert, right, ScriptUtils.Constant_typeof_double);
 				else if (right.Type == typeof(double)) rightExpr = right;
 				else rightExpr = Expression.Convert(right, typeof(double));
 
 				//var d1 = Expression.Convert(left, typeof(double));
 				//var d2 = Expression.Convert(right, typeof(double));
 				var d = Expression.Divide(leftExpr, rightExpr);
-				var r = Expression.Call(ExpressionUtils.Method_Math_Floor, d);
+				var r = Expression.Call(ScriptUtils.Method_Math_Floor, d);
 				if (ScriptUtils.IsIntegerType(leftType) && ScriptUtils.IsIntegerType(right.Type))
 				{
 					var maxType = ScriptUtils.GetMaxType(leftType, right.Type);

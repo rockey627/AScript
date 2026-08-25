@@ -721,9 +721,10 @@ namespace AScript
 			// 变量回写
 			if (_VariablesCount > 0 && !standalone && (options?.RewriteVariables ?? true))
 			{
-				foreach (var v in _Variables)
+				foreach (var v in _Variables.Values)
 				{
-					bool searchParent = _LocalVariables == null || !_LocalVariables.Contains(v.Key);
+					if (string.IsNullOrEmpty(v.Name)) continue;
+					bool searchParent = _LocalVariables == null || !_LocalVariables.Contains(v.Name);
 					if (!searchParent)
 					{
 						if (!this.RewriteLocalVariables)
@@ -732,16 +733,16 @@ namespace AScript
 							continue;
 						}
 					}
-					else if (_ChangedVariables == null || !_ChangedVariables.Contains(v.Key)) continue;
-					if (_VariableModifiers != null && _VariableModifiers.TryGetValue(v.Key, out var modifier)
+					else if (_ChangedVariables == null || !_ChangedVariables.Contains(v.Name)) continue;
+					if (_VariableModifiers != null && _VariableModifiers.TryGetValue(v.Name, out var modifier)
 						&& Modifiers.IsReadOnly(modifier))
 					{
 						list.Add(Expression.Call(
 							scriptContextParameter,
 							ScriptUtils.Method_ScriptContext_SetTempConst,
-							Expression.Constant(v.Key),
-							Expression.Convert(v.Value, typeof(object)),
-							Expression.Constant(v.Value.Type),
+							Expression.Constant(v.Name),
+							Expression.Convert(v, typeof(object)),
+							Expression.Constant(v.Type),
 							Expression.Constant(searchParent)));
 					}
 					else
@@ -749,9 +750,9 @@ namespace AScript
 						list.Add(Expression.Call(
 							scriptContextParameter,
 							ScriptUtils.Method_ScriptContext_SetTempVar,
-							Expression.Constant(v.Key),
-							Expression.Convert(v.Value, typeof(object)),
-							Expression.Constant(v.Value.Type),
+							Expression.Constant(v.Name),
+							Expression.Convert(v, typeof(object)),
+							Expression.Constant(v.Type),
 							Expression.Constant(searchParent)));
 					}
 				}

@@ -16,7 +16,7 @@ namespace AScript.Lang.Python3.Operators
 			var d1 = Expression.Convert(left, typeof(double));
 			var d2 = Expression.Convert(right, typeof(double));
 			var d = Expression.Divide(d1, d2);
-			var r = Expression.Call(ExpressionUtils.Method_Math_Floor, d);
+			var r = Expression.Call(ScriptUtils.Method_Math_Floor, d);
 			if (ScriptUtils.IsIntegerType(left.Type) && ScriptUtils.IsIntegerType(right.Type))
 			{
 				var maxType = ScriptUtils.GetMaxType(left.Type, right.Type);

@@ -44,7 +44,7 @@ namespace AScript.Lang.Sql.Nodes
 					{
 						var columnName = Expression.Constant(this.Columns[j]);
 						var valueExpr = rowValues[j].Build(buildContext, scriptContext, options);
-						var rowAccess = Expression.MakeIndex(rowVar, ExpressionUtils.Property_DataRow_Item_String, new[] { columnName });
+						var rowAccess = Expression.MakeIndex(rowVar, ScriptUtils.Property_DataRow_Item_String, new[] { columnName });
 						if (valueExpr.Type.IsValueType)
 						{
 							if (valueExpr.Type.IsGenericType && valueExpr.Type.GetGenericTypeDefinition() == typeof(Nullable<>))

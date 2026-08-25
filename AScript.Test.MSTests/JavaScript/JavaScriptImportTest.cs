@@ -25,13 +25,12 @@ namespace AScript.Test.MSTests.JavaScript
 		[TestMethod]
 		public void Test01_ImportDefault()
 		{
-			var script = new Script();
-			script.Context.Langs = new[] { "js" };
-
 			var code = @"
 import m, { getTotal } from 'mymodule';
 m.sum(1, 2) + m.fib(3);
 ";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
 			Assert.AreEqual(9L, script.Eval(code));
 			Assert.AreEqual(2L, script.Eval("getTotal()"));
 			Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));

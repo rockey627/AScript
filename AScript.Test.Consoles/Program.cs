@@ -59,14 +59,14 @@ namespace AScript.Test.Consoles
 			//Test18_DynamicExpresso();
 			//Test18_Jurassic();
 			//Test18_ClearScript();
-			//Test18_Jint();
+			Test18_Jint();
 			//Test19();
 			//Test20();
 			//Test21_ExpandoObject();
 			//Test22();
 			//Test23();
 			//Test24_Sqlite();
-			Test25_js();
+			//Test25_js();
 			//var p = Expression.Constant(new Person());
 			//Console.WriteLine(Expression.PropertyOrField(p, "name"));
 			Console.WriteLine("end");
@@ -425,6 +425,20 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 				Console.WriteLine(engine.Evaluate("mymethod('hello', 60)"));
 				//Console.WriteLine(engine.Evaluate("'hello'.mymethod(60)")); // 不支持
 			}
+
+			//// 没成功
+			//{
+			//	var engine = new Jint.Engine(options =>
+			//	{
+			//		//options.EnableModules(@"./Benchmarks/JavaScriptTest");
+			//	});
+			//	//engine.
+			//	//engine.Modules.Add()
+			//	engine.Modules.Add("mymodule", m => m.AddSource(System.IO.File.ReadAllText("./Benchmarks/JavaScriptTest/utils.js")));
+			//	engine.Evaluate("import m from 'mymodule'");
+			//	//engine.Evaluate("var m = require('mymodule')");
+			//}
+
 		}
 
 		static void Test18_ClearScript()
@@ -451,6 +465,16 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 				Console.WriteLine(engine.Evaluate("5**2"));
 				//Console.WriteLine(engine.Evaluate("'5'.padStart(4,'0')")); // 不支持
 			}
+			//// 不支持
+			//{
+			//	var engine = new Jurassic.ScriptEngine();
+			//	engine.Evaluate("var m = require('mymodule')");
+			//}
+			//// 不支持import
+			//{
+			//	var engine = new Jurassic.ScriptEngine();
+			//	engine.Evaluate("import m from 'mymodule'");
+			//}
 			//// 不支持await，不支持 ()=>{}
 			//{
 			//	var engine = new Jurassic.ScriptEngine();

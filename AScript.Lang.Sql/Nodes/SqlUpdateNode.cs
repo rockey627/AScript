@@ -188,7 +188,7 @@ namespace AScript.Lang.Sql.Nodes
 			{
 				if (typeof(DataRow).IsAssignableFrom(_VarExpr.Type))
 				{
-					value = Expression.Property(_VarExpr, ExpressionUtils.Property_DataRow_Item_String, Expression.Constant(name));
+					value = Expression.Property(_VarExpr, ScriptUtils.Property_DataRow_Item_String, Expression.Constant(name));
 					return true;
 				}
 				if (TryGetProperty(name, out var p))
@@ -204,7 +204,7 @@ namespace AScript.Lang.Sql.Nodes
 			{
 				if (typeof(DataRow).IsAssignableFrom(_VarExpr.Type))
 				{
-					var rowColumn = Expression.Property(_VarExpr, ExpressionUtils.Property_DataRow_Item_String, Expression.Constant(name));
+					var rowColumn = Expression.Property(_VarExpr, ScriptUtils.Property_DataRow_Item_String, Expression.Constant(name));
 					if (value.Type != typeof(object))
 					{
 						value = Expression.Convert(value, typeof(object));

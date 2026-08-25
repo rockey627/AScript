@@ -1,10 +1,6 @@
 ﻿using AScript.Nodes;
 using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AScript.Lang.Lua.Nodes
 {
@@ -121,10 +117,10 @@ namespace AScript.Lang.Lua.Nodes
 
 			// 调用 ScriptUtils.IsIntegerType 进行运行时检查
 			var isAllInteger = Expression.AndAlso(
-				Expression.Call(ExpressionUtils.Method_ScriptUtils_IsIntegerType, Expression.Call(startVar, ExpressionUtils.Method_Object_GetType)),
+				Expression.Call(ScriptUtils.Method_ScriptUtils_IsIntegerType, Expression.Call(startVar, ScriptUtils.Method_Object_GetType)),
 				Expression.AndAlso(
-					Expression.Call(ExpressionUtils.Method_ScriptUtils_IsIntegerType, Expression.Call(endVar, ExpressionUtils.Method_Object_GetType)),
-					Expression.Call(ExpressionUtils.Method_ScriptUtils_IsIntegerType, Expression.Call(stepVar, ExpressionUtils.Method_Object_GetType))
+					Expression.Call(ScriptUtils.Method_ScriptUtils_IsIntegerType, Expression.Call(endVar, ScriptUtils.Method_Object_GetType)),
+					Expression.Call(ScriptUtils.Method_ScriptUtils_IsIntegerType, Expression.Call(stepVar, ScriptUtils.Method_Object_GetType))
 				)
 			);
 

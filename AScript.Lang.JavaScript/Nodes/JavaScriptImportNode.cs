@@ -21,7 +21,7 @@ namespace AScript.Lang.JavaScript.Nodes
 				var defaultValue = Expression.Constant(module?.exports);
 				foreach (var defaultVariable in this.DefaultVariables)
 				{
-					var variable = Expression.Variable(defaultValue.Type);
+					var variable = Expression.Variable(defaultValue.Type, defaultVariable);
 					buildContext.Variables[defaultVariable] = variable;
 					buildContext.VariableModifiers[defaultVariable] = Modifiers.READONLY;
 					buildContext.LocalVariables.Add(defaultVariable);
@@ -36,7 +36,7 @@ namespace AScript.Lang.JavaScript.Nodes
 					string alias = this.Variables[i].Alias;
 					if (name == "*")
 					{
-						var variable = Expression.Variable(typeof(ReadOnlyDictionary<string, object>));
+						var variable = Expression.Variable(typeof(ReadOnlyDictionary<string, object>), alias);
 						buildContext.Variables[alias] = variable;
 						buildContext.VariableModifiers[alias] = Modifiers.READONLY;
 						buildContext.LocalVariables.Add(alias);
@@ -60,7 +60,7 @@ namespace AScript.Lang.JavaScript.Nodes
 						{
 							module.NamedDict.TryGetValue(name, out value);
 						}
-						var variable = Expression.Variable(value?.GetType() ?? typeof(object));
+						var variable = Expression.Variable(value?.GetType() ?? typeof(object), alias);
 						buildContext.Variables[alias] = variable;
 						buildContext.VariableModifiers[alias] = Modifiers.READONLY;
 						buildContext.LocalVariables.Add(alias);

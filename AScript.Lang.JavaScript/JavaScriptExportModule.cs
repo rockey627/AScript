@@ -24,14 +24,21 @@ namespace AScript.Lang.JavaScript
 				var m = context.GetModule(moduleName);
 				if (m is FileScriptModule)
 				{
-					var moduleContext = new ScriptContext { Langs = context.Langs };
+					var moduleContext = new ScriptContext(context);
 					moduleContext.InstallModule(moduleName, m);
 					module = GetOrCreateInstance(moduleContext);
 				}
 				else
 				{
 					var v = context.InstallModule(moduleName, m);
-					module = new JavaScriptExportModule(context) { exports = v };
+					if (v is JavaScriptExportModule jsm)
+					{
+						module = jsm;
+					}
+					else
+					{
+						module = new JavaScriptExportModule(context) { exports = v };
+					}
 				}
 				context.SetConst(key, module);
 			}

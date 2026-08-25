@@ -60,8 +60,8 @@ namespace AScript.Lang.Sql.Nodes
 
 		public static Expression LikeBuild(Expression s1, string s2)
 		{
-			if (s2 == null) return ExpressionUtils.Constant_false;
-			var s1NotNull = Expression.NotEqual(s1, ExpressionUtils.Constant_null);
+			if (s2 == null) return ScriptUtils.Constant_false;
+			var s1NotNull = Expression.NotEqual(s1, ScriptUtils.Constant_null);
 			if (s2 == "") return s1NotNull;
 			Parse(s2, out int mode, out string pattern);
 			if (mode == 1)

@@ -8,10 +8,10 @@
 
 	<ItemGroup>
 		<PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
-		<PackageReference Include="DynamicExpresso.Core" Version="2.19.3" />
+		<PackageReference Include="DynamicExpresso.Core" Version="2.19.5" />
 		<PackageReference Include="Flee" Version="2.0.0" />
 		<PackageReference Include="IronPython" Version="3.4.2" />
-		<PackageReference Include="Jint" Version="4.16.0" />
+		<PackageReference Include="Jint" Version="4.16.1" />
 		<PackageReference Include="Jurassic" Version="3.2.9" />
 		<PackageReference Include="Microsoft.ClearScript" Version="7.5.1" />
 		<!--<PackageReference Include="Microsoft.ClearScript.V8" Version="7.5.1" />-->

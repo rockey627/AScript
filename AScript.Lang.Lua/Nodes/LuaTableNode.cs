@@ -69,7 +69,7 @@ namespace AScript.Lang.Lua.Nodes
 				{
 					// 数组元素: [index] = value
 					var keyExpr = Expression.Convert(Expression.Constant(index++), typeof(object));
-					var valueExpr = item?.Build(buildContext, scriptContext, options) ?? ExpressionUtils.Constant_null;
+					var valueExpr = item?.Build(buildContext, scriptContext, options) ?? ScriptUtils.Constant_null;
 					if (valueExpr.Type.IsValueType)
 					{
 						valueExpr = Expression.Convert(valueExpr, typeof(object));
