@@ -442,6 +442,63 @@ script.Eval("clearInterval(timer)");
 Assert.AreEqual(1L, script.Eval("count"));
 ```
 
+#### 模块
+* 设置模块文件目录
+```
+JavaScriptLang.Instance.Modules.AddDir("./modules");
+```
+* 添加模块js文件
+```
+var total = 1;
+
+export function sum(a, b) {
+    total += 1;
+    return a + b;
+}
+
+export function fib(a) {
+    if (a <= 1) return 1;
+    return a + fib(a - 1);
+}
+
+export function getTotal() {
+    return total;
+}
+
+/*
+兼容CommonJS写法，import/require互相兼容
+module.exports = { sum, fib }
+*/
+export default { sum, fib }
+```
+* 使用require导入模块
+```
+var code = @"
+var m = require('mymodule');
+// 重复导入只加载一次模块
+var m2 = require('mymodule');
+m2.sum(1, 2) + m.fib(3);
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+Assert.AreEqual(9L, script.Eval(code));
+```
+* 使用import导入模块
+```
+var code = @"
+import m, { getTotal } from 'mymodule';
+// 重复导入只加载一次模块
+import { fib } from 'mymodule';
+m.sum(1, 2) + fib(3);
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+Assert.AreEqual(9L, script.Eval(code));
+Assert.AreEqual(2L, script.Eval("getTotal()"));
+Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));
+Assert.AreEqual(3L, script.Eval("getTotal()"));
+```
+
 #### fs文件操作
 注：服务端项目请谨慎添加文件模块，避免脚本中恶意删除、修改文件。
 

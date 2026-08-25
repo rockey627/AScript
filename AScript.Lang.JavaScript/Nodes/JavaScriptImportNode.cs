@@ -14,11 +14,11 @@ namespace AScript.Lang.JavaScript.Nodes
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
-			var module = InstallModule(scriptContext, this.FromModule);
+			var module = JavaScriptExportModule.InstallModule(scriptContext, this.FromModule);
 			var statements = new List<Expression>((this.DefaultVariables?.Count ?? 0) + (this.Variables?.Count ?? 0));
 			if (this.DefaultVariables != null)
 			{
-				var defaultValue = Expression.Constant(module?.Default);
+				var defaultValue = Expression.Constant(module?.exports);
 				foreach (var defaultVariable in this.DefaultVariables)
 				{
 					var variable = Expression.Variable(defaultValue.Type);
@@ -79,29 +79,15 @@ namespace AScript.Lang.JavaScript.Nodes
 			return Expression.Block(statements);
 		}
 
-		private static JavaScriptExportModule InstallModule(ScriptContext context, string moduleName)
-		{
-			string key = $"__export_module_{moduleName}__";
-			var module = (JavaScriptExportModule)context.EvalVar(key);
-			if (module == null)
-			{
-				var moduleContext = new ScriptContext { Langs = context.Langs };
-				moduleContext.InstallModule(moduleName);
-				module = JavaScriptExportModule.GetInstance(moduleContext);
-				context.SetConst(key, module);
-			}
-			return module;
-		}
-
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
-			var module = InstallModule(context, this.FromModule);
+			var module = JavaScriptExportModule.InstallModule(context, this.FromModule);
 
 			if (this.DefaultVariables != null)
 			{
 				foreach (var defaultVariable in this.DefaultVariables)
 				{
-					context.SetConst(defaultVariable, module?.Default);
+					context.SetConst(defaultVariable, module?.exports);
 				}
 			}
 			if (this.Variables != null)

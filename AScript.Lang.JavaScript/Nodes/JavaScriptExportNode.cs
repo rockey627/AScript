@@ -27,8 +27,8 @@ namespace AScript.Lang.JavaScript.Nodes
 
 			if (this.Default)
 			{
-				// module.Default = valueExpr
-				var assign = Expression.Assign(Expression.Property(module, "Default"), value);
+				// module.exports = valueExpr
+				var assign = Expression.Assign(Expression.Property(module, "exports"), value);
 				return Expression.Block(new[] { module, value }, moduleAssign, valueAssign, assign, value);
 			}
 			else
@@ -46,7 +46,7 @@ namespace AScript.Lang.JavaScript.Nodes
 			var value = this.Value.Eval(context, options, control, out returnType);
 			if (this.Default)
 			{
-				module.Default = value;
+				module.exports = value;
 			}
 			else
 			{

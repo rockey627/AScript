@@ -14,11 +14,4 @@ export function getTotal() {
     return total;
 }
 
-/*
-兼容nodeJS写法，import/require互相兼容
 module.exports = { sum, fib }
-*/
-export default {
-    sum,
-    fib
-}

@@ -1,5 +1,6 @@
 ﻿using AScript.Functions;
 using AScript.Lang.JavaScript.Extensions;
+using AScript.Lang.JavaScript.Functions;
 using AScript.Lang.JavaScript.TokenHandlers;
 using AScript.Operators;
 using AScript.TokenHandlers;
@@ -78,7 +79,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc("includes", new ContainsFunction());
 			AddFunc("get_length", new LengthFunction(typeof(long)));
 			AddFunc("slice", IndexStartEndOperator.Instance);
-			AddFunc("require", InstallModuleFunction.Instance);
+			AddFunc("require", JavaScriptRequire.Instance);
 
 			AddFunc<long, Task>("delay", ms => Task.Delay((int)ms));
 			AddAction<long>("sleep", ms => Thread.Sleep((int)ms));
@@ -126,6 +127,7 @@ namespace AScript.Lang.JavaScript
 			AddTokenHandler("undefined", JavaScriptUndefinedTokenHandler.Instance);
 			AddTokenHandler("export", JavaScriptExportTokenHandler.Instance);
 			AddTokenHandler("import", JavaScriptImportTokenHandler.Instance);
+			AddTokenHandler("module", JavaScriptModuleTokenHandler.Instance);
 		}
 
 		public override bool IsDynamic()
