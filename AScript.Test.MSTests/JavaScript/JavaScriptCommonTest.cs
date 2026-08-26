@@ -1,4 +1,5 @@
 using AScript.Lang.JavaScript;
+using AScript.Lang.Sql;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,37 @@ namespace AScript.Test.MSTests.JavaScript
 		public static void Cleanup()
 		{
 			Script.Langs.TryRemove("js");
+		}
+
+		[TestMethod]
+		public void Test00_01()
+		{
+			var code = @"
+var arr = [{name:'tom', age:18}, {name:'jim', age:23}, {name:'john', age:16}];
+@lang csharp
+var arr2 = arr.Where(a=>a.age<20).ToList();
+@end
+arr2.length
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(2L, script.Eval(code));
+		}
+
+		[TestMethod]
+		public void Test00_01_CompileAll()
+		{
+			var code = @"
+var arr = [{name:'tom', age:18}, {name:'jim', age:23}, {name:'john', age:16}];
+@lang csharp
+var arr2 = arr.Where(a=>a.age<20).ToList();
+@end
+arr2.length
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			Assert.AreEqual(2L, script.Eval(code));
 		}
 
 		[TestMethod]

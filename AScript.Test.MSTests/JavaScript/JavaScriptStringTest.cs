@@ -796,5 +796,62 @@ namespace AScript.Test.MSTests.JavaScript
 			Assert.AreEqual("$\t", script.Eval("`$\\t`"));
 			Assert.AreEqual("hello tom, 5+8=13", script.Eval("var name='tom';`hello ${name}, 5+8=${5+8}`"));
 		}
+
+		[TestMethod]
+		public void Test29_toDate()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			script.Context.AddFunc<string, DateTime>("toDate", s => DateTime.Parse(s));
+			Assert.AreEqual(new DateTime(2026, 8, 26), script.Eval("'2026-08-26'.toDate()"));
+		}
+
+		[TestMethod]
+		public void Test29_toDate_Compile()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			script.Context.AddFunc<string, DateTime>("toDate", s => DateTime.Parse(s));
+			Assert.AreEqual(new DateTime(2026, 8, 26), script.Eval("'2026-08-26'.toDate()"));
+		}
+
+		[TestMethod]
+		public void Test30_static_toDate_Compil()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			script.Context.AddFunc<string, DateTime>("String_toDate", s => DateTime.Parse(s));
+			Assert.AreEqual(new DateTime(2026, 8, 26), script.Eval("String.toDate('2026-08-26')"));
+		}
+
+		[TestMethod]
+		public void Test30_static_toDate_Compile()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			script.Context.AddFunc<string, DateTime>("String_toDate", s => DateTime.Parse(s));
+			Assert.AreEqual(new DateTime(2026, 8, 26), script.Eval("String.toDate('2026-08-26')"));
+		}
+
+		[TestMethod]
+		public void Test31_string_contructor()
+		{
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			script.Context.AddFunc<DateTime, string>("new_String", time => time.ToString("yyyy-MM-dd"));
+			Assert.AreEqual(DateTime.Now.ToString("yyyy-MM-dd"), script.Eval("new String(new Date())"));
+		}
+
+		[TestMethod]
+		public void Test31_string_contructor_Compile()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "js" };
+			script.Context.AddFunc<DateTime, string>("new_String", time => time.ToString("yyyy-MM-dd"));
+			Assert.AreEqual(DateTime.Now.ToString("yyyy-MM-dd"), script.Eval("new String(new Date())"));
+		}
 	}
 }
