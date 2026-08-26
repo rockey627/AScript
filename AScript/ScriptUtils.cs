@@ -467,7 +467,42 @@ namespace AScript
 			return matched;
 		}
 
-		public static object DynamicInvoke(ScriptContext context, Delegate d, object[] argValues, IList<Type> argTypes, bool useScriptContext, bool hasClosure)
+		public static object DynamicInvoke(ScriptContext context, Delegate d, object[] argValues)
+		{
+			return DynamicInvoke(context, d, argValues, null);
+		}
+
+		public static object DynamicInvoke(ScriptContext context, Delegate d, object[] argValues, Type[] argTypes)
+		{
+			if (argTypes == null && argValues != null && argValues.Length > 0)
+			{
+				argTypes = new Type[argValues.Length];
+				for (int i = 0; i < argValues.Length; i++)
+				{
+					argTypes[i] = argValues[i]?.GetType() ?? typeof(object);
+				}
+			}
+			bool hasClosure = false;
+			bool useScriptContext = false;
+			var parameters = d.Method.GetParameters();
+			if (parameters.Length > 0)
+			{
+				int index = 0;
+				if (parameters[index].ParameterType.FullName == "System.Runtime.CompilerServices.Closure")
+				{
+					index++;
+					hasClosure = true;
+				}
+				if (parameters.Length > index && parameters[index].ParameterType == typeof(ScriptContext))
+				{
+					index++;
+					useScriptContext = true;
+				}
+			}
+			return DynamicInvoke(context, d, argValues, argTypes, useScriptContext, hasClosure);
+		}
+
+		public static object DynamicInvoke(ScriptContext context, Delegate d, object[] argValues, Type[] argTypes, bool useScriptContext, bool hasClosure)
 		{
 			if (useScriptContext)
 			{

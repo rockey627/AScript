@@ -1073,7 +1073,8 @@ namespace AScript
 				if (value is Delegate del)
 				{
 					returnType = del.Method.ReturnType;
-					return del.DynamicInvoke(functionEvalArgs.ArgValues);
+					return ScriptUtils.DynamicInvoke(this, del, functionEvalArgs.ArgValues, functionEvalArgs.ArgTypes);
+					//return del.DynamicInvoke(functionEvalArgs.ArgValues);
 				}
 				if (value is CustomFunctionObject customFunctionObject)
 				{
@@ -1211,7 +1212,8 @@ namespace AScript
 				if (value is Delegate del)
 				{
 					var returnType = del.Method.ReturnType;
-					var result = del.DynamicInvoke(functionEvalArgs.ArgValues);
+					//var result = del.DynamicInvoke(functionEvalArgs.ArgValues);
+					var result = ScriptUtils.DynamicInvoke(this, del, functionEvalArgs.ArgValues, functionEvalArgs.ArgTypes);
 					return new EvalResult(result, returnType);
 				}
 				if (value is CustomFunctionObject customFunctionObject)
