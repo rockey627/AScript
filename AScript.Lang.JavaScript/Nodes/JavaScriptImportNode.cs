@@ -46,7 +46,7 @@ namespace AScript.Lang.JavaScript.Nodes
 						}
 						else
 						{
-							statements.Add(Expression.Assign(variable, Expression.Constant(new ReadOnlyDictionary<string, object>(module.NamedDict))));
+							statements.Add(Expression.Assign(variable, Expression.Constant(new ReadOnlyDictionary<string, object>(module.named))));
 						}
 					}
 					else
@@ -58,7 +58,7 @@ namespace AScript.Lang.JavaScript.Nodes
 						}
 						else
 						{
-							module.NamedDict.TryGetValue(name, out value);
+							module.named.TryGetValue(name, out value);
 						}
 						var variable = Expression.Variable(value?.GetType() ?? typeof(object), alias);
 						buildContext.Variables[alias] = variable;
@@ -104,7 +104,7 @@ namespace AScript.Lang.JavaScript.Nodes
 						}
 						else
 						{
-							context.SetConst(alias, new ReadOnlyDictionary<string, object>(module.NamedDict));
+							context.SetConst(alias, new ReadOnlyDictionary<string, object>(module.named));
 						}
 					}
 					else
@@ -115,7 +115,7 @@ namespace AScript.Lang.JavaScript.Nodes
 						}
 						else
 						{
-							module.NamedDict.TryGetValue(name, out var value);
+							module.named.TryGetValue(name, out var value);
 							context.SetConst(alias, value);
 						}
 					}

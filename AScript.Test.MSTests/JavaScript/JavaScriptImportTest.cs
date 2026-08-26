@@ -21,17 +21,25 @@ namespace AScript.Test.MSTests.JavaScript
 			Script.Langs.TryRemove("js");
 		}
 
+		private static long fib(long a)
+		{
+			if (a <= 1) return a;
+			return fib(a - 1) + fib(a - 2);
+		}
+
 		// import m from 'modulename'
 		[TestMethod]
 		public void Test01_ImportDefault()
 		{
 			var code = @"
 import m, { getTotal } from 'mymodule';
-m.sum(1, 2) + m.fib(3);
+m.sum(1, 2) + m.fib(9);
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			Assert.AreEqual(9L, script.Eval(code));
+			var result = script.Eval(code);
+			Console.WriteLine(result); // 3 + 34 = 37
+			Assert.AreEqual(3 + fib(9), result);
 			Assert.AreEqual(2L, script.Eval("getTotal()"));
 			Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));
 			Assert.AreEqual(3L, script.Eval("getTotal()"));
@@ -46,9 +54,9 @@ m.sum(1, 2) + m.fib(3);
 
 			var code = @"
 import m, { getTotal } from 'mymodule';
-m.sum(1, 2) + m.fib(3);
+m.sum(1, 2) + m.fib(9);
 ";
-			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(3 + fib(9), script.Eval(code));
 			Assert.AreEqual(2L, script.Eval("getTotal()"));
 			Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));
 			Assert.AreEqual(3L, script.Eval("getTotal()"));
@@ -62,9 +70,9 @@ m.sum(1, 2) + m.fib(3);
 
 			var code = @"
 import m, { getTotal } from 'mymodule2';
-m.sum(1, 2) + m.fib(3);
+m.sum(1, 2) + m.fib(9);
 ";
-			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(3 + fib(9), script.Eval(code));
 			Assert.AreEqual(2L, script.Eval("getTotal()"));
 			Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));
 			Assert.AreEqual(3L, script.Eval("getTotal()"));
@@ -79,9 +87,9 @@ m.sum(1, 2) + m.fib(3);
 
 			var code = @"
 import m, { getTotal } from 'mymodule2';
-m.sum(1, 2) + m.fib(3);
+m.sum(1, 2) + m.fib(9);
 ";
-			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(3 + fib(9), script.Eval(code));
 			Assert.AreEqual(2L, script.Eval("getTotal()"));
 			Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));
 			Assert.AreEqual(3L, script.Eval("getTotal()"));
@@ -95,9 +103,9 @@ m.sum(1, 2) + m.fib(3);
 
 			var code = @"
 import { sum, fib as fib2 } from 'mymodule';
-sum(1, 2) + fib2(3);
+sum(1, 2) + fib2(9);
 ";
-			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(3 + fib(9), script.Eval(code));
 			Assert.AreEqual(21L, script.Eval("sum(13, 8)"));
 		}
 
@@ -110,9 +118,9 @@ sum(1, 2) + fib2(3);
 
 			var code = @"
 import { sum, fib as fib2 } from 'mymodule';
-sum(1, 2) + fib2(3);
+sum(1, 2) + fib2(9);
 ";
-			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(3 + fib(9), script.Eval(code));
 			Assert.AreEqual(21L, script.Eval("sum(13, 8)"));
 		}
 
@@ -162,9 +170,9 @@ sum(1, 2);
 
 			var code = @"
 var m = require('mymodule');
-m.sum(1, 2) + m.fib(3);
+m.sum(1, 2) + m.fib(9);
 ";
-			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(3 + fib(9), script.Eval(code));
 			Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));
 		}
 
@@ -177,9 +185,9 @@ m.sum(1, 2) + m.fib(3);
 
 			var code = @"
 var m = require('mymodule');
-m.sum(1, 2) + m.fib(3);
+m.sum(1, 2) + m.fib(9);
 ";
-			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(3 + fib(9), script.Eval(code));
 			Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));
 		}
 
@@ -191,9 +199,9 @@ m.sum(1, 2) + m.fib(3);
 
 			var code = @"
 var m = require('mymodule2');
-m.sum(1, 2) + m.fib(3);
+m.sum(1, 2) + m.fib(9);
 ";
-			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(3 + fib(9), script.Eval(code));
 			Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));
 		}
 
@@ -206,9 +214,9 @@ m.sum(1, 2) + m.fib(3);
 
 			var code = @"
 var m = require('mymodule2');
-m.sum(1, 2) + m.fib(3);
+m.sum(1, 2) + m.fib(9);
 ";
-			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(3 + fib(9), script.Eval(code));
 			Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));
 		}
 
@@ -221,9 +229,9 @@ m.sum(1, 2) + m.fib(3);
 			var code = @"
 var m = require('mymodule');
 var m2 = require('mymodule');
-m.sum(1, 2) + m2.fib(3);
+m.sum(1, 2) + m2.fib(9);
 ";
-			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(3 + fib(9), script.Eval(code));
 			Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));
 		}
 
@@ -237,9 +245,9 @@ m.sum(1, 2) + m2.fib(3);
 			var code = @"
 var m = require('mymodule');
 var m2 = require('mymodule');
-m.sum(1, 2) + m2.fib(3);
+m.sum(1, 2) + m2.fib(9);
 ";
-			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(3 + fib(9), script.Eval(code));
 			Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));
 		}
 
@@ -250,11 +258,11 @@ m.sum(1, 2) + m2.fib(3);
 import m, { getTotal } from 'mymodule';
 // 重复导入只加载一次模块
 import { fib } from 'mymodule';
-m.sum(1, 2) + fib(3);
+m.sum(1, 2) + fib(9);
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "js" };
-			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(3 + fib(9), script.Eval(code));
 			Assert.AreEqual(2L, script.Eval("getTotal()"));
 			Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));
 			Assert.AreEqual(3L, script.Eval("getTotal()"));
@@ -267,16 +275,38 @@ m.sum(1, 2) + fib(3);
 import m, { getTotal } from 'mymodule';
 // 重复导入只加载一次模块
 import { fib } from 'mymodule';
-m.sum(1, 2) + fib(3);
+m.sum(1, 2) + fib(9);
 ";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "js" };
-			Assert.AreEqual(9L, script.Eval(code));
+			Assert.AreEqual(3 + fib(9), script.Eval(code));
 			Assert.AreEqual(2L, script.Eval("getTotal()"));
 			Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));
 			Assert.AreEqual(3L, script.Eval("getTotal()"));
 		}
 
+		[TestMethod]
+		public void Test07_Custom()
+		{
+			var code = @"
+import { add, mult } from 'utils';
+add(1,2) + mult(5,8)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "js" };
+			script.Context.Modules.Add("utils", builder =>
+			{
+				builder.OnInstall(context =>
+				{
+					var export = new JavaScriptExportModule();
+					export.Export<Func<int, int, int>>("add", (a, b) => a + b);
+					export.Export<Func<int, int, int>>("mult", (a, b) => a * b);
+					export.ExportDefaultByNamed("add", "mult");
+					return export;
+				});
+			});
+			Assert.AreEqual(43, script.Eval(code));
+		}
 	}
 }

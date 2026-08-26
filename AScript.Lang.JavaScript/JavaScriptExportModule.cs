@@ -1,18 +1,80 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 
 namespace AScript.Lang.JavaScript
 {
+	/// <summary>
+	/// js导出模块
+	/// </summary>
 	public class JavaScriptExportModule
 	{
 		private readonly ScriptContext _context;
+		private IDictionary<string, object> _named;
 
-		public Dictionary<string, object> NamedDict { get; private set; } = new Dictionary<string, object>();
+		/// <summary>
+		/// 命名导出
+		/// </summary>
+		public IDictionary<string, object> named
+		{
+			get
+			{
+				if (_named == null)
+				{
+					_named = new Dictionary<string, object>();
+				}
+				return _named;
+			}
+			set => _named = value;
+		}
+		/// <summary>
+		/// 默认导出
+		/// </summary>
 		public object exports { get; set; }
 
+		public JavaScriptExportModule() { }
 		public JavaScriptExportModule(ScriptContext context)
 		{
 			_context = context;
+		}
+
+		public JavaScriptExportModule Export(string name, object value)
+		{
+			this.named[name] = value;
+			return this;
+		}
+
+		public JavaScriptExportModule Export<T>(string name, T value)
+		{
+			this.named[name] = value;
+			return this;
+		}
+
+		public JavaScriptExportModule ExportDefault(object value)
+		{
+			this.exports = value;
+			return this;
+		}
+
+		public JavaScriptExportModule ExportDefault<T>(T value)
+		{
+			this.exports = value;
+			return this;
+		}
+
+		public JavaScriptExportModule ExportDefaultByNamed(params string[] names)
+		{
+			return ExportDefaultByNamed((IEnumerable<string>)names);
+		}
+
+		public JavaScriptExportModule ExportDefaultByNamed(IEnumerable<string> names)
+		{
+			IDictionary<string, object> value = new ExpandoObject();
+			foreach (var name in names)
+			{
+				value[name] = this.named[name];
+			}
+			return ExportDefault(value);
 		}
 
 		public static JavaScriptExportModule InstallModule(ScriptContext context, string moduleName)
@@ -60,30 +122,5 @@ namespace AScript.Lang.JavaScript
 			}
 			return module;
 		}
-
-		///// <summary>
-		///// 动态获取值
-		///// </summary>
-		///// <param name="name"></param>
-		///// <param name="result"></param>
-		///// <returns></returns>
-		//public bool TryGetValue(string name, out object result)
-		//{
-		//	if (this.Names.Contains(name))
-		//	{
-		//		result = _context.EvalVar(name, out var type, searchParent: false);
-		//		return type != null;
-		//	}
-		//	result = null;
-		//	return false;
-		//}
-
-		//public override bool TryGetMember(GetMemberBinder binder, out object result)
-		//{
-		//	if (TryGetMember(binder.Name, out result)) return true;
-		//	return base.TryGetMember(binder, out result);
-		//}
-
-
 	}
 }

@@ -50,7 +50,7 @@ namespace AScript.Lang.JavaScript.Nodes
 			}
 			else
 			{
-				module.NamedDict[this.Name] = value;
+				module.named[this.Name] = value;
 			}
 			return value;
 		}
