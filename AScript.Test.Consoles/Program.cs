@@ -37,7 +37,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			//Test01_Benchmark();
+			Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -59,7 +59,7 @@ namespace AScript.Test.Consoles
 			//Test18_DynamicExpresso();
 			//Test18_Jurassic();
 			//Test18_ClearScript();
-			Test18_Jint();
+			//Test18_Jint();
 			//Test19();
 			//Test20();
 			//Test21_ExpandoObject();
@@ -404,6 +404,12 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 
 			{
 				var engine = new Jint.Engine();
+				var result = engine.Evaluate("var arr = [1, 2, 3, 4, 5].filter(x => x % 2 == 0); arr.length");
+				Console.WriteLine(result);
+			}
+
+			{
+				var engine = new Jint.Engine();
 				var result = engine.Evaluate("var [name, age] = ['Alice', 25]; name + age");
 				Console.WriteLine(result);
 			}
@@ -456,6 +462,11 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 				var result = engine.Evaluate("var a = 15; var b = 6; var c=a+b; a='hello'; a+c");
 				Console.WriteLine(result);
 				Console.WriteLine(engine.GetGlobalValue("a"));
+			}
+			{
+				var engine = new Jurassic.ScriptEngine();
+				var result = engine.Evaluate("var arr = [1, 2, 3, 4, 5]; arr[0]+arr[1]+arr[2]+arr[3]+arr[4]");
+				Console.WriteLine(result);
 			}
 			{
 				var engine = new Jurassic.ScriptEngine();
@@ -816,6 +827,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest14_For>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest15_rec>(config);
 			//BenchmarkRunner.Run<Benchmarks.PythonTest01>(config);
+
 			//BenchmarkRunner.Run<Benchmarks.FleeTest01_const>(config);
 			//BenchmarkRunner.Run<Benchmarks.FleeTest.FleeTest02_var>(config);
 			//BenchmarkRunner.Run<Benchmarks.FleeTest03_call>(config);
@@ -823,18 +835,23 @@ exec2(26)
 			//BenchmarkRunner.Run<FleeTest05_multi>(config);
 			//BenchmarkRunner.Run<FleeTest07_bool>(config);
 			//BenchmarkRunner.Run<Benchmarks.FleeTest06_call>(config);
+
 			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest01_const>(config);
 			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest02_var>(config);
 			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest03_linq>(config);
 			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest04_delegate>(config);
 			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest05_lambda>(config);
+
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest01_const>(config);
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest02_local>(config);
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest03_var>(config);
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest04_call>(config);
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest05_file>(config);
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest06_object>(config);
-			BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest07_for>(config);
+			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest07_for>(config);
+			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest08_array>(config);
+			BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest09_array_filter>(config);
+
 			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();
 			//new Benchmarks.ExpressionTest06_Func().AScript1_3();

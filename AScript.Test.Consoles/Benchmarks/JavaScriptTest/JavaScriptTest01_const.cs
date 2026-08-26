@@ -19,7 +19,7 @@ namespace AScript.Test.Consoles.Benchmarks.JavaScriptTest
 
 		static JavaScriptTest01_const()
 		{
-			Script.Langs.Set("js", JavaScriptLang.Instance, true);
+			Script.Langs.Set("js", JavaScriptLang.Instance, setDefault: true);
 		}
 
 		[Benchmark]

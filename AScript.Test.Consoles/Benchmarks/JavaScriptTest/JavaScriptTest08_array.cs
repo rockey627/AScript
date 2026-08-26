@@ -1,4 +1,6 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿using AScript.Lang.JavaScript;
+using BenchmarkDotNet.Attributes;
+using Microsoft.CodeAnalysis.Scripting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,36 +12,20 @@ namespace AScript.Test.Consoles.Benchmarks.JavaScriptTest
 	[MaxColumn]
 	[MinColumn]
 	[MemoryDiagnoser]
-	public class JavaScriptTest07_for
+	public class JavaScriptTest08_array
 	{
-		private static readonly string s = @"
-var n = 0;
-for (var i = 0; i < 10000; i++) {
-	n += i;
-}
-n
-";
-		private static readonly int r = 9999 * 5000;
+		private static readonly string s = "var arr = [1, 2, 3, 4, 5]; arr[0]+arr[1]+arr[2]+arr[3]+arr[4]";
+		private static readonly int r = 15;
 
-		static JavaScriptTest07_for()
+		static JavaScriptTest08_array()
 		{
-			Script.Langs.Set("js", AScript.Lang.JavaScript.JavaScriptLang.Instance, true);
+			Script.Langs.Set("js", JavaScriptLang.Instance, setDefault: true);
 		}
 
 		[Benchmark]
 		public void AScript1()
 		{
 			var script = new Script();
-			var result = script.Eval<int>(s);
-			if (result != r) throw new Exception("result error");
-		}
-
-		[Benchmark]
-		public void AScript1_CompileLoop()
-		{
-			var script = new Script();
-			// 仅编译循环语句
-			script.Options.CompileMode = ECompileMode.Loop;
 			var result = script.Eval<int>(s);
 			if (result != r) throw new Exception("result error");
 		}
@@ -53,7 +39,7 @@ n
 		}
 
 		[Benchmark]
-		public void AScript2_CompileAll()
+		public void AScript2_Compile()
 		{
 			var script = new Script();
 			var result = script.Eval<int>(s, ECompileMode.All);
