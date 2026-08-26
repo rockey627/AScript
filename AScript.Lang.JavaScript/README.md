@@ -498,6 +498,28 @@ Assert.AreEqual(2L, script.Eval("getTotal()"));
 Assert.AreEqual(30L, script.Eval("m.sum(10, 20)"));
 Assert.AreEqual(3L, script.Eval("getTotal()"));
 ```
+* 自定义模块
+```
+var code = @"
+import m, { add, mult } from 'utils';
+add(1, 2) + mult(5, m.x)
+";
+var script = new Script();
+script.Context.Langs = new[] { "js" };
+script.Context.Modules.Add("utils", builder =>
+{
+	builder.OnInstall(context =>
+	{
+		var export = new JavaScriptExportModule();
+		export.Export("x", 8);
+		export.Export<Func<int, int, int>>("add", (a, b) => a + b);
+		export.Export<Func<int, int, int>>("mult", (a, b) => a * b);
+		export.ExportDefaultByNamed("x", "add", "mult");
+		return export;
+	});
+});
+Assert.AreEqual(43, script.Eval(code));
+```
 
 #### fs文件操作
 注：服务端项目请谨慎添加文件模块，避免脚本中恶意删除、修改文件。
