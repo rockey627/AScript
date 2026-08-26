@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="samples\**" />
+	  <EmbeddedResource Remove="samples\**" />
+	  <None Remove="samples\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="Themes\2026-palette.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Themes\2026-palette.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AScript.Lang.JavaScript.axios\AScript.Lang.JavaScript.axios.csproj" />
+		<ProjectReference Include="..\AScript.Lang.JavaScript.fs\AScript.Lang.JavaScript.fs.csproj" />
+		<ProjectReference Include="..\AScript.Lang.JavaScript\AScript.Lang.JavaScript.csproj" />
+		<ProjectReference Include="..\AScript.Lang.Lua.io\AScript.Lang.Lua.io.csproj" />
+		<ProjectReference Include="..\AScript.Lang.Lua\AScript.Lang.Lua.csproj" />
+		<ProjectReference Include="..\AScript.Lang.Python3\AScript.Lang.Python3.csproj" />
+		<ProjectReference Include="..\AScript.Lang.Sql\AScript.Lang.Sql.csproj" />
+		<ProjectReference Include="..\AScript\AScript.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Reference Include="Aprillz.MewUI">
+	    <HintPath>dlls\Aprillz.MewUI.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Aprillz.MewUI.Backend.Direct2D">
+	    <HintPath>dlls\Aprillz.MewUI.Backend.Direct2D.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Aprillz.MewUI.MewvalonEdit">
+	    <HintPath>dlls\Aprillz.MewUI.MewvalonEdit.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Aprillz.MewUI.Platform.Win32">
+	    <HintPath>dlls\Aprillz.MewUI.Platform.Win32.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+</Project>
