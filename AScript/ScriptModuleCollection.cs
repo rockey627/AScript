@@ -11,9 +11,9 @@ namespace AScript
 		private List<string> _Dirs;
 
 		/// <summary>
-		/// 文件执行选项设置
+		/// 模块编译选项
 		/// </summary>
-		public BuildOptions FileOptions { get; private set; } = new BuildOptions(Script.DefaultOptions);
+		public BuildOptions Options { get; private set; } = new BuildOptions(Script.DefaultOptions);
 
 		public ScriptModuleCollection(bool threadSafely)
 		{
@@ -66,6 +66,13 @@ namespace AScript
 		{
 			Init_Modules();
 			_Modules[name] = obj;
+		}
+
+		public void Add(string name, Action<ScriptModuleBuilder> builder)
+		{
+			var b = new ScriptModuleBuilder();
+			builder.Invoke(b);
+			Add(name, b.Build());
 		}
 
 		/// <summary>
@@ -125,7 +132,7 @@ namespace AScript
 			var file = GetFile(name);
 			if (!string.IsNullOrEmpty(file))
 			{
-				return new FileScriptModule(file) { Options = new BuildOptions(this.FileOptions) };
+				return new FileScriptModule(file) { Options = new BuildOptions(this.Options) };
 			}
 			return null;
 		}
