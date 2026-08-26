@@ -9,7 +9,7 @@ namespace AScript.Lang.JavaScript
 	/// </summary>
 	public class JavaScriptExportModule
 	{
-		private readonly ScriptContext _context;
+		//private readonly ScriptContext _context;
 		private IDictionary<string, object> _named;
 
 		/// <summary>
@@ -33,10 +33,10 @@ namespace AScript.Lang.JavaScript
 		public object exports { get; set; }
 
 		public JavaScriptExportModule() { }
-		public JavaScriptExportModule(ScriptContext context)
-		{
-			_context = context;
-		}
+		//public JavaScriptExportModule(ScriptContext context)
+		//{
+		//	_context = context;
+		//}
 
 		public JavaScriptExportModule Export(string name, object value)
 		{
@@ -99,7 +99,7 @@ namespace AScript.Lang.JavaScript
 					}
 					else
 					{
-						module = new JavaScriptExportModule(context) { exports = v };
+						module = new JavaScriptExportModule { exports = v };
 					}
 				}
 				context.SetConst(key, module);
@@ -117,7 +117,7 @@ namespace AScript.Lang.JavaScript
 			var module = GetInstance(context);
 			if (module == null)
 			{
-				module = new JavaScriptExportModule(context);
+				module = new JavaScriptExportModule();
 				context.SetConst("__export_module__", module);
 			}
 			return module;
