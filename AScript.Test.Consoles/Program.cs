@@ -6,10 +6,12 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using DynamicExpresso;
 using IronPython.Hosting;
+using Lua;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Scripting.Hosting;
 using Microsoft.Scripting.Utils;
+using MoonSharp.Interpreter;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -60,6 +62,7 @@ namespace AScript.Test.Consoles
 			//Test18_Jurassic();
 			//Test18_ClearScript();
 			//Test18_Jint();
+			//Test18_Lua();
 			//Test19();
 			//Test20();
 			//Test21_ExpandoObject();
@@ -385,6 +388,55 @@ values ('1001','tom',20),('1002','san',25),('1003','tony',18),('1004','tim',25)"
 		//				Console.WriteLine(loadedDelegate(10));  // 输出 15
 		//			}
 		//		}
+
+		static void Test18_Lua()
+		{
+			// MoonSharp
+			{
+				var script = new MoonSharp.Interpreter.Script();
+				// 必须有return
+				var result = script.DoString("return 10 + 5").ToObject<int>();
+				Console.WriteLine(result);
+			}
+
+			// NLua
+			{
+				var lua = new NLua.Lua();
+				lua["sum"] = new Func<long, long, long>((a, b) => a + b);
+				var result = lua.DoString("return sum(10, 5)")[0];
+				Console.WriteLine(result);
+				Console.WriteLine(result.GetType());
+			}
+
+			// LuaCSharp
+			{
+				var lua = Lua.LuaState.Create();
+				var result = lua.DoStringAsync("return 10 + 5").Result[0].Read<long>();
+				Console.WriteLine(result);
+
+				var result2 = lua.DoStringAsync("local a = 10 a='hello' return a").Result[0].Read<string>();
+				Console.WriteLine(result2);
+
+				// 需要手动添加setmetatable函数
+				lua.Environment["setmetatable"] = new LuaFunction(async (context, cancellationToken) =>
+				{
+					var arg0 = context.GetArgument<Lua.LuaTable>(0);
+					var arg1 = context.GetArgument<Lua.LuaTable>(1);
+					arg0.Metatable = arg1;
+					context.Return(arg0);
+					return 1;
+				});
+
+				string s3 = @"
+local obj = { age = 100 }
+local me = {}
+setmetatable(me, obj)
+return obj.age
+";
+				var result3 = lua.DoStringAsync(s3).Result[0].Read<long>();
+				Console.WriteLine(result3);
+			}
+		}
 
 		static void Test18_Jint()
 		{
@@ -850,7 +902,15 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest06_object>(config);
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest07_for>(config);
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest08_array>(config);
-			BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest09_array_filter>(config);
+			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest09_array_filter>(config);
+
+			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest01_const>(config);
+			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest02_local>(config);
+			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest03_var>(config);
+			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest04_call>(config);
+			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest05_function>(config);
+			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest06_table>(config);
+			BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest07_for>(config);
 
 			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();
@@ -861,11 +921,13 @@ exec2(26)
 			//new Benchmarks.ExpressionTest10().AScript();
 			//new Benchmarks.ExpressionTest12().AScript();
 			//new Benchmarks.DynamicTest2().Expr();
+
 			//new Benchmarks.FleeTest.FleeTest02_var().AScript4_Cache();
 			//new Benchmarks.FleeTest01_const().AScript3_UseCache();
 			//new Benchmarks.FleeTest01_const().AScript3_UseCache();
 			//new Benchmarks.FleeTest05_multi().AScript2_Compile2();
 			//new Benchmarks.FleeTest05_multi().AScript2_Compile2();
+
 			//new Benchmarks.JavaScriptTest.JavaScriptTest01_const().Jint1();
 			//new Benchmarks.JavaScriptTest.JavaScriptTest01_const().AScript2_Compile();
 			//new Benchmarks.JavaScriptTest.JavaScriptTest02_local().AScript2_Compile2();
@@ -876,6 +938,11 @@ exec2(26)
 			//new Benchmarks.JavaScriptTest.JavaScriptTest06_object().Jint1();
 			//new Benchmarks.JavaScriptTest.JavaScriptTest07_for().Jint1();
 			//new Benchmarks.JavaScriptTest.JavaScriptTest07_for().AScript2_Compile();
+
+			//new Benchmarks.LuaTest.LuaTest01_const().AScript1();
+			//new Benchmarks.LuaTest.LuaTest06_table().AScript1();
+			//new Benchmarks.LuaTest.LuaTest06_table().LuaCSharp1();
+			//new Benchmarks.LuaTest.LuaTest07_for().AScript2_Compile();
 		}
 
 	}

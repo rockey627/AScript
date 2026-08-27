@@ -13,6 +13,7 @@
 		<PackageReference Include="IronPython" Version="3.4.2" />
 		<PackageReference Include="Jint" Version="4.16.1" />
 		<PackageReference Include="Jurassic" Version="3.2.9" />
+		<PackageReference Include="LuaCSharp" Version="0.5.6" />
 		<PackageReference Include="Microsoft.ClearScript" Version="7.5.1" />
 		<!--<PackageReference Include="Microsoft.ClearScript.V8" Version="7.5.1" />-->
 		<!--<PackageReference Include="Microsoft.ClearScript.Windows" Version="7.5.1" />-->
@@ -22,11 +23,16 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="MoonSharp" Version="3.0.0-beta.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="NLua" Version="1.7.9" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\AScript.Lang.JavaScript.fs\AScript.Lang.JavaScript.fs.csproj" />
 		<ProjectReference Include="..\AScript.Lang.JavaScript\AScript.Lang.JavaScript.csproj" />
+		<ProjectReference Include="..\AScript.Lang.Lua.io\AScript.Lang.Lua.io.csproj" />
+		<ProjectReference Include="..\AScript.Lang.Lua\AScript.Lang.Lua.csproj" />
 		<ProjectReference Include="..\AScript.Lang.Python3\AScript.Lang.Python3.csproj" />
 		<ProjectReference Include="..\AScript.Lang.Sql\AScript.Lang.Sql.csproj" />
 		<ProjectReference Include="..\AScript.Lang.JavaScript.axios\AScript.Lang.JavaScript.axios.csproj" />
