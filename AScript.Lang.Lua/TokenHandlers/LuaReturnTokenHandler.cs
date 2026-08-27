@@ -50,7 +50,14 @@ namespace AScript.Lang.Lua.TokenHandlers
 			{
 				e.TokenReader.Push(nextToken.Value);
 			}
-			if (list != null)
+
+			if (list == null) return;
+
+			if (list.Count == 1)
+			{
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new ReturnNode { Body = list[0] });
+			}
+			else
 			{
 				var collectionNode = new CollectionNode
 				{

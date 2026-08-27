@@ -1778,6 +1778,31 @@ namespace AScript
 			return Delegate.CreateDelegate(funcType, Activator.CreateInstance(implType, context, name), "Execute");
 		}
 
+		public static object EvalWithCompile(ScriptContext context, BuildOptions options, EvalControl control, ITreeNode node, out Type returnType)
+		{
+			var loopOptions = new BuildOptions(options)
+			{
+				CompileMode = ECompileMode.All,
+				UseCompletionResult = true,
+				RewriteVariables = true,
+				RewriteFunctions = false,
+				Standalone = false
+			};
+			var loop = Script.Compile(null, context, loopOptions, node);
+			var loopResult = loop.DynamicInvoke(context);
+			if (loopResult is CompletionResult completionResult)
+			{
+				if (completionResult.CompletionType == ECompletionType.Return)
+				{
+					control.Terminal = true;
+				}
+				returnType = completionResult.ValueType;
+				return completionResult.Value;
+			}
+			returnType = loopResult?.GetType() ?? loop.Method.ReturnType;
+			return loopResult;
+		}
+
 		public static bool ConvertMaxType(ref Expression expr1, ref Expression expr2)
 		{
 			//if (expr1.Type == expr2.Type) return true;

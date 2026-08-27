@@ -17,6 +17,12 @@ namespace AScript.Lang.Lua.Nodes
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
+			var mode = options.CompileMode;
+			if (mode.HasValue && ((mode.Value & ECompileMode.Loop) == ECompileMode.Loop))
+			{
+				// 编译循环
+				return ScriptUtils.EvalWithCompile(context, options, control, this, out returnType);
+			}
 			var varName = ((VariableNode)VarNode).Name;
 			var startObj = StartNode.Eval(context, options, null, out _);
 			var endObj = EndNode.Eval(context, options, null, out _);
@@ -28,8 +34,8 @@ namespace AScript.Lang.Lua.Nodes
 			object bodyResult = null;
 			Type bodyReturnType = null;
 
-			if (ScriptUtils.IsIntegerType(startObj.GetType()) 
-				&& ScriptUtils.IsIntegerType(endObj.GetType()) 
+			if (ScriptUtils.IsIntegerType(startObj.GetType())
+				&& ScriptUtils.IsIntegerType(endObj.GetType())
 				&& ScriptUtils.IsIntegerType(stepObj.GetType()))
 			{
 				var start = Convert.ToInt64(startObj);
@@ -37,12 +43,18 @@ namespace AScript.Lang.Lua.Nodes
 				var step = Convert.ToInt64(stepObj);
 				if (step > 0)
 				{
+					ScriptContext loopContext = null;
 					for (var i = start; i <= end; i += step)
 					{
-						tempContext.SetVar(varName, i);
 						if (this.Body != null)
 						{
-							bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempControl, out bodyReturnType);
+							tempContext.SetVar(varName, i);
+							if (loopContext == null)
+							{
+								loopContext = ScriptContext.Create(tempContext);
+							}
+							else loopContext.Clear();
+							bodyResult = this.Body.Eval(loopContext, options, tempControl, out bodyReturnType);
 							if (tempControl.Terminal || tempControl.Break) break;
 							tempControl.Continue = false;
 						}
@@ -50,12 +62,18 @@ namespace AScript.Lang.Lua.Nodes
 				}
 				else
 				{
+					ScriptContext loopContext = null;
 					for (var i = start; i >= end; i += step)
 					{
-						tempContext.SetVar(varName, i);
 						if (this.Body != null)
 						{
-							bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempControl, out bodyReturnType);
+							tempContext.SetVar(varName, i);
+							if (loopContext == null)
+							{
+								loopContext = ScriptContext.Create(tempContext);
+							}
+							else loopContext.Clear();
+							bodyResult = this.Body.Eval(loopContext, options, tempControl, out bodyReturnType);
 							if (tempControl.Terminal || tempControl.Break) break;
 							tempControl.Continue = false;
 						}
@@ -69,12 +87,18 @@ namespace AScript.Lang.Lua.Nodes
 				var step = Convert.ToDouble(stepObj);
 				if (step > 0D)
 				{
+					ScriptContext loopContext = null;
 					for (var i = start; i <= end; i += step)
 					{
-						tempContext.SetVar(varName, i);
 						if (this.Body != null)
 						{
-							bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempControl, out bodyReturnType);
+							tempContext.SetVar(varName, i);
+							if (loopContext == null)
+							{
+								loopContext = ScriptContext.Create(tempContext);
+							}
+							else loopContext.Clear();
+							bodyResult = this.Body.Eval(loopContext, options, tempControl, out bodyReturnType);
 							if (tempControl.Terminal || tempControl.Break) break;
 							tempControl.Continue = false;
 						}
@@ -82,12 +106,18 @@ namespace AScript.Lang.Lua.Nodes
 				}
 				else
 				{
+					ScriptContext loopContext = null;
 					for (var i = start; i >= end; i += step)
 					{
-						tempContext.SetVar(varName, i);
 						if (this.Body != null)
 						{
-							bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempControl, out bodyReturnType);
+							tempContext.SetVar(varName, i);
+							if (loopContext == null)
+							{
+								loopContext = ScriptContext.Create(tempContext);
+							}
+							else loopContext.Clear();
+							bodyResult = this.Body.Eval(loopContext, options, tempControl, out bodyReturnType);
 							if (tempControl.Terminal || tempControl.Break) break;
 							tempControl.Continue = false;
 						}
@@ -114,6 +144,38 @@ namespace AScript.Lang.Lua.Nodes
 			var startVar = Expression.Variable(startExpr.Type, "__start");
 			var endVar = Expression.Variable(endExpr.Type, "__end");
 			var stepVar = Expression.Variable(stepExpr.Type, "__step");
+
+			if (ScriptUtils.IsIntegerType(startVar.Type)
+				&& ScriptUtils.IsIntegerType(endVar.Type)
+				&& ScriptUtils.IsIntegerType(stepVar.Type))
+			{
+				var int64Loop1 = BuildInt64Loop(buildContext, scriptContext, options, varName,
+					startVar.Type == typeof(long) ? (Expression)startVar : Expression.Convert(startVar, typeof(long)),
+					endVar.Type == typeof(long) ? (Expression)endVar : Expression.Convert(endVar, typeof(long)),
+					stepVar.Type == typeof(long) ? (Expression)stepVar : Expression.Convert(stepVar, typeof(long)));
+				return Expression.Block(
+					new[] { startVar, endVar, stepVar },
+					Expression.Assign(startVar, startExpr),
+					Expression.Assign(endVar, endExpr),
+					Expression.Assign(stepVar, stepExpr),
+					int64Loop1);
+			}
+
+			if (ScriptUtils.IsNumberType(startVar.Type)
+				&& ScriptUtils.IsNumberType(endVar.Type)
+				&& ScriptUtils.IsNumberType(stepVar.Type))
+			{
+				var doubleLoop1 = BuildDoubleLoop(buildContext, scriptContext, options, varName,
+					startVar.Type == typeof(double) ? (Expression)startVar : Expression.Convert(startVar, typeof(double)),
+					endVar.Type == typeof(double) ? (Expression)endVar : Expression.Convert(endVar, typeof(double)),
+					stepVar.Type == typeof(double) ? (Expression)stepVar : Expression.Convert(stepVar, typeof(double)));
+				return Expression.Block(
+					new[] { startVar, endVar, stepVar },
+					Expression.Assign(startVar, startExpr),
+					Expression.Assign(endVar, endExpr),
+					Expression.Assign(stepVar, stepExpr),
+					doubleLoop1);
+			}
 
 			// 调用 ScriptUtils.IsIntegerType 进行运行时检查
 			var isAllInteger = Expression.AndAlso(

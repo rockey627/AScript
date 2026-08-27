@@ -103,7 +103,7 @@ namespace AScript.Lang.Lua
 			AddTokenHandler("continue", ContinueTokenHandler.Instance);
 			AddTokenHandler("[", new BracketTokenHandler(typeof(List<object>)));
 			AddTokenHandler("#", LuaLenTokenHandler.Instance);
-			AddTokenHandler(":", LazyTokenHandler.Instance);
+			//AddTokenHandler(":", LazyTokenHandler.Instance);
 			AddTokenHandler("require", LuaRequireTokenHandler.Instance);
 		}
 

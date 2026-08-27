@@ -2660,8 +2660,6 @@ namespace AScript
 			context.Init_TempVariables();
 			context._TempVariables[name] = value;
 			context.SetTempVarType(name, value, valueType);
-			//context.Init_TempVariableTypes();
-			//context._TempVariableTypes[name] = valueType ?? value?.GetType() ?? typeof(object);
 		}
 
 		public void SetTempConst(string name, object value, Type valueType, bool searchContext)
@@ -2670,8 +2668,6 @@ namespace AScript
 			context.Init_TempVariables();
 			context._TempVariables[name] = value;
 			context.SetTempVarType(name, value, valueType);
-			//context.Init_TempVariableTypes();
-			//context._TempVariableTypes[name] = valueType ?? value?.GetType() ?? typeof(object);
 			context.SetVarModifier(name, Modifiers.READONLY);
 		}
 

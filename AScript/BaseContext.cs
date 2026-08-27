@@ -572,7 +572,7 @@ namespace AScript
 
 		private void SetVarType(string name, object value, Type type)
 		{
-			if (value != null && type == value.GetType())
+			if (type != null && value != null && type == value.GetType())
 			{
 				type = null;
 			}
@@ -595,7 +595,8 @@ namespace AScript
 		/// <param name="value"></param>
 		public void SetVar<T>(string name, T value)
 		{
-			SetVar(name, value, typeof(T));
+			var type = typeof(T);
+			SetVar(name, value, type.IsValueType || value != null ? null : type);
 		}
 
 		/// <summary>

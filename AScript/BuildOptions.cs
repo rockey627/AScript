@@ -27,6 +27,9 @@ namespace AScript
 			get => _CreateFullStatement ?? _CreateFullTreeNode ?? this.Parent?.CreateFullTreeNode;
 			set => _CreateFullTreeNode = value;
 		}
+		/// <summary>
+		/// 构建当前完整语句
+		/// </summary>
 		public bool? CreateFullStatement
 		{
 			get => _CreateFullStatement ?? this.Parent?.CreateFullStatement;
