@@ -222,29 +222,29 @@ namespace AScript.Nodes
 				throw new ScriptAnalyzingException("require collection in foreach statement");
 			}
 			var mode = options.CompileMode;
-			bool compileLoop = mode.HasValue && ((mode.Value & ECompileMode.Loop) == ECompileMode.Loop);
-			if (compileLoop)
+			if (mode.HasValue && ((mode.Value & ECompileMode.Loop) == ECompileMode.Loop))
 			{
 				// 编译循环
-				var loopOptions = new BuildOptions(options)
-				{
-					CompileMode = ECompileMode.All,
-					UseCompletionResult = true,
-					RewriteVariables = true,
-					RewriteFunctions = false,
-					Standalone = false
-				};
-				var loop = Script.Compile(null, context, loopOptions, this);
-				var loopResult = loop.DynamicInvoke(context);
-				if (loopResult is EvalResult completionResult)
-				{
-					if (completionResult.CompletionType == ECompletionType.Return)
-					{
-						control.Terminal = true;
-					}
-					return completionResult;
-				}
-				return new EvalResult(loopResult, loopResult?.GetType() ?? loop.Method.ReturnType);
+				return ScriptUtils.EvalWithCompile(context, options, control, this);
+				//var loopOptions = new BuildOptions(options)
+				//{
+				//	CompileMode = ECompileMode.All,
+				//	UseCompletionResult = true,
+				//	RewriteVariables = true,
+				//	RewriteFunctions = false,
+				//	Standalone = false
+				//};
+				//var loop = Script.Compile(null, context, loopOptions, this);
+				//var loopResult = loop.DynamicInvoke(context);
+				//if (loopResult is EvalResult completionResult)
+				//{
+				//	if (completionResult.CompletionType == ECompletionType.Return)
+				//	{
+				//		control.Terminal = true;
+				//	}
+				//	return completionResult;
+				//}
+				//return new EvalResult(loopResult, loopResult?.GetType() ?? loop.Method.ReturnType);
 			}
 			// 计算集合
 			var evalResult = await this.Collection.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);

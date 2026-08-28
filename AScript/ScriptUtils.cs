@@ -1803,6 +1803,30 @@ namespace AScript
 			return loopResult;
 		}
 
+		public static EvalResult EvalWithCompile(ScriptContext context, BuildOptions options, EvalControl control, ITreeNode node)
+		{
+			var loopOptions = new BuildOptions(options)
+			{
+				CompileMode = ECompileMode.All,
+				UseCompletionResult = true,
+				RewriteVariables = true,
+				RewriteFunctions = false,
+				Standalone = false
+			};
+			var loop = Script.Compile(null, context, loopOptions, node);
+			var loopResult = loop.DynamicInvoke(context);
+			if (loopResult is EvalResult completionResult)
+			{
+				if (completionResult.CompletionType == ECompletionType.Return)
+				{
+					control.Terminal = true;
+				}
+				return completionResult;
+			}
+			var returnType = loopResult?.GetType() ?? loop.Method.ReturnType;
+			return new EvalResult(loopResult, returnType);
+		}
+
 		public static bool ConvertMaxType(ref Expression expr1, ref Expression expr2)
 		{
 			//if (expr1.Type == expr2.Type) return true;

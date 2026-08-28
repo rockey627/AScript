@@ -78,12 +78,10 @@ namespace AScript.Nodes
 		public override async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
 		{
 			var mode = options.CompileMode;
-			bool compileLoop = mode.HasValue && ((mode.Value & ECompileMode.Loop) == ECompileMode.Loop);
-			if (compileLoop)
+			if (mode.HasValue && ((mode.Value & ECompileMode.Loop) == ECompileMode.Loop))
 			{
 				// 编译循环
-				var loopResult = ScriptUtils.EvalWithCompile(context, options, control, this, out var returnType);
-				return new EvalResult(loopResult, returnType);
+				return ScriptUtils.EvalWithCompile(context, options, control, this);
 				//var loopOptions = new BuildOptions(options)
 				//{
 				//	CompileMode = ECompileMode.All,
