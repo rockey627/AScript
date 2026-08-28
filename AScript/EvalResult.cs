@@ -20,12 +20,6 @@ namespace AScript
 			this.Type = type;
 			this.CompletionType = ECompletionType.Normal;
 		}
-		public EvalResult(ECompletionType completionType)
-		{
-			this.Value = null;
-			this.Type = null;
-			this.CompletionType = completionType;
-		}
 		public EvalResult(object value, ECompletionType completionType)
 		{
 			this.Value = value;
@@ -37,6 +31,51 @@ namespace AScript
 			this.Value = value;
 			this.Type = type;
 			this.CompletionType = completionType;
+		}
+
+		public static implicit operator bool(EvalResult result)
+		{
+			return (bool)result.Value;
+		}
+		public static implicit operator byte(EvalResult result)
+		{
+			return (byte)result.Value;
+		}
+		public static implicit operator int(EvalResult result)
+		{
+			return (int)result.Value;
+		}
+		public static implicit operator uint(EvalResult result)
+		{
+			return (uint)result.Value;
+		}
+		public static implicit operator long(EvalResult result)
+		{
+			return (long)result.Value;
+		}
+		public static implicit operator ulong(EvalResult result)
+		{
+			return (ulong)result.Value;
+		}
+		public static implicit operator float(EvalResult result)
+		{
+			return (float)result.Value;
+		}
+		public static implicit operator decimal(EvalResult result)
+		{
+			return (decimal)result.Value;
+		}
+		public static implicit operator double(EvalResult result)
+		{
+			return (double)result.Value;
+		}
+		public static implicit operator string(EvalResult result)
+		{
+			return (string)result.Value;
+		}
+		public static implicit operator DateTime(EvalResult result)
+		{
+			return (DateTime)result.Value;
 		}
 
 		public override string ToString()

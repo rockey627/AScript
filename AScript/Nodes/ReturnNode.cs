@@ -70,7 +70,7 @@ namespace AScript.Nodes
 			{
 				if (options.UseCompletionResult ?? false)
 				{
-					body = Expression.New(ScriptUtils.Constructor_EvalResult_CompletionType, Expression.Constant(ECompletionType.Return));
+					body = Expression.New(ScriptUtils.Constructor_EvalResult_Object_Type_CompletionType, ScriptUtils.Constant_null, ScriptUtils.Constant_null_Type, Expression.Constant(ECompletionType.Return));
 				}
 				else
 				{

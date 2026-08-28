@@ -18,6 +18,7 @@ namespace AScript
 		public static readonly Expression Constant_false = Expression.Constant(false);
 		public static readonly Expression Constant_true = Expression.Constant(true);
 		public static readonly Expression Constant_null = Expression.Constant(null);
+		public static readonly Expression Constant_null_Type = Expression.Constant(null, typeof(Type));
 		public static readonly Expression Constant_string_empty = Expression.Constant(string.Empty);
 		public static readonly Expression Constant_typeof_double = Expression.Constant(typeof(double));
 
@@ -109,7 +110,6 @@ namespace AScript
 
 		public static readonly PropertyInfo Property_DataRow_Item_String = typeof(DataRow).GetProperty("Item", new[] { typeof(string) });
 
-		public static readonly ConstructorInfo Constructor_EvalResult_CompletionType = typeof(EvalResult).GetConstructor(new[] { typeof(ECompletionType) });
 		public static readonly ConstructorInfo Constructor_EvalResult_Object_CompletionType = typeof(EvalResult).GetConstructor(new[] { typeof(object), typeof(ECompletionType) });
 		public static readonly ConstructorInfo Constructor_EvalResult_Object_Type_CompletionType = typeof(EvalResult).GetConstructor(new[] { typeof(object), typeof(Type), typeof(ECompletionType) });
 

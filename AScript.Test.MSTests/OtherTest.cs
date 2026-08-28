@@ -11,6 +11,21 @@ namespace AScript.Test.MSTests
 	public class OtherTest
 	{
 		[TestMethod]
+		public void Test03()
+		{
+			Assert.AreEqual(0, new EvalResult(0));
+			Assert.AreEqual(5, new EvalResult(5));
+			Assert.AreEqual(5L, new EvalResult(5L));
+			Assert.AreEqual(5.0, new EvalResult(5.0));
+			Assert.AreEqual(5.6, new EvalResult(5.6));
+			Assert.AreEqual(true, new EvalResult(true));
+			Assert.AreEqual(false, new EvalResult(false));
+			Assert.IsTrue(new EvalResult(true));
+			Assert.IsFalse(new EvalResult(false));
+			Assert.AreEqual("hello", new EvalResult("hello"));
+		}
+
+		[TestMethod]
 		public void Test02()
 		{
 			int n = 10;
