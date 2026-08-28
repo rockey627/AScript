@@ -70,17 +70,17 @@ namespace AScript.Nodes
 			{
 				if (options.UseCompletionResult ?? false)
 				{
-					body = Expression.New(ScriptUtils.Constructor_CompletionResult_1, Expression.Constant(ECompletionType.Return));
+					body = Expression.New(ScriptUtils.Constructor_EvalResult_CompletionType, Expression.Constant(ECompletionType.Return));
 				}
 				else
 				{
 					return Expression.Return(returnBuildContext.ReturnLabel);
 				}
 			}
-			if (body.Type != typeof(CompletionResult) && (options.UseCompletionResult ?? false))
+			if (body.Type != typeof(EvalResult) && (options.UseCompletionResult ?? false))
 			{
 				if (body.Type.IsValueType) body = Expression.Convert(body, typeof(object));
-				var result = Expression.New(ScriptUtils.Constructor_CompletionResult_2, Expression.Constant(ECompletionType.Return), body);
+				var result = Expression.New(ScriptUtils.Constructor_EvalResult_Object_CompletionType, body, Expression.Constant(ECompletionType.Return));
 				body = result;
 			}
 			if (returnBuildContext.ReturnVariableExpression == null)

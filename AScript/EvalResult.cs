@@ -4,13 +4,39 @@ namespace AScript
 {
 	public struct EvalResult : IConvertible
 	{
+		public ECompletionType CompletionType;
 		public object Value;
 		public Type Type;
 
+		public EvalResult(object value)
+		{
+			this.Value = value;
+			this.Type = value?.GetType() ?? typeof(object);
+			this.CompletionType = ECompletionType.Normal;
+		}
 		public EvalResult(object value, Type type)
 		{
 			this.Value = value;
 			this.Type = type;
+			this.CompletionType = ECompletionType.Normal;
+		}
+		public EvalResult(ECompletionType completionType)
+		{
+			this.Value = null;
+			this.Type = null;
+			this.CompletionType = completionType;
+		}
+		public EvalResult(object value, ECompletionType completionType)
+		{
+			this.Value = value;
+			this.Type = value?.GetType() ?? typeof(object);
+			this.CompletionType = completionType;
+		}
+		public EvalResult(object value, Type type, ECompletionType completionType)
+		{
+			this.Value = value;
+			this.Type = type;
+			this.CompletionType = completionType;
 		}
 
 		public override string ToString()

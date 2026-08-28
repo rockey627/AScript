@@ -102,13 +102,14 @@ namespace AScript.Nodes
 				};
 				var loop = Script.Compile(null, context, loopOptions, this);
 				var loopResult = loop.DynamicInvoke(context);
-				if (loopResult is CompletionResult completionResult)
+				if (loopResult is EvalResult completionResult)
 				{
 					if (completionResult.CompletionType == ECompletionType.Return)
 					{
 						control.Terminal = true;
 					}
-					return new EvalResult(completionResult.Value, completionResult.ValueType);
+					return completionResult;
+					//return new EvalResult(completionResult.Value, completionResult.ValueType);
 				}
 				return new EvalResult(loopResult, loopResult?.GetType() ?? loop.Method.ReturnType);
 			}

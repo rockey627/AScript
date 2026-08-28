@@ -109,9 +109,9 @@ namespace AScript
 
 		public static readonly PropertyInfo Property_DataRow_Item_String = typeof(DataRow).GetProperty("Item", new[] { typeof(string) });
 
-		public static readonly ConstructorInfo Constructor_CompletionResult_1 = typeof(CompletionResult).GetConstructor(new[] { typeof(ECompletionType) });
-		public static readonly ConstructorInfo Constructor_CompletionResult_2 = typeof(CompletionResult).GetConstructor(new[] { typeof(ECompletionType), typeof(object) });
-		public static readonly ConstructorInfo Constructor_CompletionResult_3 = typeof(CompletionResult).GetConstructor(new[] { typeof(ECompletionType), typeof(object), typeof(Type) });
+		public static readonly ConstructorInfo Constructor_EvalResult_CompletionType = typeof(EvalResult).GetConstructor(new[] { typeof(ECompletionType) });
+		public static readonly ConstructorInfo Constructor_EvalResult_Object_CompletionType = typeof(EvalResult).GetConstructor(new[] { typeof(object), typeof(ECompletionType) });
+		public static readonly ConstructorInfo Constructor_EvalResult_Object_Type_CompletionType = typeof(EvalResult).GetConstructor(new[] { typeof(object), typeof(Type), typeof(ECompletionType) });
 
 		private static readonly ConcurrentDictionary<Type, int> _TypeSize = new ConcurrentDictionary<Type, int>
 		{
@@ -1790,13 +1790,13 @@ namespace AScript
 			};
 			var loop = Script.Compile(null, context, loopOptions, node);
 			var loopResult = loop.DynamicInvoke(context);
-			if (loopResult is CompletionResult completionResult)
+			if (loopResult is EvalResult completionResult)
 			{
 				if (completionResult.CompletionType == ECompletionType.Return)
 				{
 					control.Terminal = true;
 				}
-				returnType = completionResult.ValueType;
+				returnType = completionResult.Type;
 				return completionResult.Value;
 			}
 			returnType = loopResult?.GetType() ?? loop.Method.ReturnType;
