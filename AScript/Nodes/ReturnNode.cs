@@ -12,10 +12,10 @@ namespace AScript.Nodes
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
-			if (control == null)
-			{
-				throw new ScriptAnalyzingException("unsupport return");
-			}
+			//if (control == null)
+			//{
+			//	throw new ScriptAnalyzingException("unsupport return");
+			//}
 			try
 			{
 				if (this.Body == null)
@@ -27,16 +27,19 @@ namespace AScript.Nodes
 			}
 			finally
 			{
-				control.Terminal = true;
+				if (control != null)
+				{
+					control.Terminal = true;
+				}
 			}
 		}
 
 		public override async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
 		{
-			if (control == null)
-			{
-				throw new ScriptAnalyzingException("unsupport return");
-			}
+			//if (control == null)
+			//{
+			//	throw new ScriptAnalyzingException("unsupport return");
+			//}
 			try
 			{
 				if (this.Body == null)
@@ -47,7 +50,10 @@ namespace AScript.Nodes
 			}
 			finally
 			{
-				control.Terminal = true;
+				if (control != null)
+				{
+					control.Terminal = true;
+				}
 			}
 		}
 
