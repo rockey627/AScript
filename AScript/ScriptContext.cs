@@ -35,14 +35,14 @@ namespace AScript
 		/// </summary>
 		public ScriptContext Parent { get; set; }
 
-		/// <summary>
-		/// 表达式中的临时变量
-		/// </summary>
-		private IDictionary<string, object> _TempVariables;
-		/// <summary>
-		/// 临时变量类型
-		/// </summary>
-		private IDictionary<string, Type> _TempVariableTypes;
+		///// <summary>
+		///// 表达式中的临时变量
+		///// </summary>
+		//private IDictionary<string, object> _TempVariables;
+		///// <summary>
+		///// 临时变量类型
+		///// </summary>
+		//private IDictionary<string, Type> _TempVariableTypes;
 
 		// 临时函数
 		private IDictionary<string, List<Delegate>> _TempFunctions;
@@ -88,47 +88,47 @@ namespace AScript
 			return new ScriptContext(parent, threadSafely);
 		}
 
-		private void Init_TempVariables()
-		{
-			if (_TempVariables == null)
-			{
-				if (_ThreadSafely)
-				{
-					lock (this)
-					{
-						if (_TempVariables == null)
-						{
-							_TempVariables = new ConcurrentDictionary<string, object>();
-						}
-					}
-				}
-				else
-				{
-					_TempVariables = new Dictionary<string, object>();
-				}
-			}
-		}
+		//private void Init_TempVariables()
+		//{
+		//	if (_TempVariables == null)
+		//	{
+		//		if (_ThreadSafely)
+		//		{
+		//			lock (this)
+		//			{
+		//				if (_TempVariables == null)
+		//				{
+		//					_TempVariables = new ConcurrentDictionary<string, object>();
+		//				}
+		//			}
+		//		}
+		//		else
+		//		{
+		//			_TempVariables = new Dictionary<string, object>();
+		//		}
+		//	}
+		//}
 
-		private void Init_TempVariableTypes()
-		{
-			if (_TempVariableTypes == null)
-			{
-				if (_ThreadSafely)
-				{
-					lock (this)
-					{
-						if (_TempVariableTypes == null)
-						{
-							_TempVariableTypes = new ConcurrentDictionary<string, Type>();
-						}
-					}
-				}
-				else
-				{
-					_TempVariableTypes = new Dictionary<string, Type>();
-				}
-			}
-		}
+		//private void Init_TempVariableTypes()
+		//{
+		//	if (_TempVariableTypes == null)
+		//	{
+		//		if (_ThreadSafely)
+		//		{
+		//			lock (this)
+		//			{
+		//				if (_TempVariableTypes == null)
+		//				{
+		//					_TempVariableTypes = new ConcurrentDictionary<string, Type>();
+		//				}
+		//			}
+		//		}
+		//		else
+		//		{
+		//			_TempVariableTypes = new Dictionary<string, Type>();
+		//		}
+		//	}
+		//}
 
 		private void Init_TempFunctions()
 		{
@@ -474,35 +474,74 @@ namespace AScript
 		/// </summary>
 		public override void Clear()
 		{
-			ClearTemp();
+			//ClearTemp();
+			ClearTempFunction();
 			base.Clear();
 		}
 
-		/// <summary>
-		/// 清空临时数据（临时变量、临时函数）
-		/// </summary>
-		public void ClearTemp()
-		{
-			ClearTempVariable();
-			ClearTempFunction();
-		}
+		///// <summary>
+		///// 清空临时数据（临时变量、临时函数）
+		///// </summary>
+		//public void ClearTemp()
+		//{
+		//	//ClearTempVariable();
+		//	ClearTempFunction();
+		//}
 
-		/// <summary>
-		/// 清空临时变量
-		/// </summary>
-		public void ClearTempVariable()
-		{
-			this._TempVariables?.Clear();
-			this._TempVariableTypes?.Clear();
-		}
+		///// <summary>
+		///// 清空临时变量
+		///// </summary>
+		//public void ClearTempVariable()
+		//{
+		//	this._TempVariables?.Clear();
+		//	this._TempVariableTypes?.Clear();
+		//}
 
 		/// <summary>
 		/// 清空临时函数
 		/// </summary>
-		public void ClearTempFunction()
+		private void ClearTempFunction()
 		{
 			this._TempFunctions?.Clear();
 			this._CustomFunctions?.Clear();
+		}
+
+		/// <summary>
+		/// 获取变量所在的上下文
+		/// </summary>
+		/// <param name="variable"></param>
+		/// <param name="searchType"></param>
+		/// <returns></returns>
+		public ScriptContext GetOwnerContext(string variable‌, bool searchType = false)
+		{
+			var context = this;
+			do
+			{
+				//var tempVariables = context._TempVariables;
+				//if (tempVariables != null && tempVariables.TryGetValue(variable, out value))
+				//{
+				//	var tempVariableTypes = context._TempVariableTypes;
+				//	if (tempVariableTypes == null || !tempVariableTypes.TryGetValue(variable, out type))
+				//	{
+				//		type = value == null ? typeof(object) : value.GetType();
+				//	}
+				//	modifier = context.GetVarModifier(variable);
+				//	return context;
+				//}
+				var variables = context._Variables;
+				if (variables != null && variables.ContainsKey(variable))
+				{
+					return context;
+				}
+				var types = context._Types;
+				if (searchType && types != null && types.ContainsKey(variable))
+				{
+					return context;
+				}
+				context = context.Parent;
+			} while (context != null);
+
+			return null;
 		}
 
 		/// <summary>
@@ -532,17 +571,17 @@ namespace AScript
 			var context = this;
 			do
 			{
-				var tempVariables = context._TempVariables;
-				if (tempVariables != null && tempVariables.TryGetValue(variable, out value))
-				{
-					var tempVariableTypes = context._TempVariableTypes;
-					if (tempVariableTypes == null || !tempVariableTypes.TryGetValue(variable, out type))
-					{
-						type = value == null ? typeof(object) : value.GetType();
-					}
-					modifier = context.GetVarModifier(variable);
-					return context;
-				}
+				//var tempVariables = context._TempVariables;
+				//if (tempVariables != null && tempVariables.TryGetValue(variable, out value))
+				//{
+				//	var tempVariableTypes = context._TempVariableTypes;
+				//	if (tempVariableTypes == null || !tempVariableTypes.TryGetValue(variable, out type))
+				//	{
+				//		type = value == null ? typeof(object) : value.GetType();
+				//	}
+				//	modifier = context.GetVarModifier(variable);
+				//	return context;
+				//}
 				var variables = context._Variables;
 				if (variables != null && variables.TryGetValue(variable, out value))
 				{
@@ -582,12 +621,12 @@ namespace AScript
 			var context = this;
 			do
 			{
-				var tempVariables = context._TempVariables;
-				if (tempVariables != null && tempVariables.TryGetValue(variable, out var v1))
-				{
-					value = (T)v1;
-					return context;
-				}
+				//var tempVariables = context._TempVariables;
+				//if (tempVariables != null && tempVariables.TryGetValue(variable, out var v1))
+				//{
+				//	value = (T)v1;
+				//	return context;
+				//}
 				var variables = context._Variables;
 				if (variables != null && variables.TryGetValue(variable, out var v2))
 				{
@@ -613,13 +652,13 @@ namespace AScript
 			var context = this;
 			do
 			{
-				var tempVariables = context._TempVariables;
-				if (tempVariables != null && tempVariables.TryGetValue(variable, out var v1))
-				{
-					value = (T)v1;
-					modifier = context.GetVarModifier(variable);
-					return context;
-				}
+				//var tempVariables = context._TempVariables;
+				//if (tempVariables != null && tempVariables.TryGetValue(variable, out var v1))
+				//{
+				//	value = (T)v1;
+				//	modifier = context.GetVarModifier(variable);
+				//	return context;
+				//}
 				var variables = context._Variables;
 				if (variables != null && variables.TryGetValue(variable, out var v2))
 				{
@@ -2602,46 +2641,46 @@ namespace AScript
 			//return (Action<T1, T2, T3, T4, T5>)GetFunc(name, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5));
 		}
 
-		public override void SetVar(string name, object value, Type valueType)
-		{
-			base.SetVar(name, value, valueType);
-			if (this._TempVariables != null && this._TempVariables.ContainsKey(name))
-			{
-				// 覆盖临时变量值
-				this._TempVariables[name] = value;
-				SetTempVarType(name, value, valueType);
-			}
-		}
+		//public override void SetVar(string name, object value, Type valueType)
+		//{
+		//	base.SetVar(name, value, valueType);
+		//	if (this._TempVariables != null && this._TempVariables.ContainsKey(name))
+		//	{
+		//		// 覆盖临时变量值
+		//		this._TempVariables[name] = value;
+		//		SetTempVarType(name, value, valueType);
+		//	}
+		//}
 
-		private void SetTempVarType(string name, object value, Type type)
-		{
-			if (value != null && type == value.GetType())
-			{
-				type = null;
-			}
-			if (type == null)
-			{
-				this._TempVariableTypes?.Remove(name);
-			}
-			else
-			{
-				Init_TempVariableTypes();
-				this._TempVariableTypes[name] = type;
-			}
-		}
+		//private void SetTempVarType(string name, object value, Type type)
+		//{
+		//	if (value != null && type == value.GetType())
+		//	{
+		//		type = null;
+		//	}
+		//	if (type == null)
+		//	{
+		//		this._TempVariableTypes?.Remove(name);
+		//	}
+		//	else
+		//	{
+		//		Init_TempVariableTypes();
+		//		this._TempVariableTypes[name] = type;
+		//	}
+		//}
 
-		public override void RemoveVar(string name)
-		{
-			base.RemoveVar(name);
-			this._TempVariables?.Remove(name);
-			this._TempVariableTypes?.Remove(name);
-		}
+		//public override void RemoveVar(string name)
+		//{
+		//	base.RemoveVar(name);
+		//	this._TempVariables?.Remove(name);
+		//	this._TempVariableTypes?.Remove(name);
+		//}
 
-		public void RemoveTempVar(string name)
-		{
-			this._TempVariables?.Remove(name);
-			this._TempVariableTypes?.Remove(name);
-		}
+		//public void RemoveTempVar(string name)
+		//{
+		//	this._TempVariables?.Remove(name);
+		//	this._TempVariableTypes?.Remove(name);
+		//}
 
 		public void SetTempVar(string name, object value, bool searchContext)
 		{
@@ -2655,19 +2694,21 @@ namespace AScript
 
 		public void SetTempVar(string name, object value, Type valueType, bool searchContext)
 		{
-			var context = searchContext ? (GetOwnerContext(name, out _, out _) ?? this) : this;
+			var context = searchContext ? (GetOwnerContext(name) ?? this) : this;
 			Modifiers.ThrowIfReadOnly(name, context.GetVarModifier(name));
-			context.Init_TempVariables();
-			context._TempVariables[name] = value;
-			context.SetTempVarType(name, value, valueType);
+			context.SetVar(name, value, valueType);
+			//context.Init_TempVariables();
+			//context._TempVariables[name] = value;
+			//context.SetTempVarType(name, value, valueType);
 		}
 
 		public void SetTempConst(string name, object value, Type valueType, bool searchContext)
 		{
-			var context = searchContext ? (GetOwnerContext(name, out _, out _) ?? this) : this;
-			context.Init_TempVariables();
-			context._TempVariables[name] = value;
-			context.SetTempVarType(name, value, valueType);
+			var context = searchContext ? (GetOwnerContext(name) ?? this) : this;
+			context.SetVar(name, value, valueType);
+			//context.Init_TempVariables();
+			//context._TempVariables[name] = value;
+			//context.SetTempVarType(name, value, valueType);
 			context.SetVarModifier(name, Modifiers.READONLY);
 		}
 

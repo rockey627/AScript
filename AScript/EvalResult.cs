@@ -2,11 +2,11 @@
 
 namespace AScript
 {
-	public struct EvalResult : IConvertible
+	public readonly struct EvalResult : IConvertible
 	{
-		public ECompletionType CompletionType;
-		public object Value;
-		public Type Type;
+		public readonly ECompletionType CompletionType;
+		public readonly object Value;
+		public readonly Type Type;
 
 		public EvalResult(object value)
 		{
