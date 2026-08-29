@@ -1,4 +1,5 @@
 ﻿using AScript.Exceptions;
+using AScript.Values;
 using System;
 using System.Dynamic;
 using System.Linq;
@@ -75,7 +76,7 @@ namespace AScript.Nodes
 						{
 							var argValue = this.Args[i].Eval(context, options, null, out var argType);
 							argValues[i] = argValue;
-							argTypes[i] = argValue?.GetType() ?? argType;
+							argTypes[i] = argValue == null || argValue is AValue ? argType : argValue.GetType();
 						}
 					}
 				}
@@ -104,7 +105,7 @@ namespace AScript.Nodes
 				if (v0 is ExpandoObject expandoObj)
 				{
 					var value = ScriptUtils.DynamicInvoke(context, expandoObj, this.Name, argValues);
-					returnType = value?.GetType() ?? typeof(object);
+					returnType = value is AValue aValue ? aValue.Type : (value?.GetType() ?? typeof(object));
 					return value;
 					//var dict = (IDictionary<string, object>)v0;
 					//if (!dict.TryGetValue(this.Name, out var func))
@@ -150,7 +151,7 @@ namespace AScript.Nodes
 				{
 					if (ScriptUtils.TryInvokeDynamicObject(dynamicObject, this.Name, argValues, out var result))
 					{
-						returnType = result?.GetType() ?? typeof(object);
+						returnType = result is AValue aValue ? aValue.Type : (result?.GetType() ?? typeof(object));
 						return result;
 					}
 				}

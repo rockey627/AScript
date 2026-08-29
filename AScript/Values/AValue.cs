@@ -279,6 +279,10 @@ namespace AScript.Values
 			return value.GetString();
 		}
 
+		//public static AValue operator +(AValue v1, AValue v2)
+		//{
+		//}
+
 		public override string ToString()
 		{
 			return GetString();

@@ -44,6 +44,21 @@ namespace AScript.Nodes
 				return _typeWrapper;
 			}
 
+			_varValue = context.GetVarFromLangs(this.Name);
+			if (_varValue != null)
+			{
+				returnType = _varValue.Type;
+				return _varValue;
+			}
+
+			var type = context.EvalTypeFromLangs(this.Name);
+			if (type != null)
+			{
+				_typeWrapper = new TypeWrapper(this.Name, type);
+				returnType = typeof(TypeWrapper);
+				return _typeWrapper;
+			}
+
 			if (context.HasFunc(this.Name))
 			{
 				var value = new ScriptFunctionObject(context, this.Name);

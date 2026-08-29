@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Values;
+using System;
 using System.Linq.Expressions;
 using System.Reflection;
 //using System.Runtime.CompilerServices;
@@ -52,6 +53,9 @@ namespace AScript
 
 		public static void setItem(object obj, object index, object value)
 		{
+			if (obj is AValue ov) obj = ov.Get();
+			if (index is AValue iv) index = iv.Get();
+			if (value is AValue vv) value = vv.Get();
 			((dynamic)obj)[(dynamic)index] = (dynamic)value;
 		}
 
@@ -62,6 +66,8 @@ namespace AScript
 
 		public static object Add(object v1, object v2)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
+			if (v2 is AValue a2) v2 = a2.Get();
 			if (v1 == null) return v2;
 			if (v2 == null) return v1;
 			return ((dynamic)v1) + ((dynamic)v2);
@@ -69,6 +75,8 @@ namespace AScript
 
 		public static object Subtract(object v1, object v2)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
+			if (v2 is AValue a2) v2 = a2.Get();
 			if (v1 == null)
 			{
 				if (v2 == null) return null;
@@ -83,6 +91,8 @@ namespace AScript
 
 		public static object Divide(object v1, object v2, bool isDouble)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
+			if (v2 is AValue a2) v2 = a2.Get();
 			if (isDouble)
 			{
 				if (v1 != null && ScriptUtils.IsNumberType(v1.GetType())
@@ -98,6 +108,8 @@ namespace AScript
 
 		public static object Multiply(object v1, object v2)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
+			if (v2 is AValue a2) v2 = a2.Get();
 			if (v1 == null)
 			{
 				if (v2 == null) return null;
@@ -112,31 +124,42 @@ namespace AScript
 
 		public static object Modulo(object v1, object v2)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
+			if (v2 is AValue a2) v2 = a2.Get();
 			return ((dynamic)v1) % ((dynamic)v2);
 		}
 
 		public static object And(object v1, object v2)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
+			if (v2 is AValue a2) v2 = a2.Get();
 			return ((dynamic)v1) & ((dynamic)v2);
 		}
 
 		public static object Or(object v1, object v2)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
+			if (v2 is AValue a2) v2 = a2.Get();
 			return ((dynamic)v1) | ((dynamic)v2);
 		}
 
 		public static object XOr(object v1, object v2)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
+			if (v2 is AValue a2) v2 = a2.Get();
 			return ((dynamic)v1) ^ ((dynamic)v2);
 		}
 
 		public static object Not(object v1)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
 			return !((dynamic)v1);
 		}
 
 		public static bool Equal(object v1, object v2)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
+			if (v2 is AValue a2) v2 = a2.Get();
 			if (v1 == null) return v2 == null;
 			if (v2 == null) return false;
 #if !NET45
@@ -154,6 +177,8 @@ namespace AScript
 
 		public static bool NotEqual(object v1, object v2)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
+			if (v2 is AValue a2) v2 = a2.Get();
 			if (v1 == null) return v2 != null;
 			if (v2 == null) return true;
 #if !NET45
@@ -171,31 +196,43 @@ namespace AScript
 
 		public static bool GreaterThan(object v1, object v2)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
+			if (v2 is AValue a2) v2 = a2.Get();
 			return ((dynamic)v1) > ((dynamic)v2);
 		}
 
 		public static bool GreaterThanOrEqual(object v1, object v2)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
+			if (v2 is AValue a2) v2 = a2.Get();
 			return ((dynamic)v1) >= ((dynamic)v2);
 		}
 
 		public static bool LessThan(object v1, object v2)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
+			if (v2 is AValue a2) v2 = a2.Get();
 			return ((dynamic)v1) < ((dynamic)v2);
 		}
 
 		public static bool LessThanOrEqual(object v1, object v2)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
+			if (v2 is AValue a2) v2 = a2.Get();
 			return ((dynamic)v1) <= ((dynamic)v2);
 		}
 
 		public static object LeftShift(object v1, object v2)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
+			if (v2 is AValue a2) v2 = a2.Get();
 			return ((dynamic)v1) << ((dynamic)v2);
 		}
 
 		public static object RightShift(object v1, object v2)
 		{
+			if (v1 is AValue a1) v1 = a1.Get();
+			if (v2 is AValue a2) v2 = a2.Get();
 			return ((dynamic)v1) >> ((dynamic)v2);
 		}
 

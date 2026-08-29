@@ -2528,7 +2528,7 @@ namespace AScript
 			return EvalTypeFromLangs(name);
 		}
 
-		private Type EvalTypeFromLangs(string name)
+		public Type EvalTypeFromLangs(string name)
 		{
 			var langs = this.Langs;
 			if (langs == null || langs.Length == 0)

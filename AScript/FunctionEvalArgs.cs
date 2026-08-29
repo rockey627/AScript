@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AScript.Nodes;
+using AScript.Values;
 
 namespace AScript
 {
@@ -130,7 +131,7 @@ namespace AScript
 				else
 				{
 					var value = arg.Eval(this.Context, this.Options, this.Control, out var type);
-					var valueType = value?.GetType() ?? type;
+					var valueType = value == null || value is AValue ? type : value.GetType();
 					this.ArgValues[i] = value;
 					this.ArgTypes[i] = value is CustomFunctionObject ? typeof(Delegate) : valueType;
 					if (!(arg is ObjectNode))
@@ -158,7 +159,7 @@ namespace AScript
 				else
 				{
 					var result = await arg.EvalAsync(this.Context, this.Options, this.Control, cancellationToken).ConfigureAwait(false);
-					var valueType = result.Value?.GetType() ?? result.Type;
+					var valueType = result.Value == null || result.Value is AValue ? result.Type : result.Value.GetType();
 					this.ArgValues[i] = result.Value;
 					this.ArgTypes[i] = result.Value is CustomFunctionObject ? typeof(Delegate) : valueType;
 					if (!(arg is ObjectNode))
