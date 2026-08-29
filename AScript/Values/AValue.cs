@@ -143,6 +143,62 @@ namespace AScript.Values
 		{
 			return value.GetInt();
 		}
+		public static implicit operator byte(AValue value)
+		{
+			return value.GetByte();
+		}
+		public static implicit operator sbyte(AValue value)
+		{
+			return value.GetSByte();
+		}
+		public static implicit operator bool(AValue value)
+		{
+			return value.GetBool();
+		}
+		public static implicit operator double(AValue value)
+		{
+			return value.GetDouble();
+		}
+		public static implicit operator decimal(AValue value)
+		{
+			return value.GetDecimal();
+		}
+		public static implicit operator float(AValue value)
+		{
+			return value.GetFloat();
+		}
+		public static implicit operator long(AValue value)
+		{
+			return value.GetLong();
+		}
+		public static implicit operator uint(AValue value)
+		{
+			return value.GetUInt();
+		}
+		public static implicit operator ulong(AValue value)
+		{
+			return value.GetULong();
+		}
+		public static implicit operator short(AValue value)
+		{
+			return value.GetShort();
+		}
+		public static implicit operator char(AValue value)
+		{
+			return value.GetChar();
+		}
+		public static implicit operator ushort(AValue value)
+		{
+			return value.GetUShort();
+		}
+		public static implicit operator DateTime(AValue value)
+		{
+			return value.GetDateTime();
+		}
+		public static implicit operator string(AValue value)
+		{
+			return value.GetString();
+		}
 
 		public abstract object Get();
 
