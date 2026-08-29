@@ -12,11 +12,11 @@ namespace AScript.Values
 			set => _value = value;
 		}
 
-		public DateTimeValue() : base(typeof(DateTime))
-		{
-		}
+		public override Type Type => typeof(DateTime);
 
-		public DateTimeValue(DateTime value) : this()
+		public DateTimeValue() { }
+
+		public DateTimeValue(DateTime value)
 		{
 			_value = value;
 		}

@@ -12,11 +12,11 @@ namespace AScript.Values
 			set => _value = value;
 		}
 
-		public FloatValue() : base(typeof(float))
-		{
-		}
+		public override Type Type => typeof(float);
 
-		public FloatValue(float value) : this()
+		public FloatValue() { }
+
+		public FloatValue(float value)
 		{
 			_value = value;
 		}

@@ -3,6 +3,7 @@ using AScript.Nodes;
 using AScript.Readers;
 using AScript.Syntaxs;
 using AScript.TokenHandlers;
+using AScript.Values;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,7 +11,6 @@ using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -554,7 +554,45 @@ namespace AScript
 		/// <returns></returns>
 		public ScriptContext GetOwnerContext(string variable, out object value, out Type type, bool searchType = false)
 		{
-			return GetOwnerContext(variable, out value, out type, out _, searchType);
+			var context = this;
+			do
+			{
+				//var tempVariables = context._TempVariables;
+				//if (tempVariables != null && tempVariables.TryGetValue(variable, out value))
+				//{
+				//	var tempVariableTypes = context._TempVariableTypes;
+				//	if (tempVariableTypes == null || !tempVariableTypes.TryGetValue(variable, out type))
+				//	{
+				//		type = value == null ? typeof(object) : value.GetType();
+				//	}
+				//	modifier = context.GetVarModifier(variable);
+				//	return context;
+				//}
+				var variables = context._Variables;
+				if (variables != null && variables.TryGetValue(variable, out var v))
+				{
+					//var variableTypes = context._VariableTypes;
+					//if (variableTypes == null || !variableTypes.TryGetValue(variable, out type))
+					//{
+					//	type = value == null ? typeof(object) : value.GetType();
+					//}
+					value = v.Get();
+					type = v.Type;
+					return context;
+				}
+				var types = context._Types;
+				if (searchType && types != null && types.TryGetValue(variable, out var c))
+				{
+					type = typeof(TypeWrapper);
+					value = new TypeWrapper(variable, c);
+					return context;
+				}
+				context = context.Parent;
+			} while (context != null);
+
+			value = null;
+			type = null;
+			return null;
 		}
 
 		/// <summary>
@@ -583,13 +621,15 @@ namespace AScript
 				//	return context;
 				//}
 				var variables = context._Variables;
-				if (variables != null && variables.TryGetValue(variable, out value))
+				if (variables != null && variables.TryGetValue(variable, out var v))
 				{
-					var variableTypes = context._VariableTypes;
-					if (variableTypes == null || !variableTypes.TryGetValue(variable, out type))
-					{
-						type = value == null ? typeof(object) : value.GetType();
-					}
+					//var variableTypes = context._VariableTypes;
+					//if (variableTypes == null || !variableTypes.TryGetValue(variable, out type))
+					//{
+					//	type = value == null ? typeof(object) : value.GetType();
+					//}
+					value = v.Get();
+					type = v.Type;
 					modifier = context.GetVarModifier(variable);
 					return context;
 				}
@@ -616,6 +656,29 @@ namespace AScript
 		/// <param name="variable"></param>
 		/// <param name="value"></param>
 		/// <returns></returns>
+		public ScriptContext GetOwnerContext(string variable, out ObjectValue value)
+		{
+			var context = this;
+			do
+			{
+				var variables = context._Variables;
+				if (variables != null && variables.TryGetValue(variable, out value))
+				{
+					return context;
+				}
+				context = context.Parent;
+			} while (context != null);
+
+			value = null;
+			return null;
+		}
+
+		/// <summary>
+		/// 获取变量所在的上下文
+		/// </summary>
+		/// <param name="variable"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
 		public ScriptContext GetOwnerContext<T>(string variable, out T value)
 		{
 			var context = this;
@@ -630,7 +693,7 @@ namespace AScript
 				var variables = context._Variables;
 				if (variables != null && variables.TryGetValue(variable, out var v2))
 				{
-					value = (T)v2;
+					value = v2.Get<T>();
 					return context;
 				}
 				context = context.Parent;
@@ -662,7 +725,7 @@ namespace AScript
 				var variables = context._Variables;
 				if (variables != null && variables.TryGetValue(variable, out var v2))
 				{
-					value = (T)v2;
+					value = v2.Get<T>();
 					modifier = context.GetVarModifier(variable);
 					return context;
 				}
@@ -794,6 +857,15 @@ namespace AScript
 				context = context.Parent;
 			}
 			return null;
+		}
+
+		public override ObjectValue GetVar(string name)
+		{
+			if (GetOwnerContext(name, out var v) == null)
+			{
+				v = GetVarFromLangs(name);
+			}
+			return v;
 		}
 
 		public object EvalVar(string name, bool searchParent)
@@ -990,6 +1062,71 @@ namespace AScript
 			value = default;
 			modifier = 0;
 			return false;
+		}
+
+		public ObjectValue GetVarFromLangs(string name)
+		{
+			var langs = this.Langs;
+			if (langs == null || langs.Length == 0)
+			{
+				foreach (var item in Script.Langs.GetDefaults())
+				{
+					if (Script.Langs.TryGetValue(item, out var lang))
+					{
+						var value = lang.GetVar(name);
+						if (value != null) return value;
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < langs.Length; i++)
+				{
+					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					{
+						var value = lang.GetVar(name);
+						if (value != null) return value;
+					}
+				}
+			}
+			return null;
+		}
+
+		public ObjectValue GetVarFromLangs(string name, out int modifier)
+		{
+			var langs = this.Langs;
+			if (langs == null || langs.Length == 0)
+			{
+				foreach (var item in Script.Langs.GetDefaults())
+				{
+					if (Script.Langs.TryGetValue(item, out var lang))
+					{
+						var value = lang.GetVar(name);
+						if (value != null)
+						{
+							modifier = lang.GetVarModifier(name);
+							return value;
+						}
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < langs.Length; i++)
+				{
+					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					{
+						var value = lang.GetVar(name);
+						if (value != null)
+						{
+							modifier = lang.GetVarModifier(name);
+							return value;
+						}
+					}
+				}
+			}
+			modifier = 0;
+			return null;
 		}
 
 		public void EvalAction(BuildOptions options, EvalControl control, string name, IList<ITreeNode> args)

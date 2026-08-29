@@ -1,21 +1,61 @@
 using System;
+using System.Runtime.CompilerServices;
 
 namespace AScript.Values
 {
 	public abstract class AValue : IValue, IConvertible
 	{
-		protected Type _type;
+		public abstract Type Type { get; }
 
-		public Type Type => _type;
-
-		protected AValue(Type type)
+		public static AValue Create(object value, Type type)
 		{
-			_type = type;
-		}
-
-		public static NumberValue CreateNumber(double value, Type type)
-		{
-			return new NumberValue(value, type);
+			if (value == null)
+			{
+				return new ObjectValue(value, type);
+			}
+			if (value is AValue)
+			{
+				return new ObjectValue(value);
+			}
+			if (type == null)
+			{
+				type = value.GetType();
+			}
+			switch (Type.GetTypeCode(type))
+			{
+				case TypeCode.Boolean:
+					return Create((bool)value);
+				case TypeCode.Byte:
+					break;
+				case TypeCode.Char:
+					break;
+				case TypeCode.DateTime:
+					break;
+				case TypeCode.Decimal:
+					break;
+				case TypeCode.Double:
+					break;
+				case TypeCode.Int16:
+					break;
+				case TypeCode.Int32:
+					break;
+				case TypeCode.Int64:
+					break;
+				case TypeCode.SByte:
+					break;
+				case TypeCode.Single:
+					break;
+				case TypeCode.String:
+					break;
+				case TypeCode.UInt16:
+					break;
+				case TypeCode.UInt32:
+					break;
+				case TypeCode.UInt64:
+					break;
+				default:
+					return new ObjectValue(value, type);
+			}
 		}
 		public static IntValue Create(int value)
 		{
@@ -200,6 +240,65 @@ namespace AScript.Values
 			return value.GetString();
 		}
 
+		public override string ToString()
+		{
+			return GetString();
+		}
+
+		public T Get<T>()
+		{
+			switch (Type.GetTypeCode(typeof(T)))
+			{
+				case TypeCode.Boolean:
+					var valueBool = GetBool();
+					return Unsafe.As<bool, T>(ref valueBool);
+				case TypeCode.Byte:
+					var valueByte = GetByte();
+					return Unsafe.As<byte, T>(ref valueByte);
+				case TypeCode.SByte:
+					var valueSByte = GetSByte();
+					return Unsafe.As<sbyte, T>(ref valueSByte);
+				case TypeCode.Char:
+					var valueChar = GetChar();
+					return Unsafe.As<char, T>(ref valueChar);
+				case TypeCode.Int16:
+					var valueInt16 = GetShort();
+					return Unsafe.As<short, T>(ref valueInt16);
+				case TypeCode.Int32:
+					var valueInt32 = GetInt();
+					return Unsafe.As<int, T>(ref valueInt32);
+				case TypeCode.Int64:
+					var valueInt64 = GetLong();
+					return Unsafe.As<long, T>(ref valueInt64);
+				case TypeCode.UInt16:
+					var valueUInt16 = GetUShort();
+					return Unsafe.As<ushort, T>(ref valueUInt16);
+				case TypeCode.UInt32:
+					var valueUInt32 = GetUInt();
+					return Unsafe.As<uint, T>(ref valueUInt32);
+				case TypeCode.UInt64:
+					var valueUInt64 = GetULong();
+					return Unsafe.As<ulong, T>(ref valueUInt64);
+				case TypeCode.Single:
+					var valueSingle = GetFloat();
+					return Unsafe.As<float, T>(ref valueSingle);
+				case TypeCode.Double:
+					var valueDouble = GetDouble();
+					return Unsafe.As<double, T>(ref valueDouble);
+				case TypeCode.Decimal:
+					var valueDecimal = GetDecimal();
+					return Unsafe.As<decimal, T>(ref valueDecimal);
+				case TypeCode.DateTime:
+					var valueDateTime = GetDateTime();
+					return Unsafe.As<DateTime, T>(ref valueDateTime);
+				case TypeCode.String:
+					var valueString = GetString();
+					return Unsafe.As<string, T>(ref valueString);
+				default:
+					return (T)Get();
+			}
+		}
+
 		public abstract object Get();
 
 		public abstract bool GetBool();
@@ -234,7 +333,7 @@ namespace AScript.Values
 
 		TypeCode IConvertible.GetTypeCode()
 		{
-			return Type.GetTypeCode(_type);
+			return Type.GetTypeCode(this.Type);
 		}
 
 		bool IConvertible.ToBoolean(IFormatProvider provider)

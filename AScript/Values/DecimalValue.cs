@@ -12,11 +12,11 @@ namespace AScript.Values
 			set => _value = value;
 		}
 
-		public DecimalValue() : base(typeof(decimal))
-		{
-		}
+		public override Type Type => typeof(decimal);
 
-		public DecimalValue(decimal value) : this()
+		public DecimalValue() { }
+
+		public DecimalValue(decimal value)
 		{
 			_value = value;
 		}

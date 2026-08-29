@@ -12,11 +12,11 @@ namespace AScript.Values
 			set => _value = value;
 		}
 
-		public IntValue() : base(typeof(int))
-		{
-		}
+		public override Type Type => typeof(int);
 
-		public IntValue(int value) : this()
+		public IntValue() { }
+
+		public IntValue(int value)
 		{
 			_value = value;
 		}

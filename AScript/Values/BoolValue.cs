@@ -12,11 +12,11 @@ namespace AScript.Values
 			set => _value = value;
 		}
 
-		public BoolValue() : base(typeof(bool))
-		{
-		}
+		public override Type Type => typeof(bool);
 
-		public BoolValue(bool value) : this()
+		public BoolValue() { }
+
+		public BoolValue(bool value)
 		{
 			_value = value;
 		}

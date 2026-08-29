@@ -12,11 +12,11 @@ namespace AScript.Values
 			set => _value = value;
 		}
 
-		public SByteValue() : base(typeof(sbyte))
-		{
-		}
+		public override Type Type => typeof(sbyte);
 
-		public SByteValue(sbyte value) : this()
+		public SByteValue() { }
+
+		public SByteValue(sbyte value)
 		{
 			_value = value;
 		}

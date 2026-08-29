@@ -12,11 +12,11 @@ namespace AScript.Values
 			set => _value = value;
 		}
 
-		public LongValue() : base(typeof(long))
-		{
-		}
+		public override Type Type => typeof(long);
 
-		public LongValue(long value) : this()
+		public LongValue() { }
+
+		public LongValue(long value)
 		{
 			_value = value;
 		}

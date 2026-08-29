@@ -12,11 +12,11 @@ namespace AScript.Values
 			set => _value = value;
 		}
 
-		public ShortValue() : base(typeof(short))
-		{
-		}
+		public override Type Type => typeof(short);
 
-		public ShortValue(short value) : this()
+		public ShortValue() { }
+
+		public ShortValue(short value)
 		{
 			_value = value;
 		}

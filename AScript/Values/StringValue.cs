@@ -12,11 +12,11 @@ namespace AScript.Values
 			set => _value = value;
 		}
 
-		public StringValue() : base(typeof(string))
-		{
-		}
+		public override Type Type => typeof(string);
 
-		public StringValue(string value) : this()
+		public StringValue() { }
+
+		public StringValue(string value)
 		{
 			_value = value;
 		}

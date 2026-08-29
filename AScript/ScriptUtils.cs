@@ -9,6 +9,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.CSharp.RuntimeBinder;
+using AScript.Values;
 
 namespace AScript
 {
@@ -1160,12 +1161,12 @@ namespace AScript
 			return context.EvalFunc($"get_{propertyOrFieldName}", new[] { instance }, new[] { targetType }, out _);
 		}
 
-		public static object EvalNumber(string number)
+		public static AValue EvalNumber(string number)
 		{
 			return EvalNumber(number, false);
 		}
 
-		public static object EvalNumber(string number, bool int2long)
+		public static AValue EvalNumber(string number, bool int2long)
 		{
 			var lastChar = number[number.Length - 1];
 			if (lastChar == 'm' || lastChar == 'M')

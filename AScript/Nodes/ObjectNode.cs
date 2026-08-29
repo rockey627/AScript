@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Values;
+using System;
 using System.Linq.Expressions;
 
 namespace AScript.Nodes
@@ -18,12 +19,23 @@ namespace AScript.Nodes
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
-			returnType = this.DataType ?? this.Data?.GetType() ?? typeof(object);
+			if (this.Data is AValue value)
+			{
+				returnType = value.Type;
+			}
+			else
+			{
+				returnType = this.DataType ?? this.Data?.GetType() ?? typeof(object);
+			}
 			return this.Data;
 		}
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
+			if (this.Data is AValue value)
+			{
+				return Expression.Constant(value.Get(), value.Type);
+			}
 			return Expression.Constant(this.Data, this.DataType ?? this.Data?.GetType() ?? typeof(object));
 		}
 

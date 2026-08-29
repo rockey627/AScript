@@ -1,7 +1,6 @@
 ﻿using AScript.Exceptions;
 using System;
 using System.Linq.Expressions;
-using System.Runtime.InteropServices;
 
 namespace AScript.Nodes
 {

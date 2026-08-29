@@ -1,4 +1,5 @@
 ﻿using AScript.Functions;
+using AScript.Values;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -46,13 +47,13 @@ namespace AScript
 		/// </summary>
 		protected IDictionary<string, Type> _Types;
 		/// <summary>
-		/// 全局变量
+		/// 变量
 		/// </summary>
-		protected IDictionary<string, object> _Variables;
-		/// <summary>
-		/// 全局变量类型
-		/// </summary>
-		protected IDictionary<string, Type> _VariableTypes;
+		protected IDictionary<string, ObjectValue> _Variables;
+		///// <summary>
+		///// 全局变量类型
+		///// </summary>
+		//protected IDictionary<string, Type> _VariableTypes;
 		/// <summary>
 		/// 变量修饰符
 		/// </summary>
@@ -207,44 +208,44 @@ namespace AScript
 						if (_Variables == null)
 						{
 							_Variables = _IgnoreCase ?
-								new ConcurrentDictionary<string, object>(StringComparer.OrdinalIgnoreCase) :
-								new ConcurrentDictionary<string, object>();
+								new ConcurrentDictionary<string, ObjectValue>(StringComparer.OrdinalIgnoreCase) :
+								new ConcurrentDictionary<string, ObjectValue>();
 						}
 					}
 				}
 				else
 				{
 					_Variables = _IgnoreCase ?
-						new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase) :
-						new Dictionary<string, object>();
+						new Dictionary<string, ObjectValue>(StringComparer.OrdinalIgnoreCase) :
+						new Dictionary<string, ObjectValue>();
 				}
 			}
 		}
 
-		private void Init_VariableTypes()
-		{
-			if (_VariableTypes == null)
-			{
-				if (_ThreadSafely)
-				{
-					lock (this)
-					{
-						if (_VariableTypes == null)
-						{
-							_VariableTypes = _IgnoreCase ?
-								new ConcurrentDictionary<string, Type>(StringComparer.OrdinalIgnoreCase) :
-								new ConcurrentDictionary<string, Type>();
-						}
-					}
-				}
-				else
-				{
-					_VariableTypes = _IgnoreCase ?
-						new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase) :
-						new Dictionary<string, Type>();
-				}
-			}
-		}
+		//private void Init_VariableTypes()
+		//{
+		//	if (_VariableTypes == null)
+		//	{
+		//		if (_ThreadSafely)
+		//		{
+		//			lock (this)
+		//			{
+		//				if (_VariableTypes == null)
+		//				{
+		//					_VariableTypes = _IgnoreCase ?
+		//						new ConcurrentDictionary<string, Type>(StringComparer.OrdinalIgnoreCase) :
+		//						new ConcurrentDictionary<string, Type>();
+		//				}
+		//			}
+		//		}
+		//		else
+		//		{
+		//			_VariableTypes = _IgnoreCase ?
+		//				new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase) :
+		//				new Dictionary<string, Type>();
+		//		}
+		//	}
+		//}
 
 		private void Init_VariableModifiers()
 		{
@@ -462,7 +463,7 @@ namespace AScript
 			this._Assemblies?.Clear();
 			this._Types?.Clear();
 			this._Variables?.Clear();
-			this._VariableTypes?.Clear();
+			//this._VariableTypes?.Clear();
 			this._Functions?.Clear();
 			this._ObjectMemberEnabledDict?.Clear();
 			this.Modules.Clear();
@@ -565,27 +566,40 @@ namespace AScript
 		public virtual void SetVar(string name, object value, Type valueType)
 		{
 			Init_Variables();
-			this._Variables[name] = value;
-			this._VariableModifiers?.Remove(name);
-			SetVarType(name, value, valueType);
-		}
-
-		private void SetVarType(string name, object value, Type type)
-		{
-			if (type != null && value != null && type == value.GetType())
+			//this._Variables[name] = value;
+			var v = AValue.Create(value, valueType);
+			if (_Variables.TryGetValue(name, out var exists))
 			{
-				type = null;
+				exists.Value = v;
 			}
-			if (type == null)
+			else if (v is ObjectValue ov)
 			{
-				this._VariableTypes?.Remove(name);
+				_Variables[name] = ov;
 			}
 			else
 			{
-				Init_VariableTypes();
-				this._VariableTypes[name] = type;
+				_Variables[name] = new ObjectValue(v);
 			}
+			this._VariableModifiers?.Remove(name);
+			//SetVarType(name, value, valueType);
 		}
+
+		//private void SetVarType(string name, object value, Type type)
+		//{
+		//	if (type != null && value != null && type == value.GetType())
+		//	{
+		//		type = null;
+		//	}
+		//	if (type == null)
+		//	{
+		//		this._VariableTypes?.Remove(name);
+		//	}
+		//	else
+		//	{
+		//		Init_VariableTypes();
+		//		this._VariableTypes[name] = type;
+		//	}
+		//}
 
 		/// <summary>
 		/// 设置变量
@@ -663,8 +677,15 @@ namespace AScript
 		public virtual void RemoveVar(string name)
 		{
 			this._Variables?.Remove(name);
-			this._VariableTypes?.Remove(name);
+			//this._VariableTypes?.Remove(name);
 			this._VariableModifiers?.Remove(name);
+		}
+
+		public virtual ObjectValue GetVar(string name)
+		{
+			if (_Variables == null) return null;
+			_Variables.TryGetValue(name, out var v);
+			return v;
 		}
 
 		public object EvalVar(string name)
@@ -676,10 +697,11 @@ namespace AScript
 		{
 			if (_Variables != null && _Variables.TryGetValue(name, out var v))
 			{
-				if (_VariableTypes == null || !_VariableTypes.TryGetValue(name, out type))
-				{
-					type = v?.GetType() ?? typeof(object);
-				}
+				//if (_VariableTypes == null || !_VariableTypes.TryGetValue(name, out type))
+				//{
+				//	type = v?.GetType() ?? typeof(object);
+				//}
+				type = v.Type;
 				return v;
 			}
 			// 没有变量，则查找类
@@ -712,7 +734,7 @@ namespace AScript
 			var variables = _Variables;
 			if (variables != null && variables.TryGetValue(name, out var v))
 			{
-				value = (T)v;
+				value = v.Get<T>();
 				return true;
 			}
 			value = default;

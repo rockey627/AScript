@@ -12,11 +12,11 @@ namespace AScript.Values
 			set => _value = value;
 		}
 
-		public DoubleValue() : base(typeof(double))
-		{
-		}
+		public override Type Type => typeof(double);
 
-		public DoubleValue(double value) : this()
+		public DoubleValue() { }
+
+		public DoubleValue(double value)
 		{
 			_value = value;
 		}

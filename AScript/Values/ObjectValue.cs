@@ -1,34 +1,56 @@
-using System;
+﻿using System;
 
 namespace AScript.Values
 {
-	public class UIntValue : AValue
+	public class ObjectValue : AValue
 	{
-		private uint _value;
+		private object _value;
+		private Type _type;
 
-		public uint Value
+		public object Value
 		{
 			get => _value;
-			set => _value = value;
+			set
+			{
+				_value = value;
+				_type = null;
+			}
 		}
 
-		public override Type Type => typeof(uint);
+		public override Type Type
+		{
+			get
+			{
+				if (_value == null) return typeof(object);
+				if (_value is AValue aValue) return aValue.Type;
+				if (_type == null) _type = _value.GetType();
+				return _type;
+			}
+		}
 
-		public UIntValue() { }
-
-		public UIntValue(uint value)
+		public ObjectValue() { }
+		public ObjectValue(object value)
 		{
 			_value = value;
+		}
+		public ObjectValue(object value, Type type)
+		{
+			_value = value;
+			_type = type;
 		}
 
 		public override object Get()
 		{
+			if (_value is AValue aValue)
+			{
+				return aValue.Get();
+			}
 			return _value;
 		}
 
 		public override bool GetBool()
 		{
-			return _value != 0;
+			return (bool)_value;
 		}
 
 		public override byte GetByte()
@@ -48,22 +70,22 @@ namespace AScript.Values
 
 		public override DateTime GetDateTime()
 		{
-			throw new InvalidCastException();
+			return (DateTime)_value;
 		}
 
 		public override decimal GetDecimal()
 		{
-			return _value;
+			return (decimal)_value;
 		}
 
 		public override double GetDouble()
 		{
-			return _value;
+			return (double)_value;
 		}
 
 		public override float GetFloat()
 		{
-			return _value;
+			return (float)_value;
 		}
 
 		public override int GetInt()
@@ -73,7 +95,7 @@ namespace AScript.Values
 
 		public override long GetLong()
 		{
-			return _value;
+			return (long)_value;
 		}
 
 		public override short GetShort()
@@ -83,17 +105,17 @@ namespace AScript.Values
 
 		public override string GetString()
 		{
-			return _value.ToString();
+			return _value?.ToString();
 		}
 
 		public override uint GetUInt()
 		{
-			return _value;
+			return (uint)_value;
 		}
 
 		public override ulong GetULong()
 		{
-			return _value;
+			return (ulong)_value;
 		}
 
 		public override ushort GetUShort()

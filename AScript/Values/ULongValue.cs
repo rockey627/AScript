@@ -12,11 +12,11 @@ namespace AScript.Values
 			set => _value = value;
 		}
 
-		public ULongValue() : base(typeof(ulong))
-		{
-		}
+		public override Type Type => typeof(ulong);
 
-		public ULongValue(ulong value) : this()
+		public ULongValue() { }
+
+		public ULongValue(ulong value)
 		{
 			_value = value;
 		}
