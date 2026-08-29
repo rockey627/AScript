@@ -13,9 +13,135 @@ namespace AScript.Values
 			_type = type;
 		}
 
+		public static NumberValue CreateNumber(double value, Type type)
+		{
+			return new NumberValue(value, type);
+		}
 		public static IntValue Create(int value)
 		{
 			return new IntValue(value);
+		}
+		public static ByteValue Create(byte value)
+		{
+			return new ByteValue(value);
+		}
+		public static SByteValue Create(sbyte value)
+		{
+			return new SByteValue(value);
+		}
+		public static BoolValue Create(bool value)
+		{
+			return new BoolValue(value);
+		}
+		public static DoubleValue Create(double value)
+		{
+			return new DoubleValue(value);
+		}
+		public static DecimalValue Create(decimal value)
+		{
+			return new DecimalValue(value);
+		}
+		public static DateTimeValue Create(DateTime value)
+		{
+			return new DateTimeValue(value);
+		}
+		public static LongValue Create(long value)
+		{
+			return new LongValue(value);
+		}
+		public static ShortValue Create(short value)
+		{
+			return new ShortValue(value);
+		}
+		public static UShortValue Create(ushort value)
+		{
+			return new UShortValue(value);
+		}
+		public static UIntValue Create(uint value)
+		{
+			return new UIntValue(value);
+		}
+		public static ULongValue Create(ulong value)
+		{
+			return new ULongValue(value);
+		}
+		public static FloatValue Create(float value)
+		{
+			return new FloatValue(value);
+		}
+		public static StringValue Create(string value)
+		{
+			return new StringValue(value);
+		}
+		public static CharValue Create(char value)
+		{
+			return new CharValue(value);
+		}
+
+		public static implicit operator AValue(int value)
+		{
+			return Create(value);
+		}
+		public static implicit operator AValue(byte value)
+		{
+			return Create(value);
+		}
+		public static implicit operator AValue(sbyte value)
+		{
+			return Create(value);
+		}
+		public static implicit operator AValue(bool value)
+		{
+			return Create(value);
+		}
+		public static implicit operator AValue(double value)
+		{
+			return Create(value);
+		}
+		public static implicit operator AValue(decimal value)
+		{
+			return Create(value);
+		}
+		public static implicit operator AValue(float value)
+		{
+			return Create(value);
+		}
+		public static implicit operator AValue(long value)
+		{
+			return Create(value);
+		}
+		public static implicit operator AValue(uint value)
+		{
+			return Create(value);
+		}
+		public static implicit operator AValue(ulong value)
+		{
+			return Create(value);
+		}
+		public static implicit operator AValue(short value)
+		{
+			return Create(value);
+		}
+		public static implicit operator AValue(char value)
+		{
+			return Create(value);
+		}
+		public static implicit operator AValue(ushort value)
+		{
+			return Create(value);
+		}
+		public static implicit operator AValue(DateTime value)
+		{
+			return Create(value);
+		}
+		public static implicit operator AValue(string value)
+		{
+			return Create(value);
+		}
+
+		public static implicit operator int(AValue value)
+		{
+			return value.GetInt();
 		}
 
 		public abstract object Get();
