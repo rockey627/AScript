@@ -50,77 +50,77 @@ namespace AScript.Values
 
 		public override bool GetBool()
 		{
-			return (bool)_value;
+			return Convert.ToBoolean(_value);
 		}
 
 		public override byte GetByte()
 		{
-			return (byte)_value;
+			return Convert.ToByte(_value);
 		}
 
 		public override sbyte GetSByte()
 		{
-			return (sbyte)_value;
+			return Convert.ToSByte(_value);
 		}
 
 		public override char GetChar()
 		{
-			return (char)_value;
+			return Convert.ToChar(_value);
 		}
 
 		public override DateTime GetDateTime()
 		{
-			return (DateTime)_value;
+			return Convert.ToDateTime(_value);
 		}
 
 		public override decimal GetDecimal()
 		{
-			return (decimal)_value;
+			return Convert.ToDecimal(_value);
 		}
 
 		public override double GetDouble()
 		{
-			return (double)_value;
+			return Convert.ToDouble(_value);
 		}
 
 		public override float GetFloat()
 		{
-			return (float)_value;
+			return Convert.ToSingle(_value);
 		}
 
 		public override int GetInt()
 		{
-			return (int)_value;
+			return Convert.ToInt32(_value);
 		}
 
 		public override long GetLong()
 		{
-			return (long)_value;
+			return Convert.ToInt64(_value);
 		}
 
 		public override short GetShort()
 		{
-			return (short)_value;
+			return Convert.ToInt16(_value);
 		}
 
 		public override string GetString()
 		{
-			return _value?.ToString();
+			return Convert.ToString(_value);
 		}
 
 		public override uint GetUInt()
 		{
-			return (uint)_value;
+			return Convert.ToUInt32(_value);
 		}
 
 		public override ulong GetULong()
 		{
-			return (ulong)_value;
+			return Convert.ToUInt64(_value);
 		}
 
 		public override ushort GetUShort()
 		{
-			return (ushort)_value;
+			return Convert.ToUInt16(_value);
 		}
 	}
 }

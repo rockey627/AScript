@@ -26,33 +26,72 @@ namespace AScript.Values
 				case TypeCode.Boolean:
 					return Create((bool)value);
 				case TypeCode.Byte:
-					break;
+					return Create((byte)value);
 				case TypeCode.Char:
-					break;
+					return Create((char)value);
 				case TypeCode.DateTime:
-					break;
+					return Create((DateTime)value);
 				case TypeCode.Decimal:
-					break;
+					return Create((decimal)value);
 				case TypeCode.Double:
-					break;
+					return Create((double)value);
 				case TypeCode.Int16:
-					break;
+					return Create((short)value);
 				case TypeCode.Int32:
-					break;
+					return Create((int)value);
 				case TypeCode.Int64:
-					break;
+					return Create((long)value);
 				case TypeCode.SByte:
-					break;
+					return Create((sbyte)value);
 				case TypeCode.Single:
-					break;
+					return Create((float)value);
 				case TypeCode.String:
-					break;
+					return Create((string)value);
 				case TypeCode.UInt16:
-					break;
+					return Create((ushort)value);
 				case TypeCode.UInt32:
-					break;
+					return Create((uint)value);
 				case TypeCode.UInt64:
-					break;
+					return Create((ulong)value);
+				default:
+					return new ObjectValue(value, type);
+			}
+		}
+		public static AValue Create<T>(T value)
+		{
+			var type = typeof(T);
+			switch (Type.GetTypeCode(type))
+			{
+				case TypeCode.Boolean:
+					return Create(Unsafe.As<T, bool>(ref value));
+				case TypeCode.Byte:
+					return Create(Unsafe.As<T, byte>(ref value));
+				case TypeCode.SByte:
+					return Create(Unsafe.As<T, sbyte>(ref value));
+				case TypeCode.Char:
+					return Create(Unsafe.As<T, char>(ref value));
+				case TypeCode.Int16:
+					return Create(Unsafe.As<T, short>(ref value));
+				case TypeCode.Int32:
+					return Create(Unsafe.As<T, int>(ref value));
+				case TypeCode.Int64:
+					return Create(Unsafe.As<T, long>(ref value));
+				case TypeCode.UInt16:
+					return Create(Unsafe.As<T, ushort>(ref value));
+				case TypeCode.UInt32:
+					return Create(Unsafe.As<T, uint>(ref value));
+				case TypeCode.UInt64:
+					return Create(Unsafe.As<T, ulong>(ref value));
+				case TypeCode.Single:
+					return Create(Unsafe.As<T, float>(ref value));
+				case TypeCode.Double:
+					return Create(Unsafe.As<T, double>(ref value));
+				case TypeCode.Decimal:
+					return Create(Unsafe.As<T, decimal>(ref value));
+				case TypeCode.DateTime:
+					return Create(Unsafe.As<T, DateTime>(ref value));
+				case TypeCode.String:
+					return Create(Unsafe.As<T, string>(ref value));
 				default:
 					return new ObjectValue(value, type);
 			}

@@ -678,6 +678,39 @@ namespace AScript
 		/// </summary>
 		/// <param name="variable"></param>
 		/// <param name="value"></param>
+		/// <param name="typeWrapper"></param>
+		/// <returns></returns>
+		public ScriptContext GetOwnerContext(string variable, out ObjectValue value, out TypeWrapper typeWrapper)
+		{
+			var context = this;
+			do
+			{
+				var variables = context._Variables;
+				if (variables != null && variables.TryGetValue(variable, out value))
+				{
+					typeWrapper = null;
+					return context;
+				}
+				var types = context._Types;
+				if (types != null && types.TryGetValue(variable, out var type))
+				{
+					value = null;
+					typeWrapper = new TypeWrapper(variable, type);
+					return context;
+				}
+				context = context.Parent;
+			} while (context != null);
+
+			value = null;
+			typeWrapper = null;
+			return null;
+		}
+
+		/// <summary>
+		/// 获取变量所在的上下文
+		/// </summary>
+		/// <param name="variable"></param>
+		/// <param name="value"></param>
 		/// <returns></returns>
 		public ScriptContext GetOwnerContext<T>(string variable, out T value)
 		{

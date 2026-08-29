@@ -1,4 +1,5 @@
 ﻿using AScript.Exceptions;
+using AScript.Values;
 using System;
 using System.Linq.Expressions;
 
@@ -6,6 +7,9 @@ namespace AScript.Nodes
 {
 	public class VariableNode : TreeNode
 	{
+		private ObjectValue _varValue;
+		private TypeWrapper _typeWrapper;
+
 		public string Name { get; set; }
 
 		public VariableNode() { }
@@ -16,18 +20,43 @@ namespace AScript.Nodes
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
-			var value = context.EvalVar(this.Name, out returnType);
-			if (returnType == null && context.HasFunc(this.Name))
+			if (_varValue != null)
 			{
-				value = new ScriptFunctionObject(context, this.Name);
-				returnType = value.GetType();
+				returnType = _varValue.Type;
+				return _varValue;
+			}
+			if (_typeWrapper != null)
+			{
+				returnType = typeof(TypeWrapper);
+				return _typeWrapper;
+			}
+
+			//var value = context.EvalVar(this.Name, out returnType);
+			context.GetOwnerContext(this.Name, out _varValue, out _typeWrapper);
+			if (_varValue != null)
+			{
+				returnType = _varValue.Type;
+				return _varValue;
+			}
+			if (_typeWrapper != null)
+			{
+				returnType = typeof(TypeWrapper);
+				return _typeWrapper;
+			}
+
+			if (context.HasFunc(this.Name))
+			{
+				var value = new ScriptFunctionObject(context, this.Name);
+				returnType = typeof(ScriptFunctionObject);
 				return value;
 			}
-			if (returnType == null && (options.ThrowIfVariableNotExists ?? false))
+
+			if ((options.ThrowIfVariableNotExists ?? false))
 			{
 				throw new ScriptAnalyzingException($"variable {this.Name} is not exists");
 			}
-			return value;
+			returnType = typeof(object);
+			return null;
 		}
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
@@ -154,6 +183,8 @@ namespace AScript.Nodes
 			base.Clear();
 
 			this.Name = null;
+			_varValue = null;
+			_typeWrapper = null;
 		}
 	}
 }
