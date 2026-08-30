@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Values;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -699,6 +700,11 @@ namespace AScript
 					if (this.ReturnType != null && this.ReturnType != typeof(void) && this.ReturnType != lastExpression.Type)
 					{
 						lastExpression = ScriptUtils.Convert(lastExpression, this.ReturnType);
+						list[lastExpressionIndex] = lastExpression;
+					}
+					else
+					{
+						lastExpression = AValue.GetExpression(lastExpression);
 						list[lastExpressionIndex] = lastExpression;
 					}
 					// 无论是否有本地变量，都需要将最后一个表达式的值作为返回值

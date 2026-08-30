@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AScript.Nodes;
+using AScript.Values;
 
 namespace AScript
 {
@@ -43,7 +44,7 @@ namespace AScript
 			}
 			var value = treeBuilder.Eval(context, options, null, out returnType);
 			PoolManage.Return(treeBuilder);
-			return value;
+			return AValue.GetValue(value);
 		}
 
 		public static async Task<EvalResult> EvalAsync(this ISyntaxAnalyzer analyzer, ScriptContext context, BuildOptions options, ITokenStream tokenStream, CancellationToken cancellationToken = default)
@@ -56,6 +57,10 @@ namespace AScript
 			}
 			var result = await treeBuilder.EvalAsync(context, options, null, cancellationToken).ConfigureAwait(false);
 			PoolManage.Return(treeBuilder);
+			if (result.Value is AValue aValue)
+			{
+				return new EvalResult(aValue.Get(), aValue.Type);
+			}
 			return result;
 		}
 	}

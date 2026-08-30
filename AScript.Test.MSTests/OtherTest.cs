@@ -23,6 +23,12 @@ namespace AScript.Test.MSTests
 			Assert.IsTrue(new EvalResult(true));
 			Assert.IsFalse(new EvalResult(false));
 			Assert.AreEqual("hello", new EvalResult("hello"));
+			Assert.IsTrue(1 == 1L);
+			Assert.IsTrue(1 == 1.0);
+			Assert.IsTrue(1 == 1f);
+			Assert.IsTrue(1 == 1d);
+			Assert.IsTrue(1 == 1m);
+			Assert.IsTrue(1 == (char)1);
 		}
 
 		[TestMethod]

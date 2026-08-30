@@ -1,10 +1,30 @@
 using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace AScript.Values
 {
 	public abstract class AValue : IValue, IConvertible
 	{
+		public static readonly MethodInfo Method_Get_object = typeof(AValue).GetMethods().FirstOrDefault(a => a.Name == "Get" && !a.IsGenericMethod);
+		public static readonly MethodInfo Method_GetInt = typeof(AValue).GetMethod("GetInt");
+		public static readonly MethodInfo Method_GetBool = typeof(AValue).GetMethod("GetBool");
+		public static readonly MethodInfo Method_GetByte = typeof(AValue).GetMethod("GetByte");
+		public static readonly MethodInfo Method_GetSByte = typeof(AValue).GetMethod("GetSByte");
+		public static readonly MethodInfo Method_GetChar = typeof(AValue).GetMethod("GetChar");
+		public static readonly MethodInfo Method_GetShort = typeof(AValue).GetMethod("GetShort");
+		public static readonly MethodInfo Method_GetLong = typeof(AValue).GetMethod("GetLong");
+		public static readonly MethodInfo Method_GetUInt = typeof(AValue).GetMethod("GetUInt");
+		public static readonly MethodInfo Method_GetULong = typeof(AValue).GetMethod("GetULong");
+		public static readonly MethodInfo Method_GetUShort = typeof(AValue).GetMethod("GetUShort");
+		public static readonly MethodInfo Method_GetFloat = typeof(AValue).GetMethod("GetFloat");
+		public static readonly MethodInfo Method_GetDouble = typeof(AValue).GetMethod("GetDouble");
+		public static readonly MethodInfo Method_GetDecimal = typeof(AValue).GetMethod("GetDecimal");
+		public static readonly MethodInfo Method_GetDateTime = typeof(AValue).GetMethod("GetDateTime");
+		public static readonly MethodInfo Method_GetString = typeof(AValue).GetMethod("GetString");
+
 		public abstract Type Type { get; }
 
 		public static AValue Create(object value, Type type)
@@ -157,6 +177,87 @@ namespace AScript.Values
 			return new CharValue(value);
 		}
 
+		public static object GetValue(object obj)
+		{
+			if (obj is AValue aValue) return aValue.Get();
+			return obj;
+		}
+
+		public static T GetValue<T>(object obj)
+		{
+			if (obj is AValue aValue) return aValue.Get<T>();
+			return (T)obj;
+		}
+
+		public static Expression GetExpression(Expression obj)
+		{
+			if (obj.Type == typeof(IntValue))
+			{
+				return Expression.Call(obj, Method_GetInt);
+			}
+			if (obj.Type == typeof(BoolValue))
+			{
+				return Expression.Call(obj, Method_GetBool);
+			}
+			if (obj.Type == typeof(ByteValue))
+			{
+				return Expression.Call(obj, Method_GetByte);
+			}
+			if (obj.Type == typeof(SByteValue))
+			{
+				return Expression.Call(obj, Method_GetSByte);
+			}
+			if (obj.Type == typeof(CharValue))
+			{
+				return Expression.Call(obj, Method_GetChar);
+			}
+			if (obj.Type == typeof(ShortValue))
+			{
+				return Expression.Call(obj, Method_GetShort);
+			}
+			if (obj.Type == typeof(LongValue))
+			{
+				return Expression.Call(obj, Method_GetLong);
+			}
+			if (obj.Type == typeof(UIntValue))
+			{
+				return Expression.Call(obj, Method_GetUInt);
+			}
+			if (obj.Type == typeof(ULongValue))
+			{
+				return Expression.Call(obj, Method_GetULong);
+			}
+			if (obj.Type == typeof(UShortValue))
+			{
+				return Expression.Call(obj, Method_GetUShort);
+			}
+			if (obj.Type == typeof(FloatValue))
+			{
+				return Expression.Call(obj, Method_GetFloat);
+			}
+			if (obj.Type == typeof(DoubleValue))
+			{
+				return Expression.Call(obj, Method_GetDouble);
+			}
+			if (obj.Type == typeof(DecimalValue))
+			{
+				return Expression.Call(obj, Method_GetDecimal);
+			}
+			if (obj.Type == typeof(DateTimeValue))
+			{
+				return Expression.Call(obj, Method_GetDateTime);
+			}
+			if (obj.Type == typeof(StringValue))
+			{
+				return Expression.Call(obj, Method_GetString);
+			}
+			if (obj.Type == typeof(ObjectValue))
+			{
+				return Expression.Call(obj, Method_Get_object);
+			}
+			return obj;
+		}
+
 		public static implicit operator AValue(int value)
 		{
 			return Create(value);
@@ -279,9 +380,107 @@ namespace AScript.Values
 			return value.GetString();
 		}
 
-		//public static AValue operator +(AValue v1, AValue v2)
-		//{
-		//}
+		public static bool operator !=(AValue v1, int v2)
+		{
+			return !(v1 == v2);
+		}
+		public static bool operator ==(AValue v1, int v2)
+		{
+			switch (Type.GetTypeCode(v1.Type))
+			{
+				case TypeCode.Boolean:
+					return false;
+				case TypeCode.Byte:
+					return v1.GetByte() == v2;
+				case TypeCode.Char:
+					return v1.GetChar() == v2;
+				case TypeCode.DateTime:
+					return false;
+				case TypeCode.DBNull:
+					return false;
+				case TypeCode.Decimal:
+					return v1.GetDecimal() == v2;
+				case TypeCode.Double:
+					return v1.GetDouble() == v2;
+				case TypeCode.Empty:
+					return false;
+				case TypeCode.Int16:
+					return v1.GetShort() == v2;
+				case TypeCode.Int32:
+					return v1.GetInt() == v2;
+				case TypeCode.Int64:
+					return v1.GetLong() == v2;
+				case TypeCode.Object:
+					var obj = v1.Get();
+					if (obj is AValue ov) return ov == v2;
+					return false;
+				case TypeCode.SByte:
+					return v1.GetSByte() == v2;
+				case TypeCode.Single:
+					return v1.GetFloat() == v2;
+				case TypeCode.String:
+					return false;
+				case TypeCode.UInt16:
+					return v1.GetUShort() == v2;
+				case TypeCode.UInt32:
+					return v1.GetUInt() == v2;
+				case TypeCode.UInt64:
+					return v1.GetULong() == (ulong)v2;
+				default:
+					return false;
+			}
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj is int v2) return this == v2;
+			return base.Equals(obj);
+		}
+
+		public override int GetHashCode()
+		{
+			switch (Type.GetTypeCode(this.Type))
+			{
+				case TypeCode.Boolean:
+					return GetBool().GetHashCode();
+				case TypeCode.Byte:
+					return GetByte().GetHashCode();
+				case TypeCode.Char:
+					return GetChar().GetHashCode();
+				case TypeCode.DateTime:
+					return GetDateTime().GetHashCode();
+				case TypeCode.DBNull:
+					return 0;
+				case TypeCode.Decimal:
+					return GetDecimal().GetHashCode();
+				case TypeCode.Double:
+					return GetDouble().GetHashCode();
+				case TypeCode.Empty:
+					return 0;
+				case TypeCode.Int16:
+					return GetShort().GetHashCode();
+				case TypeCode.Int32:
+					return GetInt().GetHashCode();
+				case TypeCode.Int64:
+					return GetLong().GetHashCode();
+				case TypeCode.Object:
+					return Get().GetHashCode();
+				case TypeCode.SByte:
+					return GetSByte().GetHashCode();
+				case TypeCode.Single:
+					return GetFloat().GetHashCode();
+				case TypeCode.String:
+					return GetString().GetHashCode();
+				case TypeCode.UInt16:
+					return GetUShort().GetHashCode();
+				case TypeCode.UInt32:
+					return GetUInt().GetHashCode();
+				case TypeCode.UInt64:
+					return GetULong().GetHashCode();
+				default:
+					return 0;
+			}
+		}
 
 		public override string ToString()
 		{
