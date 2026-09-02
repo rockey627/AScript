@@ -23,7 +23,7 @@ namespace AScript.Nodes
 			if (_varValue != null)
 			{
 				returnType = _varValue.Type;
-				return _varValue;
+				return _varValue.Get();
 			}
 			if (_typeWrapper != null)
 			{
@@ -36,10 +36,25 @@ namespace AScript.Nodes
 			if (_varValue != null)
 			{
 				returnType = _varValue.Type;
-				return _varValue;
+				return _varValue.Get();
 			}
 			if (_typeWrapper != null)
 			{
+				returnType = typeof(TypeWrapper);
+				return _typeWrapper;
+			}
+
+			_varValue = context.GetVarFromLangs(this.Name);
+			if (_varValue != null)
+			{
+				returnType = _varValue.Type;
+				return _varValue.Get();
+			}
+
+			var type = context.EvalTypeFromLangs(this.Name);
+			if (type != null)
+			{
+				_typeWrapper = new TypeWrapper(this.Name, type);
 				returnType = typeof(TypeWrapper);
 				return _typeWrapper;
 			}

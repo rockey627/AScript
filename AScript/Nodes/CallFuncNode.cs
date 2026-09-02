@@ -36,10 +36,10 @@ namespace AScript.Nodes
 							{
 								args[i] = null;
 							}
-							else if (arg is ObjectNode objNode)
-							{
-								args[i] = objNode.Data;
-							}
+							//else if (arg is ObjectNode objNode)
+							//{
+							//	args[i] = objNode.Data;
+							//}
 							else
 							{
 								args[i] = arg.Eval(context, options, control, out _);
@@ -232,10 +232,10 @@ namespace AScript.Nodes
 							{
 								args[i] = null;
 							}
-							else if (arg is ObjectNode objNode)
-							{
-								args[i] = objNode.Data;
-							}
+							//else if (arg is ObjectNode objNode)
+							//{
+							//	args[i] = objNode.Data;
+							//}
 							else
 							{
 								args[i] = (await arg.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false)).Value;

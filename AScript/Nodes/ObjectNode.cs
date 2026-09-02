@@ -22,6 +22,7 @@ namespace AScript.Nodes
 			if (this.Data is AValue value)
 			{
 				returnType = value.Type;
+				return value.Get();
 			}
 			else
 			{
