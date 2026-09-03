@@ -21,6 +21,16 @@ namespace AScript.Values
 			_value = value;
 		}
 
+		public static implicit operator IntValue(int value)
+		{
+			return new IntValue(value);
+		}
+
+		public static IntValue operator +(IntValue v1, IntValue v2)
+		{
+			return v1.GetInt() + v2.GetInt();
+		}
+
 		public override object Get()
 		{
 			return _value;

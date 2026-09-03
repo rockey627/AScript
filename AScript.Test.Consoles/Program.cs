@@ -1,6 +1,7 @@
 ﻿using AScript.Lang.JavaScript;
 using AScript.Lang.JavaScript.axios;
 using AScript.Lang.Sql;
+using AScript.Test.Consoles.Benchmarks;
 using AScript.Test.Consoles.Benchmarks.FleeTest;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
@@ -879,6 +880,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest14_For>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest15_rec>(config);
 			//BenchmarkRunner.Run<Benchmarks.PythonTest01>(config);
+			BenchmarkRunner.Run<AValueTest01>(config);
 
 			//BenchmarkRunner.Run<Benchmarks.FleeTest01_const>(config);
 			//BenchmarkRunner.Run<Benchmarks.FleeTest.FleeTest02_var>(config);
@@ -910,7 +912,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest04_call>(config);
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest05_function>(config);
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest06_table>(config);
-			BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest07_for>(config);
+			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest07_for>(config);
 
 			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();

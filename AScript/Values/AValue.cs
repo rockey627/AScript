@@ -258,10 +258,6 @@ namespace AScript.Values
 			return obj;
 		}
 
-		public static implicit operator AValue(int value)
-		{
-			return Create(value);
-		}
 		public static implicit operator AValue(byte value)
 		{
 			return Create(value);
@@ -380,55 +376,587 @@ namespace AScript.Values
 			return value.GetString();
 		}
 
-		public static bool operator !=(AValue v1, int v2)
+		//public static bool operator !=(AValue v1, int v2)
+		//{
+		//	return !(v1 == v2);
+		//}
+		//public static bool operator ==(AValue v1, int v2)
+		//{
+		//	switch (Type.GetTypeCode(v1.Type))
+		//	{
+		//		case TypeCode.Boolean:
+		//			return false;
+		//		case TypeCode.Byte:
+		//			return v1.GetByte() == v2;
+		//		case TypeCode.Char:
+		//			return v1.GetChar() == v2;
+		//		case TypeCode.DateTime:
+		//			return false;
+		//		case TypeCode.DBNull:
+		//			return false;
+		//		case TypeCode.Decimal:
+		//			return v1.GetDecimal() == v2;
+		//		case TypeCode.Double:
+		//			return v1.GetDouble() == v2;
+		//		case TypeCode.Empty:
+		//			return false;
+		//		case TypeCode.Int16:
+		//			return v1.GetShort() == v2;
+		//		case TypeCode.Int32:
+		//			return v1.GetInt() == v2;
+		//		case TypeCode.Int64:
+		//			return v1.GetLong() == v2;
+		//		case TypeCode.Object:
+		//			var obj = v1.Get();
+		//			if (obj is AValue ov) return ov == v2;
+		//			return false;
+		//		case TypeCode.SByte:
+		//			return v1.GetSByte() == v2;
+		//		case TypeCode.Single:
+		//			return v1.GetFloat() == v2;
+		//		case TypeCode.String:
+		//			return false;
+		//		case TypeCode.UInt16:
+		//			return v1.GetUShort() == v2;
+		//		case TypeCode.UInt32:
+		//			return v1.GetUInt() == v2;
+		//		case TypeCode.UInt64:
+		//			return v1.GetULong() == (ulong)v2;
+		//		default:
+		//			return false;
+		//	}
+		//}
+		public static AValue operator +(AValue v1, AValue v2)
 		{
-			return !(v1 == v2);
-		}
-		public static bool operator ==(AValue v1, int v2)
-		{
-			switch (Type.GetTypeCode(v1.Type))
+			var typeCode1 = Type.GetTypeCode(v1.Type);
+			var typeCode2 = Type.GetTypeCode(v2.Type);
+			switch (typeCode1)
 			{
 				case TypeCode.Boolean:
-					return false;
-				case TypeCode.Byte:
-					return v1.GetByte() == v2;
+					switch (typeCode2)
+					{
+						case TypeCode.Boolean:
+							throw new InvalidOperationException();
+						case TypeCode.Char:
+							throw new InvalidOperationException();
+						case TypeCode.SByte:
+							throw new InvalidOperationException();
+						case TypeCode.Byte:
+							throw new InvalidOperationException();
+						case TypeCode.Int16:
+							throw new InvalidOperationException();
+						case TypeCode.UInt16:
+							throw new InvalidOperationException();
+						case TypeCode.Int32:
+							throw new InvalidOperationException();
+						case TypeCode.UInt32:
+							throw new InvalidOperationException();
+						case TypeCode.Int64:
+							throw new InvalidOperationException();
+						case TypeCode.UInt64:
+							throw new InvalidOperationException();
+						case TypeCode.Single:
+							throw new InvalidOperationException();
+						case TypeCode.Double:
+							throw new InvalidOperationException();
+						case TypeCode.Decimal:
+							throw new InvalidOperationException();
+						case TypeCode.DateTime:
+							throw new InvalidOperationException();
+						case TypeCode.String:
+							return v1.GetString() + v2.GetString();
+						default:
+							break;
+					}
+					break;
 				case TypeCode.Char:
-					return v1.GetChar() == v2;
-				case TypeCode.DateTime:
-					return false;
-				case TypeCode.DBNull:
-					return false;
-				case TypeCode.Decimal:
-					return v1.GetDecimal() == v2;
-				case TypeCode.Double:
-					return v1.GetDouble() == v2;
-				case TypeCode.Empty:
-					return false;
-				case TypeCode.Int16:
-					return v1.GetShort() == v2;
-				case TypeCode.Int32:
-					return v1.GetInt() == v2;
-				case TypeCode.Int64:
-					return v1.GetLong() == v2;
-				case TypeCode.Object:
-					var obj = v1.Get();
-					if (obj is AValue ov) return ov == v2;
-					return false;
+					switch (typeCode2)
+					{
+						case TypeCode.Boolean:
+							throw new InvalidOperationException();
+						case TypeCode.Char:
+							return v1.GetChar() + v2.GetChar();
+						case TypeCode.SByte:
+							return v1.GetChar() + v2.GetSByte();
+						case TypeCode.Byte:
+							return v1.GetChar() + v2.GetByte();
+						case TypeCode.Int16:
+							return v1.GetChar() + v2.GetShort();
+						case TypeCode.UInt16:
+							return v1.GetChar() + v2.GetUShort();
+						case TypeCode.Int32:
+							return v1.GetChar() + v2.GetInt();
+						case TypeCode.UInt32:
+							return v1.GetChar() + v2.GetUInt();
+						case TypeCode.Int64:
+							return v1.GetChar() + v2.GetLong();
+						case TypeCode.UInt64:
+							return v1.GetChar() + v2.GetULong();
+						case TypeCode.Single:
+							return v1.GetChar() + v2.GetFloat();
+						case TypeCode.Double:
+							return v1.GetChar() + v2.GetDouble();
+						case TypeCode.Decimal:
+							return v1.GetChar() + v2.GetDecimal();
+						case TypeCode.DateTime:
+							throw new InvalidOperationException();
+						case TypeCode.String:
+							return v1.GetString() + v2.GetString();
+						default:
+							break;
+					}
+					break;
 				case TypeCode.SByte:
-					return v1.GetSByte() == v2;
-				case TypeCode.Single:
-					return v1.GetFloat() == v2;
-				case TypeCode.String:
-					return false;
+					switch (typeCode2)
+					{
+						case TypeCode.Boolean:
+							throw new InvalidOperationException();
+						case TypeCode.Char:
+							return v1.GetSByte() + v2.GetChar();
+						case TypeCode.SByte:
+							return v1.GetSByte() + v2.GetSByte();
+						case TypeCode.Byte:
+							return v1.GetSByte() + v2.GetByte();
+						case TypeCode.Int16:
+							return v1.GetSByte() + v2.GetShort();
+						case TypeCode.UInt16:
+							return v1.GetSByte() + v2.GetUShort();
+						case TypeCode.Int32:
+							return v1.GetSByte() + v2.GetInt();
+						case TypeCode.UInt32:
+							return v1.GetSByte() + v2.GetUInt();
+						case TypeCode.Int64:
+							return v1.GetSByte() + v2.GetLong();
+						case TypeCode.UInt64:
+							return v1.GetULong() + v2.GetULong();
+						case TypeCode.Single:
+							return v1.GetSByte() + v2.GetFloat();
+						case TypeCode.Double:
+							return v1.GetSByte() + v2.GetDouble();
+						case TypeCode.Decimal:
+							return v1.GetSByte() + v2.GetDecimal();
+						case TypeCode.DateTime:
+							throw new InvalidOperationException();
+						case TypeCode.String:
+							return v1.GetString() + v2.GetString();
+						default:
+							break;
+					}
+					break;
+				case TypeCode.Byte:
+					switch (typeCode2)
+					{
+						case TypeCode.Boolean:
+							throw new InvalidOperationException();
+						case TypeCode.Char:
+							return v1.GetByte() + v2.GetChar();
+						case TypeCode.SByte:
+							return v1.GetByte() + v2.GetSByte();
+						case TypeCode.Byte:
+							return v1.GetByte() + v2.GetByte();
+						case TypeCode.Int16:
+							return v1.GetByte() + v2.GetShort();
+						case TypeCode.UInt16:
+							return v1.GetByte() + v2.GetUShort();
+						case TypeCode.Int32:
+							return v1.GetByte() + v2.GetInt();
+						case TypeCode.UInt32:
+							return v1.GetByte() + v2.GetUInt();
+						case TypeCode.Int64:
+							return v1.GetByte() + v2.GetLong();
+						case TypeCode.UInt64:
+							return v1.GetByte() + v2.GetULong();
+						case TypeCode.Single:
+							return v1.GetByte() + v2.GetFloat();
+						case TypeCode.Double:
+							return v1.GetByte() + v2.GetDouble();
+						case TypeCode.Decimal:
+							return v1.GetByte() + v2.GetDecimal();
+						case TypeCode.DateTime:
+							throw new InvalidOperationException();
+						case TypeCode.String:
+							return v1.GetString() + v2.GetString();
+						default:
+							break;
+					}
+					break;
+				case TypeCode.Int16:
+					switch (typeCode2)
+					{
+						case TypeCode.Boolean:
+							throw new InvalidOperationException();
+						case TypeCode.Char:
+							return v1.GetShort() + v2.GetChar();
+						case TypeCode.SByte:
+							return v1.GetShort() + v2.GetSByte();
+						case TypeCode.Byte:
+							return v1.GetShort() + v2.GetByte();
+						case TypeCode.Int16:
+							return v1.GetShort() + v2.GetShort();
+						case TypeCode.UInt16:
+							return v1.GetShort() + v2.GetUShort();
+						case TypeCode.Int32:
+							return v1.GetShort() + v2.GetInt();
+						case TypeCode.UInt32:
+							return v1.GetShort() + v2.GetUInt();
+						case TypeCode.Int64:
+							return v1.GetShort() + v2.GetLong();
+						case TypeCode.UInt64:
+							return v1.GetULong() + v2.GetULong();
+						case TypeCode.Single:
+							return v1.GetShort() + v2.GetFloat();
+						case TypeCode.Double:
+							return v1.GetShort() + v2.GetDouble();
+						case TypeCode.Decimal:
+							return v1.GetShort() + v2.GetDecimal();
+						case TypeCode.DateTime:
+							throw new InvalidOperationException();
+						case TypeCode.String:
+							return v1.GetString() + v2.GetString();
+						default:
+							break;
+					}
+					break;
 				case TypeCode.UInt16:
-					return v1.GetUShort() == v2;
+					switch (typeCode2)
+					{
+						case TypeCode.Boolean:
+							throw new InvalidOperationException();
+						case TypeCode.Char:
+							return v1.GetUShort() + v2.GetChar();
+						case TypeCode.SByte:
+							return v1.GetUShort() + v2.GetSByte();
+						case TypeCode.Byte:
+							return v1.GetUShort() + v2.GetByte();
+						case TypeCode.Int16:
+							return v1.GetUShort() + v2.GetShort();
+						case TypeCode.UInt16:
+							return v1.GetUShort() + v2.GetUShort();
+						case TypeCode.Int32:
+							return v1.GetUShort() + v2.GetInt();
+						case TypeCode.UInt32:
+							return v1.GetUShort() + v2.GetUInt();
+						case TypeCode.Int64:
+							return v1.GetUShort() + v2.GetLong();
+						case TypeCode.UInt64:
+							return v1.GetUShort() + v2.GetULong();
+						case TypeCode.Single:
+							return v1.GetUShort() + v2.GetFloat();
+						case TypeCode.Double:
+							return v1.GetUShort() + v2.GetDouble();
+						case TypeCode.Decimal:
+							return v1.GetUShort() + v2.GetDecimal();
+						case TypeCode.DateTime:
+							throw new InvalidOperationException();
+						case TypeCode.String:
+							return v1.GetString() + v2.GetString();
+						default:
+							break;
+					}
+					break;
+				case TypeCode.Int32:
+					switch (typeCode2)
+					{
+						case TypeCode.Boolean:
+							throw new InvalidOperationException();
+						case TypeCode.Char:
+							return v1.GetInt() + v2.GetChar();
+						case TypeCode.SByte:
+							return v1.GetInt() + v2.GetSByte();
+						case TypeCode.Byte:
+							return v1.GetInt() + v2.GetByte();
+						case TypeCode.Int16:
+							return v1.GetInt() + v2.GetShort();
+						case TypeCode.UInt16:
+							return v1.GetInt() + v2.GetUShort();
+						case TypeCode.Int32:
+							return v1.GetInt() + v2.GetInt();
+						case TypeCode.UInt32:
+							return v1.GetInt() + v2.GetUInt();
+						case TypeCode.Int64:
+							return v1.GetInt() + v2.GetLong();
+						case TypeCode.UInt64:
+							return v1.GetULong() + v2.GetULong();
+						case TypeCode.Single:
+							return v1.GetInt() + v2.GetFloat();
+						case TypeCode.Double:
+							return v1.GetInt() + v2.GetDouble();
+						case TypeCode.Decimal:
+							return v1.GetInt() + v2.GetDecimal();
+						case TypeCode.DateTime:
+							throw new InvalidOperationException();
+						case TypeCode.String:
+							return v1.GetString() + v2.GetString();
+						default:
+							break;
+					}
+					break;
 				case TypeCode.UInt32:
-					return v1.GetUInt() == v2;
+					switch (typeCode2)
+					{
+						case TypeCode.Boolean:
+							throw new InvalidOperationException();
+						case TypeCode.Char:
+							return v1.GetUInt() + v2.GetChar();
+						case TypeCode.SByte:
+							return v1.GetUInt() + v2.GetSByte();
+						case TypeCode.Byte:
+							return v1.GetUInt() + v2.GetByte();
+						case TypeCode.Int16:
+							return v1.GetUInt() + v2.GetShort();
+						case TypeCode.UInt16:
+							return v1.GetUInt() + v2.GetUShort();
+						case TypeCode.Int32:
+							return v1.GetUInt() + v2.GetInt();
+						case TypeCode.UInt32:
+							return v1.GetUInt() + v2.GetUInt();
+						case TypeCode.Int64:
+							return v1.GetUInt() + v2.GetLong();
+						case TypeCode.UInt64:
+							return v1.GetUInt() + v2.GetULong();
+						case TypeCode.Single:
+							return v1.GetUInt() + v2.GetFloat();
+						case TypeCode.Double:
+							return v1.GetUInt() + v2.GetDouble();
+						case TypeCode.Decimal:
+							return v1.GetUInt() + v2.GetDecimal();
+						case TypeCode.DateTime:
+							throw new InvalidOperationException();
+						case TypeCode.String:
+							return v1.GetString() + v2.GetString();
+						default:
+							break;
+					}
+					break;
+				case TypeCode.Int64:
+					switch (typeCode2)
+					{
+						case TypeCode.Boolean:
+							throw new InvalidOperationException();
+						case TypeCode.Char:
+							return v1.GetLong() + v2.GetChar();
+						case TypeCode.SByte:
+							return v1.GetLong() + v2.GetSByte();
+						case TypeCode.Byte:
+							return v1.GetLong() + v2.GetByte();
+						case TypeCode.Int16:
+							return v1.GetLong() + v2.GetShort();
+						case TypeCode.UInt16:
+							return v1.GetLong() + v2.GetUShort();
+						case TypeCode.Int32:
+							return v1.GetLong() + v2.GetInt();
+						case TypeCode.UInt32:
+							return v1.GetLong() + v2.GetUInt();
+						case TypeCode.Int64:
+							return v1.GetLong() + v2.GetLong();
+						case TypeCode.UInt64:
+							return v1.GetULong() + v2.GetULong();
+						case TypeCode.Single:
+							return v1.GetLong() + v2.GetFloat();
+						case TypeCode.Double:
+							return v1.GetLong() + v2.GetDouble();
+						case TypeCode.Decimal:
+							return v1.GetLong() + v2.GetDecimal();
+						case TypeCode.DateTime:
+							throw new InvalidOperationException();
+						case TypeCode.String:
+							return v1.GetString() + v2.GetString();
+						default:
+							break;
+					}
+					break;
 				case TypeCode.UInt64:
-					return v1.GetULong() == (ulong)v2;
+					switch (typeCode2)
+					{
+						case TypeCode.Boolean:
+							throw new InvalidOperationException();
+						case TypeCode.Char:
+							return v1.GetULong() + v2.GetChar();
+						case TypeCode.SByte:
+							return v1.GetULong() + v2.GetULong();
+						case TypeCode.Byte:
+							return v1.GetULong() + v2.GetByte();
+						case TypeCode.Int16:
+							return v1.GetULong() + v2.GetULong();
+						case TypeCode.UInt16:
+							return v1.GetULong() + v2.GetUShort();
+						case TypeCode.Int32:
+							return v1.GetULong() + v2.GetUInt();
+						case TypeCode.UInt32:
+							return v1.GetULong() + v2.GetUInt();
+						case TypeCode.Int64:
+							return v1.GetULong() + v2.GetULong();
+						case TypeCode.UInt64:
+							return v1.GetULong() + v2.GetULong();
+						case TypeCode.Single:
+							return v1.GetLong() + v2.GetFloat();
+						case TypeCode.Double:
+							return v1.GetULong() + v2.GetDouble();
+						case TypeCode.Decimal:
+							return v1.GetULong() + v2.GetDecimal();
+						case TypeCode.DateTime:
+							throw new InvalidOperationException();
+						case TypeCode.String:
+							return v1.GetString() + v2.GetString();
+						default:
+							break;
+					}
+					break;
+				case TypeCode.Single:
+					switch (typeCode2)
+					{
+						case TypeCode.Boolean:
+							throw new InvalidOperationException();
+						case TypeCode.Char:
+							return v1.GetFloat() + v2.GetChar();
+						case TypeCode.SByte:
+							return v1.GetFloat() + v2.GetSByte();
+						case TypeCode.Byte:
+							return v1.GetFloat() + v2.GetByte();
+						case TypeCode.Int16:
+							return v1.GetFloat() + v2.GetShort();
+						case TypeCode.UInt16:
+							return v1.GetFloat() + v2.GetUShort();
+						case TypeCode.Int32:
+							return v1.GetFloat() + v2.GetInt();
+						case TypeCode.UInt32:
+							return v1.GetFloat() + v2.GetUInt();
+						case TypeCode.Int64:
+							return v1.GetFloat() + v2.GetLong();
+						case TypeCode.UInt64:
+							return v1.GetFloat() + v2.GetULong();
+						case TypeCode.Single:
+							return v1.GetFloat() + v2.GetFloat();
+						case TypeCode.Double:
+							return v1.GetFloat() + v2.GetDouble();
+						case TypeCode.Decimal:
+							return v1.GetDecimal() + v2.GetDecimal();
+						case TypeCode.DateTime:
+							throw new InvalidOperationException();
+						case TypeCode.String:
+							return v1.GetString() + v2.GetString();
+						default:
+							break;
+					}
+					break;
+				case TypeCode.Double:
+					switch (typeCode2)
+					{
+						case TypeCode.Boolean:
+							throw new InvalidOperationException();
+						case TypeCode.Char:
+							return v1.GetDouble() + v2.GetChar();
+						case TypeCode.SByte:
+							return v1.GetDouble() + v2.GetSByte();
+						case TypeCode.Byte:
+							return v1.GetDouble() + v2.GetByte();
+						case TypeCode.Int16:
+							return v1.GetDouble() + v2.GetShort();
+						case TypeCode.UInt16:
+							return v1.GetDouble() + v2.GetUShort();
+						case TypeCode.Int32:
+							return v1.GetDouble() + v2.GetInt();
+						case TypeCode.UInt32:
+							return v1.GetDouble() + v2.GetUInt();
+						case TypeCode.Int64:
+							return v1.GetDouble() + v2.GetLong();
+						case TypeCode.UInt64:
+							return v1.GetDouble() + v2.GetULong();
+						case TypeCode.Single:
+							return v1.GetDouble() + v2.GetFloat();
+						case TypeCode.Double:
+							return v1.GetDouble() + v2.GetDouble();
+						case TypeCode.Decimal:
+							return v1.GetDouble() + v2.GetDouble();
+						case TypeCode.DateTime:
+							throw new InvalidOperationException();
+						case TypeCode.String:
+							return v1.GetString() + v2.GetString();
+						default:
+							break;
+					}
+					break;
+				case TypeCode.Decimal:
+					switch (typeCode2)
+					{
+						case TypeCode.Boolean:
+							throw new InvalidOperationException();
+						case TypeCode.Char:
+							return v1.GetDecimal() + v2.GetChar();
+						case TypeCode.SByte:
+							return v1.GetDecimal() + v2.GetSByte();
+						case TypeCode.Byte:
+							return v1.GetDecimal() + v2.GetByte();
+						case TypeCode.Int16:
+							return v1.GetDecimal() + v2.GetShort();
+						case TypeCode.UInt16:
+							return v1.GetDecimal() + v2.GetUShort();
+						case TypeCode.Int32:
+							return v1.GetDecimal() + v2.GetInt();
+						case TypeCode.UInt32:
+							return v1.GetDecimal() + v2.GetUInt();
+						case TypeCode.Int64:
+							return v1.GetDecimal() + v2.GetLong();
+						case TypeCode.UInt64:
+							return v1.GetDecimal() + v2.GetULong();
+						case TypeCode.Single:
+							return v1.GetDecimal() + v2.GetDecimal();
+						case TypeCode.Double:
+							return v1.GetDouble() + v2.GetDouble();
+						case TypeCode.Decimal:
+							return v1.GetDecimal() + v2.GetDecimal();
+						case TypeCode.DateTime:
+							throw new InvalidOperationException();
+						case TypeCode.String:
+							return v1.GetString() + v2.GetString();
+						default:
+							break;
+					}
+					break;
+				case TypeCode.DateTime:
+					break;
+				case TypeCode.String:
+					switch (typeCode2)
+					{
+						case TypeCode.Boolean:
+							return v1.GetString() + v2.GetString();
+						case TypeCode.Char:
+							return v1.GetString() + v2.GetString();
+						case TypeCode.SByte:
+							return v1.GetString() + v2.GetString();
+						case TypeCode.Byte:
+							return v1.GetString() + v2.GetString();
+						case TypeCode.Int16:
+							return v1.GetString() + v2.GetString();
+						case TypeCode.UInt16:
+							return v1.GetString() + v2.GetString();
+						case TypeCode.Int32:
+							return v1.GetString() + v2.GetString();
+						case TypeCode.UInt32:
+							return v1.GetString() + v2.GetString();
+						case TypeCode.Int64:
+							return v1.GetString() + v2.GetString();
+						case TypeCode.UInt64:
+							return v1.GetString() + v2.GetString();
+						case TypeCode.Single:
+							return v1.GetString() + v2.GetString();
+						case TypeCode.Double:
+							return v1.GetString() + v2.GetString();
+						case TypeCode.Decimal:
+							return v1.GetString() + v2.GetString();
+						case TypeCode.DateTime:
+							return v1.GetString() + v2.GetString();
+						case TypeCode.String:
+							return v1.GetString() + v2.GetString();
+						default:
+							break;
+					}
+					break;
 				default:
-					return false;
+					break;
 			}
+			var result = (dynamic)v1.Get() + (dynamic)v2.Get();
+			return Create(result);
 		}
 
 		public override bool Equals(object obj)
