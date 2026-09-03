@@ -702,7 +702,7 @@ namespace AScript
 				//	type = v?.GetType() ?? typeof(object);
 				//}
 				type = v.Type;
-				return v;
+				return v.Get();
 			}
 			// 没有变量，则查找类
 			var mytype = EvalType(name);

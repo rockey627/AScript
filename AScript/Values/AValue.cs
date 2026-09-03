@@ -29,50 +29,46 @@ namespace AScript.Values
 
 		public static AValue Create(object value, Type type)
 		{
-			if (value == null)
+			if (value is AValue aValue)
 			{
-				return new ObjectValue(value, type);
+				return aValue;
 			}
-			if (value is AValue)
-			{
-				return new ObjectValue(value);
-			}
-			if (type == null)
+			if (type == null && value != null)
 			{
 				type = value.GetType();
 			}
 			switch (Type.GetTypeCode(type))
 			{
 				case TypeCode.Boolean:
-					return Create((bool)value);
+					return Create(value == null ? default : (bool)value);
 				case TypeCode.Byte:
-					return Create((byte)value);
+					return Create(value == null ? default : (byte)value);
 				case TypeCode.Char:
-					return Create((char)value);
+					return Create(value == null ? default : (char)value);
 				case TypeCode.DateTime:
-					return Create((DateTime)value);
+					return Create(value == null ? default : (DateTime)value);
 				case TypeCode.Decimal:
-					return Create((decimal)value);
+					return Create(value == null ? default : (decimal)value);
 				case TypeCode.Double:
-					return Create((double)value);
+					return Create(value == null ? default : (double)value);
 				case TypeCode.Int16:
-					return Create((short)value);
+					return Create(value == null ? default : (short)value);
 				case TypeCode.Int32:
-					return Create((int)value);
+					return Create(value == null ? default : (int)value);
 				case TypeCode.Int64:
-					return Create((long)value);
+					return Create(value == null ? default : (long)value);
 				case TypeCode.SByte:
-					return Create((sbyte)value);
+					return Create(value == null ? default : (sbyte)value);
 				case TypeCode.Single:
-					return Create((float)value);
+					return Create(value == null ? default : (float)value);
 				case TypeCode.String:
-					return Create((string)value);
+					return Create(value == null ? default : (string)value);
 				case TypeCode.UInt16:
-					return Create((ushort)value);
+					return Create(value == null ? default : (ushort)value);
 				case TypeCode.UInt32:
-					return Create((uint)value);
+					return Create(value == null ? default : (uint)value);
 				case TypeCode.UInt64:
-					return Create((ulong)value);
+					return Create(value == null ? default : (ulong)value);
 				default:
 					return new ObjectValue(value, type);
 			}
@@ -258,6 +254,10 @@ namespace AScript.Values
 			return obj;
 		}
 
+		public static implicit operator AValue(int value)
+		{
+			return Create(value);
+		}
 		public static implicit operator AValue(byte value)
 		{
 			return Create(value);

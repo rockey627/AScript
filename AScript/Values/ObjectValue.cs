@@ -21,8 +21,9 @@ namespace AScript.Values
 		{
 			get
 			{
+				if (_type != null) return _type;
 				if (_value == null) return typeof(object);
-				if (_value is AValue aValue) return aValue.Type;
+				if (_value is AValue aValue) return _type = aValue.Type;
 				if (_type == null) _type = _value.GetType();
 				return _type;
 			}
@@ -105,6 +106,7 @@ namespace AScript.Values
 
 		public override string GetString()
 		{
+			if (_value == null) return null;
 			return Convert.ToString(_value);
 		}
 

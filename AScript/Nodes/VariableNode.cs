@@ -20,16 +20,16 @@ namespace AScript.Nodes
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
-			if (_varValue != null)
-			{
-				returnType = _varValue.Type;
-				return _varValue.Get();
-			}
-			if (_typeWrapper != null)
-			{
-				returnType = typeof(TypeWrapper);
-				return _typeWrapper;
-			}
+			//if (_varValue != null)
+			//{
+			//	returnType = _varValue.Type;
+			//	return _varValue.Get();
+			//}
+			//if (_typeWrapper != null)
+			//{
+			//	returnType = typeof(TypeWrapper);
+			//	return _typeWrapper;
+			//}
 
 			//var value = context.EvalVar(this.Name, out returnType);
 			context.GetOwnerContext(this.Name, out _varValue, out _typeWrapper);
