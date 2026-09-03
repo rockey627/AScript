@@ -1,9 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace AScript
 {
+	/// <summary>
+	/// int fib(int n)
+	/// </summary>
 	public class DelegateDefine
 	{
 		public string Name { get; private set; }

@@ -568,14 +568,13 @@ namespace AScript
 		//	return Expression.Block(_Variables.Values, list);
 		//}
 
-		private List<Expression> TryExpandBodies(Expression[] bodies)
+		private static List<Expression> TryExpandBodies(List<Expression> expandBodies, Expression[] bodies)
 		{
 			if (bodies == null || bodies.Length == 0) return null;
-			List<Expression> expandBodies = null;
 			for (int i = 0; i < bodies.Length; i++)
 			{
 				var body = bodies[i];
-				if (body is BlockExpression blockExpression && blockExpression.Variables.Count == 0 && blockExpression.Type != typeof(void))
+				if (body is BlockExpression blockExpression && blockExpression.Variables.Count == 0)// && blockExpression.Type != typeof(void))
 				{
 					if (expandBodies == null)
 					{
@@ -588,7 +587,8 @@ namespace AScript
 					var exprs = blockExpression.Expressions;
 					for (int j = 0; j < exprs.Count; j++)
 					{
-						expandBodies.Add(exprs[j]);
+						//expandBodies.Add(exprs[j]);
+						TryExpandBody(expandBodies, exprs[j]);
 					}
 				}
 				else if (expandBodies != null)
@@ -597,6 +597,22 @@ namespace AScript
 				}
 			}
 			return expandBodies;
+		}
+
+		private static void TryExpandBody(List<Expression> expandBodies, Expression body)
+		{
+			if (body is BlockExpression blockExpression && blockExpression.Variables.Count == 0)// && blockExpression.Type != typeof(void))
+			{
+				var exprs = blockExpression.Expressions;
+				for (int j = 0; j < exprs.Count; j++)
+				{
+					TryExpandBody(expandBodies, exprs[j]);
+				}
+			}
+			else
+			{
+				expandBodies.Add(body);
+			}
 		}
 
 		/// <summary>
@@ -626,12 +642,20 @@ namespace AScript
 					}
 					if (this.ReturnType == null || this.ReturnType == body[body.Length - 1].Type)
 					{
-						if (body.Length == 1)
+						if (body.Length == 1) return body[0];
+						expandBodies = TryExpandBodies(null, body);
+						if (expandBodies == null) return Expression.Block(body);
+						// 
+						for (int i = expandBodies.Count - 2; i >= 0; i--)
 						{
-							return body[0];
+							var expr = expandBodies[i];
+							if (expr is ConstantExpression || expr is ParameterExpression)
+							{
+								expandBodies.RemoveAt(i);
+							}
 						}
-						expandBodies = TryExpandBodies(body);
-						return expandBodies == null ? Expression.Block(body) : Expression.Block(expandBodies);
+						if (expandBodies.Count == 1) return expandBodies[0];
+						return Expression.Block(expandBodies);
 					}
 				}
 				//else
@@ -639,7 +663,7 @@ namespace AScript
 				//	return Expression.Lambda(Expression.Block(_Variables.Values, body), parameters);
 				//}
 			}
-			expandBodies = TryExpandBodies(body);
+			expandBodies = TryExpandBodies(null, body);
 			// 
 			List<ParameterExpression> variables;
 			Expression variableAssignExpression;
@@ -791,7 +815,23 @@ namespace AScript
 			// 
 			if (this.ReturnType == typeof(void))
 			{
+				for (int i = list.Count - 1; i >= 0; i--)
+				{
+					var expr = list[i];
+					if (expr is ConstantExpression || expr is ParameterExpression)
+					{
+						list.RemoveAt(i);
+					}
+				}
 				return Expression.Block(this.ReturnType, variables, list);
+			}
+			for (int i = list.Count - 2; i >= 0; i--)
+			{
+				var expr = list[i];
+				if (expr is ConstantExpression || expr is ParameterExpression)
+				{
+					list.RemoveAt(i);
+				}
 			}
 			return Expression.Block(variables, list);
 		}
