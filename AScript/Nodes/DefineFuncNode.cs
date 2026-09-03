@@ -144,21 +144,26 @@ namespace AScript.Nodes
 					}
 					argTypes[i] = type;
 					string argName = arg.Name;
-					if (argName == "_") argName += i;
+					// 匿名参数名：_1、_2、_3 ...
+					if (IsAnonymous(argName)) argName = "_" + i;
 					tempBuildContext.Parameters[argName] = Expression.Parameter(type, argName);
 				}
 			}
-			var delegateDefine = IsNiming(this.Name) ? null : buildContext.AddDelegateDefine(this.Name, argTypes, funcReturnType);
+			// 匿名函数不生成函数头定义
+			var delegateDefine = IsAnonymous(this.Name) ? null : buildContext.AddDelegateDefine(this.Name, argTypes, funcReturnType);
 			var buildOptions = new BuildOptions(options) { UseCompletionResult = false };
 			var body = this.Body.Build(tempBuildContext, scriptContext, buildOptions);
 			// 有闭包参数，只能通过DynamicInvoke调用，无法用Expression.Call调用
 			//var d = tempBuildContext.Compile(scriptContext, body);
 			//var dExpr = Expression.Constant(d);
+			// 如果函数未定义返回类型，但是有递归调用，此时无法自动根据函数体推导返回类型，强制定义为object类型
 			if (funcReturnType == null && delegateDefine?.Variable != null)
 			{
 				tempBuildContext.ReturnType = typeof(object);
 			}
+			// 生成LambdaExpression
 			var lambda = tempBuildContext.Build(scriptContext, buildOptions, body);
+			// 将函数赋值给临时函数变量
 			var tmpVar = delegateDefine?.Variable ?? Expression.Variable(lambda.Type);
 			var assign = Expression.Assign(tmpVar, lambda);
 			int hashCode = tmpVar.GetHashCode();
@@ -168,47 +173,48 @@ namespace AScript.Nodes
 			buildContext.PrevExpressions.Add(assign);
 			//if (delegateDefine?.Variable != null)
 			//{
-				//var assignDefine = Expression.Assign(delegateDefine.Variable, lambda);
-				//var ps1 = new ParameterExpression[lambda.Parameters.Count];
-				//for (int i = 0; i < ps1.Length; i++)
-				//{
-				//	ps1[i] = Expression.Parameter(lambda.Parameters[i].Type);
-				//}
-				//var selfBlock = Expression.Block(new[] { delegateDefine.Variable }, 
-				//	assignDefine, 
-				//	Expression.Invoke(delegateDefine.Variable, ps1));
-				//var newD = Expression.Lambda(delegateDefine.Variable.Type, selfBlock, ps1);
-				//lambda = newD;
+			//var assignDefine = Expression.Assign(delegateDefine.Variable, lambda);
+			//var ps1 = new ParameterExpression[lambda.Parameters.Count];
+			//for (int i = 0; i < ps1.Length; i++)
+			//{
+			//	ps1[i] = Expression.Parameter(lambda.Parameters[i].Type);
 			//}
-//#if NET45
-//			// NET45框架下，如果Lambda有闭包参数直接Invoke会报错：System.Security.VerificationException:操作可能会破坏运行时稳定性
-//			// 需要Expression.Quote来包装
-//			Expression quoteExpr;
-//			ParameterExpression[] ps;
-//			if (lambda == null)
-//			{
-//				quoteExpr = null;
-//				ps = null;
-//			}
-//			else
-//			{
-//				quoteExpr = Expression.Quote(lambda);
-//				ps = new ParameterExpression[lambda.Parameters.Count];
-//				for (int i = 0; i < ps.Length; i++)
-//				{
-//					ps[i] = Expression.Parameter(lambda.Parameters[i].Type);
-//				}
-//			}
-//			var dExpr = tempBuildContext.DelegateType == null ?
-//				Expression.Lambda(quoteExpr == null ? (Expression)Expression.Empty() : Expression.Invoke(quoteExpr, ps), ps) :
-//				Expression.Lambda(tempBuildContext.DelegateType, Expression.Invoke(quoteExpr, ps), ps);
-//#else
-//			var dExpr = lambda;
-//#endif
-			if (!IsNiming(this.Name))
+			//var selfBlock = Expression.Block(new[] { delegateDefine.Variable }, 
+			//	assignDefine, 
+			//	Expression.Invoke(delegateDefine.Variable, ps1));
+			//var newD = Expression.Lambda(delegateDefine.Variable.Type, selfBlock, ps1);
+			//lambda = newD;
+			//}
+			//#if NET45
+			//			// NET45框架下，如果Lambda有闭包参数直接Invoke会报错：System.Security.VerificationException:操作可能会破坏运行时稳定性
+			//			// 需要Expression.Quote来包装
+			//			Expression quoteExpr;
+			//			ParameterExpression[] ps;
+			//			if (lambda == null)
+			//			{
+			//				quoteExpr = null;
+			//				ps = null;
+			//			}
+			//			else
+			//			{
+			//				quoteExpr = Expression.Quote(lambda);
+			//				ps = new ParameterExpression[lambda.Parameters.Count];
+			//				for (int i = 0; i < ps.Length; i++)
+			//				{
+			//					ps[i] = Expression.Parameter(lambda.Parameters[i].Type);
+			//				}
+			//			}
+			//			var dExpr = tempBuildContext.DelegateType == null ?
+			//				Expression.Lambda(quoteExpr == null ? (Expression)Expression.Empty() : Expression.Invoke(quoteExpr, ps), ps) :
+			//				Expression.Lambda(tempBuildContext.DelegateType, Expression.Invoke(quoteExpr, ps), ps);
+			//#else
+			//			var dExpr = lambda;
+			//#endif
+			if (!IsAnonymous(this.Name))
 			{
+				// 添加到编译上下文
 				buildContext.AddTempFunc(this.Name, tmpVar);
-				// 将方法添加到上下文
+				// 回写到脚本上下文
 				if (buildContext.RewriteLocalVariables && (options?.RewriteFunctions ?? true) && !(options?.Standalone ?? false))
 				{
 					var addTempFuncExpression = Expression.Call(
@@ -219,6 +225,7 @@ namespace AScript.Nodes
 					return Expression.Block(addTempFuncExpression, tmpVar);
 				}
 			}
+			// 返回函数引用
 			return tmpVar;
 
 			//return Expression.Constant(d);
@@ -237,7 +244,7 @@ namespace AScript.Nodes
 			//return ExpressionUtils.BuildEval(buildContext, options, null, this);
 		}
 
-		private static bool IsNiming(string name)
+		private static bool IsAnonymous(string name)
 		{
 			return string.IsNullOrEmpty(name) || name == "_";
 		}

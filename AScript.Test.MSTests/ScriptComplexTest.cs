@@ -850,6 +850,27 @@ fibonacci(10)
 		}
 
 		/// <summary>
+		/// 测试递归函数
+		/// </summary>
+		[TestMethod]
+		public void TestRecursiveFunction2()
+		{
+			// 递归计算斐波那契数列
+			var s = @"
+int fib(int n) {
+	if (n <= 1) return n;
+	return fib(n - 1) + fib(n - 2);
+}
+fib(10)
+";
+			var script = new Script();
+			var lambda = script.Lambda(s);
+			Assert.AreEqual(55, script.Eval(s, ECompileMode.All));
+			Assert.AreEqual(55, script.Eval("fib(10)"));
+			Assert.AreEqual(55, script.Eval("fib(10)", ECompileMode.All));
+		}
+
+		/// <summary>
 		/// 测试互相调用函数
 		/// </summary>
 		[TestMethod]

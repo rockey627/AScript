@@ -2488,6 +2488,33 @@ namespace AScript
 			return (Func<T1, T2, T3, T4, T5, TReturn>)Compile(expression, new[] { argName1, argName2, argName3, argName4, argName5 }, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, typeof(TReturn));
 		}
 
+		public LambdaExpression Lambda(string expression, Type returnType = null)
+		{
+			var buildContext = new BuildContext
+			{
+				ReturnType = returnType
+			};
+			return Lambda(buildContext, this.Context, this.Options, expression);
+		}
+
+		public LambdaExpression Lambda(Stream expression, Type returnType = null)
+		{
+			var buildContext = new BuildContext
+			{
+				ReturnType = returnType
+			};
+			return Lambda(buildContext, this.Context, this.Options, expression);
+		}
+
+		public LambdaExpression Lambda(ITreeNode expression, Type returnType = null)
+		{
+			var buildContext = new BuildContext
+			{
+				ReturnType = returnType
+			};
+			return Lambda(buildContext, this.Context, this.Options, expression);
+		}
+
 		public LambdaExpression Lambda(string expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
 			return Lambda(this.Context, this.Options, expression, argTypes, argNames, returnType);
