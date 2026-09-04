@@ -499,13 +499,13 @@ return obj.age
 
 		}
 
-		static void Test18_ClearScript()
-		{
-			var engine = new Microsoft.ClearScript.Windows.JScriptEngine();
-			var result = engine.Evaluate("var a = 10; var b = 20; var c = a + b;");
-			Console.WriteLine(result); // 输出 30
+		//static void Test18_ClearScript()
+		//{
+		//	var engine = new Microsoft.ClearScript.Windows.JScriptEngine();
+		//	var result = engine.Evaluate("var a = 10; var b = 20; var c = a + b;");
+		//	Console.WriteLine(result); // 输出 30
 
-		}
+		//}
 
 		static void Test18_Jurassic()
 		{
@@ -894,6 +894,15 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest04_delegate>(config);
 			//BenchmarkRunner.Run<Benchmarks.DynamicExpressoTest.DynamicExpressoTest05_lambda>(config);
 
+			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest01_const>(config);
+			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest02_local>(config);
+			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest03_var>(config);
+			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest04_call>(config);
+			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest05_function>(config);
+			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest06_recursive>(config);
+			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest07_linq>(config);
+			BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest08_compile>(config);
+
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest01_const>(config);
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest02_local>(config);
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest03_var>(config);
@@ -910,7 +919,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest04_call>(config);
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest05_function>(config);
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest06_table>(config);
-			BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest07_for>(config);
+			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest07_for>(config);
 
 			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();
@@ -921,6 +930,15 @@ exec2(26)
 			//new Benchmarks.ExpressionTest10().AScript();
 			//new Benchmarks.ExpressionTest12().AScript();
 			//new Benchmarks.DynamicTest2().Expr();
+			//new Benchmarks.ZExpressionsTest.ZExpressionsTest02_local().AScript2_Compile();
+			//new Benchmarks.ZExpressionsTest.ZExpressionsTest02_local().ZExpressions2();
+			//new Benchmarks.ZExpressionsTest.ZExpressionsTest04_call().AScript2_Compile();
+			//new Benchmarks.ZExpressionsTest.ZExpressionsTest05_function().ZExpressions2();
+			//new Benchmarks.ZExpressionsTest.ZExpressionsTest06_recursive().AScript1();
+			//new Benchmarks.ZExpressionsTest.ZExpressionsTest06_recursive().AScript2_Compile();
+			//new Benchmarks.ZExpressionsTest.ZExpressionsTest06_recursive().ZExpressions2();
+			//new Benchmarks.ZExpressionsTest.ZExpressionsTest07_linq().ZExpressions2();
+			//new Benchmarks.ZExpressionsTest.ZExpressionsTest08_compile().ZExpressions2();
 
 			//new Benchmarks.FleeTest.FleeTest02_var().AScript4_Cache();
 			//new Benchmarks.FleeTest01_const().AScript3_UseCache();
