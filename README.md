@@ -2,25 +2,26 @@
 
 ## 相关文章
 
-* [AScript轻量级动态脚本引擎](https://mp.weixin.qq.com/s/0n17ecNjLd96FgujBUNt9w)
-* [AScript如何实现中文脚本引擎](https://mp.weixin.qq.com/s/x7Pb2dRlKu83cdDsHd0KLQ)
-* [AScript扩展多种脚本语言](https://mp.weixin.qq.com/s/TJE20AvQGQjRxOKM5U3Tow)
-* [AScript函数体系详解](https://mp.weixin.qq.com/s/rzLzCrTAvOEFTtAGtTX6BQ)
-* [AScript之eval函数详解](https://mp.weixin.qq.com/s/781Sw5FdFXJxe0eWqWjCCw)
-* [基于AScript的python3脚本语言发布啦！](https://mp.weixin.qq.com/s/tcrPXFaLPz8kI2hlw-ZkuA)
-* [AScript中一个很有意思的语法](https://mp.weixin.qq.com/s/JrXlUosfpWbSfKLVIl7pzg)
-* [AScript之匿名类型与动态类型](https://mp.weixin.qq.com/s/6PzH9JxRsNlLMi5eISd7kg)
-* [AScript如何实现LINQ语法](https://mp.weixin.qq.com/s/ZEz2BPE5kayvXRQom73khw)
-* [AScript异步执行与await关键字](https://mp.weixin.qq.com/s/LPjcCugmJK6o-ONhle2Hkw)
-* [AScript定制left/right join查询语法](https://mp.weixin.qq.com/s/IPKrsDlFc32bupVKLxOKug)
-* [AScript之事件处理脚本](https://mp.weixin.qq.com/s/0F6vRWp4KxsXlCB9CdDH7A)
-* [基于AScript的SQL脚本语言发布啦！](https://mp.weixin.qq.com/s/oKDiJ7_Pcd8ODGxYOLWXGQ)
-* [基于AScript的JavaScript脚本语言发布啦](https://mp.weixin.qq.com/s/tefbC2cfZiIWKuJo2Zkx7A)
-* [基于AScript的Lua脚本语言发布啦](https://mp.weixin.qq.com/s/lfYFPPSMK5lxyMjdjSNQDA)
+* [AScript轻量级动态脚本引擎](https://www.cnblogs.com/rockey627/p/19843135)
+* [AScript如何实现中文脚本引擎](https://www.cnblogs.com/rockey627/p/19849198)
+* [AScript扩展多种脚本语言](https://www.cnblogs.com/rockey627/p/19854860)
+* [AScript函数体系详解](https://www.cnblogs.com/rockey627/p/19897604)
+* [AScript之eval函数详解](https://www.cnblogs.com/rockey627/p/19967057)
+* [基于AScript的python3脚本语言发布啦](https://www.cnblogs.com/rockey627/p/19971851)
+* [AScript中一个很有意思的语法](https://www.cnblogs.com/rockey627/p/19998021)
+* [AScript之匿名类型与动态类型](https://www.cnblogs.com/rockey627/p/20058232)
+* [AScript如何实现LINQ语法](https://www.cnblogs.com/rockey627/p/20065217)
+* [AScript异步执行与await关键字](https://www.cnblogs.com/rockey627/p/20111832)
+* [AScript定制left/right join查询语法](https://www.cnblogs.com/rockey627/p/20176770)
+* [AScript之事件处理脚本](https://www.cnblogs.com/rockey627/p/20315661)
+* [基于AScript的SQL脚本语言发布啦](https://www.cnblogs.com/rockey627/p/20385305)
+* [基于AScript的JavaScript脚本语言发布啦](https://www.cnblogs.com/rockey627/p/21601395)
+* [基于AScript的Lua脚本语言发布啦](https://www.cnblogs.com/rockey627/p/22454219)
+* [AScript之编译递归函数](https://www.cnblogs.com/rockey627/p/22831561)
 
 ## 介绍
 
-C#动态脚本解析编译执行引擎
+C#动态脚本解析、编译、执行引擎
 
 * 支持注入变量
 * 支持定义变量
