@@ -502,6 +502,12 @@ Assert.IsInstanceOfType(r, typeof(List<int>));
 Assert.AreEqual("2,4", string.Join(',', (List<int>)r));
 ```
 
+#### LINQ动态扩展
+```
+List<int> list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+var result = list.WhereScript(x => "x % 2 == 0").ToList();
+```
+
 #### static语句
 static语句是在编译期间进行解析执行，即static语句不参与编译，而是直接执行结果。
 注意：static语句中使用的变量也必须在static语句中定义的，否则报错变量不存在。
