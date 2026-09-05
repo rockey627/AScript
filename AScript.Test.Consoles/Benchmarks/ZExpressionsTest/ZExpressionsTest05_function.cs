@@ -18,6 +18,7 @@ int sum(int a, int b) {
 }
 sum(5, 6)
 ";
+		// Z.Expressions.Eval定义函数需要加public修饰
 		private static readonly string s2 = @"
 public int sum(int a, int b) {
 	return a + b;
@@ -26,6 +27,7 @@ sum(5, 6)
 ";
 		private static readonly int r = 11;
 
+		// 解释执行
 		[Benchmark]
 		public void AScript1()
 		{
@@ -34,6 +36,7 @@ sum(5, 6)
 			if (result != r) throw new Exception("result error");
 		}
 
+		// 编译执行
 		[Benchmark]
 		public void AScript2_Compile()
 		{
@@ -53,6 +56,7 @@ sum(5, 6)
 			if (result != r) throw new Exception("result error");
 		}
 
+		// 编译缓存
 		[Benchmark]
 		public void AScript3_Cache()
 		{

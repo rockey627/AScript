@@ -15,6 +15,7 @@ namespace AScript.Test.Consoles.Benchmarks.ZExpressionsTest
 		private static readonly string s = "sum(5, 6)";
 		private static readonly int r = 11;
 
+		// 解释执行
 		[Benchmark]
 		public void AScript1()
 		{
@@ -25,6 +26,7 @@ namespace AScript.Test.Consoles.Benchmarks.ZExpressionsTest
 			if (result != r) throw new Exception("result error");
 		}
 
+		// 编译执行
 		[Benchmark]
 		public void AScript2_Compile()
 		{
@@ -47,6 +49,7 @@ namespace AScript.Test.Consoles.Benchmarks.ZExpressionsTest
 			if (result != r) throw new Exception("result error");
 		}
 
+		// 编译缓存
 		[Benchmark]
 		public void AScript3_Cache()
 		{
@@ -72,6 +75,11 @@ namespace AScript.Test.Consoles.Benchmarks.ZExpressionsTest
 		private class MyMethod
 		{
 			public static int sum(int a, int b) => a + b;
+
+			public string Hello(string name)
+			{
+				return $"hello {name}";
+			}
 		}
 
 	}

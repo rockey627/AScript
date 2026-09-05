@@ -26,7 +26,13 @@ fib(10)
 //}
 //fib(10)
 //";
-		private static readonly int r = 55;
+		private static readonly int r = fib(10); // 55
+
+		private static int fib(int n)
+		{
+			if (n <= 1) return n;
+			return fib(n - 1) + fib(n - 2);
+		}
 
 		[Benchmark]
 		public void AScript1()

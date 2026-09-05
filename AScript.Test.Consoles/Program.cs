@@ -867,7 +867,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest03_Func>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest04_Var>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest05_Var>(config);
-			//BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func>(config);
+			BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func2>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest07_Type>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest08_For>(config);
@@ -901,7 +901,9 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest05_function>(config);
 			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest06_recursive>(config);
 			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest07_linq>(config);
-			BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest08_compile>(config);
+			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest08_compile>(config);
+			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest09_for>(config);
+			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest10_linqdynamic>(config);
 
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest01_const>(config);
 			//BenchmarkRunner.Run<Benchmarks.JavaScriptTest.JavaScriptTest02_local>(config);
@@ -930,6 +932,8 @@ exec2(26)
 			//new Benchmarks.ExpressionTest10().AScript();
 			//new Benchmarks.ExpressionTest12().AScript();
 			//new Benchmarks.DynamicTest2().Expr();
+			//new Benchmarks.ZExpressionsTest.ZExpressionsTest01_const().ZExpressions2();
+			//new Benchmarks.ZExpressionsTest.ZExpressionsTest01_const().ZExpressions2_2();
 			//new Benchmarks.ZExpressionsTest.ZExpressionsTest02_local().AScript2_Compile();
 			//new Benchmarks.ZExpressionsTest.ZExpressionsTest02_local().ZExpressions2();
 			//new Benchmarks.ZExpressionsTest.ZExpressionsTest04_call().AScript2_Compile();
@@ -939,6 +943,8 @@ exec2(26)
 			//new Benchmarks.ZExpressionsTest.ZExpressionsTest06_recursive().ZExpressions2();
 			//new Benchmarks.ZExpressionsTest.ZExpressionsTest07_linq().ZExpressions2();
 			//new Benchmarks.ZExpressionsTest.ZExpressionsTest08_compile().ZExpressions2();
+			//new Benchmarks.ZExpressionsTest.ZExpressionsTest09_for().AScript2_Compile();
+			//new Benchmarks.ZExpressionsTest.ZExpressionsTest10_linqdynamic().AScript1();
 
 			//new Benchmarks.FleeTest.FleeTest02_var().AScript4_Cache();
 			//new Benchmarks.FleeTest01_const().AScript3_UseCache();

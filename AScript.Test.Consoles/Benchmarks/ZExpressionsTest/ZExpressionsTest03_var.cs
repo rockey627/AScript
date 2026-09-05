@@ -15,6 +15,7 @@ namespace AScript.Test.Consoles.Benchmarks.ZExpressionsTest
 		private static readonly string s = "a * (b + 5) * (c-2)";
 		private static readonly int r = 100 * (5 + 5) * (6 - 2);
 
+		// 解释执行
 		[Benchmark]
 		public void AScript1()
 		{
@@ -26,6 +27,7 @@ namespace AScript.Test.Consoles.Benchmarks.ZExpressionsTest
 			if (result != r) throw new Exception("result error");
 		}
 
+		// 编译执行
 		[Benchmark]
 		public void AScript2_Compile()
 		{
@@ -48,6 +50,7 @@ namespace AScript.Test.Consoles.Benchmarks.ZExpressionsTest
 			if (result != r) throw new Exception("result error");
 		}
 
+		// 编译缓存
 		[Benchmark]
 		public void AScript3_Cache()
 		{
