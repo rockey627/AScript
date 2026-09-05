@@ -172,9 +172,10 @@ namespace AScript.Nodes
 			}
 			else
 			{
-				var postBuildContext = new BuildContext(tempBuildContext);
-				postExpression = this.Post?.Build(postBuildContext, scriptContext, options);
-				postExpression = postBuildContext.BuildBlock(scriptContext, options, postExpression);
+				//var postBuildContext = new BuildContext(tempBuildContext);
+				//postExpression = this.Post?.Build(postBuildContext, scriptContext, options);
+				//postExpression = postBuildContext.BuildBlock(scriptContext, options, postExpression);
+				postExpression = this.Post?.Build(tempBuildContext, scriptContext, options);
 			}
 			// 循环体
 			var breakLabel = Expression.Label();
