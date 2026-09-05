@@ -92,7 +92,7 @@ namespace AScript
 
 		public Delegate Compile(Type delegateType, ScriptContext context, BuildOptions options)
 		{
-			var lambda = Script.Lambda(delegateType, context, options, this.Body, this.ArgTypes, this.ArgNames, this.ReturnType);
+			var lambda = Script.Lambda(delegateType, context, options, this.Body, this.ArgNames, this.ArgTypes, this.ReturnType);
 			return lambda.Compile();
 		}
 

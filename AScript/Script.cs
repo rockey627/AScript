@@ -2517,17 +2517,17 @@ namespace AScript
 
 		public LambdaExpression Lambda(string expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
-			return Lambda(this.Context, this.Options, expression, argTypes, argNames, returnType);
+			return Lambda(this.Context, this.Options, expression, argNames, argTypes, returnType);
 		}
 
 		public LambdaExpression Lambda(Stream expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
-			return Lambda(this.Context, this.Options, expression, argTypes, argNames, returnType);
+			return Lambda(this.Context, this.Options, expression, argNames, argTypes, returnType);
 		}
 
 		public LambdaExpression Lambda(ITreeNode expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
-			return Lambda(this.Context, this.Options, expression, argTypes, argNames, returnType);
+			return Lambda(this.Context, this.Options, expression, argNames, argTypes, returnType);
 		}
 
 		public Expression<TDelegate> Lambda<TDelegate>(string expression, string[] argNames) where TDelegate : Delegate
@@ -3143,9 +3143,9 @@ namespace AScript
 			return lambda.Compile();
 		}
 
-		public static Delegate Compile(ScriptContext context, BuildOptions options, ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		public static Delegate Compile(ScriptContext context, BuildOptions options, ITreeNode expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
-			return Lambda(context, options, expression, argTypes, argNames, returnType)?.Compile();
+			return Lambda(context, options, expression, argNames, argTypes, returnType)?.Compile();
 		}
 
 		public static LambdaExpression Lambda(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string expression)
@@ -3265,7 +3265,32 @@ namespace AScript
 			return buildContext.Build(scriptContext, buildOptions, bodys);
 		}
 
-		public static LambdaExpression Lambda(ScriptContext context, BuildOptions options, string expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		public static Expression<Func<T1, TReturn>> Lambda<T1, TReturn>(ScriptContext context, BuildOptions options, string expression, string argName1)
+		{
+			return (Expression<Func<T1, TReturn>>)Lambda(context, options, expression, new[] { argName1 }, new[] { typeof(T1) }, typeof(TReturn));
+		}
+
+		public static Expression<Func<T1, T2, TReturn>> Lambda<T1, T2, TReturn>(ScriptContext context, BuildOptions options, string expression, string argName1, string argName2)
+		{
+			return (Expression<Func<T1, T2, TReturn>>)Lambda(context, options, expression, new[] { argName1, argName2 }, new[] { typeof(T1), typeof(T2) }, typeof(TReturn));
+		}
+
+		public static Expression<Func<T1, T2, T3, TReturn>> Lambda<T1, T2, T3, TReturn>(ScriptContext context, BuildOptions options, string expression, string argName1, string argName2, string argName3)
+		{
+			return (Expression<Func<T1, T2, T3, TReturn>>)Lambda(context, options, expression, new[] { argName1, argName2, argName3 }, new[] { typeof(T1), typeof(T2), typeof(T3) }, typeof(TReturn));
+		}
+
+		public static Expression<Func<T1, T2, T3, T4, TReturn>> Lambda<T1, T2, T3, T4, TReturn>(ScriptContext context, BuildOptions options, string expression, string argName1, string argName2, string argName3, string argName4)
+		{
+			return (Expression<Func<T1, T2, T3, T4, TReturn>>)Lambda(context, options, expression, new[] { argName1, argName2, argName3, argName4 }, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, typeof(TReturn));
+		}
+
+		public static Expression<Func<T1, T2, T3, T4, T5, TReturn>> Lambda<T1, T2, T3, T4, T5, TReturn>(ScriptContext context, BuildOptions options, string expression, string argName1, string argName2, string argName3, string argName4, string argName5)
+		{
+			return (Expression<Func<T1, T2, T3, T4, T5, TReturn>>)Lambda(context, options, expression, new[] { argName1, argName2, argName3, argName4, argName5 }, new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) }, typeof(TReturn));
+		}
+
+		public static LambdaExpression Lambda(ScriptContext context, BuildOptions options, string expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
 			if (string.IsNullOrEmpty(expression)) return null;
 			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
@@ -3292,7 +3317,7 @@ namespace AScript
 			return Lambda(buildContext, context, options, expression);
 		}
 
-		public static LambdaExpression Lambda(ScriptContext context, BuildOptions options, Stream expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		public static LambdaExpression Lambda(ScriptContext context, BuildOptions options, Stream expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
 			if (expression == null) return null;
 			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
@@ -3319,12 +3344,12 @@ namespace AScript
 			return Lambda(buildContext, context, options, expression);
 		}
 
-		public static LambdaExpression Lambda(ScriptContext context, BuildOptions options, ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		public static LambdaExpression Lambda(ScriptContext context, BuildOptions options, ITreeNode expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
-			return Lambda(null, context, options, expression, argTypes, argNames, returnType);
+			return Lambda(null, context, options, expression, argNames, argTypes, returnType);
 		}
 
-		public static LambdaExpression Lambda(Type delegateType, ScriptContext context, BuildOptions options, ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		public static LambdaExpression Lambda(Type delegateType, ScriptContext context, BuildOptions options, ITreeNode expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
 			if (expression == null) return null;
 			int argTypesCount = argTypes == null ? 0 : argTypes.Length;
@@ -3374,7 +3399,7 @@ namespace AScript
 			return buildContext.Build(context, buildOptions, bodys);
 		}
 
-		//public static LambdaExpression Lambda(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, ITreeNode expression, Type[] argTypes, string[] argNames, Type returnType = null)
+		//public static LambdaExpression Lambda(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, ITreeNode expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		//{
 		//	if (expression == null) return null;
 		//	int argTypesCount = argTypes == null ? 0 : argTypes.Length;
