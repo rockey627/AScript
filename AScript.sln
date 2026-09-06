@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 18
-VisualStudioVersion = 18.7.11919.86 stable
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37516.0 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AScript", "AScript\AScript.csproj", "{782C25FB-4EF4-49CB-BA4E-C8AB83306B8B}"
 EndProject
@@ -24,6 +24,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AScript.Lang.Lua.io", "AScript.Lang.Lua.io\AScript.Lang.Lua.io.csproj", "{3F2A768E-DD78-4258-9D96-74D24E053D74}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AScript.MewUIEditor", "AScript.MewUIEditor\AScript.MewUIEditor.csproj", "{19BC4DED-06D7-C965-2889-504BC2FEB643}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AScript.Lang.Go", "AScript.Lang.Go\AScript.Lang.Go.csproj", "{313B46CD-490C-4B40-B23A-817C8C517D9C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,6 +77,10 @@ Global
 		{19BC4DED-06D7-C965-2889-504BC2FEB643}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19BC4DED-06D7-C965-2889-504BC2FEB643}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19BC4DED-06D7-C965-2889-504BC2FEB643}.Release|Any CPU.Build.0 = Release|Any CPU
+		{313B46CD-490C-4B40-B23A-817C8C517D9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{313B46CD-490C-4B40-B23A-817C8C517D9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{313B46CD-490C-4B40-B23A-817C8C517D9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{313B46CD-490C-4B40-B23A-817C8C517D9C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;net45;net6.0;net8.0</TargetFrameworks>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<Authors>rockey627</Authors>
+		<PackageTags>C# Go golang Expression Eval Evaluator Execute Function Compile Compiler Script Scripting 脚本执行 动态脚本 表达式 计算</PackageTags>
+		<PackageLicenseUrl>https://gitee.com/rockey627/ascript/blob/master/LICENSE</PackageLicenseUrl>
+		<PackageProjectUrl>https://gitee.com/rockey627/ascript</PackageProjectUrl>
+		<Description>
+			<![CDATA[
+基于AScript扩展的Go脚本语言，支持go基础语法及数据类型；
+快速开始：
+// 注册go脚本语言
+Script.Langs.Set("go", GoLang.Instance);
+// 执行go脚本
+string s = @"
+";
+var script = new Script();
+// 上下文中指定语言，或者脚本中使用@lang指定语言
+//script.Context.Langs = new [] { "go" };
+var result = script.Eval(s);
+Assert.AreEqual(15L, result);
+			]]>
+		</Description>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<Version>0.0.0.0</Version>
+		<PackageReleaseNotes></PackageReleaseNotes>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AScript\AScript.csproj" />
+	</ItemGroup>
+
+</Project>

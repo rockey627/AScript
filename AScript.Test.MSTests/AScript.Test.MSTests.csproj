@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AScript.Lang.Go\AScript.Lang.Go.csproj" />
     <ProjectReference Include="..\AScript.Lang.JavaScript.fs\AScript.Lang.JavaScript.fs.csproj" />
     <ProjectReference Include="..\AScript.Lang.JavaScript\AScript.Lang.JavaScript.csproj" />
     <ProjectReference Include="..\AScript.Lang.Lua.io\AScript.Lang.Lua.io.csproj" />
