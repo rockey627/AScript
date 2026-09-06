@@ -554,7 +554,32 @@ namespace AScript
 		/// <returns></returns>
 		public ScriptContext GetOwnerContext(string variable, out object value, out Type type, bool searchType = false)
 		{
-			return GetOwnerContext(variable, out value, out type, out _, searchType);
+			var context = this;
+			do
+			{
+				var variables = context._Variables;
+				if (variables != null && variables.TryGetValue(variable, out value))
+				{
+					var variableTypes = context._VariableTypes;
+					if (variableTypes == null || !variableTypes.TryGetValue(variable, out type))
+					{
+						type = value == null ? typeof(object) : value.GetType();
+					}
+					return context;
+				}
+				var types = context._Types;
+				if (searchType && types != null && types.TryGetValue(variable, out var c))
+				{
+					type = typeof(TypeWrapper);
+					value = new TypeWrapper(variable, c);
+					return context;
+				}
+				context = context.Parent;
+			} while (context != null);
+
+			value = null;
+			type = null;
+			return null;
 		}
 
 		/// <summary>
