@@ -618,7 +618,7 @@ namespace AScript
 		public void SetConst(string name, object value, Type valueType)
 		{
 			SetVar(name, value, valueType);
-			SetVarModifier(name, Modifiers.READONLY);
+			SetVarModifier(name, Modifiers.CONST);
 		}
 
 		/// <summary>
@@ -630,6 +630,39 @@ namespace AScript
 		public void SetConst<T>(string name, T value)
 		{
 			SetConst(name, value, typeof(T));
+		}
+
+		/// <summary>
+		/// 设置只读变量（脚本中不可修改该变量）
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		public void SetReadonly(string name, object value)
+		{
+			SetReadonly(name, value, null);
+		}
+
+		/// <summary>
+		/// 设置只读变量（脚本中不可修改该变量）
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		/// <param name="valueType"></param>
+		public void SetReadonly(string name, object value, Type valueType)
+		{
+			SetVar(name, value, valueType);
+			SetVarModifier(name, Modifiers.READONLY);
+		}
+
+		/// <summary>
+		/// 设置只读变量（脚本中不可修改该变量）
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		public void SetReadonly<T>(string name, T value)
+		{
+			SetReadonly(name, value, typeof(T));
 		}
 
 		/// <summary>

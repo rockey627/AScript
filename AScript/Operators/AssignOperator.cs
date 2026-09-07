@@ -327,9 +327,13 @@ namespace AScript.Operators
 				}
 				if (!string.IsNullOrEmpty(defineVarNode.Name) && defineVarNode.Name != "_")
 				{
-					if (Modifiers.IsReadOnly(defineVarNode.Modifier))
+					if (Modifiers.IsConst(defineVarNode.Modifier))
 					{
 						e.Context.SetTempConst(defineVarNode.Name, value, valueType, false);
+					}
+					else if (Modifiers.IsReadOnly(defineVarNode.Modifier))
+					{
+						e.Context.SetTempReadonly(defineVarNode.Name, value, valueType, false);
 					}
 					else
 					{

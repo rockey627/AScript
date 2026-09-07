@@ -835,6 +835,24 @@ namespace AScript
 			return EvalVar(name, out type);
 		}
 
+		public object EvalVar(string name, out Type type, out int modifier)
+		{
+			var context = GetOwnerContext(name, out var value, out type, out modifier, true);
+			if (context == null)
+			{
+				// 从语言上下文中搜索
+				value = EvalVarFromLangs(name, out type, out modifier);
+			}
+			if (type == null) return value;
+			if (value == null && type.IsValueType)
+			{
+				// 值类型的变量未赋值，则取该变量时初始化
+				value = ScriptUtils.GetDefaultValue(type);
+				//(context ?? this)._TempVariables[name] = value;
+			}
+			return value;
+		}
+
 		public override object EvalVar(string name, out Type type)
 		{
 			var context = GetOwnerContext(name, out var value, out type, true);
@@ -2734,7 +2752,7 @@ namespace AScript
 			//context.Init_TempVariables();
 			//context._TempVariables[name] = value;
 			//context.SetTempVarType(name, value, valueType);
-			context.SetVarModifier(name, Modifiers.READONLY);
+			context.SetVarModifier(name, Modifiers.CONST);
 		}
 
 		public void SetTempConst(string name, object value, bool searchContext)
@@ -2745,6 +2763,26 @@ namespace AScript
 		public void SetTempConst<T>(string name, T value, bool searchContext)
 		{
 			SetTempConst(name, value, typeof(T), searchContext);
+		}
+
+		public void SetTempReadonly(string name, object value, Type valueType, bool searchContext)
+		{
+			var context = searchContext ? (GetOwnerContext(name) ?? this) : this;
+			context.SetVar(name, value, valueType);
+			//context.Init_TempVariables();
+			//context._TempVariables[name] = value;
+			//context.SetTempVarType(name, value, valueType);
+			context.SetVarModifier(name, Modifiers.READONLY);
+		}
+
+		public void SetTempReadonly(string name, object value, bool searchContext)
+		{
+			SetTempReadonly(name, value, null, searchContext);
+		}
+
+		public void SetTempReadonly<T>(string name, T value, bool searchContext)
+		{
+			SetTempReadonly(name, value, typeof(T), searchContext);
 		}
 
 		/// <summary>

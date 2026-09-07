@@ -1,7 +1,6 @@
 ﻿using AScript.Exceptions;
 using System;
 using System.Linq.Expressions;
-using System.Runtime.InteropServices;
 
 namespace AScript.Nodes
 {
@@ -43,7 +42,7 @@ namespace AScript.Nodes
 				return Expression.Convert(varExpr, lastType);
 				//return varExpr;
 			}
-			var value = scriptContext.EvalVar(this.Name, out var type);
+			var value = scriptContext.EvalVar(this.Name, out var type, out int modifier);
 			if (type == null)
 			{
 				if (buildContext.HasFunc(this.Name) || scriptContext.HasFunc(this.Name))
@@ -59,6 +58,10 @@ namespace AScript.Nodes
 			if (type == typeof(TypeWrapper))
 			{
 				return Expression.Constant(value);
+			}
+			else if (Modifiers.IsConst(modifier))
+			{
+				return Expression.Constant(value, value?.GetType() ?? type);
 			}
 			else
 			{

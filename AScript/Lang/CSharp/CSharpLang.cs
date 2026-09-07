@@ -140,7 +140,7 @@ namespace AScript.Lang.CSharp
 			AddTokenHandler("new", NewTokenHandler.Instance);
 			AddTokenHandler("var", VarTokenHandler.Instance);
 			AddTokenHandler("readonly", ReadOnlyTokenHandler.Instance);
-			AddTokenHandler("const", ReadOnlyTokenHandler.Instance);
+			AddTokenHandler("const", new ReadOnlyTokenHandler(Modifiers.CONST));
 			AddTokenHandler("if", IfTokenHandler.Instance);
 			AddTokenHandler("else", IfTokenHandler.Instance);
 			//AddTokenHandler("switch", SwitchTokenHandler.Instance);
