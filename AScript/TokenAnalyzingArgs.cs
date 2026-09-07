@@ -16,7 +16,7 @@ namespace AScript
 		/// <summary>
 		/// 
 		/// </summary>
-		public ScriptContext ScriptContext { get; private set; }
+		public ScriptContext ScriptContext{ get; private set; }
 		/// <summary>
 		/// 
 		/// </summary>
@@ -124,6 +124,11 @@ namespace AScript
 			{
 				_pool.Enqueue(e);
 			}
+		}
+
+		public ScriptContext GetScriptContext()
+		{
+			return this.BuildContext?.GetStaticScriptContext() ?? this.ScriptContext;
 		}
 	}
 }

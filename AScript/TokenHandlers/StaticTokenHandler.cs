@@ -24,16 +24,26 @@ namespace AScript.TokenHandlers
 			}
 			var options = e.Options;
 			// 如果当前为编译模式，则改为使用执行模式
+			bool isCompileMode = false;
 			if ((options.CompileMode?? ECompileMode.None) == ECompileMode.All)
 			{
+				isCompileMode = true;
 				options = new BuildOptions(e.Options) { CompileMode = ECompileMode.None };
 			}
-			var node = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, options, e.TokenReader, e.Control, e.Ignore, noblock: true);
+			var staticScriptContext = isCompileMode ? e.BuildContext.GetOrCreateStaticScriptContext(e.ScriptContext) : e.ScriptContext;
+			var node = analyzer.BuildOneStatement2(e.BuildContext, staticScriptContext, options, e.TokenReader, e.Control, e.Ignore, noblock: true);
 			if (node != null && !e.Ignore)
 			{
-				// 执行并返回结果
-				var v = node.Eval(e.ScriptContext, options, e.Control, out var type);
-				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(v, type));
+				if (!isCompileMode || node is ObjectNode)
+				{
+					e.TreeBuilder.AddData(e.BuildContext, staticScriptContext, e.Options, e.Control, node);
+				}
+				else
+				{
+					// 执行并返回结果
+					var v = node.Eval(staticScriptContext, options, e.Control, out var type);
+					e.TreeBuilder.AddData(e.BuildContext, staticScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(v, type));
+				}
 			}
 		}
 
@@ -48,16 +58,26 @@ namespace AScript.TokenHandlers
 			}
 			var options = e.Options;
 			// 如果当前为编译模式，则改为使用执行模式
+			bool isCompileMode = false;
 			if ((options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
+				isCompileMode = true;
 				options = new BuildOptions(e.Options) { CompileMode = ECompileMode.None };
 			}
-			var node = await analyzer.BuildOneStatement2Async(e.BuildContext, e.ScriptContext, options, e.TokenReader, e.Control, e.Ignore, noblock: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+			var staticScriptContext = isCompileMode ? e.BuildContext.GetOrCreateStaticScriptContext(e.ScriptContext) : e.ScriptContext;
+			var node = await analyzer.BuildOneStatement2Async(e.BuildContext, staticScriptContext, options, e.TokenReader, e.Control, e.Ignore, noblock: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 			if (node != null && !e.Ignore)
 			{
-				// 执行并返回结果
-				var v = await node.EvalAsync(e.ScriptContext, options, e.Control, cancellationToken).ConfigureAwait(false);
-				await e.TreeBuilder.AddDataAsync(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(v.Value, v.Type), cancellationToken).ConfigureAwait(false);
+				if (!isCompileMode || node is ObjectNode)
+				{
+					await e.TreeBuilder.AddDataAsync(e.BuildContext, staticScriptContext, e.Options, e.Control, node, cancellationToken).ConfigureAwait(false);
+				}
+				else
+				{
+					// 执行并返回结果
+					var v = await node.EvalAsync(staticScriptContext, options, e.Control, cancellationToken).ConfigureAwait(false);
+					await e.TreeBuilder.AddDataAsync(e.BuildContext, staticScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(v.Value, v.Type), cancellationToken).ConfigureAwait(false);
+				}
 			}
 		}
 	}

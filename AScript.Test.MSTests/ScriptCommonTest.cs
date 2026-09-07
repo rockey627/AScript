@@ -547,6 +547,49 @@ static eval(s)
 		}
 
 		[TestMethod]
+		public void Test34_6()
+		{
+			string s = @"
+{
+	n+20
+}
+";
+			var script = new Script();
+			script.Context.SetVar("n", 10);
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(30, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test34_static_4()
+		{
+			string s = @"
+{
+	static int n=10;
+	var s=""n+20"";
+	eval(s)
+}
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(30, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test34_static_3()
+		{
+			string s = @"
+{
+	static int n=10;
+	var s=""n+20"";
+	eval(s)
+}
+";
+			var script = new Script();
+			Assert.AreEqual(30, script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test34_static_2()
 		{
 			string s = @"

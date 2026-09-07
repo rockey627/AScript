@@ -28,6 +28,8 @@ namespace AScript
 
 		private bool _UsedScriptContext;
 
+		private ScriptContext _staticScriptContext;
+
 		public BuildContext Parent { get; set; }
 
 		public BuildContext Root
@@ -223,6 +225,41 @@ namespace AScript
 		{
 			this.Parent = parent;
 			this.RewriteLocalVariables = false;
+		}
+
+		public ScriptContext GetStaticScriptContext()
+		{
+			if (_staticScriptContext != null) return _staticScriptContext;
+			if (this.Parent == null) return null;
+			var buildContext = this.Parent;
+			while (buildContext != null)
+			{
+				if (buildContext._staticScriptContext != null)
+				{
+					return buildContext._staticScriptContext;
+				}
+				buildContext = buildContext.Parent;
+			}
+			return null;
+		}
+
+		public ScriptContext GetOrCreateStaticScriptContext(ScriptContext scriptContext)
+		{
+			return scriptContext;
+			//if (_staticScriptContext != null) return _staticScriptContext;
+			//if (this.Parent == null) return scriptContext;
+			//var buildContext = this.Parent;
+			//while (buildContext != null)
+			//{
+			//	if (buildContext._staticScriptContext != null)
+			//	{
+			//		_staticScriptContext = new ScriptContext(buildContext._staticScriptContext);
+			//		return _staticScriptContext;
+			//	}
+			//	buildContext = buildContext.Parent;
+			//}
+			//_staticScriptContext = new ScriptContext(scriptContext);
+			//return _staticScriptContext;
 		}
 
 		public BuildContext GetReturnBuildContext()
@@ -761,13 +798,26 @@ namespace AScript
 					if (_VariableModifiers != null && _VariableModifiers.TryGetValue(v.Name, out var modifier)
 						&& Modifiers.IsReadOnly(modifier))
 					{
-						list.Add(Expression.Call(
-							scriptContextParameter,
-							ScriptUtils.Method_ScriptContext_SetTempConst,
-							Expression.Constant(v.Name),
-							Expression.Convert(v, typeof(object)),
-							Expression.Constant(v.Type),
-							Expression.Constant(searchParent)));
+						if (Modifiers.IsConst(modifier))
+						{
+							list.Add(Expression.Call(
+								scriptContextParameter,
+								ScriptUtils.Method_ScriptContext_SetTempConst,
+								Expression.Constant(v.Name),
+								Expression.Convert(v, typeof(object)),
+								Expression.Constant(v.Type),
+								Expression.Constant(searchParent)));
+						}
+						else
+						{
+							list.Add(Expression.Call(
+								scriptContextParameter,
+								ScriptUtils.Method_ScriptContext_SetTempReadonly,
+								Expression.Constant(v.Name),
+								Expression.Convert(v, typeof(object)),
+								Expression.Constant(v.Type),
+								Expression.Constant(searchParent)));
+						}
 					}
 					else
 					{
@@ -875,7 +925,11 @@ namespace AScript
 				//if (parameters.Length == 0) return null;
 				block = Expression.Empty();
 			}
-			return this.DelegateType == null ? Expression.Lambda(block, parameters) : Expression.Lambda(this.DelegateType, block, parameters);
+			if (IsMain || this.Parent == null)
+			{
+				return this.DelegateType == null ? Expression.Lambda(block, parameters) : Expression.Lambda(this.DelegateType, block, parameters);
+			}
+			return Main.Build(scriptContext, options, block);
 		}
 
 		/// <summary>
