@@ -17,6 +17,14 @@ namespace AScript.Lang.Go.TokenHandlers
 	{
 		public static readonly GoVarTokenHandler Instance = new GoVarTokenHandler();
 
+		public int Modifier { get; private set; }
+
+		public GoVarTokenHandler() { }
+		public GoVarTokenHandler(int modifier)
+		{
+			this.Modifier = modifier;
+		}
+
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;
@@ -39,7 +47,7 @@ namespace AScript.Lang.Go.TokenHandlers
 				if (!nextToken.HasValue)
 				{
 					e.End = true;
-					defines?.Add(PoolManage.CreateDefineVarNode(varName, null));
+					defines?.Add(PoolManage.CreateDefineVarNode(varName, null, modifier: this.Modifier));
 					break;
 				}
 
@@ -71,7 +79,7 @@ namespace AScript.Lang.Go.TokenHandlers
 					// 
 					nextToken = e.TokenReader.Read();
 				}
-				defines?.Add(PoolManage.CreateDefineVarNode(varName, typeName, type));
+				defines?.Add(PoolManage.CreateDefineVarNode(varName, typeName, type, modifier: this.Modifier));
 
 				if (!nextToken.HasValue)
 				{

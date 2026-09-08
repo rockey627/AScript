@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,54 +11,41 @@ namespace AScript.Lang.Go.Extensions
 	/// </summary>
 	public static class GoCommonExtensions
 	{
-		/// <summary>
-		/// append 函数 - 向slice添加元素
-		/// </summary>
-		public static List<object> append(List<object> slice, params object[] items)
-		{
-			if (slice == null) slice = new List<object>();
-			foreach (var item in items)
-			{
-				slice.Add(item);
-			}
-			return slice;
-		}
+		///// <summary>
+		///// append 函数 - 向slice添加元素
+		///// </summary>
+		//public static List<object> append(List<object> slice, params object[] items)
+		//{
+		//	if (slice == null) slice = new List<object>();
+		//	foreach (var item in items)
+		//	{
+		//		slice.Add(item);
+		//	}
+		//	return slice;
+		//}
 
 		/// <summary>
 		/// len 函数 - 返回长度
 		/// </summary>
-		public static long len(object obj)
+		public static int len(object obj)
 		{
 			if (obj == null) return 0;
 			if (obj is string s) return s.Length;
-			if (obj is List<object> l) return l.Count;
-			if (obj is Dictionary<object, object> d) return d.Count;
 			if (obj is Array a) return a.Length;
-			if (obj is ICollection<object> c) return c.Count;
+			if (obj is IDictionary d) return d.Count;
+			if (obj is ICollection l) return l.Count;
 			return 0;
 		}
 
-		/// <summary>
-		/// cap 函数 - 返回容量
-		/// </summary>
-		public static long cap(object obj)
-		{
-			if (obj is List<object> l) return l.Capacity;
-			if (obj is Array a) return a.Length;
-			return 0;
-		}
-
-		/// <summary>
-		/// new 函数 - 分配类型
-		/// </summary>
-		public static object @new(Type type)
-		{
-			if (type == typeof(int) || type == typeof(long)) return 0L;
-			if (type == typeof(float) || type == typeof(double)) return 0.0;
-			if (type == typeof(bool)) return false;
-			if (type == typeof(string)) return "";
-			return Activator.CreateInstance(type);
-		}
+		///// <summary>
+		///// cap 函数 - 返回容量
+		///// </summary>
+		//public static long cap(object obj)
+		//{
+		//	if (obj is List<object> l) return l.Capacity;
+		//	if (obj is Array a) return a.Length;
+		//	return 0;
+		//}
 
 		/// <summary>
 		/// make 函数 - 创建slice/map/chan
@@ -82,82 +70,71 @@ namespace AScript.Lang.Go.Extensions
 			return null;
 		}
 
-		/// <summary>
-		/// delete 函数 - 从map删除元素
-		/// </summary>
-		public static void delete(Dictionary<object, object> map, object key)
-		{
-			if (map != null && key != null)
-			{
-				map.Remove(key);
-			}
-		}
+		///// <summary>
+		///// println 函数
+		///// </summary>
+		//public static void println(params object[] args)
+		//{
+		//	var sb = new StringBuilder();
+		//	for (int i = 0; i < args.Length; i++)
+		//	{
+		//		if (i > 0) sb.Append(" ");
+		//		sb.Append(args[i]?.ToString() ?? "<nil>");
+		//	}
+		//	Console.WriteLine(sb.ToString());
+		//}
 
-		/// <summary>
-		/// println 函数
-		/// </summary>
-		public static void println(params object[] args)
-		{
-			var sb = new StringBuilder();
-			for (int i = 0; i < args.Length; i++)
-			{
-				if (i > 0) sb.Append(" ");
-				sb.Append(args[i]?.ToString() ?? "<nil>");
-			}
-			Console.WriteLine(sb.ToString());
-		}
+		///// <summary>
+		///// print 函数
+		///// </summary>
+		//public static void @print(params object[] args)
+		//{
+		//	var sb = new StringBuilder();
+		//	for (int i = 0; i < args.Length; i++)
+		//	{
+		//		if (i > 0) sb.Append(" ");
+		//		sb.Append(args[i]?.ToString() ?? "<nil>");
+		//	}
+		//	Console.Write(sb.ToString());
+		//}
 
-		/// <summary>
-		/// print 函数
-		/// </summary>
-		public static void @print(params object[] args)
-		{
-			var sb = new StringBuilder();
-			for (int i = 0; i < args.Length; i++)
-			{
-				if (i > 0) sb.Append(" ");
-				sb.Append(args[i]?.ToString() ?? "<nil>");
-			}
-			Console.Write(sb.ToString());
-		}
+		///// <summary>
+		///// panic 函数
+		///// </summary>
+		//public static void panic(object msg)
+		//{
+		//	throw new Exception(msg?.ToString() ?? "panic");
+		//}
 
-		/// <summary>
-		/// panic 函数
-		/// </summary>
-		public static void panic(object msg)
-		{
-			throw new Exception(msg?.ToString() ?? "panic");
-		}
+		///// <summary>
+		///// recover 函数 - 暂时不支持
+		///// </summary>
+		//public static object recover()
+		//{
+		//	return null;
+		//}
 
-		/// <summary>
-		/// recover 函数 - 暂时不支持
-		/// </summary>
-		public static object recover()
-		{
-			return null;
-		}
+		///// <summary>
+		///// close 函数 - 关闭通道
+		///// </summary>
+		//public static void close<T>(Channel<T> ch)
+		//{
+		//	ch?.Close();
+		//}
 
-		/// <summary>
-		/// close 函数 - 关闭通道
-		/// </summary>
-		public static void close<T>(Channel<T> ch)
-		{
-			ch?.Close();
-		}
-
-		/// <summary>
-		/// copy 函数 - 复制slice
-		/// </summary>
-		public static long copy(List<object> dst, List<object> src)
-		{
-			if (dst == null || src == null) return 0;
-			int count = Math.Min(dst.Count, src.Count);
-			for (int i = 0; i < count; i++)
-			{
-				dst[i] = src[i];
-			}
-			return count;
-		}
+		///// <summary>
+		///// copy 函数 - 复制slice
+		///// </summary>
+		//public static long copy(List<object> dst, List<object> src)
+		//{
+		//	if (dst == null || src == null) return 0;
+		//	int count = Math.Min(dst.Count, src.Count);
+		//	for (int i = 0; i < count; i++)
+		//	{
+		//		dst[i] = src[i];
+		//	}
+		//	return count;
+		//}
 
 		/// <summary>
 		/// complex 函数 - 创建复数

@@ -39,21 +39,22 @@ namespace AScript.Lang.Go
 			AddType<bool>("bool", false);
 			AddType<string>("string", false);
 			AddType<byte>("byte", false);
-			AddType<char>("rune", false);
+			//AddType<char>("rune", false);
 			AddType<object>("any", false);
 
 			// 集合类型
-			AddType<Dictionary<object, object>>("map");
-			AddType<List<object>>("slice");
-			AddType<List<object>>("array");
+			//AddType<Dictionary<object, object>>("map");
+			//AddType<List<object>>("slice");
+			//AddType<List<object>>("array");
 			//AddType<object[]>("[...]");
 
 			// 赋值运算符
 			AddFunc("=", AssignOperator.Instance);
+			AddFunc(":=", AssignOperator.Instance);
 			AddFunc("+=", PlusAssignOperator.Instance);
 			AddFunc("-=", SubtractAssignOperator.Instance);
 			AddFunc("*=", MultiplyAssignOperator.Instance);
-			AddFunc("/=", DivideOperator.Instance);
+			AddFunc("/=", DivideAssignOperator.Instance);
 			AddFunc("%=", ModuloAssignOperator.Instance);
 			AddFunc("&=", AndAssignOperator.Instance);
 			AddFunc("|=", OrAssignOperator.Instance);
@@ -73,6 +74,9 @@ namespace AScript.Lang.Go
 			AddFunc("<<", LeftShiftOperator.Instance);
 			AddFunc(">>", RightShiftOperator.Instance);
 			AddFunc("&^", new AndNotOperator());
+
+			AddFunc("++", IncrementAssignOperator.Instance);
+			AddFunc("--", DecrementAssignOperator.Instance);
 
 			// 关系运算符
 			AddFunc("<", LessThanOperator.Instance);
@@ -96,9 +100,9 @@ namespace AScript.Lang.Go
 
 			// Token处理器 - 核心语句
 			AddTokenHandler("var", GoVarTokenHandler.Instance);
+			AddTokenHandler("const", new GoVarTokenHandler(Modifiers.CONST));
 			AddTokenHandler("func", GoFunctionTokenHandler.Instance);
-			AddTokenHandler("if", GoIfTokenHandler.Instance);
-			AddTokenHandler("else", GoIfTokenHandler.Instance);
+			AddTokenHandler("if", IfTokenHandler.Instance);
 			AddTokenHandler("for", GoForTokenHandler.Instance);
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			AddTokenHandler("break", BreakTokenHandler.Instance);
@@ -133,6 +137,8 @@ namespace AScript.Lang.Go
 			{
 				case "&^":
 					return DefaultSyntaxAnalyzer.OperatorPriorities["&"];
+				case ":=":
+					return DefaultSyntaxAnalyzer.OperatorPriorities["="];
 				default:
 					break;
 			}
