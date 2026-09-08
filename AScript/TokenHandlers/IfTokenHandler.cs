@@ -46,10 +46,20 @@ namespace AScript.TokenHandlers
 
 		private void BuildIf(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
-			analyzer.ValidateNextToken(e.TokenReader, "(");
+			//analyzer.ValidateNextToken(e.TokenReader, "(");
+			var token0 = analyzer.ValidateNextToken(e.TokenReader);
+			bool token0Symbol = token0.Value.IsSymbol("(");
+			if (!token0Symbol)
+			{
+				e.TokenReader.Push(token0.Value);
+			}
 
 			var conditionBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
-			analyzer.ValidateNextToken(e.TokenReader, ")");
+
+			if (token0Symbol)
+			{
+				analyzer.ValidateNextToken(e.TokenReader, ")");
+			}
 
 			if ((e.Options.CreateFullTreeNode ?? false) || (e.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
@@ -93,10 +103,20 @@ namespace AScript.TokenHandlers
 
 		private async Task BuildIfAsync(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, CancellationToken cancellationToken = default)
 		{
-			await analyzer.ValidateNextTokenAsync(e.TokenReader, "(", cancellationToken).ConfigureAwait(false);
+			//await analyzer.ValidateNextTokenAsync(e.TokenReader, "(", cancellationToken).ConfigureAwait(false);
+			var token0 = await analyzer.ValidateNextTokenAsync(e.TokenReader, cancellationToken).ConfigureAwait(false);
+			bool token0Symbol = token0.Value.IsSymbol("(");
+			if (!token0Symbol)
+			{
+				e.TokenReader.Push(token0.Value);
+			}
 
 			var conditionBuilder = await analyzer.BuildOneStatementAsync(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, cancellationToken: cancellationToken).ConfigureAwait(false);
-			await analyzer.ValidateNextTokenAsync(e.TokenReader, ")", cancellationToken).ConfigureAwait(false);
+			
+			if (token0Symbol)
+			{
+				await analyzer.ValidateNextTokenAsync(e.TokenReader, ")", cancellationToken).ConfigureAwait(false);
+			}
 
 			if ((e.Options.CreateFullTreeNode ?? false) || (e.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
