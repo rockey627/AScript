@@ -199,7 +199,7 @@ namespace AScript.Nodes
 			// 
 			var continueLabel = bodyBuildContext?.ContinueLabel;
 			Expression loopBlockExpression = Block(bodyExpression, Expression.Label(continueLabel), postExpression);
-			Expression conditionBlockExpression = Expression.IfThenElse(conditionExpression, loopBlockExpression, Expression.Break(breakLabel));
+			Expression conditionBlockExpression = conditionExpression == null ? loopBlockExpression : Expression.IfThenElse(conditionExpression, loopBlockExpression, Expression.Break(breakLabel));
 			var loopExpression = Expression.Loop(conditionBlockExpression, breakLabel);
 			if (initExpression == null)
 			{
