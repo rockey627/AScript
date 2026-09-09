@@ -20,7 +20,7 @@ namespace AScript.Nodes
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
-			var definedType = this.SystemType ?? context.EvalType(this.Type);
+			var definedType = this.SystemType ?? (string.IsNullOrEmpty(this.Type) ? typeof(object) : context.EvalType(this.Type));
 			if (definedType == null)
 			{
 				throw new ScriptAnalyzingException("unknown type:" + this.Type);
