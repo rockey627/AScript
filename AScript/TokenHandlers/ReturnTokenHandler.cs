@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AScript.Nodes;
@@ -20,13 +21,39 @@ namespace AScript.TokenHandlers
 				return;
 			}
 
-			var returnBuilder = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, null, e.Ignore);
+			var statement = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, null, e.Ignore);
+			var nextToken = e.TokenReader.Read();
+			if (nextToken.HasValue)
+			{
+				if (nextToken.Value.IsSymbol(","))
+				{
+					var tuple = e.Ignore ? null : new TupleNode
+					{
+						Items = new List<ITreeNode> { statement }
+					};
+					while (true)
+					{
+						statement = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, null, e.Ignore);
+						tuple?.Items.Add(statement);
+						nextToken = e.TokenReader.Read();
+						if (!nextToken.HasValue) break;
+						if (nextToken.Value.IsSymbol(",")) continue;
+						e.TokenReader.Push(nextToken.Value);
+						break;
+					}
+					statement = tuple;
+				}
+				else
+				{
+					e.TokenReader.Push(nextToken.Value);
+				}
+			}
 
 			if (e.Ignore) return;
 
 			if (e.Options.CreateFullTreeNode ?? false || (e.Options.CompileMode ?? ECompileMode.None) == ECompileMode.All)
 			{
-				var returnNode = new ReturnNode { Body = returnBuilder };
+				var returnNode = new ReturnNode { Body = statement };
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, returnNode);
 				return;
 			}
@@ -36,7 +63,7 @@ namespace AScript.TokenHandlers
 				throw new Exceptions.ScriptAnalyzingException("unsupport return");
 			}
 			e.Control.Terminal = true;
-			e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, returnBuilder);
+			e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, statement);
 		}
 
 		public async Task BuildAsync(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, CancellationToken cancellationToken)
