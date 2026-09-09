@@ -1446,6 +1446,32 @@ namespace AScript
 			//return Expression.Constant(func);
 		}
 
+#if NET45
+		public static Type GetTupleType(params Type[] types)
+		{
+			if (types.Length == 1) return typeof(Tuple<>).MakeGenericType(types);
+			if (types.Length == 2) return typeof(Tuple<,>).MakeGenericType(types);
+			if (types.Length == 3) return typeof(Tuple<,,>).MakeGenericType(types);
+			if (types.Length == 4) return typeof(Tuple<,,,>).MakeGenericType(types);
+			if (types.Length == 5) return typeof(Tuple<,,,,>).MakeGenericType(types);
+			if (types.Length == 6) return typeof(Tuple<,,,,,>).MakeGenericType(types);
+			if (types.Length == 7) return typeof(Tuple<,,,,,,>).MakeGenericType(types);
+			throw new Exceptions.ScriptRuntimeException($"invalid Tuple`{types.Length}");
+		}
+#else
+		public static Type GetTupleType(params Type[] types)
+		{
+			if (types.Length == 1) return typeof(ValueTuple<>).MakeGenericType(types);
+			if (types.Length == 2) return typeof(ValueTuple<,>).MakeGenericType(types);
+			if (types.Length == 3) return typeof(ValueTuple<,,>).MakeGenericType(types);
+			if (types.Length == 4) return typeof(ValueTuple<,,,>).MakeGenericType(types);
+			if (types.Length == 5) return typeof(ValueTuple<,,,,>).MakeGenericType(types);
+			if (types.Length == 6) return typeof(ValueTuple<,,,,,>).MakeGenericType(types);
+			if (types.Length == 7) return typeof(ValueTuple<,,,,,,>).MakeGenericType(types);
+			throw new Exceptions.ScriptRuntimeException($"invalid Tuple`{types.Length}");
+		}
+#endif
+
 		public static bool Contains(IEnumerable<string> list, string s)
 		{
 			if (list == null) return false;
