@@ -36,60 +36,61 @@ namespace AScript.Lang.Go.TokenHandlers
 				return;
 			}
 
-			var defines = e.Ignore ? null : new List<DefineVarNode>();
-			Token? nextToken;
-			while (true)
-			{
-				var nameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
-				string varName = nameToken.Value.Value;
+			//var defines = e.Ignore ? null : new List<DefineVarNode>();
+			//Token? nextToken;
+			//while (true)
+			//{
+			//	var nameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
+			//	string varName = nameToken.Value.Value;
 
-				nextToken = e.TokenReader.Read();
-				if (!nextToken.HasValue)
-				{
-					e.End = true;
-					defines?.Add(PoolManage.CreateDefineVarNode(varName, null, modifier: this.Modifier));
-					break;
-				}
+			//	nextToken = e.TokenReader.Read();
+			//	if (!nextToken.HasValue)
+			//	{
+			//		e.End = true;
+			//		defines?.Add(PoolManage.CreateDefineVarNode(varName, null, modifier: this.Modifier));
+			//		break;
+			//	}
 
-				string typeName = null;
-				Type type = null;
-				if (nextToken.Value.Type == ETokenType.Word)
-				{
-					// 类型判断
-					typeName = nextToken.Value.Value;
-					type = e.ScriptContext.EvalType(typeName);
-					if (type == null)
-					{
-						e.End = true;
-						e.TokenReader.Push(nextToken.Value);
-						typeName = null;
-					}
-					else if (defines != null)
-					{
-						for (int i = 0; i < defines.Count; i++)
-						{
-							var defineVar = defines[i];
-							if (defineVar.SystemType == null)
-							{
-								defineVar.Type = typeName;
-								defineVar.SystemType = type;
-							}
-						}
-					}
-					// 
-					nextToken = e.TokenReader.Read();
-				}
-				defines?.Add(PoolManage.CreateDefineVarNode(varName, typeName, type, modifier: this.Modifier));
+			//	string typeName = null;
+			//	Type type = null;
+			//	if (nextToken.Value.Type == ETokenType.Word)
+			//	{
+			//		// 类型判断
+			//		typeName = nextToken.Value.Value;
+			//		type = e.ScriptContext.EvalType(typeName);
+			//		if (type == null)
+			//		{
+			//			e.End = true;
+			//			e.TokenReader.Push(nextToken.Value);
+			//			typeName = null;
+			//		}
+			//		else if (defines != null)
+			//		{
+			//			for (int i = 0; i < defines.Count; i++)
+			//			{
+			//				var defineVar = defines[i];
+			//				if (defineVar.SystemType == null)
+			//				{
+			//					defineVar.Type = typeName;
+			//					defineVar.SystemType = type;
+			//				}
+			//			}
+			//		}
+			//		// 
+			//		nextToken = e.TokenReader.Read();
+			//	}
+			//	defines?.Add(PoolManage.CreateDefineVarNode(varName, typeName, type, modifier: this.Modifier));
 
-				if (!nextToken.HasValue)
-				{
-					e.End = true;
-					break;
-				}
-				if (nextToken.Value.IsSymbol(",")) continue;
-				break;
-			}
-
+			//	if (!nextToken.HasValue)
+			//	{
+			//		e.End = true;
+			//		break;
+			//	}
+			//	if (nextToken.Value.IsSymbol(",")) continue;
+			//	break;
+			//}
+			var defines = GoLang.ParseDefineVars(analyzer, e.ScriptContext, e.TokenReader, e.Ignore);
+			var nextToken = e.TokenReader.Read();
 			if (nextToken.HasValue && nextToken.Value.IsSymbol("="))
 			{
 				e.End = true;
@@ -116,14 +117,18 @@ namespace AScript.Lang.Go.TokenHandlers
 					int min = Math.Min(defines.Count, values.Count);
 					for (int i = 0; i < min; i++)
 					{
+						var define = defines[i];
+						define.Modifier = this.Modifier;
 						var assign = PoolManage.CreateOperatorNode("=", 2, 0);
-						assign.Left = defines[i];
+						assign.Left = define;
 						assign.Right = values[i];
 						multNode.Nodes.Add(assign);
 					}
 					for (int i = min; i < defines.Count; i++)
 					{
-						multNode.Nodes.Add(defines[i]);
+						var define = defines[i];
+						define.Modifier = this.Modifier;
+						multNode.Nodes.Add(define);
 					}
 					for (int i = min; i < values.Count; i++)
 					{
@@ -147,6 +152,7 @@ namespace AScript.Lang.Go.TokenHandlers
 					};
 					foreach (var item in defines)
 					{
+						item.Modifier = this.Modifier;
 						if (item.SystemType == null) item.SystemType = typeof(object);
 						multNode.Nodes.Add(item);
 					}

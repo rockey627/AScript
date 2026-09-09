@@ -101,7 +101,7 @@ namespace AScript.Lang.Go
 			// Token处理器 - 核心语句
 			AddTokenHandler("var", GoVarTokenHandler.Instance);
 			AddTokenHandler("const", new GoVarTokenHandler(Modifiers.CONST));
-			AddTokenHandler("func", GoFunctionTokenHandler.Instance);
+			AddTokenHandler("func", GoFuncTokenHandler.Instance);
 			AddTokenHandler("if", IfTokenHandler.Instance);
 			AddTokenHandler("for", GoForTokenHandler.Instance);
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
@@ -169,6 +169,71 @@ namespace AScript.Lang.Go
 				}
 			}
 			return true;
+		}
+
+		/// <summary>
+		/// <para>解析变量定义列表</para>
+		/// <para>a</para>
+		/// <para>a int</para>
+		/// <para>a, b</para>
+		/// <para>a, b int</para>
+		/// <para>a int, b string</para>
+		/// </summary>
+		/// <returns></returns>
+		public static List<DefineVarNode> ParseDefineVars(DefaultSyntaxAnalyzer analyzer, ScriptContext scriptContext, TokenReader tokenReader, bool ignore)
+		{
+			var defines = ignore ? null : new List<DefineVarNode>();
+			Token? nextToken;
+			while (true)
+			{
+				var nameToken = analyzer.ValidateNextToken(tokenReader, ETokenType.Word);
+				string varName = nameToken.Value.Value;
+
+				nextToken =tokenReader.Read();
+				if (!nextToken.HasValue)
+				{
+					defines?.Add(PoolManage.CreateDefineVarNode(varName, null));
+					break;
+				}
+
+				string typeName = null;
+				Type type = null;
+				if (nextToken.Value.Type == ETokenType.Word)
+				{
+					// 类型判断
+					typeName = nextToken.Value.Value;
+					type = scriptContext.EvalType(typeName);
+					if (type == null)
+					{
+						tokenReader.Push(nextToken.Value);
+						typeName = null;
+					}
+					else if (defines != null)
+					{
+						for (int i = 0; i < defines.Count; i++)
+						{
+							var defineVar = defines[i];
+							if (defineVar.SystemType == null)
+							{
+								defineVar.Type = typeName;
+								defineVar.SystemType = type;
+							}
+						}
+					}
+					// 
+					nextToken = tokenReader.Read();
+				}
+				defines?.Add(PoolManage.CreateDefineVarNode(varName, typeName, type));
+
+				if (!nextToken.HasValue) break;
+				if (nextToken.Value.IsSymbol(",")) continue;
+				break;
+			}
+			if (nextToken.HasValue)
+			{
+				tokenReader.Push(nextToken.Value);
+			}
+			return defines;
 		}
 
 		//public static ITreeNode BuildBlock(int parentColumn, DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, HashSet<string> endTokens = null)
