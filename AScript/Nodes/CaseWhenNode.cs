@@ -13,6 +13,10 @@ namespace AScript.Nodes
 		/// (testValue, body)
 		/// </summary>
 		public IList<Tuple<IList<ITreeNode>, ITreeNode>> Whens { get; set; }
+		/// <summary>
+		/// 是否无返回值
+		/// </summary>
+		public bool NoReturn { get; set; }
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
@@ -60,7 +64,14 @@ namespace AScript.Nodes
 				{
 					result = Expression.Constant(ScriptUtils.GetDefaultValue(body.Type));
 				}
-				result = Expression.Condition(condition, body, result);
+				if (this.NoReturn)
+				{
+					result = Expression.IfThenElse(condition, body, result);
+				}
+				else
+				{
+					result = Expression.Condition(condition, body, result);
+				}
 			}
 			return result;
 		}
@@ -176,25 +187,42 @@ namespace AScript.Nodes
 				{
 					var c = this.Whens[i];
 					var t = c.Item1.Select(a => a.Eval(context, options, control, out _)).Distinct();
-					var set = new HashSet<object>();
+					//var set = new HashSet<object>();
 					foreach (var item in t)
 					{
-						set.Add(item);
+						//set.Add(item);
+						if (item == null && caseValue == null
+							|| item != null && caseValue != null && item.Equals(caseValue))
+						{
+							var result = new BlockNode(c.Item2).Eval(context, options, control, out returnType);
+							if (this.NoReturn)
+							{
+								result = null;
+								returnType = typeof(void);
+							}
+							return result;
+						}
 					}
-					if (set.Contains(caseValue))
-					{
-						return new BlockNode(c.Item2).Eval(context, options, control, out returnType);
-						//var v = c.Item2.Eval(context, options, control, out returnType);
-						//if ((this.AutoBreak || tempController.Break || tempController.Terminal))
-						//{
-						//	return v;
-						//}
-					}
+					//if (set.Contains(caseValue))
+					//{
+					//	return new BlockNode(c.Item2).Eval(context, options, control, out returnType);
+					//	//var v = c.Item2.Eval(context, options, control, out returnType);
+					//	//if ((this.AutoBreak || tempController.Break || tempController.Terminal))
+					//	//{
+					//	//	return v;
+					//	//}
+					//}
 				}
 			}
 			if (this.DefaultBody != null)
 			{
-				return new BlockNode(this.DefaultBody).Eval(context, options, control, out returnType);
+				var result = new BlockNode(this.DefaultBody).Eval(context, options, control, out returnType);
+				if (this.NoReturn)
+				{
+					result = null;
+					returnType = typeof(void);
+				}
+				return result;
 			}
 			returnType = null;
 			return null;

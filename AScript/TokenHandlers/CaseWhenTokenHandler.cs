@@ -16,15 +16,40 @@ namespace AScript.TokenHandlers
 	{
 		public static readonly CaseWhenTokenHandler Instance = new CaseWhenTokenHandler();
 
-		private static readonly HashSet<string> _BodyEndTokens = new HashSet<string> { "when", "default" };
-		private static readonly HashSet<string> _TestEndTokens = new HashSet<string> { ":" };
+		private readonly HashSet<string> _BodyEndTokens;
+		private readonly HashSet<string> _TestEndTokens = new HashSet<string> { ":" };
+
+		private readonly string _WhenNodeName;
+		private readonly bool _NoReturn;
+
+		public CaseWhenTokenHandler() : this("when", false) { }
+		public CaseWhenTokenHandler(string whenNodeName, bool noReturn)
+		{
+			_WhenNodeName = whenNodeName;
+			_NoReturn = noReturn;
+			_BodyEndTokens = new HashSet<string> { whenNodeName, "default" };
+		}
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;
-			analyzer.ValidateNextToken(e.TokenReader, "(");
+			if (e.TreeBuilder.IsFullStatement())
+			{
+				e.End = true;
+				e.TokenReader.Push(e.CurrentToken);
+				return;
+			}
+
+			var token = analyzer.ValidateNextToken(e.TokenReader);
+			if (token.Value.Type == ETokenType.Word)
+			{
+				e.TokenReader.Push(token.Value);
+			}
 			var caseValue = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
-			analyzer.ValidateNextToken(e.TokenReader, ")");
+			if (token.Value.IsSymbol("("))
+			{
+				analyzer.ValidateNextToken(e.TokenReader, ")");
+			}
 			analyzer.ValidateNextToken(e.TokenReader, "{");
 			ITreeNode defaultBody = null;
 			List<Tuple<IList<ITreeNode>, ITreeNode>> whens = null;
@@ -33,21 +58,39 @@ namespace AScript.TokenHandlers
 			bool hasCase = false;
 			while (true)
 			{
-				var token = e.TokenReader.Read();
+				token = e.TokenReader.Read();
 				if (token.Value.IsSymbol("}")) break;
-				if (token.Value.IsSymbol("when"))
+				if (token.Value.IsSymbol(_WhenNodeName))
 				{
 					hasCase = true;
 					var test = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, _TestEndTokens);
+					if (!e.Ignore)
+					{
+						if (currentTests == null) currentTests = new List<ITreeNode>();
+						currentTests.Add(test);
+					}
+					token = analyzer.ValidateNextToken(e.TokenReader);
+					if (token.Value.IsSymbol(","))
+					{
+						while (true)
+						{
+							test = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, _TestEndTokens);
+							if (!e.Ignore)
+							{
+								currentTests.Add(test);
+							}
+							token = analyzer.ValidateNextToken(e.TokenReader);
+							if (token.Value.IsSymbol(",")) continue;
+							break;
+						}
+					}
+					e.TokenReader.Push(token.Value);
 					analyzer.ValidateNextToken(e.TokenReader, ":");
 					var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _BodyEndTokens);
 					analyzer.TrySkipNextToken(e.TokenReader, ";");
 					if (!e.Ignore)
 					{
 						if (whens == null) whens = new List<Tuple<IList<ITreeNode>, ITreeNode>>();
-						//cases.Add(Tuple.Create(test, body));
-						if (currentTests == null) currentTests = new List<ITreeNode>();
-						currentTests.Add(test);
 						if (body != null && (!(body is TreeBuilder treeBuilder) || treeBuilder.Root != null))
 						{
 							whens.Add(Tuple.Create(currentTests, body));
@@ -71,8 +114,8 @@ namespace AScript.TokenHandlers
 			}
 			if (!e.Ignore)
 			{
-				var switchNode = new CaseWhenNode { CaseValue = caseValue, DefaultBody = defaultBody, Whens = whens };
-				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, switchNode);
+				var caseWhenNode = new CaseWhenNode { CaseValue = caseValue, DefaultBody = defaultBody, Whens = whens, NoReturn = _NoReturn };
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, caseWhenNode);
 			}
 		}
 	}
