@@ -18,3 +18,6 @@ Script.Langs.Set("go", GoLang.Instance);
 // 可全局设置为默认语言
 // Script.Langs.Set("go", GoLang.Instance, setDefault: true);
 ```
+
+#### switch
+* 不支持`fallthrough`

@@ -107,6 +107,7 @@ namespace AScript.Lang.Go
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			AddTokenHandler("break", BreakTokenHandler.Instance);
 			AddTokenHandler("continue", ContinueTokenHandler.Instance);
+			AddTokenHandler("switch", new CaseWhenTokenHandler("case", true));
 
 			// 关键字
 			AddTokenHandler("nil", NullTokenHandler.Instance);
