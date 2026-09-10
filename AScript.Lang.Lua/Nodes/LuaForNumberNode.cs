@@ -1,5 +1,6 @@
 ﻿using AScript.Nodes;
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace AScript.Lang.Lua.Nodes
@@ -141,73 +142,82 @@ namespace AScript.Lang.Lua.Nodes
 				: this.StepNode.Build(buildContext, scriptContext, options);
 
 			// 创建临时变量保存计算结果，确保循环前只计算一次
-			var startVar = Expression.Variable(startExpr.Type, "__start");
-			var endVar = Expression.Variable(endExpr.Type, "__end");
-			var stepVar = Expression.Variable(stepExpr.Type, "__step");
-
-			if (ScriptUtils.IsIntegerType(startVar.Type)
-				&& ScriptUtils.IsIntegerType(endVar.Type)
-				&& ScriptUtils.IsIntegerType(stepVar.Type))
+			var startVar = startExpr is ConstantExpression || startExpr is ParameterExpression ? null : Expression.Variable(startExpr.Type, "__start");
+			var endVar = endExpr is ConstantExpression || endExpr is ParameterExpression ? null : Expression.Variable(endExpr.Type, "__end");
+			var stepVar = stepExpr is ConstantExpression || stepExpr is ParameterExpression ? null : Expression.Variable(stepExpr.Type, "__step");
+			var varList = new List<ParameterExpression>(3);
+			var statements = new List<Expression>(4);
+			if (startVar != null)
 			{
-				var int64Loop1 = BuildInt64Loop(buildContext, scriptContext, options, varName,
-					startVar.Type == typeof(long) ? (Expression)startVar : Expression.Convert(startVar, typeof(long)),
-					endVar.Type == typeof(long) ? (Expression)endVar : Expression.Convert(endVar, typeof(long)),
-					stepVar.Type == typeof(long) ? (Expression)stepVar : Expression.Convert(stepVar, typeof(long)));
-				return Expression.Block(
-					new[] { startVar, endVar, stepVar },
-					Expression.Assign(startVar, startExpr),
-					Expression.Assign(endVar, endExpr),
-					Expression.Assign(stepVar, stepExpr),
-					int64Loop1);
+				varList.Add(startVar);
+				statements.Add(Expression.Assign(startVar, startExpr));
+			}
+			if (endVar != null)
+			{
+				varList.Add(endVar);
+				statements.Add(Expression.Assign(endVar, endExpr));
+			}
+			if (stepVar != null)
+			{
+				varList.Add(stepVar);
+				statements.Add(Expression.Assign(stepVar, stepExpr));
 			}
 
-			if (ScriptUtils.IsNumberType(startVar.Type)
-				&& ScriptUtils.IsNumberType(endVar.Type)
-				&& ScriptUtils.IsNumberType(stepVar.Type))
+
+			if (ScriptUtils.IsIntegerType(startExpr.Type)
+				&& ScriptUtils.IsIntegerType(endExpr.Type)
+				&& ScriptUtils.IsIntegerType(stepExpr.Type))
+			{
+				var int64Loop1 = BuildInt64Loop(buildContext, scriptContext, options, varName,
+					startExpr.Type == typeof(long) ? (Expression)startVar ?? startExpr : Expression.Convert(startVar ?? startExpr, typeof(long)),
+					endExpr.Type == typeof(long) ? (Expression)endVar ?? endExpr : Expression.Convert(endVar ?? endExpr, typeof(long)),
+					stepVar ?? stepExpr);
+				if (statements.Count == 0) return int64Loop1;
+				statements.Add(int64Loop1);
+				return Expression.Block(varList, statements);
+			}
+
+			if (ScriptUtils.IsNumberType(startExpr.Type)
+				&& ScriptUtils.IsNumberType(endExpr.Type)
+				&& ScriptUtils.IsNumberType(stepExpr.Type))
 			{
 				var doubleLoop1 = BuildDoubleLoop(buildContext, scriptContext, options, varName,
-					startVar.Type == typeof(double) ? (Expression)startVar : Expression.Convert(startVar, typeof(double)),
-					endVar.Type == typeof(double) ? (Expression)endVar : Expression.Convert(endVar, typeof(double)),
-					stepVar.Type == typeof(double) ? (Expression)stepVar : Expression.Convert(stepVar, typeof(double)));
-				return Expression.Block(
-					new[] { startVar, endVar, stepVar },
-					Expression.Assign(startVar, startExpr),
-					Expression.Assign(endVar, endExpr),
-					Expression.Assign(stepVar, stepExpr),
-					doubleLoop1);
+					startExpr.Type == typeof(double) ? (Expression)startVar ?? startExpr : Expression.Convert(startVar ?? startExpr, typeof(double)),
+					endExpr.Type == typeof(double) ? (Expression)endVar ?? endExpr : Expression.Convert(endVar ?? endExpr, typeof(double)),
+					stepVar ?? stepExpr);
+				if (statements.Count == 0) return doubleLoop1;
+				statements.Add(doubleLoop1);
+				return Expression.Block(varList, statements);
 			}
 
 			// 调用 ScriptUtils.IsIntegerType 进行运行时检查
 			var isAllInteger = Expression.AndAlso(
-				Expression.Call(ScriptUtils.Method_ScriptUtils_IsIntegerType, Expression.Call(startVar, ScriptUtils.Method_Object_GetType)),
+				Expression.Call(ScriptUtils.Method_ScriptUtils_IsIntegerType, Expression.Call(startVar ?? startExpr, ScriptUtils.Method_Object_GetType)),
 				Expression.AndAlso(
-					Expression.Call(ScriptUtils.Method_ScriptUtils_IsIntegerType, Expression.Call(endVar, ScriptUtils.Method_Object_GetType)),
-					Expression.Call(ScriptUtils.Method_ScriptUtils_IsIntegerType, Expression.Call(stepVar, ScriptUtils.Method_Object_GetType))
+					Expression.Call(ScriptUtils.Method_ScriptUtils_IsIntegerType, Expression.Call(endVar ?? endExpr, ScriptUtils.Method_Object_GetType)),
+					Expression.Call(ScriptUtils.Method_ScriptUtils_IsIntegerType, Expression.Call(stepVar ?? stepExpr, ScriptUtils.Method_Object_GetType))
 				)
 			);
 
 			// 构建整数循环体 (Int64)
 			var int64Loop = BuildInt64Loop(buildContext, scriptContext, options, varName,
-				startVar.Type == typeof(long) ? (Expression)startVar : Expression.Convert(startVar, typeof(long)),
-				endVar.Type == typeof(long) ? (Expression)endVar : Expression.Convert(endVar, typeof(long)),
-				stepVar.Type == typeof(long) ? (Expression)stepVar : Expression.Convert(stepVar, typeof(long)));
+				startExpr.Type == typeof(long) ? (Expression)startVar ?? startExpr : Expression.Convert(startVar ?? startExpr, typeof(long)),
+				endExpr.Type == typeof(long) ? (Expression)endVar ?? endExpr : Expression.Convert(endVar ?? endExpr, typeof(long)),
+				stepVar ?? stepExpr);
 
 			// 构建浮点数循环体 (Double)
 			var doubleLoop = BuildDoubleLoop(buildContext, scriptContext, options, varName,
-				startVar.Type == typeof(double) ? (Expression)startVar : Expression.Convert(startVar, typeof(double)),
-				endVar.Type == typeof(double) ? (Expression)endVar : Expression.Convert(endVar, typeof(double)),
-				stepVar.Type == typeof(double) ? (Expression)stepVar : Expression.Convert(stepVar, typeof(double)));
+				startExpr.Type == typeof(double) ? (Expression)startVar ?? startExpr : Expression.Convert(startVar ?? startExpr, typeof(double)),
+				endExpr.Type == typeof(double) ? (Expression)endVar ?? endExpr : Expression.Convert(endVar ?? endExpr, typeof(double)),
+				stepVar ?? stepExpr);
 
 			// 根据运行时类型检查选择不同的循环
 			var conditionExpr = Expression.Condition(isAllInteger, int64Loop, doubleLoop);
 
 			// 组合：先初始化临时变量，再执行循环
-			return Expression.Block(
-				new[] { startVar, endVar, stepVar },
-				Expression.Assign(startVar, startExpr),
-				Expression.Assign(endVar, endExpr),
-				Expression.Assign(stepVar, stepExpr),
-				conditionExpr);
+			if (statements.Count == 0) return conditionExpr;
+			statements.Add(conditionExpr);
+			return Expression.Block(varList, statements);
 		}
 
 		private Expression BuildInt64Loop(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, string varName, Expression startExpr, Expression endExpr, Expression stepExpr)
@@ -228,14 +238,32 @@ namespace AScript.Lang.Lua.Nodes
 			var initAssign = Expression.Assign(iVar2, startExpr);
 
 			// 条件判断: step > 0 ? i <= end : i >= end
-			var stepPositive = Expression.GreaterThan(stepExpr, Expression.Constant(0L));
-			var condition = Expression.Condition(
-				stepPositive,
-				Expression.LessThanOrEqual(iVar2, endExpr),
-				Expression.GreaterThanOrEqual(iVar2, endExpr)
-			);
+			Expression condition;
+			if (stepExpr is ConstantExpression stepConst)
+			{
+				long step = Convert.ToInt64(stepConst.Value);
+				if (step > 0L)
+				{
+					condition = Expression.LessThanOrEqual(iVar2, endExpr);
+				}
+				else
+				{
+					condition = Expression.GreaterThanOrEqual(iVar2, endExpr);
+				}
+			}
+			else
+			{
+				if (stepExpr.Type != typeof(long)) stepExpr = Expression.Convert(stepExpr, typeof(long));
+				var stepPositive = Expression.GreaterThan(stepExpr, Expression.Constant(0L));
+				condition = Expression.Condition(
+					stepPositive,
+					Expression.LessThanOrEqual(iVar2, endExpr),
+					Expression.GreaterThanOrEqual(iVar2, endExpr)
+				);
+			}
 
 			// i += step
+			if (stepExpr.Type != typeof(long)) stepExpr = Expression.Convert(stepExpr, typeof(long));
 			var increment = Expression.AddAssign(iVar2, stepExpr);
 
 			// 循环体
@@ -290,14 +318,32 @@ namespace AScript.Lang.Lua.Nodes
 			var initAssign = Expression.Assign(iVar2, startExpr);
 
 			// 条件判断: step > 0 ? i <= end : i >= end
-			var stepPositive = Expression.GreaterThan(stepExpr, Expression.Constant(0.0));
-			var condition = Expression.Condition(
-				stepPositive,
-				Expression.LessThanOrEqual(iVar2, endExpr),
-				Expression.GreaterThanOrEqual(iVar2, endExpr)
-			);
+			Expression condition;
+			if (stepExpr is ConstantExpression stepConst)
+			{
+				double step = Convert.ToDouble(stepConst.Value);
+				if (step > 0D)
+				{
+					condition = Expression.LessThanOrEqual(iVar2, endExpr);
+				}
+				else
+				{
+					condition = Expression.GreaterThanOrEqual(iVar2, endExpr);
+				}
+			}
+			else
+			{
+				if (stepExpr.Type != typeof(double)) stepExpr = Expression.Convert(stepExpr, typeof(double));
+				var stepPositive = Expression.GreaterThan(stepExpr, Expression.Constant(0.0));
+				condition = Expression.Condition(
+					stepPositive,
+					Expression.LessThanOrEqual(iVar2, endExpr),
+					Expression.GreaterThanOrEqual(iVar2, endExpr)
+				);
+			}
 
 			// i += step
+			if (stepExpr.Type != typeof(double)) stepExpr = Expression.Convert(stepExpr, typeof(double));
 			var increment = Expression.AddAssign(iVar2, stepExpr);
 
 			// 循环体

@@ -867,7 +867,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest03_Func>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest04_Var>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest05_Var>(config);
-			BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func>(config);
+			//BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest06_Func2>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest07_Type>(config);
 			//BenchmarkRunner.Run<Benchmarks.ExpressionTest08_For>(config);
@@ -921,7 +921,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest04_call>(config);
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest05_function>(config);
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest06_table>(config);
-			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest07_for>(config);
+			BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest07_for>(config);
 
 			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();
