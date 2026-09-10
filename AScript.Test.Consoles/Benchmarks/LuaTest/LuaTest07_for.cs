@@ -43,29 +43,29 @@ return total";
 			if (result != r) throw new Exception("result error");
 		}
 
-		//[Benchmark]
-		//public void LuaCSharp1()
-		//{
-		//	var lua = Lua.LuaState.Create();
-		//	var result = lua.DoStringAsync(s).Result[0].Read<long>();
-		//	if (result != r) throw new Exception("result error");
-		//}
+		[Benchmark]
+		public void LuaCSharp1()
+		{
+			var lua = Lua.LuaState.Create();
+			var result = lua.DoStringAsync(s).Result[0].Read<long>();
+			if (result != r) throw new Exception("result error");
+		}
 
-		//[Benchmark]
-		//public void MoonSharp1()
-		//{
-		//	var script = new MoonSharp.Interpreter.Script();
-		//	var result = script.DoString(s).ToObject<long>();
-		//	if (result != r) throw new Exception("result error");
-		//}
+		[Benchmark]
+		public void MoonSharp1()
+		{
+			var script = new MoonSharp.Interpreter.Script();
+			var result = script.DoString(s).ToObject<long>();
+			if (result != r) throw new Exception("result error");
+		}
 
-		//[Benchmark]
-		//public void NLua1()
-		//{
-		//	var lua = new NLua.Lua();
-		//	var result = (long)lua.DoString(s)[0];
-		//	if (result != r) throw new Exception("result error");
-		//}
+		[Benchmark]
+		public void NLua1()
+		{
+			var lua = new NLua.Lua();
+			var result = (long)lua.DoString(s)[0];
+			if (result != r) throw new Exception("result error");
+		}
 
 		[Benchmark]
 		public void AScript2_Compile()
