@@ -572,10 +572,10 @@ namespace AScript
 
 		private void SetVarType(string name, object value, Type type)
 		{
-			if (type != null && value != null && type == value.GetType())
-			{
-				type = null;
-			}
+			//if (type != null && value != null && type == value.GetType())
+			//{
+			//	type = null;
+			//}
 			if (type == null)
 			{
 				this._VariableTypes?.Remove(name);

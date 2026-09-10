@@ -804,9 +804,9 @@ namespace AScript
 								scriptContextParameter,
 								ScriptUtils.Method_ScriptContext_SetTempConst,
 								Expression.Constant(v.Name),
-								Expression.Convert(v, typeof(object)),
-								Expression.Constant(v.Type),
-								Expression.Constant(searchParent)));
+								v.Type.IsValueType ? Expression.Convert(v, typeof(object)) : (Expression)v,
+								v.Type.IsValueType ? ScriptUtils.Constant_null_Type : Expression.Constant(v.Type),
+								searchParent ? ScriptUtils.Constant_true : ScriptUtils.Constant_false));
 						}
 						else
 						{
@@ -814,9 +814,9 @@ namespace AScript
 								scriptContextParameter,
 								ScriptUtils.Method_ScriptContext_SetTempReadonly,
 								Expression.Constant(v.Name),
-								Expression.Convert(v, typeof(object)),
-								Expression.Constant(v.Type),
-								Expression.Constant(searchParent)));
+								v.Type.IsValueType ? Expression.Convert(v, typeof(object)) : (Expression)v,
+								v.Type.IsValueType ? ScriptUtils.Constant_null_Type : Expression.Constant(v.Type),
+								searchParent ? ScriptUtils.Constant_true : ScriptUtils.Constant_false));
 						}
 					}
 					else
@@ -825,9 +825,9 @@ namespace AScript
 							scriptContextParameter,
 							ScriptUtils.Method_ScriptContext_SetTempVar,
 							Expression.Constant(v.Name),
-							Expression.Convert(v, typeof(object)),
-							Expression.Constant(v.Type),
-							Expression.Constant(searchParent)));
+							v.Type.IsValueType ? Expression.Convert(v, typeof(object)) : (Expression)v,
+							v.Type.IsValueType ? ScriptUtils.Constant_null_Type : Expression.Constant(v.Type),
+							searchParent ? ScriptUtils.Constant_true : ScriptUtils.Constant_false));
 					}
 				}
 			}

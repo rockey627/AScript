@@ -15,12 +15,12 @@ namespace AScript
 
 		public static bool IsReadOnly(int modifier)
 		{
-			return (modifier & READONLY) != 0 || (modifier & CONST) != 0;
+			return modifier > 0 && ((modifier & READONLY) != 0 || (modifier & CONST) != 0);
 		}
 
 		public static bool IsConst(int modifier)
 		{
-			return (modifier & CONST) != 0;
+			return modifier > 0 && (modifier & CONST) != 0;
 		}
 
 		public static void ThrowIfReadOnly(string name, int modifier)
