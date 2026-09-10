@@ -142,9 +142,9 @@ namespace AScript.Lang.Lua.Nodes
 				: this.StepNode.Build(buildContext, scriptContext, options);
 
 			// 创建临时变量保存计算结果，确保循环前只计算一次
-			var startVar = startExpr is ConstantExpression || startExpr is ParameterExpression ? null : Expression.Variable(startExpr.Type, "__start");
-			var endVar = endExpr is ConstantExpression || endExpr is ParameterExpression ? null : Expression.Variable(endExpr.Type, "__end");
-			var stepVar = stepExpr is ConstantExpression || stepExpr is ParameterExpression ? null : Expression.Variable(stepExpr.Type, "__step");
+			var startVar = startExpr is ConstantExpression || startExpr is ParameterExpression ? null : Expression.Variable(startExpr.Type);
+			var endVar = endExpr is ConstantExpression || endExpr is ParameterExpression ? null : Expression.Variable(endExpr.Type);
+			var stepVar = stepExpr is ConstantExpression || stepExpr is ParameterExpression ? null : Expression.Variable(stepExpr.Type);
 			var varList = new List<ParameterExpression>(3);
 			var statements = new List<Expression>(4);
 			if (startVar != null)
@@ -224,7 +224,7 @@ namespace AScript.Lang.Lua.Nodes
 		{
 			var iVar = Expression.Variable(typeof(long), varName);
 			// 循环变量，数值for循环内部改变iVar值不会影响循环次数
-			var iVar2 = Expression.Variable(typeof(long), $"__{varName}_2_");
+			var iVar2 = Expression.Variable(typeof(long), $"<>{varName}");
 			var localContext = new BuildContext(buildContext);
 			localContext.Variables[varName] = iVar;
 			localContext.Variables[iVar2.Name] = iVar2;
@@ -304,7 +304,7 @@ namespace AScript.Lang.Lua.Nodes
 		{
 			var iVar = Expression.Variable(typeof(double), varName);
 			// 循环变量，数值for循环内部改变iVar值不会影响循环次数
-			var iVar2 = Expression.Variable(typeof(double), $"__{varName}_2_");
+			var iVar2 = Expression.Variable(typeof(double), $"<>{varName}");
 			var localContext = new BuildContext(buildContext);
 			localContext.Variables[varName] = iVar;
 			localContext.Variables[iVar2.Name] = iVar2;

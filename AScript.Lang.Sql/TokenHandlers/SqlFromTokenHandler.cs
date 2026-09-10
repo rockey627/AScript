@@ -113,7 +113,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 				{
 					if (string.IsNullOrEmpty(itemName))
 					{
-						itemName = $"__table__";
+						itemName = "<>__table";
 					}
 #if NET45
 					tables.Add(Tuple.Create(table, itemName));
@@ -270,7 +270,7 @@ namespace AScript.Lang.Sql.TokenHandlers
 			{
 				new SqlQueryNodeVisitor(e.BuildContext, e.ScriptContext, queryNode).Visit(list);
 				var key = list.Count == 1 ? list[0] : new NewNode { InitProperties = list };
-				string intoName = "__group__";
+				string intoName = "<>__group";
 				queryNode.AddGroup(key, null, intoName);
 			}
 		}

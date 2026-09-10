@@ -26,7 +26,7 @@ namespace AScript.Lang.Sql.Nodes
 			if (this.Condition != null)
 			{
 				var queryNode = new QueryNode();
-				queryNode.AddFrom("__query__", sourceNode);
+				queryNode.AddFrom("<>__query", sourceNode);
 				var condition = new SqlQueryNodeVisitor(buildContext, scriptContext, queryNode).Visit(this.Condition);
 				queryNode.AddWhere(condition);
 				sourceNode = queryNode;
@@ -105,7 +105,7 @@ namespace AScript.Lang.Sql.Nodes
 			if (this.Condition != null)
 			{
 				var queryNode = new QueryNode();
-				queryNode.AddFrom("__query__", sourceNode);
+				queryNode.AddFrom("<>__query", sourceNode);
 				var condition = new SqlQueryNodeVisitor(null, context, queryNode).Visit(this.Condition);
 				queryNode.AddWhere(condition);
 				sourceNode = queryNode;

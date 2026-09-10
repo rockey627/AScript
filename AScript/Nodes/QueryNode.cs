@@ -185,7 +185,7 @@ namespace AScript.Nodes
 
 		public void AddLeftJoin(string varName, ITreeNode source, ITreeNode key1, ITreeNode key2)
 		{
-			string name1 = $"___{varName}___";
+			string name1 = $"<>{varName}";
 			AddJoin(varName, source, key1, key2, name1);
 			AddFrom(varName, new CallFuncNode { Name = "DefaultIfEmpty", Args = new ITreeNode[] { new VariableNode(name1) } });
 		}

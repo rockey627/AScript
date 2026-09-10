@@ -79,7 +79,7 @@ namespace AScript.Lang.JavaScript
 
 		public static JavaScriptExportModule InstallModule(ScriptContext context, string moduleName)
 		{
-			string key = $"__export_module_{moduleName}__";
+			string key = $"<>__export_module_{moduleName}";
 			var module = (JavaScriptExportModule)context.EvalVar(key);
 			if (module == null)
 			{
@@ -109,7 +109,7 @@ namespace AScript.Lang.JavaScript
 
 		public static JavaScriptExportModule GetInstance(ScriptContext context)
 		{
-			return (JavaScriptExportModule)context.EvalVar("__export_module__", searchParent: false);
+			return (JavaScriptExportModule)context.EvalVar("<>__export_module", searchParent: false);
 		}
 
 		public static JavaScriptExportModule GetOrCreateInstance(ScriptContext context)
@@ -118,7 +118,7 @@ namespace AScript.Lang.JavaScript
 			if (module == null)
 			{
 				module = new JavaScriptExportModule();
-				context.SetConst("__export_module__", module);
+				context.SetConst("<>__export_module", module);
 			}
 			return module;
 		}

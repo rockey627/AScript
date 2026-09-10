@@ -370,7 +370,7 @@ namespace AScript
 
 		public object InstallModule(string name, IScriptModule module)
 		{
-			string key = $"__module_{name}__";
+			string key = $"<>module_{name}";
 			var instance = this.EvalVar(key, out var type);
 			if (type == null)
 			{
@@ -383,7 +383,7 @@ namespace AScript
 
 		public virtual void UninstallModule(string name, IScriptModule module)
 		{
-			this.RemoveVar($"__module_{name}__");
+			this.RemoveVar($"<>module_{name}");
 			module.Uninstall(this);
 		}
 
