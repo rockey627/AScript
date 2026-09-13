@@ -15,6 +15,8 @@ namespace AScript.TokenHandlers
 
 		private readonly Type _CollectionType;
 
+		public Type CollectionType => _CollectionType;
+
 		public BracketTokenHandler(Type collectionType)
 		{
 			_CollectionType = collectionType;
