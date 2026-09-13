@@ -25,6 +25,10 @@ namespace AScript.Nodes
 		/// <![CDATA[如果是数组则为typeof(Array)，如果是列表则为typeof(List<>)]]>
 		/// </summary>
 		public Type CollectionType { get; set; }
+		/// <summary>
+		/// 初始容量
+		/// </summary>
+		public ITreeNode Capacity { get; set; }
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
