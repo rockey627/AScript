@@ -119,7 +119,7 @@ namespace AScript.Lang.Go
 			AddTokenHandler("||", LazyTokenHandler.Instance);
 
 			// 索引和切片
-			AddTokenHandler("[", new BracketTokenHandler(typeof(List<object>)));
+			AddTokenHandler("[", new GoBracketTokenHandler());
 		}
 
 		public override ITokenStream GetTokenStream(CharReader charReader)
