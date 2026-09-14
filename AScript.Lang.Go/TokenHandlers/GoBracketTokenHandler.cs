@@ -27,10 +27,12 @@ namespace AScript.Lang.Go.TokenHandlers
 				var token = analyzer.ValidateNextToken(e.TokenReader);
 				// 长度
 				ITreeNode count;
+				Type collectionType = typeof(Array);
 				if (token.Value.IsSymbol("]"))
 				{
 					// []
 					count = null;
+					collectionType = typeof(List<>);
 				}
 				else if (token.Value.IsSymbol("..."))
 				{
@@ -97,7 +99,7 @@ namespace AScript.Lang.Go.TokenHandlers
 				}
 				if (!e.Ignore)
 				{
-					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new CollectionNode { CollectionType = this.CollectionType, ElementType = itemType, Items = items, Capacity = count });
+					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new CollectionNode { CollectionType = collectionType, ElementType = itemType, Items = items, Capacity = count });
 				}
 			}
 			else

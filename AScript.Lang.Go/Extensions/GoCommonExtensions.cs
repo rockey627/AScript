@@ -14,41 +14,53 @@ namespace AScript.Lang.Go.Extensions
 		/// <summary>
 		/// append 函数 - 向slice添加元素
 		/// </summary>
-		public static T[] append<T>(T[] slice, params T[] items)
+		public static List<T> append<T>(List<T> slice, params T[] items)
 		{
-			var arr = new T[slice.Length + items.Length];
-			Array.Copy(slice, arr, slice.Length);
+			var arr = new List<T>(slice.Count + items.Length);
+			for (int i = 0; i < slice.Count; i++)
+			{
+				arr.Add(slice[i]);
+			}
 			for (int i = 0; i < items.Length; i++)
 			{
-				arr[i + slice.Length] = items[i];
+				arr.Add(items[i]);
 			}
 			return arr;
 		}
 
-		public static T[] append<T>(T[] slice, T item1)
+		public static List<T> append<T>(List<T> slice, T item1)
 		{
-			var arr = new T[slice.Length + 1];
-			Array.Copy(slice, arr, slice.Length);
-			arr[slice.Length] = item1;
+			var arr = new List<T>(slice.Count + 1);
+			for (int i = 0; i < slice.Count; i++)
+			{
+				arr.Add(slice[i]);
+			}
+			arr.Add(item1);
 			return arr;
 		}
 
-		public static T[] append<T>(T[] slice, T item1, T item2)
+		public static List<T> append<T>(List<T> slice, T item1, T item2)
 		{
-			var arr = new T[slice.Length + 2];
-			Array.Copy(slice, arr, slice.Length);
-			arr[slice.Length] = item1;
-			arr[slice.Length + 1] = item2;
+			var arr = new List<T>(slice.Count + 2);
+			for (int i = 0; i < slice.Count; i++)
+			{
+				arr.Add(slice[i]);
+			}
+			arr.Add(item1);
+			arr.Add(item2);
 			return arr;
 		}
 
-		public static T[] append<T>(T[] slice, T item1, T item2, T item3)
+		public static List<T> append<T>(List<T> slice, T item1, T item2, T item3)
 		{
-			var arr = new T[slice.Length + 3];
-			Array.Copy(slice, arr, slice.Length);
-			arr[slice.Length] = item1;
-			arr[slice.Length + 1] = item2;
-			arr[slice.Length + 2] = item3;
+			var arr = new List<T>(slice.Count + 3);
+			for (int i = 0; i < slice.Count; i++)
+			{
+				arr.Add(slice[i]);
+			}
+			arr.Add(item1);
+			arr.Add(item2);
+			arr.Add(item3);
 			return arr;
 		}
 
@@ -65,15 +77,15 @@ namespace AScript.Lang.Go.Extensions
 			return 0;
 		}
 
-		///// <summary>
-		///// cap 函数 - 返回容量
-		///// </summary>
-		//public static long cap(object obj)
-		//{
-		//	if (obj is List<object> l) return l.Capacity;
-		//	if (obj is Array a) return a.Length;
-		//	return 0;
-		//}
+		/// <summary>
+		/// cap 函数 - 返回容量
+		/// </summary>
+		public static long cap(object obj)
+		{
+			if (obj is List<object> l) return l.Capacity;
+			if (obj is Array a) return a.Length;
+			return 0;
+		}
 
 		/// <summary>
 		/// make 函数 - 创建slice/map/chan
