@@ -29,7 +29,23 @@ namespace AScript.Functions
 		{
 			var parameters = this.Method.GetParameters();
 			int argsCount = e.GetArgsCount();
-			if (argsCount != parameters.Length) return;
+
+			bool hasParams = false;
+			ParameterInfo lastParam = null;
+			if (parameters.Length > 0)
+			{
+				lastParam = parameters[parameters.Length - 1];
+				if (lastParam.IsDefined(typeof(ParamArrayAttribute), false))
+				{
+					hasParams = true;
+				}
+			}
+
+			if (hasParams)
+			{
+				if (argsCount < parameters.Length) return;
+			}
+			else if (argsCount != parameters.Length) return;
 
 			// 第一步：获取所有参数的表达式类型
 			var argExpressions = new Expression[argsCount];
@@ -58,6 +74,32 @@ namespace AScript.Functions
 
 				if (paramType.IsArray)
 				{
+					if (hasParams && i == parameters.Length - 1 && (!argType.IsArray || argsCount > parameters.Length))
+					{
+						var itemType = paramType.GetElementType();
+						if (itemType.IsGenericParameter)
+						{
+							itemType = argType;
+						}
+						//var lastArg = Array.CreateInstance(itemType, argTypes.Length - parameters.Length + 1);
+						var lastArgArr = new Expression[argTypes.Length - parameters.Length + 1];
+						for (int k = 0; k < lastArgArr.Length; k++)
+						{
+							lastArgArr[k] = argExpressions[i + k];
+						}
+						var lastArg = Expression.NewArrayInit(itemType, lastArgArr);
+
+						var newArgValues = new Expression[parameters.Length];
+						Array.Copy(argExpressions, newArgValues, newArgValues.Length - 1);
+						newArgValues[newArgValues.Length - 1] = lastArg;
+						argExpressions = newArgValues;
+
+						var newArgTypes = new Type[parameters.Length];
+						Array.Copy(argTypes, newArgTypes, newArgTypes.Length - 1);
+						newArgTypes[newArgTypes.Length - 1] = argType = itemType.MakeArrayType();
+						argTypes = newArgTypes;
+					}
+
 					if (!argType.IsArray) return;
 					paramType = paramType.GetElementType();
 					argType = argType.GetElementType();
@@ -400,7 +442,23 @@ namespace AScript.Functions
 		{
 			var parameters = this.Method.GetParameters();
 			int argsCount = e.Args == null ? 0 : e.Args.Count;
-			if (argsCount != parameters.Length) return;
+
+			bool hasParams = false;
+			ParameterInfo lastParam = null;
+			if (parameters.Length > 0)
+			{
+				lastParam = parameters[parameters.Length - 1];
+				if (lastParam.IsDefined(typeof(ParamArrayAttribute), false))
+				{
+					hasParams = true;
+				}
+			}
+
+			if (hasParams)
+			{
+				if (argsCount < parameters.Length) return;
+			}
+			else if (argsCount != parameters.Length) return;
 
 			// 第一步：获取所有参数的运行时类型
 			var argTypes = new Type[e.Args.Count];
@@ -430,6 +488,31 @@ namespace AScript.Functions
 
 				if (paramType.IsArray)
 				{
+					if (hasParams && i == parameters.Length - 1 && (!argType.IsArray || argsCount > parameters.Length))
+					{
+						var itemType = paramType.GetElementType();
+						if (itemType.IsGenericParameter)
+						{
+							itemType = argType;
+						}
+						var lastArg = Array.CreateInstance(itemType, argTypes.Length - parameters.Length + 1);
+						for (int k = 0; k < lastArg.Length; k++)
+						{
+							var v = argValues[i + k];
+							lastArg.SetValue(v, k);
+						}
+
+						var newArgValues = new object[parameters.Length];
+						Array.Copy(argValues, newArgValues, newArgValues.Length - 1);
+						newArgValues[newArgValues.Length - 1] = lastArg;
+						argValues = newArgValues;
+
+						var newArgTypes = new Type[parameters.Length];
+						Array.Copy(argTypes, newArgTypes, newArgTypes.Length - 1);
+						newArgTypes[newArgTypes.Length - 1] = argType = itemType.MakeArrayType();
+						argTypes = newArgTypes;
+					}
+
 					if (!argType.IsArray) return;
 					paramType = paramType.GetElementType();
 					argType = argType.GetElementType();
