@@ -94,6 +94,7 @@ namespace AScript.Lang.Go
 			// 其他运算符
 			AddFunc(".", DotOperator.Instance);
 			AddFunc("[]", IndexOperator.Instance);
+			AddFunc("[:]", IndexStartEndOperator.Instance);
 
 			// 内置函数
 			AddFunc(typeof(Extensions.GoCommonExtensions));

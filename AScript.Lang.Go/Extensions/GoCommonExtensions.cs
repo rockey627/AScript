@@ -11,18 +11,46 @@ namespace AScript.Lang.Go.Extensions
 	/// </summary>
 	public static class GoCommonExtensions
 	{
-		///// <summary>
-		///// append 函数 - 向slice添加元素
-		///// </summary>
-		//public static List<object> append(List<object> slice, params object[] items)
-		//{
-		//	if (slice == null) slice = new List<object>();
-		//	foreach (var item in items)
-		//	{
-		//		slice.Add(item);
-		//	}
-		//	return slice;
-		//}
+		/// <summary>
+		/// append 函数 - 向slice添加元素
+		/// </summary>
+		public static T[] append<T>(T[] slice, params T[] items)
+		{
+			var arr = new T[slice.Length + items.Length];
+			Array.Copy(slice, arr, slice.Length);
+			for (int i = 0; i < items.Length; i++)
+			{
+				arr[i + slice.Length] = items[i];
+			}
+			return arr;
+		}
+
+		public static T[] append<T>(T[] slice, T item1)
+		{
+			var arr = new T[slice.Length + 1];
+			Array.Copy(slice, arr, slice.Length);
+			arr[slice.Length] = item1;
+			return arr;
+		}
+
+		public static T[] append<T>(T[] slice, T item1, T item2)
+		{
+			var arr = new T[slice.Length + 2];
+			Array.Copy(slice, arr, slice.Length);
+			arr[slice.Length] = item1;
+			arr[slice.Length + 1] = item2;
+			return arr;
+		}
+
+		public static T[] append<T>(T[] slice, T item1, T item2, T item3)
+		{
+			var arr = new T[slice.Length + 3];
+			Array.Copy(slice, arr, slice.Length);
+			arr[slice.Length] = item1;
+			arr[slice.Length + 1] = item2;
+			arr[slice.Length + 2] = item3;
+			return arr;
+		}
 
 		/// <summary>
 		/// len 函数 - 返回长度

@@ -178,6 +178,16 @@ var arr = [10]int{1, 2, 3, 4, 5}
 			script.Context.Langs = new[] { "go" };
 			script.Eval(s);
 			Assert.AreEqual(10, script.Eval("len(arr)"));
+			Assert.AreEqual(1, script.Eval("arr[0]"));
+			Assert.AreEqual(2, script.Eval("arr[1]"));
+			Assert.AreEqual(3, script.Eval("arr[2]"));
+			Assert.AreEqual(4, script.Eval("arr[3]"));
+			Assert.AreEqual(5, script.Eval("arr[4]"));
+			Assert.AreEqual(0, script.Eval("arr[5]"));
+			Assert.AreEqual(0, script.Eval("arr[6]"));
+			Assert.AreEqual(0, script.Eval("arr[7]"));
+			Assert.AreEqual(0, script.Eval("arr[8]"));
+			Assert.AreEqual(0, script.Eval("arr[9]"));
 		}
 
 		[TestMethod]
@@ -191,6 +201,63 @@ var arr = [10]int{1, 2, 3, 4, 5}
 			script.Context.Langs = new[] { "go" };
 			script.Eval(s);
 			Assert.AreEqual(10, script.Eval("len(arr)"));
+			Assert.AreEqual(1, script.Eval("arr[0]"));
+			Assert.AreEqual(2, script.Eval("arr[1]"));
+			Assert.AreEqual(3, script.Eval("arr[2]"));
+			Assert.AreEqual(4, script.Eval("arr[3]"));
+			Assert.AreEqual(5, script.Eval("arr[4]"));
+			Assert.AreEqual(0, script.Eval("arr[5]"));
+			Assert.AreEqual(0, script.Eval("arr[6]"));
+			Assert.AreEqual(0, script.Eval("arr[7]"));
+			Assert.AreEqual(0, script.Eval("arr[8]"));
+			Assert.AreEqual(0, script.Eval("arr[9]"));
+		}
+
+		[TestMethod]
+		public void Test06_ArrayLen2()
+		{
+			var s = @"
+var arrLength = 10
+var arr = [arrLength]int{1, 2, 3, 4, 5}
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(10, script.Eval("len(arr)"));
+			Assert.AreEqual(1, script.Eval("arr[0]"));
+			Assert.AreEqual(2, script.Eval("arr[1]"));
+			Assert.AreEqual(3, script.Eval("arr[2]"));
+			Assert.AreEqual(4, script.Eval("arr[3]"));
+			Assert.AreEqual(5, script.Eval("arr[4]"));
+			Assert.AreEqual(0, script.Eval("arr[5]"));
+			Assert.AreEqual(0, script.Eval("arr[6]"));
+			Assert.AreEqual(0, script.Eval("arr[7]"));
+			Assert.AreEqual(0, script.Eval("arr[8]"));
+			Assert.AreEqual(0, script.Eval("arr[9]"));
+		}
+
+		[TestMethod]
+		public void Test06_ArrayLen2_CompileAll()
+		{
+			var s = @"
+var arrLength = 10
+var arr = [arrLength]int{1, 2, 3, 4, 5}
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(10, script.Eval("len(arr)"));
+			Assert.AreEqual(1, script.Eval("arr[0]"));
+			Assert.AreEqual(2, script.Eval("arr[1]"));
+			Assert.AreEqual(3, script.Eval("arr[2]"));
+			Assert.AreEqual(4, script.Eval("arr[3]"));
+			Assert.AreEqual(5, script.Eval("arr[4]"));
+			Assert.AreEqual(0, script.Eval("arr[5]"));
+			Assert.AreEqual(0, script.Eval("arr[6]"));
+			Assert.AreEqual(0, script.Eval("arr[7]"));
+			Assert.AreEqual(0, script.Eval("arr[8]"));
+			Assert.AreEqual(0, script.Eval("arr[9]"));
 		}
 
 		[TestMethod]
@@ -436,12 +503,21 @@ arr[1][1] = 400
 		{
 			var s = @"
 var arr = []int{1, 2, 3}
-arr = append(arr, 4, 5)
+var arr2 = append(arr, 4, 5)
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "go" };
 			script.Eval(s);
-			Assert.AreEqual(5, script.Eval("len(arr)"));
+			Assert.AreEqual(3, script.Eval("len(arr)"));
+			Assert.AreEqual(1, script.Eval("arr[0]"));
+			Assert.AreEqual(2, script.Eval("arr[1]"));
+			Assert.AreEqual(3, script.Eval("arr[2]"));
+			Assert.AreEqual(5, script.Eval("len(arr2)"));
+			Assert.AreEqual(1, script.Eval("arr2[0]"));
+			Assert.AreEqual(2, script.Eval("arr2[1]"));
+			Assert.AreEqual(3, script.Eval("arr2[2]"));
+			Assert.AreEqual(4, script.Eval("arr2[3]"));
+			Assert.AreEqual(5, script.Eval("arr2[4]"));
 		}
 
 		[TestMethod]
@@ -449,13 +525,71 @@ arr = append(arr, 4, 5)
 		{
 			var s = @"
 var arr = []int{1, 2, 3}
-arr = append(arr, 4, 5)
+var arr2 = append(arr, 4, 5)
 ";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "go" };
 			script.Eval(s);
-			Assert.AreEqual(5, script.Eval("len(arr)"));
+			Assert.AreEqual(3, script.Eval("len(arr)"));
+			Assert.AreEqual(1, script.Eval("arr[0]"));
+			Assert.AreEqual(2, script.Eval("arr[1]"));
+			Assert.AreEqual(3, script.Eval("arr[2]"));
+			Assert.AreEqual(5, script.Eval("len(arr2)"));
+			Assert.AreEqual(1, script.Eval("arr2[0]"));
+			Assert.AreEqual(2, script.Eval("arr2[1]"));
+			Assert.AreEqual(3, script.Eval("arr2[2]"));
+			Assert.AreEqual(4, script.Eval("arr2[3]"));
+			Assert.AreEqual(5, script.Eval("arr2[4]"));
+		}
+
+		[TestMethod]
+		public void Test15_ArrayAppend4()
+		{
+			var s = @"
+var arr = []int{1, 2, 3}
+var arr2 = append(arr, 4, 5, 6, 7)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(3, script.Eval("len(arr)"));
+			Assert.AreEqual(1, script.Eval("arr[0]"));
+			Assert.AreEqual(2, script.Eval("arr[1]"));
+			Assert.AreEqual(3, script.Eval("arr[2]"));
+			Assert.AreEqual(7, script.Eval("len(arr2)"));
+			Assert.AreEqual(1, script.Eval("arr2[0]"));
+			Assert.AreEqual(2, script.Eval("arr2[1]"));
+			Assert.AreEqual(3, script.Eval("arr2[2]"));
+			Assert.AreEqual(4, script.Eval("arr2[3]"));
+			Assert.AreEqual(5, script.Eval("arr2[4]"));
+			Assert.AreEqual(6, script.Eval("arr2[5]"));
+			Assert.AreEqual(7, script.Eval("arr2[6]"));
+		}
+
+		[TestMethod]
+		public void Test15_ArrayAppend4_CompileAll()
+		{
+			var s = @"
+var arr = []int{1, 2, 3}
+var arr2 = append(arr, 4, 5, 6, 7)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(3, script.Eval("len(arr)"));
+			Assert.AreEqual(1, script.Eval("arr[0]"));
+			Assert.AreEqual(2, script.Eval("arr[1]"));
+			Assert.AreEqual(3, script.Eval("arr[2]"));
+			Assert.AreEqual(7, script.Eval("len(arr2)"));
+			Assert.AreEqual(1, script.Eval("arr2[0]"));
+			Assert.AreEqual(2, script.Eval("arr2[1]"));
+			Assert.AreEqual(3, script.Eval("arr2[2]"));
+			Assert.AreEqual(4, script.Eval("arr2[3]"));
+			Assert.AreEqual(5, script.Eval("arr2[4]"));
+			Assert.AreEqual(6, script.Eval("arr2[5]"));
+			Assert.AreEqual(7, script.Eval("arr2[6]"));
 		}
 
 		[TestMethod]
