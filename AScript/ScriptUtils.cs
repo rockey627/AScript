@@ -87,6 +87,9 @@ namespace AScript
 		public static readonly MethodInfo Method_Enumerable_ToArray = typeof(Enumerable).GetMethod("ToArray");
 		public static readonly MethodInfo Method_Enumerable_ToList = typeof(Enumerable).GetMethod("ToList");
 
+		public static readonly MethodInfo Method_Array_CreateInstance_Type_int = typeof(Array).GetMethod("CreateInstance", new[] { typeof(Type), typeof(int) });
+		public static readonly MethodInfo Method_Array_SetValue_object_int = typeof(Array).GetMethod("SetValue", new[] { typeof(object), typeof(int) });
+
 		public static readonly MethodInfo Method_IDictionary_string_object_Add = typeof(IDictionary<string, object>).GetMethod("Add", new[] { typeof(string), typeof(object) });
 
 		public static readonly MethodInfo Method_Convert_ChangeType = typeof(Convert).GetMethod("ChangeType", new[] { typeof(object), typeof(Type) });

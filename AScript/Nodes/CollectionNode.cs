@@ -107,8 +107,29 @@ namespace AScript.Nodes
 						}
 						else
 						{
-							// TODO: 先创建指定长度的数组，再按索引设置itemExprs值
+							// 动态容量：运行时计算capacity并创建数组
+							var arrType = elementType.MakeArrayType();
+							var arrVar = Expression.Variable(arrType);
+							var statements2 = new List<Expression>(2 + itemExprs.Length);
 
+							// arr = Array.CreateInstance(elementType, capacity)
+							var arrCreate = Expression.Call(ScriptUtils.Method_Array_CreateInstance_Type_int, Expression.Constant(elementType), capacity);
+							statements2.Add(Expression.Assign(arrVar, Expression.Convert(arrCreate, arrType)));
+
+							// 循环设置数组元素
+							for (int i = 0; i < itemExprs.Length; i++)
+							{
+								Expression itemExpr = itemExprs[i];
+								if (itemExpr.Type != elementType)
+								{
+									itemExpr = Expression.Convert(itemExpr, elementType);
+								}
+								// arr.SetValue(item, index)
+								statements2.Add(Expression.Call(arrVar, ScriptUtils.Method_Array_SetValue_object_int, Expression.Convert(itemExpr, typeof(object)), Expression.Constant(i)));
+							}
+
+							statements2.Add(arrVar);
+							return Expression.Block(new[] { arrVar }, statements2);
 						}
 					}
 					else
