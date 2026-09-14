@@ -92,24 +92,65 @@ namespace AScript.Lang.Go.Extensions
 		/// </summary>
 		public static object make(Type type, params object[] args)
 		{
-			if (type == typeof(List<object>))
+			if (type.IsGenericType)
 			{
-				if (args.Length == 0) return new List<object>();
-				if (args.Length == 1) return new List<object>((int)(long)args[0]);
-				return new List<object>((int)(long)args[0]) { Capacity = (int)(long)args[1] };
+				if (type.GetGenericTypeDefinition() == typeof(List<>))
+				{
+					if (args.Length == 0) return Activator.CreateInstance(type);
+					if (args.Length == 1)
+					{
+						var list = (IList)Activator.CreateInstance(type);
+						int length = (int)args[0];
+						var itemType = type.GenericTypeArguments[0];
+						object defaultValue;
+						if (itemType.IsValueType) defaultValue = Activator.CreateInstance(itemType);
+						else defaultValue = null;
+						for (int i = 0; i < length; i++)
+						{
+							list.Add(defaultValue);
+						}
+						return list;
+					}
+					else
+					{
+						int cap = (int)args[1];
+						var list = (IList)Activator.CreateInstance(type, new object[] { cap });
+						int length = (int)args[0];
+						var itemType = type.GenericTypeArguments[0];
+						object defaultValue;
+						if (itemType.IsValueType) defaultValue = Activator.CreateInstance(itemType);
+						else defaultValue = null;
+						for (int i = 0; i < length; i++)
+						{
+							list.Add(defaultValue);
+						}
+						return list;
+					}
+				}
 			}
-			if (type == typeof(Dictionary<object, object>))
-			{
-				return new Dictionary<object, object>();
-			}
-			if (type.Name == "Channel`1")
-			{
-				// 通道类型
-				return new Channel<object>();
-			}
-			return null;
+			throw new Exceptions.ScriptRuntimeException($"unsupport make type[{type}]");
+			//if (type == typeof(Dictionary<object, object>))
+			//{
+			//	return new Dictionary<object, object>();
+			//}
+			//if (type.Name == "Channel`1")
+			//{
+			//	// 通道类型
+			//	return new Channel<object>();
+			//}
+			//return null;
 		}
 
+
+		public static int copy<T>(List<T> dst, List<T> src)
+		{
+			int n = Math.Min(dst.Count, src.Count);
+			for (int i = 0; i < n; i++)
+			{
+				dst[i] = src[i];
+			}
+			return n;
+		}
 		///// <summary>
 		///// println 函数
 		///// </summary>

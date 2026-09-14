@@ -1216,7 +1216,7 @@ var s1 = arr[1:4]
 			var script = new Script();
 			script.Context.Langs = new[] { "go" };
 			script.Eval(s);
-			Assert.AreEqual(2, script.Eval("len(s1)"));
+			Assert.AreEqual(3, script.Eval("len(s1)"));
 		}
 
 		[TestMethod]
@@ -1230,7 +1230,7 @@ var s1 = arr[1:4]
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "go" };
 			script.Eval(s);
-			Assert.AreEqual(2, script.Eval("len(s1)"));
+			Assert.AreEqual(3, script.Eval("len(s1)"));
 		}
 
 		[TestMethod]

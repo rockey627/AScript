@@ -95,6 +95,13 @@ namespace AScript.Lang.Go.TokenHandlers
 					else
 					{
 						e.TokenReader.Push(token.Value);
+						if (!e.Ignore)
+						{
+							if (collectionType == typeof(List<>)) collectionType = collectionType.MakeGenericType(itemType);
+							else collectionType = itemType.MakeArrayType();
+							e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(collectionType));
+						}
+						return;
 					}
 				}
 				if (!e.Ignore)
