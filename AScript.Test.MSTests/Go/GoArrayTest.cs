@@ -1119,7 +1119,7 @@ var arr = [3]bool{true, false, true}
 		public void Test33_ArrayFloatValues()
 		{
 			var s = @"
-var arr = [3]float{1.5, 2.5, 3.5}
+var arr = [3]float64{1.5, 2.5, 3.5}
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "go" };
@@ -1133,7 +1133,7 @@ var arr = [3]float{1.5, 2.5, 3.5}
 		public void Test33_ArrayFloatValues_CompileAll()
 		{
 			var s = @"
-var arr = [3]float{1.5, 2.5, 3.5}
+var arr = [3]float64{1.5, 2.5, 3.5}
 ";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;

@@ -69,6 +69,11 @@ namespace AScript.Lang.Go.TokenHandlers
 							while (true)
 							{
 								var v1 = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+								if (v1 == null)
+								{
+									analyzer.ValidateNextToken(e.TokenReader, "}");
+									break;
+								}
 								token = analyzer.ValidateNextToken(e.TokenReader);
 								if (token.Value.IsSymbol(":"))
 								{
