@@ -74,20 +74,60 @@ namespace AScript.Nodes
 
 				if (CollectionType == typeof(Array))
 				{
-					// Create array expression: new[] { elem1, elem2, ... }
-					var convertedExprs = new Expression[itemExprs.Length];
-					for (int i = 0; i < itemExprs.Length; i++)
+					if (this.Capacity != null)
 					{
-						if (itemExprs[i].Type != elementType)
+						var capacity = this.Capacity.Build(buildContext, scriptContext, options);
+						if (capacity is ConstantExpression constantExpression)
 						{
-							convertedExprs[i] = Expression.Convert(itemExprs[i], elementType);
+							int c = Convert.ToInt32(constantExpression.Value);
+							if (c < itemExprs.Length)
+							{
+								throw new Exceptions.ScriptRuntimeException($"array values length [{itemExprs.Length}] not match the defined length [{c}]");
+							}
+							var convertedExprs = new Expression[c];
+							for (int i = 0; i < c; i++)
+							{
+								if (i < itemExprs.Length)
+								{
+									if (itemExprs[i].Type != elementType)
+									{
+										convertedExprs[i] = Expression.Convert(itemExprs[i], elementType);
+									}
+									else
+									{
+										convertedExprs[i] = itemExprs[i];
+									}
+								}
+								else
+								{
+									convertedExprs[i] = Expression.Default(elementType);
+								}
+							}
+							return Expression.NewArrayInit(elementType, convertedExprs);
 						}
 						else
 						{
-							convertedExprs[i] = itemExprs[i];
+							// TODO: 先创建指定长度的数组，再按索引设置itemExprs值
+
 						}
 					}
-					return Expression.NewArrayInit(elementType, convertedExprs);
+					else
+					{
+						// Create array expression: new[] { elem1, elem2, ... }
+						var convertedExprs = new Expression[itemExprs.Length];
+						for (int i = 0; i < itemExprs.Length; i++)
+						{
+							if (itemExprs[i].Type != elementType)
+							{
+								convertedExprs[i] = Expression.Convert(itemExprs[i], elementType);
+							}
+							else
+							{
+								convertedExprs[i] = itemExprs[i];
+							}
+						}
+						return Expression.NewArrayInit(elementType, convertedExprs);
+					}
 				}
 
 				// Handle List<T>
@@ -277,7 +317,8 @@ namespace AScript.Nodes
 			if (CollectionType == typeof(Array))
 			{
 				// Create array
-				var arr = Array.CreateInstance(elementType, itemValues.Length);
+				int length = this.Capacity == null ? itemValues.Length : Convert.ToInt32(this.Capacity.Eval(context, options, control, out _));
+				var arr = Array.CreateInstance(elementType, length);
 				for (int i = 0; i < itemValues.Length; i++)
 				{
 					arr.SetValue(Convert.ChangeType(itemValues[i], elementType), i);
