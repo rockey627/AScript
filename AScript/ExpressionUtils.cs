@@ -57,6 +57,8 @@ namespace AScript
 
 		public static Expression setItem(Expression obj, Expression index, Expression value)
 		{
+			if (index.Type.IsValueType) index = Expression.Convert(index, typeof(object));
+			if (value.Type.IsValueType) value = Expression.Convert(value, typeof(object));
 			return Expression.Call(Method_setItem, obj, index, value);
 		}
 
