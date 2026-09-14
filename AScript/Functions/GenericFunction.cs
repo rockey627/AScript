@@ -27,8 +27,10 @@ namespace AScript.Functions
 
 		public void Build(FunctionBuildArgs e)
 		{
-			var parameters = this.Method.GetParameters();
 			int argsCount = e.GetArgsCount();
+			if (argsCount == 0) return;
+
+			var parameters = this.Method.GetParameters();
 
 			bool hasParams = false;
 			ParameterInfo lastParam = null;
@@ -43,7 +45,7 @@ namespace AScript.Functions
 
 			if (hasParams)
 			{
-				if (argsCount < parameters.Length) return;
+				if (argsCount < parameters.Length - 1) return;
 			}
 			else if (argsCount != parameters.Length) return;
 
@@ -70,16 +72,18 @@ namespace AScript.Functions
 			for (int i = 0; i < parameters.Length; i++)
 			{
 				var paramType = parameters[i].ParameterType;
-				var argType = argTypes[i];
+				var argType = i < argTypes.Length ? argTypes[i] : null;
 
 				if (paramType.IsArray)
 				{
-					if (hasParams && i == parameters.Length - 1 && (!argType.IsArray || argsCount > parameters.Length))
+					if (hasParams && i == parameters.Length - 1 && (argType == null || !argType.IsArray || argsCount > parameters.Length))
 					{
 						var itemType = paramType.GetElementType();
 						if (itemType.IsGenericParameter)
 						{
-							itemType = argType;
+							var itemGType = typeArguments[itemType.GenericParameterPosition];
+							if (itemGType != null) itemType = itemGType;
+							else itemType = argType;
 						}
 						//var lastArg = Array.CreateInstance(itemType, argTypes.Length - parameters.Length + 1);
 						var lastArgArr = new Expression[argTypes.Length - parameters.Length + 1];
@@ -107,14 +111,14 @@ namespace AScript.Functions
 
 				if (paramType != typeof(Action) && !paramType.IsGenericType && !paramType.IsGenericParameter)
 				{
-					if (e.Args != null && e.Args[i] is DefineFuncNode) return;
+					if (i < e.Args.Count && e.Args[i] is DefineFuncNode) return;
 					if (paramType.IsAssignableFrom(argType)) continue;
 					return;
 				}
 
 				if (paramType.IsGenericParameter)
 				{
-					if (e.Args != null && e.Args[i] is DefineFuncNode) return;
+					if (i < e.Args.Count && e.Args[i] is DefineFuncNode) return;
 					if (typeArguments[paramType.GenericParameterPosition] == null)
 					{
 						typeArgumentsFillCount++;
@@ -440,8 +444,10 @@ namespace AScript.Functions
 
 		public void Eval(FunctionEvalArgs e)
 		{
-			var parameters = this.Method.GetParameters();
 			int argsCount = e.Args == null ? 0 : e.Args.Count;
+			if (argsCount == 0) return;
+
+			var parameters = this.Method.GetParameters();
 
 			bool hasParams = false;
 			ParameterInfo lastParam = null;
@@ -456,7 +462,7 @@ namespace AScript.Functions
 
 			if (hasParams)
 			{
-				if (argsCount < parameters.Length) return;
+				if (argsCount < parameters.Length - 1) return;
 			}
 			else if (argsCount != parameters.Length) return;
 
@@ -484,16 +490,18 @@ namespace AScript.Functions
 			for (int i = 0; i < parameters.Length; i++)
 			{
 				var paramType = parameters[i].ParameterType;
-				var argType = argTypes[i];
+				var argType = i < argTypes.Length ? argTypes[i] : null;
 
 				if (paramType.IsArray)
 				{
-					if (hasParams && i == parameters.Length - 1 && (!argType.IsArray || argsCount > parameters.Length))
+					if (hasParams && i == parameters.Length - 1 && (argType == null || !argType.IsArray || argsCount > parameters.Length))
 					{
 						var itemType = paramType.GetElementType();
 						if (itemType.IsGenericParameter)
 						{
-							itemType = argType;
+							var itemGType = typeArguments[itemType.GenericParameterPosition];
+							if (itemGType != null) itemType = itemGType;
+							else itemType = argType;
 						}
 						var lastArg = Array.CreateInstance(itemType, argTypes.Length - parameters.Length + 1);
 						for (int k = 0; k < lastArg.Length; k++)
@@ -527,7 +535,7 @@ namespace AScript.Functions
 
 				if (paramType.IsGenericParameter)
 				{
-					if (e.Args[i] is DefineFuncNode) return;
+					if (i < e.Args.Count && e.Args[i] is DefineFuncNode) return;
 					if (typeArguments[paramType.GenericParameterPosition] == null)
 					{
 						typeArgumentsFillCount++;

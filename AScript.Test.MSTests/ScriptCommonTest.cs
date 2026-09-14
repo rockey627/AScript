@@ -13,6 +13,31 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test54()
+		{
+			var script = new Script();
+			script.Context.AddFunc(typeof(MyMethod));
+			Assert.AreEqual(0, script.Eval("Count(5)"));
+		}
+
+		[TestMethod]
+		public void Test54_CompileAll()
+		{
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.AddFunc(typeof(MyMethod));
+			Assert.AreEqual(0, script.Eval("Count(5)"));
+		}
+
+		private static class MyMethod
+		{
+			public static int Count<T>(T a, params T[] arr)
+			{
+				return arr == null ? 0 : arr.Length;
+			}
+		}
+
+		[TestMethod]
 		public void Test53()
 		{
 			string s = "a+b+c";
