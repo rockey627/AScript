@@ -56,6 +56,13 @@ namespace AScript.Functions
 				var paramType = parameters[i].ParameterType;
 				var argType = argTypes[i];
 
+				if (paramType.IsArray)
+				{
+					if (!argType.IsArray) return;
+					paramType = paramType.GetElementType();
+					argType = argType.GetElementType();
+				}
+
 				if (paramType != typeof(Action) && !paramType.IsGenericType && !paramType.IsGenericParameter)
 				{
 					if (e.Args != null && e.Args[i] is DefineFuncNode) return;
@@ -420,6 +427,13 @@ namespace AScript.Functions
 			{
 				var paramType = parameters[i].ParameterType;
 				var argType = argTypes[i];
+
+				if (paramType.IsArray)
+				{
+					if (!argType.IsArray) return;
+					paramType = paramType.GetElementType();
+					argType = argType.GetElementType();
+				}
 
 				if (paramType != typeof(Action) && !paramType.IsGenericType && !paramType.IsGenericParameter)
 				{
