@@ -28,6 +28,23 @@ namespace AScript.Lang.Go.Extensions
 			return arr;
 		}
 
+		/// <summary>
+		/// append 函数 - 向slice添加元素
+		/// </summary>
+		public static List<T> append<T>(List<T> slice, ICollection<T> items)
+		{
+			var arr = new List<T>(slice.Count + items.Count);
+			for (int i = 0; i < slice.Count; i++)
+			{
+				arr.Add(slice[i]);
+			}
+			foreach (var item in items)
+			{
+				arr.Add(item);
+			}
+			return arr;
+		}
+
 		public static List<T> append<T>(List<T> slice, T item1)
 		{
 			var arr = new List<T>(slice.Count + 1);
