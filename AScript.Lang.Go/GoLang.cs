@@ -118,6 +118,7 @@ namespace AScript.Lang.Go
 			// 操作符处理
 			AddTokenHandler("&&", LazyTokenHandler.Instance);
 			AddTokenHandler("||", LazyTokenHandler.Instance);
+			AddTokenHandler("...", IgnoreTokenHandler.Instance);
 
 			// 索引和切片
 			AddTokenHandler("[", new GoBracketTokenHandler());
