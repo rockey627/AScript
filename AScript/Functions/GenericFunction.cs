@@ -119,10 +119,15 @@ namespace AScript.Functions
 				if (paramType.IsGenericParameter)
 				{
 					if (i < e.Args.Count && e.Args[i] is DefineFuncNode) return;
-					if (typeArguments[paramType.GenericParameterPosition] == null)
+					var paramG = typeArguments[paramType.GenericParameterPosition];
+					if (paramG == null)
 					{
 						typeArgumentsFillCount++;
 						typeArguments[paramType.GenericParameterPosition] = argType;
+					}
+					else if (!paramG.IsAssignableFrom(argType))
+					{
+						return;
 					}
 					continue;
 				}
@@ -536,10 +541,15 @@ namespace AScript.Functions
 				if (paramType.IsGenericParameter)
 				{
 					if (i < e.Args.Count && e.Args[i] is DefineFuncNode) return;
-					if (typeArguments[paramType.GenericParameterPosition] == null)
+					var paramG = typeArguments[paramType.GenericParameterPosition];
+					if (paramG == null)
 					{
 						typeArgumentsFillCount++;
 						typeArguments[paramType.GenericParameterPosition] = argType;
+					}
+					else if (!paramG.IsAssignableFrom(argType))
+					{
+						return;
 					}
 					continue;
 				}
