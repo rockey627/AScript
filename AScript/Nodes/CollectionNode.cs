@@ -26,6 +26,10 @@ namespace AScript.Nodes
 		/// </summary>
 		public Type CollectionType { get; set; }
 		/// <summary>
+		/// 长度
+		/// </summary>
+		public ITreeNode Length { get; set; }
+		/// <summary>
 		/// 初始容量
 		/// </summary>
 		public ITreeNode Capacity { get; set; }
@@ -72,12 +76,12 @@ namespace AScript.Nodes
 					elementType = objType;
 				}
 
-				if (CollectionType == typeof(Array))
+				if (CollectionType == typeof(Array) || CollectionType.IsArray)
 				{
-					if (this.Capacity != null)
+					if (this.Length != null)
 					{
-						var capacity = this.Capacity.Build(buildContext, scriptContext, options);
-						if (capacity is ConstantExpression constantExpression)
+						var length = this.Length.Build(buildContext, scriptContext, options);
+						if (length is ConstantExpression constantExpression)
 						{
 							int c = Convert.ToInt32(constantExpression.Value);
 							if (c < itemExprs.Length)
@@ -113,7 +117,7 @@ namespace AScript.Nodes
 							var statements2 = new List<Expression>(2 + itemExprs.Length);
 
 							// arr = Array.CreateInstance(elementType, capacity)
-							var arrCreate = Expression.Call(ScriptUtils.Method_Array_CreateInstance_Type_int, Expression.Constant(elementType), capacity);
+							var arrCreate = Expression.Call(ScriptUtils.Method_Array_CreateInstance_Type_int, Expression.Constant(elementType), length);
 							statements2.Add(Expression.Assign(arrVar, Expression.Convert(arrCreate, arrType)));
 
 							// 循环设置数组元素
@@ -335,10 +339,10 @@ namespace AScript.Nodes
 				elementType = objType;
 			}
 
-			if (CollectionType == typeof(Array))
+			if (CollectionType == typeof(Array) || CollectionType.IsArray)
 			{
 				// Create array
-				int length = this.Capacity == null ? itemValues.Length : Convert.ToInt32(this.Capacity.Eval(context, options, control, out _));
+				int length = this.Length == null ? itemValues.Length : Convert.ToInt32(this.Length.Eval(context, options, control, out _));
 				var arr = Array.CreateInstance(elementType, length);
 				for (int i = 0; i < itemValues.Length; i++)
 				{
