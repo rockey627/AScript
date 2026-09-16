@@ -736,6 +736,8 @@ var arr = createArray()
 			script.Eval(s);
 			Assert.AreEqual(3, script.Eval("len(arr)"));
 			Assert.AreEqual(1, script.Eval("arr[0]"));
+			Assert.AreEqual(2, script.Eval("arr[1]"));
+			Assert.AreEqual(3, script.Eval("arr[2]"));
 		}
 
 		[TestMethod]
@@ -753,6 +755,8 @@ var arr = createArray()
 			script.Eval(s);
 			Assert.AreEqual(3, script.Eval("len(arr)"));
 			Assert.AreEqual(1, script.Eval("arr[0]"));
+			Assert.AreEqual(2, script.Eval("arr[1]"));
+			Assert.AreEqual(3, script.Eval("arr[2]"));
 		}
 
 		[TestMethod]

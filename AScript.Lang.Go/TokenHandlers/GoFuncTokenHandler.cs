@@ -63,52 +63,16 @@ namespace AScript.Lang.Go.TokenHandlers
 			string returnType = null;
 			Type returnSystemType = null;
 			token = analyzer.ValidateNextToken(e.TokenReader);
-			if (token.Value.Type == ETokenType.Word)
+			if (token.Value.IsSymbol("["))
+			{
+				returnSystemType = GoLang.ParseArrayType(analyzer, e.ScriptContext, e.TokenReader, e.Ignore, out returnType);
+			}
+			else if (token.Value.Type == ETokenType.Word)
 			{
 				if (token.Value.Value == "func")
 				{
 					// 返回方法类型
-					analyzer.ValidateNextToken(e.TokenReader, "(");
-					token = analyzer.ValidateNextToken(e.TokenReader);
-					var funcArgTypes = e.Ignore ? null : new List<Type>();
-					if (token.Value.IsSymbol(")"))
-					{
-					}
-					else
-					{
-						e.TokenReader.Push(token.Value);
-						while (true)
-						{
-							token = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
-							var type = e.ScriptContext.EvalType(token.Value.Value);
-							if (type == null)
-							{
-								throw new Exceptions.ScriptRuntimeException($"unknown return type {token.Value.Value} of func {funcName} at ({token.Value.Line},{token.Value.Column})");
-							}
-							funcArgTypes?.Add(type);
-							token = analyzer.ValidateNextToken(e.TokenReader);
-							if (token.Value.IsSymbol(",")) continue;
-							if (token.Value.IsSymbol(")")) break;
-							throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' near func {funcName} at ({token.Value.Line},{token.Value.Column})");
-						}
-					}
-					// 返回类型
-					var funcReturnType = typeof(void);
-					token = analyzer.ValidateNextToken(e.TokenReader);
-					if (token.Value.Type == ETokenType.Word)
-					{
-						funcReturnType = e.ScriptContext.EvalType(token.Value.Value);
-						if (funcReturnType == null)
-						{
-							throw new Exceptions.ScriptRuntimeException($"unknown return type {token.Value.Value} of func {funcName} at ({token.Value.Line},{token.Value.Column})");
-						}
-					}
-					else
-					{
-						e.TokenReader.Push(token.Value);
-					}
-					returnType = null;
-					returnSystemType = ScriptUtils.GetDelegateType(funcArgTypes, funcReturnType);
+					returnSystemType = GoLang.ParseFuncType(analyzer, e.ScriptContext, e.TokenReader, e.Ignore, out returnType);
 				}
 				else
 				{

@@ -192,26 +192,9 @@ namespace AScript.Lang.Go
 				var nameToken = analyzer.ValidateNextToken(tokenReader, ETokenType.Word);
 				string varName = nameToken.Value.Value;
 
-				nextToken =tokenReader.Read();
-				if (!nextToken.HasValue)
+				if (TryParseType(analyzer, scriptContext, tokenReader, ignore, out var type, out var typeName))
 				{
-					defines?.Add(PoolManage.CreateDefineVarNode(varName, null));
-					break;
-				}
-
-				string typeName = null;
-				Type type = null;
-				if (nextToken.Value.Type == ETokenType.Word)
-				{
-					// 类型判断
-					typeName = nextToken.Value.Value;
-					type = scriptContext.EvalType(typeName);
-					if (type == null)
-					{
-						tokenReader.Push(nextToken.Value);
-						typeName = null;
-					}
-					else if (defines != null)
+					if (defines != null)
 					{
 						for (int i = 0; i < defines.Count; i++)
 						{
@@ -223,11 +206,11 @@ namespace AScript.Lang.Go
 							}
 						}
 					}
-					// 
-					nextToken = tokenReader.Read();
 				}
+
 				defines?.Add(PoolManage.CreateDefineVarNode(varName, typeName, type));
 
+				nextToken = tokenReader.Read();
 				if (!nextToken.HasValue) break;
 				if (nextToken.Value.IsSymbol(",")) continue;
 				break;
@@ -237,6 +220,124 @@ namespace AScript.Lang.Go
 				tokenReader.Push(nextToken.Value);
 			}
 			return defines;
+		}
+
+		public static bool TryParseType(DefaultSyntaxAnalyzer analyzer, ScriptContext scriptContext, TokenReader tokenReader, bool ignore, out Type type, out string typeName)
+		{
+			var nextToken = tokenReader.Read();
+
+			if (!nextToken.HasValue)
+			{
+				type = null;
+				typeName = null;
+				return false;
+			}
+
+			if (nextToken.Value.IsSymbol("func") || nextToken.Value.IsSymbol("["))
+			{
+				tokenReader.Push(nextToken.Value);
+				type = ParseType(analyzer, scriptContext, tokenReader, ignore, out typeName);
+				return true;
+			}
+
+			if (nextToken.Value.Type == ETokenType.Word)
+			{
+				typeName = nextToken.Value.Value;
+				type = scriptContext.EvalType(typeName);
+				if (type != null) return true;
+			}
+
+			tokenReader.Push(nextToken.Value);
+
+			type = null;
+			typeName = null;
+			return false;
+		}
+
+		public static Type ParseType(DefaultSyntaxAnalyzer analyzer, ScriptContext scriptContext, TokenReader tokenReader, bool ignore, out string typeName)
+		{
+			var token = analyzer.ValidateNextToken(tokenReader);
+
+			if (token.Value.IsSymbol("func"))
+			{
+				// 函数类型
+				return ParseFuncType(analyzer, scriptContext, tokenReader, ignore, out typeName);
+			}
+
+			if (token.Value.IsSymbol("["))
+			{
+				// 数组、切片类型
+				return ParseArrayType(analyzer, scriptContext, tokenReader, ignore, out typeName);
+			}
+
+			if (token.Value.Type == ETokenType.Word)
+			{
+				typeName = token.Value.Value;
+				var type = scriptContext.EvalType(typeName);
+				if (type == null) throw new Exceptions.ScriptAnalyzingException($"unknown type '{typeName}' at ({token.Value.Line},{token.Value.Column})");
+				return type;
+			}
+
+			throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column}), expect type");
+		}
+
+		public static Type ParseFuncType(DefaultSyntaxAnalyzer analyzer, ScriptContext scriptContext, TokenReader tokenReader, bool ignore, out string typeName)
+		{
+			analyzer.ValidateNextToken(tokenReader, "(");
+			var token = analyzer.ValidateNextToken(tokenReader);
+			var funcArgTypes = ignore ? null : new List<Type>();
+			if (!token.Value.IsSymbol(")"))
+			{
+				tokenReader.Push(token.Value);
+				while (true)
+				{
+					var argType = ParseType(analyzer, scriptContext, tokenReader, ignore, out var argTypeName);
+					funcArgTypes?.Add(argType);
+					token = analyzer.ValidateNextToken(tokenReader);
+					if (token.Value.IsSymbol(",")) continue;
+					if (token.Value.IsSymbol(")")) break;
+					throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' near func at ({token.Value.Line},{token.Value.Column}), expect type");
+				}
+			}
+			// 返回类型
+			TryParseType(analyzer, scriptContext, tokenReader, ignore, out var funcReturnType, out _);
+			typeName = null;
+			return ScriptUtils.GetDelegateType(funcArgTypes, funcReturnType ?? typeof(void));
+		}
+
+		public static Type ParseArrayType(DefaultSyntaxAnalyzer analyzer, ScriptContext scriptContext, TokenReader tokenReader, bool ignore, out string typeName)
+		{
+			var token = analyzer.ValidateNextToken(tokenReader);
+			Type collectionType = typeof(Array);
+			string count = "";
+			if (token.Value.IsSymbol("]"))
+			{
+				// []
+				collectionType = typeof(List<>);
+			}
+			else if (token.Value.IsSymbol("..."))
+			{
+				// [...]
+				count = token.Value.Value;
+				analyzer.ValidateNextToken(tokenReader, "]");
+			}
+			else if (token.Value.Type == ETokenType.Number)
+			{
+				count = token.Value.Value;
+				analyzer.ValidateNextToken(tokenReader, "]");
+			}
+			else
+			{
+				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' near [] at ({token.Value.Line},{token.Value.Column})");
+			}
+			// 元素类型
+			var itemType = ParseType(analyzer, scriptContext, tokenReader, ignore, out var itemTypeName);
+			typeName = $"[{count}]{itemTypeName}";
+			if (collectionType == typeof(Array))
+			{
+				return itemType.MakeArrayType();
+			}
+			return collectionType.MakeGenericType(itemType);
 		}
 
 		//public static ITreeNode BuildBlock(int parentColumn, DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, HashSet<string> endTokens = null)
