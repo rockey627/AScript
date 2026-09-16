@@ -36,7 +36,7 @@ namespace AScript.Lang.Go.TokenHandlers
 				return;
 			}
 
-			var defines = GoLang.ParseDefineVars(analyzer, e.ScriptContext, e.TokenReader, e.Ignore);
+			var defines = GoLang.ParseDefineVars(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore);
 			if (defines != null)
 			{
 				for (int i = 0; i < defines.Count; i++)

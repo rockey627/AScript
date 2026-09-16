@@ -24,39 +24,11 @@ namespace AScript.Lang.Go.TokenHandlers
 			if (e.TreeBuilder.Current == null || e.TreeBuilder.Current is OperatorNode opNode && !opNode.IsFull())
 			{
 				// 数组
-				var token = analyzer.ValidateNextToken(e.TokenReader);
-				// 长度
-				ITreeNode count;
-				Type collectionType = typeof(Array);
-				if (token.Value.IsSymbol("]"))
-				{
-					// []
-					count = null;
-					collectionType = typeof(List<>);
-				}
-				else if (token.Value.IsSymbol("..."))
-				{
-					// [...]
-					count = null;
-					analyzer.ValidateNextToken(e.TokenReader, "]");
-				}
-				else
-				{
-					// [5]
-					e.TokenReader.Push(token.Value);
-					count = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
-					analyzer.ValidateNextToken(e.TokenReader, "]");
-				}
-				// 元素类型
-				token = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
-				var itemType = e.ScriptContext.EvalType(token.Value.Value);
-				if (itemType == null)
-				{
-					throw new Exceptions.ScriptRuntimeException($"unknown type '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
-				}
+				var arrType = GoLang.ParseArrayType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore, out var arrTypeName);
+				var itemType = arrType.ItemType;
 				// 元素列表
 				List<ITreeNode> items = null;
-				token = e.TokenReader.Read();
+				var token = e.TokenReader.Read();
 				if (token.HasValue)
 				{
 					if (token.Value.IsSymbol("{"))
@@ -97,16 +69,14 @@ namespace AScript.Lang.Go.TokenHandlers
 						e.TokenReader.Push(token.Value);
 						if (!e.Ignore)
 						{
-							if (collectionType == typeof(List<>)) collectionType = collectionType.MakeGenericType(itemType);
-							else collectionType = itemType.MakeArrayType();
-							e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(collectionType));
+							e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(arrType.RealType));
 						}
 						return;
 					}
 				}
 				if (!e.Ignore)
 				{
-					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new CollectionNode { CollectionType = collectionType, ElementType = itemType, Items = items, Capacity = count });
+					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, new CollectionNode { CollectionType = arrType.RealType, ElementType = itemType, Items = items, Length = arrType.Length });
 				}
 			}
 			else

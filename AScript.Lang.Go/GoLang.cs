@@ -183,7 +183,7 @@ namespace AScript.Lang.Go
 		/// <para>a int, b string</para>
 		/// </summary>
 		/// <returns></returns>
-		public static List<DefineVarNode> ParseDefineVars(DefaultSyntaxAnalyzer analyzer, ScriptContext scriptContext, TokenReader tokenReader, bool ignore)
+		public static List<DefineVarNode> ParseDefineVars(DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, bool ignore)
 		{
 			var defines = ignore ? null : new List<DefineVarNode>();
 			Token? nextToken;
@@ -192,8 +192,12 @@ namespace AScript.Lang.Go
 				var nameToken = analyzer.ValidateNextToken(tokenReader, ETokenType.Word);
 				string varName = nameToken.Value.Value;
 
-				if (TryParseType(analyzer, scriptContext, tokenReader, ignore, out var type, out var typeName))
+				if (TryParseType(analyzer, buildContext, scriptContext, options, tokenReader, ignore, out var type, out var typeName))
 				{
+					if (type is GoArrayType goArrayType)
+					{
+						type = goArrayType.RealType;
+					}
 					if (defines != null)
 					{
 						for (int i = 0; i < defines.Count; i++)
@@ -222,7 +226,7 @@ namespace AScript.Lang.Go
 			return defines;
 		}
 
-		public static bool TryParseType(DefaultSyntaxAnalyzer analyzer, ScriptContext scriptContext, TokenReader tokenReader, bool ignore, out Type type, out string typeName)
+		public static bool TryParseType(DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, bool ignore, out Type type, out string typeName)
 		{
 			var nextToken = tokenReader.Read();
 
@@ -236,7 +240,7 @@ namespace AScript.Lang.Go
 			if (nextToken.Value.IsSymbol("func") || nextToken.Value.IsSymbol("["))
 			{
 				tokenReader.Push(nextToken.Value);
-				type = ParseType(analyzer, scriptContext, tokenReader, ignore, out typeName);
+				type = ParseType(analyzer, buildContext, scriptContext, options, tokenReader, ignore, out typeName);
 				return true;
 			}
 
@@ -254,20 +258,20 @@ namespace AScript.Lang.Go
 			return false;
 		}
 
-		public static Type ParseType(DefaultSyntaxAnalyzer analyzer, ScriptContext scriptContext, TokenReader tokenReader, bool ignore, out string typeName)
+		public static Type ParseType(DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, bool ignore, out string typeName)
 		{
 			var token = analyzer.ValidateNextToken(tokenReader);
 
 			if (token.Value.IsSymbol("func"))
 			{
 				// 函数类型
-				return ParseFuncType(analyzer, scriptContext, tokenReader, ignore, out typeName);
+				return ParseFuncType(analyzer, buildContext, scriptContext, options, tokenReader, ignore, out typeName);
 			}
 
 			if (token.Value.IsSymbol("["))
 			{
 				// 数组、切片类型
-				return ParseArrayType(analyzer, scriptContext, tokenReader, ignore, out typeName);
+				return ParseArrayType(analyzer, buildContext, scriptContext, options, tokenReader, ignore, out typeName);
 			}
 
 			if (token.Value.Type == ETokenType.Word)
@@ -281,7 +285,7 @@ namespace AScript.Lang.Go
 			throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column}), expect type");
 		}
 
-		public static Type ParseFuncType(DefaultSyntaxAnalyzer analyzer, ScriptContext scriptContext, TokenReader tokenReader, bool ignore, out string typeName)
+		public static Type ParseFuncType(DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, bool ignore, out string typeName)
 		{
 			analyzer.ValidateNextToken(tokenReader, "(");
 			var token = analyzer.ValidateNextToken(tokenReader);
@@ -291,8 +295,15 @@ namespace AScript.Lang.Go
 				tokenReader.Push(token.Value);
 				while (true)
 				{
-					var argType = ParseType(analyzer, scriptContext, tokenReader, ignore, out var argTypeName);
-					funcArgTypes?.Add(argType);
+					var argType = ParseType(analyzer, buildContext, scriptContext, options, tokenReader, ignore, out var argTypeName);
+					if (funcArgTypes != null)
+					{
+						if (argType is GoArrayType goArrayType)
+						{
+							argType = goArrayType.RealType;
+						}
+						funcArgTypes.Add(argType);
+					}
 					token = analyzer.ValidateNextToken(tokenReader);
 					if (token.Value.IsSymbol(",")) continue;
 					if (token.Value.IsSymbol(")")) break;
@@ -300,44 +311,51 @@ namespace AScript.Lang.Go
 				}
 			}
 			// 返回类型
-			TryParseType(analyzer, scriptContext, tokenReader, ignore, out var funcReturnType, out _);
+			TryParseType(analyzer, buildContext, scriptContext, options, tokenReader, ignore, out var funcReturnType, out _);
+			if (funcReturnType is GoArrayType goArrayType2)
+			{
+				funcReturnType = goArrayType2.RealType;
+			}
 			typeName = null;
 			return ScriptUtils.GetDelegateType(funcArgTypes, funcReturnType ?? typeof(void));
 		}
 
-		public static Type ParseArrayType(DefaultSyntaxAnalyzer analyzer, ScriptContext scriptContext, TokenReader tokenReader, bool ignore, out string typeName)
+		public static GoArrayType ParseArrayType(DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, bool ignore, out string typeName)
 		{
 			var token = analyzer.ValidateNextToken(tokenReader);
-			Type collectionType = typeof(Array);
-			string count = "";
+			bool isArray;
+			ITreeNode count;
 			if (token.Value.IsSymbol("]"))
 			{
 				// []
-				collectionType = typeof(List<>);
+				isArray = false;
+				count = null;
 			}
 			else if (token.Value.IsSymbol("..."))
 			{
 				// [...]
-				count = token.Value.Value;
-				analyzer.ValidateNextToken(tokenReader, "]");
-			}
-			else if (token.Value.Type == ETokenType.Number)
-			{
-				count = token.Value.Value;
+				isArray = true;
+				count = null;
 				analyzer.ValidateNextToken(tokenReader, "]");
 			}
 			else
 			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' near [] at ({token.Value.Line},{token.Value.Column})");
+				tokenReader.Push(token.Value);
+				isArray = true;
+				count = analyzer.BuildOneStatement(buildContext, scriptContext, options, tokenReader, null, ignore);
+				analyzer.ValidateNextToken(tokenReader, "]");
 			}
 			// 元素类型
-			var itemType = ParseType(analyzer, scriptContext, tokenReader, ignore, out var itemTypeName);
-			typeName = $"[{count}]{itemTypeName}";
-			if (collectionType == typeof(Array))
-			{
-				return itemType.MakeArrayType();
-			}
-			return collectionType.MakeGenericType(itemType);
+			var itemType = ParseType(analyzer, buildContext, scriptContext, options, tokenReader, ignore, out var itemTypeName);
+			//typeName = $"[{count}]{itemTypeName}";
+			//if (collectionType == typeof(Array))
+			//{
+			//	return itemType.MakeArrayType();
+			//}
+			//return collectionType.MakeGenericType(itemType);
+			var arrType = new GoArrayType(isArray, itemType, itemTypeName, count, null);
+			typeName = arrType.Name;
+			return arrType;
 		}
 
 		//public static ITreeNode BuildBlock(int parentColumn, DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, HashSet<string> endTokens = null)
