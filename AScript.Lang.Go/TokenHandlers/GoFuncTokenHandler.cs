@@ -65,14 +65,14 @@ namespace AScript.Lang.Go.TokenHandlers
 			token = analyzer.ValidateNextToken(e.TokenReader);
 			if (token.Value.IsSymbol("["))
 			{
-				returnSystemType = GoLang.ParseArrayType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore, out returnType).RealType;
+				returnSystemType = GoLang.ParseArrayType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore);
 			}
 			else if (token.Value.Type == ETokenType.Word)
 			{
 				if (token.Value.Value == "func")
 				{
 					// 返回方法类型
-					returnSystemType = GoLang.ParseFuncType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore, out returnType);
+					returnSystemType = GoLang.ParseFuncType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore);
 				}
 				else
 				{

@@ -1,4 +1,5 @@
-﻿using AScript.Nodes;
+﻿using AScript.Lang.Go.Types;
+using AScript.Nodes;
 using AScript.Readers;
 using AScript.Syntaxs;
 using AScript.TokenHandlers;
@@ -25,7 +26,7 @@ namespace AScript.Lang.Go.TokenHandlers
 			if (e.TreeBuilder.Current == null || e.TreeBuilder.Current is OperatorNode opNode && !opNode.IsFull())
 			{
 				// 数组
-				var arrType = GoLang.ParseArrayType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore, out var arrTypeName);
+				var arrType = GoLang.ParseArrayType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore);
 				var value = ParseValue(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, arrType, e.Ignore);
 				if (!e.Ignore)
 				{
@@ -92,7 +93,7 @@ namespace AScript.Lang.Go.TokenHandlers
 			}
 		}
 
-		private static ITreeNode ParseValue(DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, Type valueType, bool ignore)
+		private static ITreeNode ParseValue(DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, GoType valueType, bool ignore)
 		{
 			if (valueType is GoArrayType goArrayType)
 			{
@@ -118,25 +119,6 @@ namespace AScript.Lang.Go.TokenHandlers
 								if (token.Value.IsSymbol(",")) continue;
 								if (token.Value.IsSymbol("}")) break;
 								throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
-								//var v1 = analyzer.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
-								//if (v1 == null)
-								//{
-								//	analyzer.ValidateNextToken(tokenReader, "}");
-								//	break;
-								//}
-								//token = analyzer.ValidateNextToken(tokenReader);
-								//if (token.Value.IsSymbol(":"))
-								//{
-								//	var v2 = analyzer.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
-								//	items?.Add(new TupleNode { Items = new[] { v1, v2 } });
-								//}
-								//else
-								//{
-								//	items?.Add(v1);
-								//	if (token.Value.IsSymbol(",")) continue;
-								//	if (token.Value.IsSymbol("}")) break;
-								//	throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
-								//}
 							}
 						}
 					}
@@ -147,8 +129,7 @@ namespace AScript.Lang.Go.TokenHandlers
 					}
 				}
 				if (ignore) return null;
-				var itemRealType = goArrayType.ItemType is GoArrayType itemGoArrayType ? itemGoArrayType.RealType : goArrayType.ItemType;
-				return new CollectionNode { CollectionType = goArrayType.RealType, ElementType = itemRealType, Items = items, Length = goArrayType.Length };
+				return new CollectionNode { CollectionType = goArrayType.RealType, ElementType = goArrayType.ItemType.RealType, Items = items, Length = goArrayType.Length };
 			}
 			else
 			{
