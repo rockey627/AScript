@@ -12,7 +12,7 @@ namespace AScript.Lang.Go
 		private string _Name;
 
 		public Type RealType { get; private set; }
-		public Type RefType { get; private set; }
+		//public Type RefType { get; private set; }
 
 		public Type ItemType { get; set; }
 		public ITreeNode Length { get; set; }
@@ -28,11 +28,12 @@ namespace AScript.Lang.Go
 				if (itemType is GoArrayType goArrayType)
 				{
 					RealType = goArrayType.RealType.MakeArrayType();
-					RefType = itemType.MakeArrayType();
+					//RefType = typeof(GoArrayType[]);// itemType.MakeArrayType();
 				}
 				else
 				{
-					RealType = RefType = itemType.MakeArrayType();
+					RealType = itemType.MakeArrayType();
+					//RefType = RealType;
 				}
 				// 
 				if (length == null)
@@ -57,11 +58,12 @@ namespace AScript.Lang.Go
 				if (itemType is GoArrayType goArrayType)
 				{
 					RealType = typeof(List<>).MakeGenericType(goArrayType.RealType);
-					RefType = typeof(List<>).MakeGenericType(itemType);
+					//RefType = typeof(List<GoArrayType>);// typeof(List<>).MakeGenericType(itemType);
 				}
 				else
 				{
-					RealType = RefType = typeof(List<>).MakeGenericType(itemType);
+					RealType = typeof(List<>).MakeGenericType(itemType);
+					//RefType = RealType;
 				}
 				// 
 				this._Name = $"[]{itemTypeName}";
