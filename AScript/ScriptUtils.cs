@@ -2028,6 +2028,7 @@ namespace AScript
 
 		public static Expression Convert(Expression v, Type type)
 		{
+			if (type == null) return v;
 			if (v.Type == type) return v;
 			// 值类型->任意类型：强制转换
 			// 任意类型->引用类型：强制转换

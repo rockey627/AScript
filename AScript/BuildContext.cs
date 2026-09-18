@@ -833,15 +833,32 @@ namespace AScript
 			}
 			if (this.ReturnType != typeof(void) && lastExpressionIndex > -1 && list.Count - 1 > lastExpressionIndex && lastExpression.Type != typeof(void))
 			{
+				bool check = false;
 				if (this.ReturnVariableExpression == null)
 				{
-					this.ReturnVariableExpression = Expression.Variable(lastExpression.Type);
+					if (lastExpression is ParameterExpression)
+					{
+						check = true;
+						list.Add(ScriptUtils.Convert(lastExpression, this.ReturnType));
+					}
+					else if (lastExpression.NodeType == ExpressionType.Assign)
+					{
+						check = true;
+						list.Add(ScriptUtils.Convert(((BinaryExpression)lastExpression).Left, this.ReturnType));
+					}
 				}
-				else if (lastExpression.Type != this.ReturnVariableExpression.Type)
+				if (!check)
 				{
-					lastExpression = Expression.Convert(lastExpression, this.ReturnVariableExpression.Type);
+					if (this.ReturnVariableExpression == null)
+					{
+						this.ReturnVariableExpression = Expression.Variable(lastExpression.Type);
+					}
+					else if (lastExpression.Type != this.ReturnVariableExpression.Type)
+					{
+						lastExpression = Expression.Convert(lastExpression, this.ReturnVariableExpression.Type);
+					}
+					list[lastExpressionIndex] = Expression.Assign(this.ReturnVariableExpression, lastExpression);
 				}
-				list[lastExpressionIndex] = Expression.Assign(this.ReturnVariableExpression, lastExpression);
 			}
 			if (this.ReturnVariableExpression != null)
 			{
