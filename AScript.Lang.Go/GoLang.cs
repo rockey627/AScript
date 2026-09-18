@@ -100,6 +100,8 @@ namespace AScript.Lang.Go
 			// 内置函数
 			AddFunc(typeof(Extensions.GoCommonExtensions));
 
+			AddFunc("make", Functions.GoMakeFunction.Instance);
+
 			// Token处理器 - 核心语句
 			AddTokenHandler("var", GoVarTokenHandler.Instance);
 			AddTokenHandler("const", new GoVarTokenHandler(Modifiers.CONST));
@@ -123,6 +125,7 @@ namespace AScript.Lang.Go
 
 			// 索引和切片
 			AddTokenHandler("[", new GoBracketTokenHandler());
+			AddTokenHandler("map", GoMapTokenHandler.Instance);
 		}
 
 		public override ITokenStream GetTokenStream(CharReader charReader)
@@ -423,12 +426,12 @@ namespace AScript.Lang.Go
 
 		public static ITreeNode ParseArrayValue(DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore, GoArrayType goArrayType)
 		{
-			List<ITreeNode> items = null;
 			var token = tokenReader.Read();
 			if (token.HasValue)
 			{
 				if (token.Value.IsSymbol("{"))
 				{
+					List<ITreeNode> items = null;
 					token = analyzer.ValidateNextToken(tokenReader);
 					if (token.Value.IsSymbol("}")) { }
 					else
@@ -446,20 +449,46 @@ namespace AScript.Lang.Go
 							throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
 						}
 					}
+					if (ignore) return null;
+					return new CollectionNode { CollectionType = goArrayType.RealType, ElementType = goArrayType.ItemType.RealType, Items = items, Length = goArrayType.Length };
 				}
-				else
-				{
-					tokenReader.Push(token.Value);
-					return ignore ? null : PoolManage.CreateObjectNode(goArrayType.RealType);
-				}
+				tokenReader.Push(token.Value);
 			}
-			if (ignore) return null;
-			return new CollectionNode { CollectionType = goArrayType.RealType, ElementType = goArrayType.ItemType.RealType, Items = items, Length = goArrayType.Length };
+			return ignore ? null : PoolManage.CreateObjectNode(goArrayType.RealType);
 		}
 
-		public static ITreeNode ParseMapValue(DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore, GoMapType goArrayType)
+		public static ITreeNode ParseMapValue(DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore, GoMapType goMapType)
 		{
-			throw new NotImplementedException();
+			var token = tokenReader.Read();
+			if (token.HasValue)
+			{
+				if (token.Value.IsSymbol("{"))
+				{
+					throw new NotImplementedException();
+					//List<ITreeNode> items = null;
+					//token = analyzer.ValidateNextToken(tokenReader);
+					//if (token.Value.IsSymbol("}")) { }
+					//else
+					//{
+					//	items = ignore ? null : new List<ITreeNode>();
+					//	// { 5, 6, 7, 5: 10 }
+					//	tokenReader.Push(token.Value);
+					//	while (true)
+					//	{
+					//		var item = ParseValue(analyzer, buildContext, scriptContext, options, tokenReader, control, ignore, goArrayType.ItemType);
+					//		if (item != null) items?.Add(item);
+					//		token = analyzer.ValidateNextToken(tokenReader);
+					//		if (token.Value.IsSymbol(",")) continue;
+					//		if (token.Value.IsSymbol("}")) break;
+					//		throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
+					//	}
+					//}
+					//if (ignore) return null;
+					//return new CollectionNode { CollectionType = goArrayType.RealType, ElementType = goArrayType.ItemType.RealType, Items = items, Length = goArrayType.Length };
+				}
+				tokenReader.Push(token.Value);
+			}
+			return ignore ? null : PoolManage.CreateObjectNode(goMapType.RealType);
 		}
 
 		//public static ITreeNode BuildBlock(int parentColumn, DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, HashSet<string> endTokens = null)

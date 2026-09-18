@@ -5,6 +5,8 @@ namespace AScript.Lang.Go.TokenHandlers
 {
 	public class GoMapTokenHandler : ITokenHandler
 	{
+		public static readonly GoMapTokenHandler Instance = new GoMapTokenHandler();
+
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;

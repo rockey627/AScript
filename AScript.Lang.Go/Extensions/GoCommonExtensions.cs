@@ -1,8 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace AScript.Lang.Go.Extensions
 {
@@ -103,61 +101,6 @@ namespace AScript.Lang.Go.Extensions
 			if (obj is Array a) return a.Length;
 			return 0;
 		}
-
-		/// <summary>
-		/// make 函数 - 创建slice/map/chan
-		/// </summary>
-		public static object make(Type type, params object[] args)
-		{
-			if (type.IsGenericType)
-			{
-				if (type.GetGenericTypeDefinition() == typeof(List<>))
-				{
-					if (args.Length == 0) return Activator.CreateInstance(type);
-					if (args.Length == 1)
-					{
-						var list = (IList)Activator.CreateInstance(type);
-						int length = (int)args[0];
-						var itemType = type.GenericTypeArguments[0];
-						object defaultValue;
-						if (itemType.IsValueType) defaultValue = Activator.CreateInstance(itemType);
-						else defaultValue = null;
-						for (int i = 0; i < length; i++)
-						{
-							list.Add(defaultValue);
-						}
-						return list;
-					}
-					else
-					{
-						int cap = (int)args[1];
-						var list = (IList)Activator.CreateInstance(type, new object[] { cap });
-						int length = (int)args[0];
-						var itemType = type.GenericTypeArguments[0];
-						object defaultValue;
-						if (itemType.IsValueType) defaultValue = Activator.CreateInstance(itemType);
-						else defaultValue = null;
-						for (int i = 0; i < length; i++)
-						{
-							list.Add(defaultValue);
-						}
-						return list;
-					}
-				}
-			}
-			throw new Exceptions.ScriptRuntimeException($"unsupport make type[{type}]");
-			//if (type == typeof(Dictionary<object, object>))
-			//{
-			//	return new Dictionary<object, object>();
-			//}
-			//if (type.Name == "Channel`1")
-			//{
-			//	// 通道类型
-			//	return new Channel<object>();
-			//}
-			//return null;
-		}
-
 
 		public static int copy<T>(List<T> dst, List<T> src)
 		{
