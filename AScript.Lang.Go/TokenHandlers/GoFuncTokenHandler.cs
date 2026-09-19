@@ -63,28 +63,7 @@ namespace AScript.Lang.Go.TokenHandlers
 			string returnType = null;
 			Type returnSystemType = null;
 			token = analyzer.ValidateNextToken(e.TokenReader);
-			if (token.Value.IsSymbol("["))
-			{
-				returnSystemType = GoLang.ParseArrayType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore);
-			}
-			else if (token.Value.Type == ETokenType.Word)
-			{
-				if (token.Value.Value == "func")
-				{
-					// 返回方法类型
-					returnSystemType = GoLang.ParseFuncType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore);
-				}
-				else
-				{
-					returnType = token.Value.Value;
-					returnSystemType = e.ScriptContext.EvalType(returnType);
-					if (returnSystemType == null)
-					{
-						throw new Exceptions.ScriptRuntimeException($"unknown return type {returnType} of func {funcName} at ({token.Value.Line},{token.Value.Column})");
-					}
-				}
-			}
-			else if (token.Value.IsSymbol("("))
+			if (token.Value.IsSymbol("("))
 			{
 				// 多返回值
 				var returnTypes = e.Ignore ? null : new List<Type>();
@@ -107,13 +86,27 @@ namespace AScript.Lang.Go.TokenHandlers
 			}
 			else
 			{
-				returnSystemType = typeof(void);
 				e.TokenReader.Push(token.Value);
+				if (GoLang.TryParseType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore, out var goType))
+				{
+					returnType = goType.Name;
+					returnSystemType = goType.RealType;
+				}
+				else if (token.Value.Type == ETokenType.Word)
+				{
+					throw new Exceptions.ScriptRuntimeException($"unknown return type {token.Value.Value} of func {funcName} at ({token.Value.Line},{token.Value.Column})");
+				}
+				else
+				{
+					returnSystemType = typeof(void);
+				}
 			}
 
 			// 解析函数体
+			analyzer.ValidateNextToken(e.TokenReader, "{");
 			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
-			var body = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, noblock: true);
+			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
+			analyzer.ValidateNextToken(e.TokenReader, "}");
 
 			if (!e.Ignore)
 			{
