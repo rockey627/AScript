@@ -708,5 +708,235 @@ m := map[string]int{
 			Assert.AreEqual(2, script.Eval("m[\"banana\"]"));
 			Assert.AreEqual(3, script.Eval("m[\"orange\"]"));
 		}
+
+		[TestMethod]
+		public void Test23_MapCompositeLiteralSliceValue()
+		{
+			var s = @"
+m := map[string][]int{
+    ""numbers"": []int{1, 2, 3},
+    ""prime"": []int{2, 3, 5, 7},
+}
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(2, script.Eval("len(m)"));
+			Assert.AreEqual(3, script.Eval("len(m[\"numbers\"])"));
+			Assert.AreEqual(1, script.Eval("m[\"numbers\"][0]"));
+			Assert.AreEqual(4, script.Eval("len(m[\"prime\"])"));
+			Assert.AreEqual(7, script.Eval("m[\"prime\"][3]"));
+		}
+
+		[TestMethod]
+		public void Test23_MapCompositeLiteralSliceValue_CompileAll()
+		{
+			var s = @"
+m := map[string][]int{
+    ""numbers"": []int{1, 2, 3},
+    ""prime"": []int{2, 3, 5, 7},
+}
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(2, script.Eval("len(m)"));
+			Assert.AreEqual(3, script.Eval("len(m[\"numbers\"])"));
+			Assert.AreEqual(1, script.Eval("m[\"numbers\"][0]"));
+			Assert.AreEqual(4, script.Eval("len(m[\"prime\"])"));
+			Assert.AreEqual(7, script.Eval("m[\"prime\"][3]"));
+		}
+
+		[TestMethod]
+		public void Test24_MapCompositeLiteralStringSliceValue()
+		{
+			var s = @"
+m := map[string][]string{
+    ""fruits"": []string{""apple"", ""banana""},
+    ""colors"": []string{""red"", ""green"", ""blue""},
+}
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(2, script.Eval("len(m)"));
+			Assert.AreEqual(2, script.Eval("len(m[\"fruits\"])"));
+			Assert.AreEqual("apple", script.Eval("m[\"fruits\"][0]"));
+			Assert.AreEqual(3, script.Eval("len(m[\"colors\"])"));
+			Assert.AreEqual("blue", script.Eval("m[\"colors\"][2]"));
+		}
+
+		[TestMethod]
+		public void Test24_MapCompositeLiteralStringSliceValue_CompileAll()
+		{
+			var s = @"
+m := map[string][]string{
+    ""fruits"": []string{""apple"", ""banana""},
+    ""colors"": []string{""red"", ""green"", ""blue""},
+}
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(2, script.Eval("len(m)"));
+			Assert.AreEqual(2, script.Eval("len(m[\"fruits\"])"));
+			Assert.AreEqual("apple", script.Eval("m[\"fruits\"][0]"));
+			Assert.AreEqual(3, script.Eval("len(m[\"colors\"])"));
+			Assert.AreEqual("blue", script.Eval("m[\"colors\"][2]"));
+		}
+
+		[TestMethod]
+		public void Test25_MapCompositeLiteralMapValue()
+		{
+			var s = @"
+m := map[string]map[string]int{
+    ""scores"": map[string]int{""math"": 90, ""english"": 85},
+    ""grades"": map[string]int{""A"": 100, ""B"": 80},
+}
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(2, script.Eval("len(m)"));
+			Assert.AreEqual(90, script.Eval("m[\"scores\"][\"math\"]"));
+			Assert.AreEqual(85, script.Eval("m[\"scores\"][\"english\"]"));
+			Assert.AreEqual(100, script.Eval("m[\"grades\"][\"A\"]"));
+			Assert.AreEqual(80, script.Eval("m[\"grades\"][\"B\"]"));
+		}
+
+		[TestMethod]
+		public void Test25_MapCompositeLiteralMapValue_CompileAll()
+		{
+			var s = @"
+m := map[string]map[string]int{
+    ""scores"": map[string]int{""math"": 90, ""english"": 85},
+    ""grades"": map[string]int{""A"": 100, ""B"": 80},
+}
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(2, script.Eval("len(m)"));
+			Assert.AreEqual(90, script.Eval("m[\"scores\"][\"math\"]"));
+			Assert.AreEqual(85, script.Eval("m[\"scores\"][\"english\"]"));
+			Assert.AreEqual(100, script.Eval("m[\"grades\"][\"A\"]"));
+			Assert.AreEqual(80, script.Eval("m[\"grades\"][\"B\"]"));
+		}
+
+		[TestMethod]
+		public void Test26_MapCompositeLiteralIntKey()
+		{
+			var s = @"
+m := map[int]string{
+    1: ""one"",
+    2: ""two"",
+    3: ""three"",
+}
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(3, script.Eval("len(m)"));
+			Assert.AreEqual("one", script.Eval("m[1]"));
+			Assert.AreEqual("two", script.Eval("m[2]"));
+			Assert.AreEqual("three", script.Eval("m[3]"));
+		}
+
+		[TestMethod]
+		public void Test26_MapCompositeLiteralIntKey_CompileAll()
+		{
+			var s = @"
+m := map[int]string{
+    1: ""one"",
+    2: ""two"",
+    3: ""three"",
+}
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(3, script.Eval("len(m)"));
+			Assert.AreEqual("one", script.Eval("m[1]"));
+			Assert.AreEqual("two", script.Eval("m[2]"));
+			Assert.AreEqual("three", script.Eval("m[3]"));
+		}
+
+		[TestMethod]
+		public void Test27_MapCompositeLiteralBoolValue()
+		{
+			var s = @"
+m := map[string]bool{
+    ""enabled"": true,
+    ""visible"": false,
+    ""active"": true,
+}
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(3, script.Eval("len(m)"));
+			Assert.AreEqual(true, script.Eval("m[\"enabled\"]"));
+			Assert.AreEqual(false, script.Eval("m[\"visible\"]"));
+			Assert.AreEqual(true, script.Eval("m[\"active\"]"));
+		}
+
+		[TestMethod]
+		public void Test27_MapCompositeLiteralBoolValue_CompileAll()
+		{
+			var s = @"
+m := map[string]bool{
+    ""enabled"": true,
+    ""visible"": false,
+    ""active"": true,
+}
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(3, script.Eval("len(m)"));
+			Assert.AreEqual(true, script.Eval("m[\"enabled\"]"));
+			Assert.AreEqual(false, script.Eval("m[\"visible\"]"));
+			Assert.AreEqual(true, script.Eval("m[\"active\"]"));
+		}
+
+		[TestMethod]
+		public void Test28_MapCompositeLiteralFloatValue()
+		{
+			var s = @"
+m := map[string]float64{
+    ""pi"": 3.14159,
+    ""e"": 2.71828,
+}
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(2, script.Eval("len(m)"));
+			Assert.AreEqual(3.14159, script.Eval("m[\"pi\"]"));
+			Assert.AreEqual(2.71828, script.Eval("m[\"e\"]"));
+		}
+
+		[TestMethod]
+		public void Test28_MapCompositeLiteralFloatValue_CompileAll()
+		{
+			var s = @"
+m := map[string]float64{
+    ""pi"": 3.14159,
+    ""e"": 2.71828,
+}
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(2, script.Eval("len(m)"));
+			Assert.AreEqual(3.14159, script.Eval("m[\"pi\"]"));
+			Assert.AreEqual(2.71828, script.Eval("m[\"e\"]"));
+		}
 	}
 }

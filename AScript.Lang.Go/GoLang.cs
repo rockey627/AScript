@@ -481,7 +481,7 @@ namespace AScript.Lang.Go
 							var key = analyzer.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
 							if (key == null) break;
 							analyzer.ValidateNextToken(tokenReader, ":");
-							var value = ParseValue(analyzer, buildContext, scriptContext, options, tokenReader, control, ignore, goMapType.ValueType);
+							var value = analyzer.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
 							if (items != null)
 							{
 								// [key] = value
