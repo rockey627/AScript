@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AScript.Lang.Go.Extensions
 {
@@ -79,6 +80,11 @@ namespace AScript.Lang.Go.Extensions
 			return arr;
 		}
 
+		public static void delete<TKey, TValue>(IDictionary<TKey, TValue> dict, TKey key)
+		{
+			dict.Remove(key);
+		}
+
 		/// <summary>
 		/// len 函数 - 返回长度
 		/// </summary>
@@ -111,33 +117,40 @@ namespace AScript.Lang.Go.Extensions
 			}
 			return n;
 		}
-		///// <summary>
-		///// println 函数
-		///// </summary>
-		//public static void println(params object[] args)
-		//{
-		//	var sb = new StringBuilder();
-		//	for (int i = 0; i < args.Length; i++)
-		//	{
-		//		if (i > 0) sb.Append(" ");
-		//		sb.Append(args[i]?.ToString() ?? "<nil>");
-		//	}
-		//	Console.WriteLine(sb.ToString());
-		//}
 
-		///// <summary>
-		///// print 函数
-		///// </summary>
-		//public static void @print(params object[] args)
-		//{
-		//	var sb = new StringBuilder();
-		//	for (int i = 0; i < args.Length; i++)
-		//	{
-		//		if (i > 0) sb.Append(" ");
-		//		sb.Append(args[i]?.ToString() ?? "<nil>");
-		//	}
-		//	Console.Write(sb.ToString());
-		//}
+#if NET45
+		public static IEnumerable<Tuple<int, T>> range<T>(IList<T> list)
+		{
+			for (int i = 0; i < list.Count; i++)
+			{
+				yield return Tuple.Create(i, list[i]);
+			}
+		}
+
+		public static IEnumerable<Tuple<TKey, TValue>> range<TKey, TValue>(IDictionary<TKey, TValue> dict)
+		{
+			foreach (var item in dict)
+			{
+				yield return Tuple.Create(item.Key, item.Value);
+			}
+		}
+#else
+		public static IEnumerable<(int, T)> range<T>(IList<T> list)
+		{
+			for (int i = 0; i < list.Count; i++)
+			{
+				yield return (i, list[i]);
+			}
+		}
+
+		public static IEnumerable<(TKey, TValue)> range<TKey, TValue>(IDictionary<TKey, TValue> dict)
+		{
+			foreach (var item in dict)
+			{
+				yield return (item.Key, item.Value);
+			}
+		}
+#endif
 
 		///// <summary>
 		///// panic 函数

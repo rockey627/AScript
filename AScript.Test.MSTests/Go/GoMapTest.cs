@@ -938,5 +938,230 @@ m := map[string]float64{
 			Assert.AreEqual(3.14159, script.Eval("m[\"pi\"]"));
 			Assert.AreEqual(2.71828, script.Eval("m[\"e\"]"));
 		}
+
+		[TestMethod]
+		public void Test29_MapForRangeSum()
+		{
+			var s = @"
+m := map[string]int{
+    ""a"": 1,
+    ""b"": 2,
+    ""c"": 3,
+}
+var sum = 0
+for k, v := range m {
+    sum += v
+}
+sum
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			Assert.AreEqual(6, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test29_MapForRangeSum_CompileAll()
+		{
+			var s = @"
+m := map[string]int{
+    ""a"": 1,
+    ""b"": 2,
+    ""c"": 3,
+}
+var sum = 0
+for k, v := range m {
+    sum += v
+}
+sum
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			Assert.AreEqual(6, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test30_MapForRangeKeys()
+		{
+			var s = @"
+m := map[string]int{
+    ""x"": 10,
+    ""y"": 20,
+}
+var keys = """"
+for k := range m {
+    keys += k
+}
+keys
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			var result = script.Eval(s) as string;
+			Assert.IsTrue(result.Contains("x"));
+			Assert.IsTrue(result.Contains("y"));
+		}
+
+		[TestMethod]
+		public void Test30_MapForRangeKeys_CompileAll()
+		{
+			var s = @"
+m := map[string]int{
+    ""x"": 10,
+    ""y"": 20,
+}
+var keys = """"
+for k := range m {
+    keys += k
+}
+keys
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			var result = script.Eval(s) as string;
+			Assert.IsTrue(result.Contains("x"));
+			Assert.IsTrue(result.Contains("y"));
+		}
+
+		[TestMethod]
+		public void Test31_MapForRangeIntKey()
+		{
+			var s = @"
+m := map[int]string{
+    1: ""one"",
+    2: ""two"",
+    3: ""three"",
+}
+var sum = 0
+for k, v := range m {
+    if k == 1 {
+        sum += 1
+    }
+    if k == 2 {
+        sum += 2
+    }
+    if k == 3 {
+        sum += 3
+    }
+}
+sum
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			Assert.AreEqual(6, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test31_MapForRangeIntKey_CompileAll()
+		{
+			var s = @"
+m := map[int]string{
+    1: ""one"",
+    2: ""two"",
+    3: ""three"",
+}
+var sum = 0
+for k, v := range m {
+    if k == 1 {
+        sum += 1
+    }
+    if k == 2 {
+        sum += 2
+    }
+    if k == 3 {
+        sum += 3
+    }
+}
+sum
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			Assert.AreEqual(6, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test32_MapForRangeStringValues()
+		{
+			var s = @"
+m := map[string]string{
+    ""greeting"": ""hello"",
+    ""farewell"": ""goodbye"",
+}
+var result = """"
+for k, v := range m {
+    if k == ""greeting"" {
+        result = v
+    }
+}
+result
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			Assert.AreEqual("hello", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test32_MapForRangeStringValues_CompileAll()
+		{
+			var s = @"
+m := map[string]string{
+    ""greeting"": ""hello"",
+    ""farewell"": ""goodbye"",
+}
+var result = """"
+for k, v := range m {
+    if k == ""greeting"" {
+        result = v
+    }
+}
+result
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			Assert.AreEqual("hello", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test33_MapForRangeWithIndex()
+		{
+			var s = @"
+m := map[string]int{
+    ""a"": 1,
+    ""b"": 2,
+    ""c"": 3,
+}
+var count = 0
+for k := range m {
+    count++
+}
+count
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			Assert.AreEqual(3, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test33_MapForRangeWithIndex_CompileAll()
+		{
+			var s = @"
+m := map[string]int{
+    ""a"": 1,
+    ""b"": 2,
+    ""c"": 3,
+}
+var count = 0
+for k := range m {
+    count++
+}
+count
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			Assert.AreEqual(3, script.Eval(s));
+		}
 	}
 }

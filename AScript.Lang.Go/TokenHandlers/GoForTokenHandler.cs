@@ -1,13 +1,12 @@
 using AScript.Nodes;
 using AScript.Syntaxs;
 using System;
-using System.Collections.Generic;
 
 namespace AScript.Lang.Go.TokenHandlers
 {
 	/// <summary>
 	/// Go语言for循环处理器
-	/// 格式1：for i := 0; i < n; i++ { }   // 传统for循环
+	/// 格式1：for i := 0; i &lt; n; i++ { }   // 传统for循环
 	/// 格式2：for condition { }              // while循环
 	/// 格式3：for { }                        // 无限循环
 	/// 格式4：for k, v := range m { }        // range循环
