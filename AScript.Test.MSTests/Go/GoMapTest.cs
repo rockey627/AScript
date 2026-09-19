@@ -669,5 +669,44 @@ m[getKey()] = 999
 			script.Eval(s);
 			Assert.AreEqual(999, script.Eval("m[getKey()]"));
 		}
+
+		[TestMethod]
+		public void Test22_MapCompositeLiteral()
+		{
+			var s = @"
+m := map[string]int{
+    ""apple"": 1,
+    ""banana"": 2,
+    ""orange"": 3,
+}
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(3, script.Eval("len(m)"));
+			Assert.AreEqual(1, script.Eval("m[\"apple\"]"));
+			Assert.AreEqual(2, script.Eval("m[\"banana\"]"));
+			Assert.AreEqual(3, script.Eval("m[\"orange\"]"));
+		}
+
+		[TestMethod]
+		public void Test22_MapCompositeLiteral_CompileAll()
+		{
+			var s = @"
+m := map[string]int{
+    ""apple"": 1,
+    ""banana"": 2,
+    ""orange"": 3,
+}
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(3, script.Eval("len(m)"));
+			Assert.AreEqual(1, script.Eval("m[\"apple\"]"));
+			Assert.AreEqual(2, script.Eval("m[\"banana\"]"));
+			Assert.AreEqual(3, script.Eval("m[\"orange\"]"));
+		}
 	}
 }

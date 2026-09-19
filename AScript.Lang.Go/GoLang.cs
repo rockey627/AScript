@@ -41,7 +41,7 @@ namespace AScript.Lang.Go
 			AddType<string>("string", false);
 			AddType<byte>("byte", false);
 			//AddType<char>("rune", false);
-			AddType<object>("any", false);
+			AddType<object>("any");
 
 			// 集合类型
 			//AddType<Dictionary<object, object>>("map");
@@ -414,7 +414,12 @@ namespace AScript.Lang.Go
 				if (token.Value.IsSymbol(":"))
 				{
 					var v2 = analyzer.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
-					return ignore ? null : new TupleNode { Items = new[] { v1, v2 } };
+					if (ignore) return null;
+					// [v1] = v2
+					var op = PoolManage.CreateOperatorNode("[]", 2, 0);
+					op.Left = v1;
+					op.Right = v2;
+					return op;
 				}
 				else
 				{
@@ -464,27 +469,39 @@ namespace AScript.Lang.Go
 			{
 				if (token.Value.IsSymbol("{"))
 				{
-					throw new NotImplementedException();
-					//List<ITreeNode> items = null;
-					//token = analyzer.ValidateNextToken(tokenReader);
-					//if (token.Value.IsSymbol("}")) { }
-					//else
-					//{
-					//	items = ignore ? null : new List<ITreeNode>();
-					//	// { 5, 6, 7, 5: 10 }
-					//	tokenReader.Push(token.Value);
-					//	while (true)
-					//	{
-					//		var item = ParseValue(analyzer, buildContext, scriptContext, options, tokenReader, control, ignore, goArrayType.ItemType);
-					//		if (item != null) items?.Add(item);
-					//		token = analyzer.ValidateNextToken(tokenReader);
-					//		if (token.Value.IsSymbol(",")) continue;
-					//		if (token.Value.IsSymbol("}")) break;
-					//		throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
-					//	}
-					//}
-					//if (ignore) return null;
-					//return new CollectionNode { CollectionType = goArrayType.RealType, ElementType = goArrayType.ItemType.RealType, Items = items, Length = goArrayType.Length };
+					List<ITreeNode> items = null;
+					token = analyzer.ValidateNextToken(tokenReader);
+					if (token.Value.IsSymbol("}")) { }
+					else
+					{
+						items = ignore ? null : new List<ITreeNode>();
+						tokenReader.Push(token.Value);
+						while (true)
+						{
+							var key = analyzer.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
+							if (key == null) break;
+							analyzer.ValidateNextToken(tokenReader, ":");
+							var value = ParseValue(analyzer, buildContext, scriptContext, options, tokenReader, control, ignore, goMapType.ValueType);
+							if (items != null)
+							{
+								// [key] = value
+								var op = PoolManage.CreateOperatorNode("[]", 2, 0);
+								op.Left = key;
+								op.Right = value;
+								items.Add(op);
+							}
+							token = analyzer.ValidateNextToken(tokenReader);
+							if (token.Value.IsSymbol(",")) continue;
+							if (token.Value.IsSymbol("}")) break;
+							throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
+						}
+					}
+					if (ignore) return null;
+					return new NewNode
+					{
+						SystemType = goMapType.RealType,
+						InitProperties = items
+					};
 				}
 				tokenReader.Push(token.Value);
 			}
