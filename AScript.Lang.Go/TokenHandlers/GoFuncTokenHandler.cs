@@ -1,7 +1,9 @@
+using AScript.Lang.Go.Types;
 using AScript.Nodes;
 using AScript.Syntaxs;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AScript.Lang.Go.TokenHandlers
 {
@@ -66,23 +68,18 @@ namespace AScript.Lang.Go.TokenHandlers
 			if (token.Value.IsSymbol("("))
 			{
 				// 多返回值
-				var returnTypes = e.Ignore ? null : new List<Type>();
+				var returnTypes = new List<GoType>();
 				while (true)
 				{
-					var typeToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
-					var type = e.ScriptContext.EvalType(typeToken.Value.Value);
-					if (type == null)
-					{
-						throw new Exceptions.ScriptRuntimeException($"unknown return type {returnType} of func {funcName} at ({token.Value.Line},{token.Value.Column})");
-					}
-					returnTypes?.Add(type);
+					var type = GoLang.ParseType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore);
+					returnTypes.Add(type);
 					token = analyzer.ValidateNextToken(e.TokenReader);
 					if (token.Value.IsSymbol(",")) continue;
 					if (token.Value.IsSymbol(")")) break;
 					throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' near func {funcName} at ({token.Value.Line},{token.Value.Column})");
 				}
-				returnType = null;
-				returnSystemType = ScriptUtils.GetTupleType(returnTypes.ToArray());
+				returnType = $"({string.Join(",", returnTypes.Select(a => a.Name))})";
+				returnSystemType = ScriptUtils.GetTupleType(returnTypes.Select(a => a.RealType).ToArray());
 			}
 			else
 			{
