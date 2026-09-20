@@ -7,6 +7,11 @@ namespace AScript
 		private Func<BaseContext, object> _OnInstall;
 		private Action<BaseContext> _OnUninstall;
 
+		public static ScriptModuleBuilder Create()
+		{
+			return new ScriptModuleBuilder();
+		}
+
 		public ScriptModuleBuilder OnInstall(Func<BaseContext, object> onInstall)
 		{
 			_OnInstall = onInstall;
