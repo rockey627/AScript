@@ -93,8 +93,13 @@ namespace AScript.Lang.Go
 
 			// 内置函数
 			AddFunc(typeof(Extensions.GoCommonExtensions));
+			AddFunc(typeof(Extensions.GoConvertExtensions));
 
 			AddFunc("make", Functions.GoMakeFunction.Instance);
+
+			AddFunc("import", InstallModuleFunction.Instance);
+
+			AddModule("strconv", new SingleTypeScriptModule<Extensions.strconv>());
 
 			// Token处理器 - 核心语句
 			AddTokenHandler("var", GoVarTokenHandler.Instance);
@@ -119,7 +124,10 @@ namespace AScript.Lang.Go
 
 			// 索引和切片
 			AddTokenHandler("[", GoBracketTokenHandler.Instance);
+			// 集合
 			AddTokenHandler("map", GoMapTokenHandler.Instance);
+
+			AddTokenHandler("import", GoImportTokenHandler.Instance);
 		}
 
 		public override ITokenStream GetTokenStream(CharReader charReader)

@@ -18,74 +18,38 @@ namespace AScript.Lang.Go.TokenHandlers
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;
-			e.End = true;
-
 			if (e.TreeBuilder.IsFullStatement())
 			{
+				e.End = true;
 				e.TokenReader.Push(e.CurrentToken);
 				return;
 			}
-
-			var token = e.TokenReader.Read();
-			if (!token.HasValue)
+			string moduleName;
+			var nextToken = analyzer.ValidateNextToken(e.TokenReader);
+			if (nextToken.Value.IsSymbol("("))
 			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid import at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
+				moduleName = analyzer.ValidateNextToken(e.TokenReader, ETokenType.String).Value.Value;
+				analyzer.ValidateNextToken(e.TokenReader, ")");
 			}
-
-			// import ( ... ) 多重导入
-			if (token.Value.IsSymbol("("))
+			else if (nextToken.Value.Type == ETokenType.String)
 			{
-				while (true)
-				{
-					token = e.TokenReader.Read();
-					if (!token.HasValue) break;
-					if (token.Value.IsSymbol(")")) break;
-					if (token.Value.Type == ETokenType.String)
-					{
-						if (!e.Ignore)
-						{
-							var importNode = new Nodes.ImportNode { Path = token.Value.Value };
-							e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, importNode);
-						}
-					}
-					else if (token.Value.Type == ETokenType.Word)
-					{
-						// import alias "path"
-						string alias = token.Value.Value;
-						token = e.TokenReader.Read();
-						if (token.HasValue && token.Value.Type == ETokenType.String)
-						{
-							if (!e.Ignore)
-							{
-								var importNode = new Nodes.ImportNode { Path = token.Value.Value, Alias = alias };
-								e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, importNode);
-							}
-						}
-					}
-				}
+				moduleName = nextToken.Value.Value;
 			}
-			else if (token.Value.Type == ETokenType.String)
+			else
 			{
-				// import "path"
-				if (!e.Ignore)
-				{
-					var importNode = new Nodes.ImportNode { Path = token.Value.Value };
-					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, importNode);
-				}
+				throw new Exceptions.ScriptAnalyzingException($"invalid '{nextToken.Value.Value}' near '{e.CurrentToken.Value}' at ({nextToken.Value.Line},{nextToken.Value.Column})");
 			}
-			else if (token.Value.Type == ETokenType.Word)
+			if (!e.Ignore)
 			{
-				// import alias "path"
-				string alias = token.Value.Value;
-				token = e.TokenReader.Read();
-				if (token.HasValue && token.Value.Type == ETokenType.String)
+				var callFuncNode = new CallFuncNode
 				{
-					if (!e.Ignore)
+					Name = e.CurrentToken.Value,
+					Args = new ITreeNode[]
 					{
-						var importNode = new Nodes.ImportNode { Path = token.Value.Value, Alias = alias };
-						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, importNode);
+						PoolManage.CreateObjectNode(moduleName)
 					}
-				}
+				};
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, callFuncNode);
 			}
 		}
 	}
