@@ -43,12 +43,6 @@ namespace AScript.Lang.Go
 			//AddType<char>("rune", false);
 			AddType<object>("any");
 
-			// 集合类型
-			//AddType<Dictionary<object, object>>("map");
-			//AddType<List<object>>("slice");
-			//AddType<List<object>>("array");
-			//AddType<object[]>("[...]");
-
 			// 赋值运算符
 			AddFunc("=", AssignOperator.Instance);
 			AddFunc(":=", AssignOperator.Instance);
@@ -124,7 +118,7 @@ namespace AScript.Lang.Go
 			AddTokenHandler("...", IgnoreTokenHandler.Instance);
 
 			// 索引和切片
-			AddTokenHandler("[", new GoBracketTokenHandler());
+			AddTokenHandler("[", GoBracketTokenHandler.Instance);
 			AddTokenHandler("map", GoMapTokenHandler.Instance);
 		}
 
@@ -479,7 +473,11 @@ namespace AScript.Lang.Go
 						while (true)
 						{
 							var key = analyzer.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
-							if (key == null) break;
+							if (key == null)
+							{
+								analyzer.ValidateNextToken(tokenReader, "}");
+								break;
+							}
 							analyzer.ValidateNextToken(tokenReader, ":");
 							var value = analyzer.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
 							if (items != null)

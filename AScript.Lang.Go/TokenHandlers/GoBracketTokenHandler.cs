@@ -1,10 +1,7 @@
-﻿using AScript.Lang.Go.Types;
-using AScript.Nodes;
-using AScript.Readers;
+﻿using AScript.Nodes;
 using AScript.Syntaxs;
 using AScript.TokenHandlers;
 using System;
-using System.Collections.Generic;
 
 namespace AScript.Lang.Go.TokenHandlers
 {
@@ -15,6 +12,8 @@ namespace AScript.Lang.Go.TokenHandlers
 	/// </summary>
 	public class GoBracketTokenHandler : BracketTokenHandler
 	{
+		public static readonly GoBracketTokenHandler Instance = new GoBracketTokenHandler();
+
 		public GoBracketTokenHandler() : base(typeof(Array))
 		{
 		}

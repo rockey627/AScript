@@ -1,6 +1,7 @@
 using AScript.Nodes;
 using AScript.Syntaxs;
 using System;
+using System.Collections.ObjectModel;
 
 namespace AScript.Lang.Go.TokenHandlers
 {
@@ -28,11 +29,7 @@ namespace AScript.Lang.Go.TokenHandlers
 			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
 
 			// 查看下一个token确定for循环类型
-			var token = e.TokenReader.Read();
-			if (!token.HasValue)
-			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid for expression at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
-			}
+			var token = analyzer.ValidateNextToken(e.TokenReader);
 
 			// 无限循环：for { }
 			if (token.Value.IsSymbol("{"))
@@ -47,27 +44,8 @@ namespace AScript.Lang.Go.TokenHandlers
 				return;
 			}
 
-			// 检查是否有分号，判断是否是传统for循环
-			e.TokenReader.Push(token.Value);
-
-			// 读取更多token来判断
-			token = e.TokenReader.Read();
-			if (!token.HasValue)
+			if (TryParseRange(analyzer, e, createFullOptions, token))
 			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid for expression at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
-			}
-
-			// range循环：for k, v := range m { }
-			if (token.Value.Value == "range")
-			{
-				// 简化处理，range m
-				var collection = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
-				var body = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, noblock: true);
-				if (!e.Ignore)
-				{
-					var foreachNode = new ForeachNode { Collection = collection, Body = body };
-					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, foreachNode);
-				}
 				return;
 			}
 
@@ -77,12 +55,7 @@ namespace AScript.Lang.Go.TokenHandlers
 			// 尝试解析第一个语句
 			var first = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
 
-			token = e.TokenReader.Read();
-			if (!token.HasValue)
-			{
-				throw new Exceptions.ScriptAnalyzingException($"invalid for expression at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
-			}
-
+			token = analyzer.ValidateNextToken(e.TokenReader);
 			if (token.Value.IsSymbol(";"))
 			{
 				// 传统for循环：for init; condition; post { }
@@ -91,7 +64,6 @@ namespace AScript.Lang.Go.TokenHandlers
 				token = analyzer.ValidateNextToken(e.TokenReader, ";");
 				var post = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
 				var body = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, noblock: true);
-
 				if (!e.Ignore)
 				{
 					var forNode = new ForNode { Init = init, Condition = condition, Post = post, Body = body };
@@ -104,13 +76,99 @@ namespace AScript.Lang.Go.TokenHandlers
 				e.TokenReader.Push(token.Value);
 				var condition = first;
 				var body = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, noblock: true);
-
 				if (!e.Ignore)
 				{
 					var forNode = new ForNode { Condition = condition, Body = body };
 					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, forNode);
 				}
 			}
+		}
+
+		// for k, v := range m { }
+		private bool TryParseRange(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e, BuildOptions createFullOptions, Token? token)
+		{
+			if (token.Value.Type != ETokenType.Word) return false;
+
+			var nextToken = analyzer.ValidateNextToken(e.TokenReader);
+
+			if (nextToken.Value.IsSymbol(","))
+			{
+				var token2 = analyzer.ValidateNextToken(e.TokenReader);
+				if (token2.Value.Type != ETokenType.Word)
+				{
+					e.TokenReader.Push(token2.Value);
+					e.TokenReader.Push(nextToken.Value);
+					return false;
+				}
+				// =或者:=
+				var nextToken2 = analyzer.ValidateNextToken(e.TokenReader);
+				if (!nextToken2.Value.IsSymbol("=") && !nextToken2.Value.IsSymbol(":="))
+				{
+					e.TokenReader.Push(nextToken2.Value);
+					e.TokenReader.Push(token2.Value);
+					e.TokenReader.Push(nextToken.Value);
+					return false;
+				}
+				// range
+				var rangeToken = analyzer.ValidateNextToken(e.TokenReader);
+				if (!rangeToken.Value.IsSymbol("range"))
+				{
+					e.TokenReader.Push(rangeToken.Value);
+					e.TokenReader.Push(nextToken2.Value);
+					e.TokenReader.Push(token2.Value);
+					e.TokenReader.Push(nextToken.Value);
+					return false;
+				}
+				// list
+				var list = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
+				var body = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, noblock: true);
+				if (!e.Ignore)
+				{
+					var foreachNode = new ForeachNode
+					{
+						Collection = new CallFuncNode { Name = "range", Args = new[] { list } },
+						Body = body,
+						VarDefines = new[] 
+						{
+							new DefineVarNode(token.Value.Value),
+							new DefineVarNode(token2.Value.Value)
+						}
+					};
+					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, foreachNode);
+				}
+				return true;
+			}
+
+			if (nextToken.Value.IsSymbol("=") || nextToken.Value.IsSymbol(":="))
+			{
+				var rangeToken = analyzer.ValidateNextToken(e.TokenReader);
+				if (!rangeToken.Value.IsSymbol("range"))
+				{
+					e.TokenReader.Push(rangeToken.Value);
+					e.TokenReader.Push(nextToken.Value);
+					return false;
+				}
+				var list = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
+				var body = analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, noblock: true);
+				if (!e.Ignore)
+				{
+					var foreachNode = new ForeachNode
+					{
+						Collection = new CallFuncNode { Name = "range", Args = new[] { list } },
+						Body = body,
+						VarDefines = new[]
+						{
+							new DefineVarNode(token.Value.Value)
+						}
+					};
+					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, foreachNode);
+				}
+				return true;
+			}
+
+			// 
+			e.TokenReader.Push(nextToken.Value);
+			return false;
 		}
 	}
 }

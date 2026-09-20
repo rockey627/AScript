@@ -996,9 +996,7 @@ keys
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "go" };
-			var result = script.Eval(s) as string;
-			Assert.IsTrue(result.Contains("x"));
-			Assert.IsTrue(result.Contains("y"));
+			Assert.AreEqual("xy", script.Eval(s));
 		}
 
 		[TestMethod]
@@ -1018,9 +1016,7 @@ keys
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "go" };
-			var result = script.Eval(s) as string;
-			Assert.IsTrue(result.Contains("x"));
-			Assert.IsTrue(result.Contains("y"));
+			Assert.AreEqual("xy", script.Eval(s));
 		}
 
 		[TestMethod]
