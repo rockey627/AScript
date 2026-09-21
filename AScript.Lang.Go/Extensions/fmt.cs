@@ -19,13 +19,26 @@ namespace AScript.Lang.Go.Extensions
 			Console.WriteLine(string.Join(" ", args));
 		}
 
+		public static void Println()
+		{
+			Console.WriteLine();
+		}
+
 		public static void Println(object v1)
 		{
 			Console.WriteLine(v1);
 		}
+
 		public static void Println(object v1, object v2)
 		{
 			Console.WriteLine(v1?.ToString() + " " + v2?.ToString());
+		}
+
+		public static void Printf(string format, params object[] args)
+		{
+			int argIndex = 0;
+			var netFormat = System.Text.RegularExpressions.Regex.Replace(format, @"%[sdf]", match => "{" + argIndex++ + "}");
+			Console.Write(string.Format(netFormat, args));
 		}
 	}
 }
