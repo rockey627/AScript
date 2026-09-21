@@ -1,6 +1,7 @@
 using AScript.Nodes;
 using AScript.Syntaxs;
 using System;
+using System.Collections.Generic;
 
 namespace AScript.Lang.Go.TokenHandlers
 {
@@ -24,16 +25,45 @@ namespace AScript.Lang.Go.TokenHandlers
 				e.TokenReader.Push(e.CurrentToken);
 				return;
 			}
-			string moduleName;
 			var nextToken = analyzer.ValidateNextToken(e.TokenReader);
+			if (nextToken.Value.Type == ETokenType.Word)
+			{
+				// import name "path"
+				var name = nextToken.Value.Value;
+				var moduleName = analyzer.ValidateNextToken(e.TokenReader, ETokenType.String);
+				if (!e.Ignore)
+				{
+					var assign = PoolManage.CreateOperatorNode("=", 2, 0);
+					assign.Left = PoolManage.CreateDefineVarNode(name, null);
+					assign.Right = new CallFuncNode
+					{
+						Name = e.CurrentToken.Value,
+						Args = new ITreeNode[]
+						{
+							PoolManage.CreateObjectNode(moduleName)
+						}
+					};
+					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, assign);
+				}
+				return;
+			}
+			// 
+			var moduleNameNodes = e.Ignore ? null : new List<ITreeNode>();
 			if (nextToken.Value.IsSymbol("("))
 			{
-				moduleName = analyzer.ValidateNextToken(e.TokenReader, ETokenType.String).Value.Value;
-				analyzer.ValidateNextToken(e.TokenReader, ")");
+				while (true)
+				{
+					var moduleName = analyzer.ValidateNextToken(e.TokenReader, ETokenType.String).Value.Value;
+					moduleNameNodes?.Add(PoolManage.CreateObjectNode(moduleName));
+					nextToken = analyzer.ValidateNextToken(e.TokenReader);
+					if (nextToken.Value.IsSymbol(")")) break;
+					e.TokenReader.Push(nextToken.Value);
+				}
 			}
 			else if (nextToken.Value.Type == ETokenType.String)
 			{
-				moduleName = nextToken.Value.Value;
+				var moduleName = nextToken.Value.Value;
+				moduleNameNodes?.Add(PoolManage.CreateObjectNode(moduleName));
 			}
 			else
 			{
@@ -44,10 +74,7 @@ namespace AScript.Lang.Go.TokenHandlers
 				var callFuncNode = new CallFuncNode
 				{
 					Name = e.CurrentToken.Value,
-					Args = new ITreeNode[]
-					{
-						PoolManage.CreateObjectNode(moduleName)
-					}
+					Args = moduleNameNodes.ToArray()
 				};
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, callFuncNode);
 			}
