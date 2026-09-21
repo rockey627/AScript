@@ -113,8 +113,10 @@ namespace AScript.Lang.Go
 			AddTokenHandler("break", BreakTokenHandler.Instance);
 			AddTokenHandler("continue", ContinueTokenHandler.Instance);
 			AddTokenHandler("switch", new CaseWhenTokenHandler("case", true));
+			AddTokenHandler("go", GoGoTokenHandler.Instance);
+			AddTokenHandler("import", GoImportTokenHandler.Instance);
 
-			// 关键字
+			// 常量
 			AddTokenHandler("nil", NullTokenHandler.Instance);
 			AddTokenHandler("true", BoolTokenHandler.Instance);
 			AddTokenHandler("false", BoolTokenHandler.Instance);
@@ -128,8 +130,6 @@ namespace AScript.Lang.Go
 			AddTokenHandler("[", GoBracketTokenHandler.Instance);
 			// 集合
 			AddTokenHandler("map", GoMapTokenHandler.Instance);
-
-			AddTokenHandler("import", GoImportTokenHandler.Instance);
 		}
 
 		public override ITokenStream GetTokenStream(CharReader charReader)

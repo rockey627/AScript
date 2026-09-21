@@ -3,7 +3,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
-using AScript;
 
 namespace AScript.Lang.Go.Nodes
 {
@@ -29,15 +28,23 @@ namespace AScript.Lang.Go.Nodes
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
-			var body = this.Body.Build(buildContext, scriptContext, options);
-			var lambda = buildContext.Build(scriptContext, options, body);
+			var tmpBuildContext = new BuildContext(buildContext)
+			{
+				ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
+				RewriteLocalVariables = false,
+				IsMain = true
+			};
+			var body = this.Body.Build(tmpBuildContext, scriptContext, options);
+			var lambda = tmpBuildContext.Build(scriptContext, options, body);
 			// Task.Run(()=>...)
 			if (lambda.ReturnType == typeof(void))
 			{
+				return Expression.Call(Method_Task_Run, lambda);
 			}
 			else
 			{
-
+				var genericMethod = Method_Task_Run_T.MakeGenericMethod(lambda.ReturnType);
+				return Expression.Call(genericMethod, lambda);
 			}
 		}
 
