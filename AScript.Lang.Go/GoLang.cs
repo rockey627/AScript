@@ -99,7 +99,8 @@ namespace AScript.Lang.Go
 
 			AddFunc("import", InstallModuleFunction.Instance);
 
-			AddModule("strconv", new SingleTypeScriptModule<Extensions.strconv>());
+			AddModule("strconv", new SingleTypeScriptModule<Extensions.strconv>(2));
+			AddModule("fmt", new SingleTypeScriptModule<Extensions.fmt>(2));
 
 			// Token处理器 - 核心语句
 			AddTokenHandler("var", GoVarTokenHandler.Instance);

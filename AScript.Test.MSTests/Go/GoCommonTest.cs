@@ -1456,5 +1456,30 @@ var p = &a
 			script.Eval(s);
 			Assert.AreEqual(10, script.Eval("*p"));
 		}
+
+		[TestMethod]
+		public void Test45_fmt_Println()
+		{
+			var s = @"
+import 'fmt'
+fmt.Println('hello', 'world')
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+		}
+
+		[TestMethod]
+		public void Test45_fmt_Println_CompileAll()
+		{
+			var s = @"
+import 'fmt'
+fmt.Println('hello', 'world')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+		}
 	}
 }

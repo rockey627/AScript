@@ -18,9 +18,9 @@ namespace AScript.Lang.Go.TokenHandlers
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
 		{
 			e.IsHandled = true;
+			e.End = true;
 			if (e.TreeBuilder.IsFullStatement())
 			{
-				e.End = true;
 				e.TokenReader.Push(e.CurrentToken);
 				return;
 			}
