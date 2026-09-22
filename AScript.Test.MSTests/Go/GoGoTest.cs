@@ -155,7 +155,7 @@ var result = 0
 go func() {
     result = 42
 }()
-time.Sleep(100)
+time.Sleep(1000)
 result
 ";
 			var script = new Script();
@@ -173,7 +173,7 @@ var result = 0
 go func() {
     result = 42
 }()
-time.Sleep(100)
+time.Sleep(1000)
 result
 ";
 			var script = new Script();

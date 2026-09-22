@@ -106,6 +106,39 @@ namespace AScript.Lang.Go.TokenHandlers
 			var body = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
 			analyzer.ValidateNextToken(e.TokenReader, "}");
 
+			// 匿名方法判断是否立即调用
+			if (string.IsNullOrEmpty(funcName))
+			{
+				token = e.TokenReader.Read();
+				if (token.HasValue)
+				{
+					if (token.Value.IsSymbol("("))
+					{
+						// 解析参数列表
+						var callArgs = analyzer.BuildFuncParams(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+						if (!e.Ignore)
+						{
+							var defineNode = new DefineFuncNode
+							{
+								Name = funcName,
+								Args = args?.ToArray(),
+								Body = body,
+								ReturnSystemType = returnSystemType,
+								ReturnType = returnType
+							};
+							var callNode = new CallFuncNode
+							{
+								Method = defineNode,
+								Args = callArgs?.ToArray()
+							};
+							e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, callNode);
+						}
+						return;
+					}
+					e.TokenReader.Push(token.Value);
+				}
+			}
+
 			if (!e.Ignore)
 			{
 				var defineNode = new DefineFuncNode
