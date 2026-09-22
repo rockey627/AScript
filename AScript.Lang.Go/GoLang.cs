@@ -1,4 +1,5 @@
 using AScript.Functions;
+using AScript.Lang.Go.Nodes;
 using AScript.Lang.Go.Operators;
 using AScript.Lang.Go.TokenHandlers;
 using AScript.Lang.Go.Types;
@@ -101,6 +102,7 @@ namespace AScript.Lang.Go
 
 			AddModule("strconv", new SingleTypeScriptModule<Extensions.strconv>(2));
 			AddModule("fmt", new SingleTypeScriptModule<Extensions.fmt>(2));
+			AddModule("sync", new SingleTypeScriptModule<Extensions.sync>(2));
 			AddModule("time", new Extensions.TimeScriptModule());
 
 			// Token处理器 - 核心语句
@@ -191,9 +193,9 @@ namespace AScript.Lang.Go
 		/// <para>a int, b string</para>
 		/// </summary>
 		/// <returns></returns>
-		public static List<DefineVarNode> ParseDefineVars(DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, bool ignore)
+		public static List<GoDefineVarNode> ParseDefineVars(DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, bool ignore)
 		{
-			var defines = ignore ? null : new List<DefineVarNode>();
+			var defines = ignore ? null : new List<GoDefineVarNode>();
 			Token? nextToken;
 			while (true)
 			{
@@ -207,16 +209,21 @@ namespace AScript.Lang.Go
 						for (int i = 0; i < defines.Count; i++)
 						{
 							var defineVar = defines[i];
-							if (defineVar.SystemType == null)
+							if (defineVar.GoType == null)
 							{
-								defineVar.Type = type.Name;
-								defineVar.SystemType = type.RealType;
+								defineVar.GoType = type;
 							}
+							//if (defineVar.SystemType == null)
+							//{
+							//	defineVar.Type = type.Name;
+							//	defineVar.SystemType = type.RealType;
+							//}
 						}
 					}
 				}
 
-				defines?.Add(PoolManage.CreateDefineVarNode(varName, type?.Name, type?.RealType));
+				defines?.Add(new GoDefineVarNode(varName, type));
+				//defines?.Add(PoolManage.CreateDefineVarNode(varName, type?.Name, type?.RealType));
 
 				nextToken = tokenReader.Read();
 				if (!nextToken.HasValue) break;
@@ -261,11 +268,15 @@ namespace AScript.Lang.Go
 
 			if (nextToken.Value.Type == ETokenType.Word)
 			{
-				var typeName = nextToken.Value.Value;
-				var runtimeType = scriptContext.EvalType(typeName);
-				if (runtimeType != null)
+				//var typeName = nextToken.Value.Value;
+				//var runtimeType = scriptContext.EvalType(typeName);
+				//if (runtimeType != null)
+				//{
+				//	type = new GoRuntimeType(typeName, runtimeType);
+				//	return true;
+				//}
+				if (TryParseWordType(analyzer, buildContext, scriptContext, options, tokenReader, nextToken.Value, out type))
 				{
-					type = new GoRuntimeType(typeName, runtimeType);
 					return true;
 				}
 			}
@@ -299,13 +310,64 @@ namespace AScript.Lang.Go
 
 			if (token.Value.Type == ETokenType.Word)
 			{
-				var typeName = token.Value.Value;
-				var type = scriptContext.EvalType(typeName);
-				if (type == null) throw new Exceptions.ScriptAnalyzingException($"unknown type '{typeName}' at ({token.Value.Line},{token.Value.Column})");
-				return new GoRuntimeType(typeName, type);
+				//var typeName = token.Value.Value;
+				//var type = scriptContext.EvalType(typeName);
+				//if (type == null) throw new Exceptions.ScriptAnalyzingException($"unknown type '{typeName}' at ({token.Value.Line},{token.Value.Column})");
+				//return new GoRuntimeType(typeName, type);
+				return ParseWordType(analyzer, buildContext, scriptContext, options, tokenReader, token.Value);
 			}
 
 			throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column}), expect type");
+		}
+
+		public static bool TryParseWordType(DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, Token word, out GoType type)
+		{
+			var typeName = word.Value;
+			var nextToken = tokenReader.Read();
+			if (nextToken.HasValue)
+			{
+				if (nextToken.Value.IsSymbol("."))
+				{
+					var token2 = tokenReader.Read();
+					if (token2.HasValue)
+					{
+						if (token2.Value.Type == ETokenType.Word)
+						{
+							// sync.Mutex
+							var instance = scriptContext.EvalVar(word.Value);
+							if (instance is TypeWrapper wrapper)
+							{
+								var runtimeType2 = wrapper.Type.GetNestedType(token2.Value.Value);
+								if (runtimeType2 != null)
+								{
+									typeName = $"{word.Value}.{token2.Value.Value}";
+									type = new GoRuntimeType(typeName, runtimeType2);
+									return true;
+								}
+							}
+						}
+						tokenReader.Push(token2.Value);
+					}
+				}
+				tokenReader.Push(nextToken.Value);
+			}
+			var runtimeType = scriptContext.EvalType(typeName);
+			if (runtimeType != null)
+			{
+				type = new GoRuntimeType(typeName, runtimeType);
+				return true;
+			}
+			type = null;
+			return false;
+		}
+
+		public static GoType ParseWordType(DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, Token word)
+		{
+			if (!TryParseWordType(analyzer, buildContext, scriptContext, options, tokenReader, word, out var type))
+			{
+				throw new Exceptions.ScriptAnalyzingException($"unknown type '{word.Value}' at ({word.Line},{word.Column})");
+			}
+			return type;
 		}
 
 		/// <summary>

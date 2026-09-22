@@ -1,3 +1,5 @@
+using AScript.Lang.Go.Nodes;
+using AScript.Lang.Go.Types;
 using AScript.Nodes;
 using AScript.Syntaxs;
 using System;
@@ -119,18 +121,38 @@ namespace AScript.Lang.Go.TokenHandlers
 
 				if (defines != null && defines.Count > 0)
 				{
-					if (defines.Count == 1)
+					//if (defines.Count == 1)
+					//{
+					//	e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, defines[0]);
+					//}
+					//else
+					//{
+					//	var multNode = new MultiNode
+					//	{
+					//		Nodes = new List<ITreeNode>(defines)
+					//	};
+					//	e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, multNode);
+					//}
+					var multNode = new MultiNode { Nodes = new List<ITreeNode>() };
+					foreach (var item in defines)
 					{
-						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, defines[0]);
-					}
-					else
-					{
-						var multNode = new MultiNode
+						multNode.Nodes.Add(item);
+						//if (goDefineVarNode.GoType is GoArrayType goArrayType && goArrayType.IsArray)
+						//{
+
+						//}
+						if (item.GoType is GoRuntimeType goRuntimeType && goRuntimeType.RealType.IsClass)
 						{
-							Nodes = new List<ITreeNode>(defines)
-						};
-						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, multNode);
+							var assign = new OperatorNode("=", 0, 2)
+							{
+								Left = new VariableNode(item.Name),
+								Right = new NewNode { SystemType = item.SystemType }
+							};
+							multNode.Nodes.Add(assign);
+							continue;
+						}
 					}
+					e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, multNode);
 				}
 			}
 		}

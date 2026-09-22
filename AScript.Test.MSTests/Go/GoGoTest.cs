@@ -101,10 +101,13 @@ result
 		public void Test03_GoMultipleGoroutines()
 		{
 			var s = @"
-import(""time"")
+import('time' 'sync')
+var mutex sync.Mutex
 var counter = 0
 func increment() {
+	mutex.Lock()
     counter = counter + 1
+	mutex.Unlock()
 }
 go increment()
 go increment()
@@ -122,10 +125,13 @@ counter
 		public void Test03_GoMultipleGoroutines_CompileAll()
 		{
 			var s = @"
-import(""time"")
+import('time' 'sync')
+var mutex sync.Mutex
 var counter = 0
 func increment() {
+	mutex.Lock()
     counter = counter + 1
+	mutex.Unlock()
 }
 go increment()
 go increment()

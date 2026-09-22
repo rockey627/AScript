@@ -1,3 +1,4 @@
+using AScript.Lang.Go.Nodes;
 using AScript.Lang.Go.Types;
 using AScript.Nodes;
 using AScript.Syntaxs;
@@ -47,7 +48,7 @@ namespace AScript.Lang.Go.TokenHandlers
 				throw new Exceptions.ScriptAnalyzingException($"invalid function token '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
 			}
 
-			List<DefineVarNode> args;
+			List<GoDefineVarNode> args;
 			token = analyzer.ValidateNextToken(e.TokenReader);
 			if (token.Value.IsSymbol(")"))
 			{
