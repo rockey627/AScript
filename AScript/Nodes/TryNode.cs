@@ -122,7 +122,10 @@ namespace AScript.Nodes
 			{
 				finallyExpr = Expression.Empty();
 			}
-
+			if (tryExpr == null)
+			{
+				return finallyExpr;
+			}
 			return Expression.TryCatchFinally(tryExpr, finallyExpr, catchBlocks);
 		}
 
