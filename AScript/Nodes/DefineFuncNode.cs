@@ -29,7 +29,6 @@ namespace AScript.Nodes
 			{
 				var tempBuildContext = new BuildContext
 				{
-					//ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
 					RewriteLocalVariables = false,
 					ReturnType = funcReturnType,
 					IsMain = true
@@ -51,7 +50,7 @@ namespace AScript.Nodes
 				var body = this.Body.Build(tempBuildContext, context, funcOptions);
 				var func = tempBuildContext.Compile(context, options, body);
 				returnType = func.GetType();
-				if (!string.IsNullOrEmpty(this.Name) && this.Name != "_")
+				if (!IsAnonymous(this.Name))
 				{
 					context.AddTempFunc(this.Name, func);
 				}
@@ -59,8 +58,8 @@ namespace AScript.Nodes
 			}
 			else
 			{
-				string[] argNames;// = new string[this.Args.Length];
-				Type[] argTypes;// = new Type[this.Args.Length];
+				string[] argNames;
+				Type[] argTypes;
 				if (this.Args != null && this.Args.Length > 0)
 				{
 					argNames = new string[this.Args.Length];
@@ -82,37 +81,18 @@ namespace AScript.Nodes
 					argNames = null;
 					argTypes = null;
 				}
-				//string name = this.Name;
-				//if (this.Name == "_")
-				//{
-				//	int hashCode = this.Body.GetHashCode();
-				//	if (hashCode < 0)
-				//	{
-				//		name += "_" + (-hashCode);
-				//	}
-				//	else
-				//	{
-				//		name += hashCode;
-				//	}
-				//	name += DateTime.Now.ToString("HHmmssfff");
-				//}
 				var customFunc = new CustomFunction(funcReturnType, argNames, argTypes, this.Body);
-				if (!string.IsNullOrEmpty(this.Name) && this.Name != "_")
+				if (!IsAnonymous(this.Name))
 				{
 					context.AddFunc(this.Name, customFunc);
 				}
 				returnType = typeof(CustomFunctionObject);
 				return new CustomFunctionObject(customFunc, context);
-				//var d = ExpressionUtils.CompileEval(context, name, argTypes, funcReturnType);
-				//returnType = d.GetType();
-				//return d;
 			}
 		}
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 		{
-			//// 构建临时上下文
-			//var tempScriptContextExpression = Expression.Call(ExpressionUtils.Method_ScriptContext_Create2, buildContext.ScriptContextParameter ?? ExpressionUtils.Parameter_ScriptContext, ExpressionUtils.Constant_false);
 			var funcReturnType = this.ReturnSystemType;
 			if (funcReturnType == null && !string.IsNullOrEmpty(this.ReturnType))
 			{
@@ -124,7 +104,6 @@ namespace AScript.Nodes
 			}
 			var tempBuildContext = new BuildContext(buildContext)
 			{
-				//ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
 				RewriteLocalVariables = false,
 				ReturnType = funcReturnType,
 				DelegateType = this.DelegateType,
@@ -150,12 +129,10 @@ namespace AScript.Nodes
 				}
 			}
 			// 匿名函数不生成函数头定义
-			var delegateDefine = IsAnonymous(this.Name) ? null : buildContext.AddDelegateDefine(this.Name, argTypes, funcReturnType);
+			bool isAnonymous = IsAnonymous(this.Name);
+			var delegateDefine = isAnonymous ? null : buildContext.AddDelegateDefine(this.Name, argTypes, funcReturnType);
 			var buildOptions = new BuildOptions(options) { UseCompletionResult = false };
 			var body = this.Body.Build(tempBuildContext, scriptContext, buildOptions);
-			// 有闭包参数，只能通过DynamicInvoke调用，无法用Expression.Call调用
-			//var d = tempBuildContext.Compile(scriptContext, body);
-			//var dExpr = Expression.Constant(d);
 			// 如果函数未定义返回类型，但是有递归调用，此时无法自动根据函数体推导返回类型，强制定义为object类型
 			if (funcReturnType == null && delegateDefine?.Variable != null)
 			{
@@ -163,6 +140,7 @@ namespace AScript.Nodes
 			}
 			// 生成LambdaExpression
 			var lambda = tempBuildContext.Build(scriptContext, buildOptions, body);
+			if (isAnonymous) return lambda;
 			// 将函数赋值给临时函数变量
 			var tmpVar = delegateDefine?.Variable ?? Expression.Variable(lambda.Type);
 			var assign = Expression.Assign(tmpVar, lambda);
@@ -171,77 +149,20 @@ namespace AScript.Nodes
 			buildContext.Variables[tmpVarName] = tmpVar;
 			buildContext.LocalVariables.Add(tmpVarName);
 			buildContext.PrevExpressions.Add(assign);
-			//if (delegateDefine?.Variable != null)
-			//{
-			//var assignDefine = Expression.Assign(delegateDefine.Variable, lambda);
-			//var ps1 = new ParameterExpression[lambda.Parameters.Count];
-			//for (int i = 0; i < ps1.Length; i++)
-			//{
-			//	ps1[i] = Expression.Parameter(lambda.Parameters[i].Type);
-			//}
-			//var selfBlock = Expression.Block(new[] { delegateDefine.Variable }, 
-			//	assignDefine, 
-			//	Expression.Invoke(delegateDefine.Variable, ps1));
-			//var newD = Expression.Lambda(delegateDefine.Variable.Type, selfBlock, ps1);
-			//lambda = newD;
-			//}
-			//#if NET45
-			//			// NET45框架下，如果Lambda有闭包参数直接Invoke会报错：System.Security.VerificationException:操作可能会破坏运行时稳定性
-			//			// 需要Expression.Quote来包装
-			//			Expression quoteExpr;
-			//			ParameterExpression[] ps;
-			//			if (lambda == null)
-			//			{
-			//				quoteExpr = null;
-			//				ps = null;
-			//			}
-			//			else
-			//			{
-			//				quoteExpr = Expression.Quote(lambda);
-			//				ps = new ParameterExpression[lambda.Parameters.Count];
-			//				for (int i = 0; i < ps.Length; i++)
-			//				{
-			//					ps[i] = Expression.Parameter(lambda.Parameters[i].Type);
-			//				}
-			//			}
-			//			var dExpr = tempBuildContext.DelegateType == null ?
-			//				Expression.Lambda(quoteExpr == null ? (Expression)Expression.Empty() : Expression.Invoke(quoteExpr, ps), ps) :
-			//				Expression.Lambda(tempBuildContext.DelegateType, Expression.Invoke(quoteExpr, ps), ps);
-			//#else
-			//			var dExpr = lambda;
-			//#endif
-			if (!IsAnonymous(this.Name))
+			// 添加到编译上下文
+			buildContext.AddTempFunc(this.Name, tmpVar);
+			// 回写到脚本上下文
+			if (buildContext.RewriteLocalVariables && (options?.RewriteFunctions ?? true) && !(options?.Standalone ?? false))
 			{
-				// 添加到编译上下文
-				buildContext.AddTempFunc(this.Name, tmpVar);
-				// 回写到脚本上下文
-				if (buildContext.RewriteLocalVariables && (options?.RewriteFunctions ?? true) && !(options?.Standalone ?? false))
-				{
-					var addTempFuncExpression = Expression.Call(
-						buildContext.GetScriptContextParameter(),
-						ScriptUtils.Method_ScriptContext_AddTempFunc,
-						Expression.Constant(this.Name),
-						tmpVar);
-					return Expression.Block(addTempFuncExpression, tmpVar);
-				}
+				var addTempFuncExpression = Expression.Call(
+					buildContext.GetScriptContextParameter(),
+					ScriptUtils.Method_ScriptContext_AddTempFunc,
+					Expression.Constant(this.Name),
+					tmpVar);
+				return Expression.Block(addTempFuncExpression, tmpVar);
 			}
 			// 返回函数引用
 			return tmpVar;
-
-			//return Expression.Constant(d);
-			//var lambda = tempBuildContext.Build(scriptContext, body);
-			//// 编译
-			//var lambdaInstance = Expression.Constant(lambda);
-			//var compileExpression = Expression.Call(lambdaInstance, ExpressionUtils.Method_LambdaExpression_Compile);
-			//// 将方法赋值到临时变量
-			//var tempResultVariable = Expression.Variable(compileExpression.Type);
-			//var tempResultAssignExpression = Expression.Assign(tempResultVariable, compileExpression);
-			//// 将方法添加到上下文
-			//var addTempFuncExpression = Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_AddTempFunc, Expression.Constant(this.Name), tempResultVariable);
-			//buildContext.TempFunctions[this.Name] = tempResultVariable;
-			//return Expression.Block(new[] { tempResultVariable }, tempResultAssignExpression, addTempFuncExpression, tempResultVariable); ;
-
-			//return ExpressionUtils.BuildEval(buildContext, options, null, this);
 		}
 
 		private static bool IsAnonymous(string name)

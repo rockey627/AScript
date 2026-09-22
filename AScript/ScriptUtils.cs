@@ -673,7 +673,8 @@ namespace AScript
 			}
 			if (func is Delegate del)
 			{
-				var value = del.DynamicInvoke(args);
+				//var value = del.DynamicInvoke(args);
+				var value = DynamicInvoke(context, del, args);
 				//var returnType = value?.GetType() ?? del.Method.ReturnType;
 				return value;
 			}

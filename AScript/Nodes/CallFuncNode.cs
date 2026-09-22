@@ -15,7 +15,7 @@ namespace AScript.Nodes
 	public class CallFuncNode : TreeNode
 	{
 		public string Name { get; set; }
-		public MethodInfo Method { get; set; }
+		public object Method { get; set; }
 		public object Target { get; set; }
 		public ITreeNode[] Args { get; set; }
 
@@ -23,7 +23,7 @@ namespace AScript.Nodes
 		{
 			if (string.IsNullOrEmpty(this.Name))
 			{
-				if (this.Method != null)
+				if (this.Method is MethodInfo methodInfo)
 				{
 					object[] args = null;
 					if (this.Args != null && this.Args.Length > 0)
@@ -46,8 +46,37 @@ namespace AScript.Nodes
 							}
 						}
 					}
-					returnType = this.Method.ReturnType;
-					return this.Method.Invoke(this.Target, args);
+					returnType = methodInfo.ReturnType;
+					return methodInfo.Invoke(this.Target, args);
+				}
+
+				if (this.Method is DefineFuncNode defineFuncNode)
+				{
+					object[] args = null;
+					if (this.Args != null && this.Args.Length > 0)
+					{
+						args = new object[this.Args.Length];
+						for (int i = 0; i < this.Args.Length; i++)
+						{
+							var arg = this.Args[i];
+							if (arg == null)
+							{
+								args[i] = null;
+							}
+							else if (arg is ObjectNode objNode)
+							{
+								args[i] = objNode.Data;
+							}
+							else
+							{
+								args[i] = arg.Eval(context, options, control, out _);
+							}
+						}
+					}
+					var func = defineFuncNode.Eval(context, options, control, out _);
+					var returnValue = ScriptUtils.DynamicInvoke(context, null, func, args);
+					returnType = returnValue?.GetType() ?? defineFuncNode.ReturnSystemType ?? typeof(void);
+					return returnValue;
 				}
 			}
 			else if (this.Target != null)
@@ -219,7 +248,7 @@ namespace AScript.Nodes
 		{
 			if (string.IsNullOrEmpty(this.Name))
 			{
-				if (this.Method != null)
+				if (this.Method is MethodInfo methodInfo)
 				{
 					object[] args = null;
 					if (this.Args != null && this.Args.Length > 0)
@@ -242,8 +271,37 @@ namespace AScript.Nodes
 							}
 						}
 					}
-					var returnType = this.Method.ReturnType;
-					var result = this.Method.Invoke(this.Target, args);
+					var returnType = methodInfo.ReturnType;
+					var result = methodInfo.Invoke(this.Target, args);
+					return new EvalResult(result, returnType);
+				}
+
+				if (this.Method is DefineFuncNode defineFuncNode)
+				{
+					object[] args = null;
+					if (this.Args != null && this.Args.Length > 0)
+					{
+						args = new object[this.Args.Length];
+						for (int i = 0; i < this.Args.Length; i++)
+						{
+							var arg = this.Args[i];
+							if (arg == null)
+							{
+								args[i] = null;
+							}
+							else if (arg is ObjectNode objNode)
+							{
+								args[i] = objNode.Data;
+							}
+							else
+							{
+								args[i] = (await arg.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false)).Value;
+							}
+						}
+					}
+					var func = defineFuncNode.Eval(context, options, control, out _);
+					var result = ScriptUtils.DynamicInvoke(context, null, func, args);
+					var returnType = result?.GetType() ?? defineFuncNode.ReturnSystemType ?? typeof(void);
 					return new EvalResult(result, returnType);
 				}
 			}
@@ -403,7 +461,7 @@ namespace AScript.Nodes
 		{
 			if (string.IsNullOrEmpty(this.Name))
 			{
-				if (this.Method != null)
+				if (this.Method is MethodInfo methodInfo)
 				{
 					Expression[] argExprs = null;
 					if (this.Args != null && this.Args.Length > 0)
@@ -427,8 +485,35 @@ namespace AScript.Nodes
 						}
 					}
 					return this.Target == null ?
-						Expression.Call(this.Method, argExprs) :
-						Expression.Call(Expression.Constant(this.Target), this.Method, argExprs);
+						Expression.Call(methodInfo, argExprs) :
+						Expression.Call(Expression.Constant(this.Target), methodInfo, argExprs);
+				}
+
+				if (this.Method is DefineFuncNode defineFuncNode)
+				{
+					Expression[] argExprs = null;
+					if (this.Args != null && this.Args.Length > 0)
+					{
+						argExprs = new Expression[this.Args.Length];
+						for (int i = 0; i < this.Args.Length; i++)
+						{
+							var arg = this.Args[i];
+							if (arg == null)
+							{
+								argExprs[i] = ScriptUtils.Constant_null;
+							}
+							else if (arg is ExpressionNode exprNode)
+							{
+								argExprs[i] = exprNode.Expr;
+							}
+							else
+							{
+								argExprs[i] = arg.Build(buildContext, scriptContext, options);
+							}
+						}
+					}
+					var lambda = defineFuncNode.Build(buildContext, scriptContext, options);
+					return Expression.Invoke(lambda, argExprs);
 				}
 			}
 			else if (this.Target != null)
