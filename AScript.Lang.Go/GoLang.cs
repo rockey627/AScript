@@ -117,6 +117,7 @@ namespace AScript.Lang.Go
 			AddTokenHandler("switch", new CaseWhenTokenHandler("case", true));
 			AddTokenHandler("go", GoGoTokenHandler.Instance);
 			AddTokenHandler("import", GoImportTokenHandler.Instance);
+			AddTokenHandler("defer", GoDeferTokenHandler.Instance);
 
 			// 常量
 			AddTokenHandler("nil", NullTokenHandler.Instance);

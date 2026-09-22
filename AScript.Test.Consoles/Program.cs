@@ -39,7 +39,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			//Test01_Benchmark();
+			Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -70,7 +70,7 @@ namespace AScript.Test.Consoles
 			//Test23();
 			//Test24_Sqlite();
 			//Test25_js();
-			Test26_for();
+			//Test26_for();
 			//var p = Expression.Constant(new Person());
 			//Console.WriteLine(Expression.PropertyOrField(p, "name"));
 			Console.WriteLine("end");
@@ -915,7 +915,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest02_local>(config);
 			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest03_var>(config);
 			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest04_call>(config);
-			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest05_function>(config);
+			BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest05_function>(config);
 			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest06_recursive>(config);
 			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest07_linq>(config);
 			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest08_compile>(config);
@@ -938,7 +938,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest04_call>(config);
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest05_function>(config);
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest06_table>(config);
-			BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest07_for>(config);
+			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest07_for>(config);
 
 			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();

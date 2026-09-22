@@ -68,7 +68,7 @@ func add(a int, b int) {
     result = a + b
 }
 go add(3, 5)
-time.Sleep(1000)
+time.Sleep(500)
 result
 ";
 			var script = new Script();
@@ -112,7 +112,7 @@ func increment() {
 go increment()
 go increment()
 go increment()
-time.Sleep(1000)
+time.Sleep(500)
 counter
 ";
 			var script = new Script();
@@ -136,6 +136,55 @@ func increment() {
 go increment()
 go increment()
 go increment()
+time.Sleep(500)
+counter
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			var result = script.Eval(s);
+			Assert.AreEqual(3, result);
+		}
+
+		[TestMethod]
+		public void Test03_GoMultipleGoroutines2()
+		{
+			var s = @"
+import('time' 'sync')
+var mutex sync.Mutex
+var counter = 0
+func increment() {
+	mutex.Lock()
+	defer mutex.Unlock()
+    counter = counter + 1
+}
+go increment()
+go increment()
+go increment()
+time.Sleep(500)
+counter
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			var result = script.Eval(s);
+			Assert.AreEqual(3, result);
+		}
+
+		[TestMethod]
+		public void Test03_GoMultipleGoroutines2_CompileAll()
+		{
+			var s = @"
+import('time' 'sync')
+var mutex sync.Mutex
+var counter = 0
+func increment() {
+	mutex.Lock()
+	defer mutex.Unlock()
+    counter = counter + 1
+}
+go increment()
+go increment()
+go increment()
 time.Sleep(100)
 counter
 ";
@@ -155,7 +204,7 @@ var result = 0
 go func() {
     result = 42
 }()
-time.Sleep(1000)
+time.Sleep(500)
 result
 ";
 			var script = new Script();
@@ -173,7 +222,7 @@ var result = 0
 go func() {
     result = 42
 }()
-time.Sleep(1000)
+time.Sleep(500)
 result
 ";
 			var script = new Script();
