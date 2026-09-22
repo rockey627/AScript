@@ -16,6 +16,10 @@ namespace AScript.Nodes
 			{
 				return null;
 			}
+			if (this.Nodes.Count == 1)
+			{
+				return this.Nodes[0].Build(buildContext, scriptContext, options);
+			}
 			var exprs = new Expression[this.Nodes.Count];
 			for (int i = 0; i < this.Nodes.Count; i++)
 			{
