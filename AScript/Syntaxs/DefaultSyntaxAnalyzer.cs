@@ -833,7 +833,7 @@ namespace AScript.Syntaxs
 		{
 			var token = tokenReader.Read();
 			if (!token.HasValue) return null;
-			if (token.Value.Type != ETokenType.String && token.Value.Value == "{")
+			if (token.Value.IsSymbol("{"))
 			{
 				if (noblock)
 				{
@@ -851,7 +851,7 @@ namespace AScript.Syntaxs
 		{
 			var token = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 			if (!token.HasValue) return null;
-			if (token.Value.Type != ETokenType.String && token.Value.Value == "{")
+			if (token.Value.IsSymbol("{"))
 			{
 				if (noblock)
 				{
@@ -1200,7 +1200,7 @@ namespace AScript.Syntaxs
 
 			// 标识符处理：变量、函数调用、类型定义
 			var nextToken = e.TokenReader.Read();
-			if (nextToken.HasValue && nextToken.Value.Value == "(" && !ScriptUtils.Contains(endTokens, nextToken.Value.Value))
+			if (nextToken.HasValue && nextToken.Value.IsSymbol("(") && !ScriptUtils.Contains(endTokens, nextToken.Value.Value))
 			{
 				// 函数调用
 				ParseFuncCall(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.TreeBuilder, e.CurrentToken.Value, e.Ignore);
@@ -1230,7 +1230,7 @@ namespace AScript.Syntaxs
 					currentToken = nextToken.Value;
 					nextToken = e.TokenReader.Read();
 
-					if (nextToken.HasValue && nextToken.Value.Value == "(")
+					if (nextToken.HasValue && nextToken.Value.IsSymbol("("))
 					{
 						// 函数定义
 						ParseFuncDefine(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.TreeBuilder, currentToken.Value, definedTypeName, definedType, e.Ignore);
@@ -1244,7 +1244,7 @@ namespace AScript.Syntaxs
 						{
 							e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateDefineVarNode(currentToken.Value, definedTypeName, definedType));
 						}
-						e.End = !nextToken.HasValue || nextToken.Value.Value != "=";
+						e.End = !nextToken.HasValue || !nextToken.Value.IsSymbol("=");
 					}
 				}
 			}
@@ -1285,7 +1285,7 @@ namespace AScript.Syntaxs
 
 			// 标识符处理：变量、函数调用、类型定义
 			var nextToken = e.TokenReader.Read();
-			if (nextToken.HasValue && nextToken.Value.Value == "(")
+			if (nextToken.HasValue && nextToken.Value.IsSymbol("("))
 			{
 				// 函数调用
 				await ParseFuncCallAsync(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.TreeBuilder, e.CurrentToken.Value, e.Ignore, cancellationToken).ConfigureAwait(false);
@@ -1308,7 +1308,7 @@ namespace AScript.Syntaxs
 				currentToken = nextToken.Value;
 				nextToken = await e.TokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 
-				if (nextToken.HasValue && nextToken.Value.Value == "(")
+				if (nextToken.HasValue && nextToken.Value.IsSymbol("("))
 				{
 					// 函数定义
 					await ParseFuncDefineAsync(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.TreeBuilder, currentToken.Value, definedTypeName, definedType, e.Ignore, cancellationToken).ConfigureAwait(false);
@@ -1322,7 +1322,7 @@ namespace AScript.Syntaxs
 					{
 						await e.TreeBuilder.AddAsync(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateDefineVarNode(currentToken.Value, definedTypeName, definedType), cancellationToken).ConfigureAwait(false);
 					}
-					e.End = !nextToken.HasValue || nextToken.Value.Value != "=";
+					e.End = !nextToken.HasValue || !nextToken.Value.IsSymbol("=");
 				}
 			}
 			else
