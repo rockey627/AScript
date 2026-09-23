@@ -718,10 +718,10 @@ namespace AScript.Operators
 				left = Expression.Variable(declaredType ?? right.Type, arg0Node.Name);
 				e.BuildContext.Variables[arg0Node.Name] = left;
 			}
-			if (right is LambdaExpression lambdaExpression)
-			{
-				(ownerBuildContext ?? e.BuildContext).AddTempFunc(left.Name, lambdaExpression);
-			}
+			//if (right is LambdaExpression lambdaExpression)
+			//{
+			//	(ownerBuildContext ?? e.BuildContext).AddTempFunc(left.Name, lambdaExpression);
+			//}
 			return Expression.Assign(left, rightExpr);
 		}
 
