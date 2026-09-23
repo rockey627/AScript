@@ -36,9 +36,14 @@ namespace AScript.Lang.Go.Extensions
 
 		public static void Printf(string format, params object[] args)
 		{
+			Console.Write(Sprintf(format, args));
+		}
+
+		public static string Sprintf(string format, params object[] args)
+		{
 			int argIndex = 0;
-			var netFormat = System.Text.RegularExpressions.Regex.Replace(format, @"%[sdf]", match => "{" + argIndex++ + "}");
-			Console.Write(string.Format(netFormat, args));
+			var netFormat = System.Text.RegularExpressions.Regex.Replace(format, @"%[sdfvq]", match => "{" + argIndex++ + "}");
+			return string.Format(netFormat, args);
 		}
 	}
 }
