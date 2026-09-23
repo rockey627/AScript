@@ -242,7 +242,7 @@ opened && closed
 			var s = @"
 var result = """"
 func foo(x int) {
-    result += ""x=$x""
+    result += ""x=""+x
 }
 func bar() {
     result += ""bar""
@@ -254,7 +254,8 @@ result
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "go" };
-			Assert.AreEqual("x=2x=1bar", script.Eval(s));
+			Assert.AreEqual("x=1x=2", script.Eval(s));
+			Assert.AreEqual("x=1x=2bar", script.Eval("result"));
 		}
 
 		[TestMethod]
@@ -263,7 +264,7 @@ result
 			var s = @"
 var result = """"
 func foo(x int) {
-    result += ""x=$x""
+    result += ""x=""+x
 }
 func bar() {
     result += ""bar""
@@ -276,7 +277,8 @@ result
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "go" };
-			Assert.AreEqual("x=2x=1bar", script.Eval(s));
+			Assert.AreEqual("x=1x=2", script.Eval(s));
+			Assert.AreEqual("x=1x=2bar", script.Eval("result"));
 		}
 
 		[TestMethod]
@@ -287,7 +289,7 @@ var order = """"
 func process() {
     for i := 1; i <= 3; i++ {
         defer func() {
-            order += ""$i""
+            order += i
         }()
     }
 }
@@ -297,7 +299,7 @@ order
 			var script = new Script();
 			script.Context.Langs = new[] { "go" };
 			var result = script.Eval(s) as string;
-			Assert.AreEqual("321", result);
+			Assert.AreEqual("123", result);
 		}
 
 		[TestMethod]
@@ -308,7 +310,7 @@ var order = """"
 func process() {
     for i := 1; i <= 3; i++ {
         defer func() {
-            order += ""$i""
+            order += i
         }()
     }
 }
@@ -319,7 +321,46 @@ order
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "go" };
 			var result = script.Eval(s) as string;
-			Assert.AreEqual("321", result);
+			Assert.AreEqual("123", result);
+		}
+
+		[TestMethod]
+		public void Test07_DeferInLoop2()
+		{
+			var s = @"
+var order = """"
+func process() {
+    for i := 1; i <= 3; i++ {
+        defer order += i
+    }
+}
+process()
+order
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			var result = script.Eval(s) as string;
+			Assert.AreEqual("123", result);
+		}
+
+		[TestMethod]
+		public void Test07_DeferInLoop2_CompileAll()
+		{
+			var s = @"
+var order = """"
+func process() {
+    for i := 1; i <= 3; i++ {
+        defer order += i
+    }
+}
+process()
+order
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			var result = script.Eval(s) as string;
+			Assert.AreEqual("123", result);
 		}
 
 		[TestMethod]
@@ -586,6 +627,60 @@ order
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "go" };
 			Assert.AreEqual("hellobye", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test14_for_mutex()
+		{
+			var s = @"
+import ""fmt""
+import ""sync""
+
+var mutex sync.Mutex
+
+func process() {
+    for i := 1; i <= 3; i++ {
+        func() {
+            mutex.Lock()
+            defer mutex.Unlock()
+            fmt.Println(i)
+        }()
+    }
+}
+
+process()
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+		}
+
+		[TestMethod]
+		public void Test14_for_mutex_CompileAll()
+		{
+			var s = @"
+import ""fmt""
+import ""sync""
+
+var mutex sync.Mutex
+
+func process() {
+    for i := 1; i <= 3; i++ {
+        func() {
+            mutex.Lock()
+            defer mutex.Unlock()
+            fmt.Println(i)
+        }()
+    }
+}
+
+process()
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
 		}
 	}
 }
