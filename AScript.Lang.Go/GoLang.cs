@@ -109,7 +109,7 @@ namespace AScript.Lang.Go
 			AddTokenHandler("var", GoVarTokenHandler.Instance);
 			AddTokenHandler("const", new GoVarTokenHandler(Modifiers.CONST));
 			AddTokenHandler("func", GoFuncTokenHandler.Instance);
-			AddTokenHandler("if", IfTokenHandler.Instance);
+			AddTokenHandler("if", GoIfTokenHandler.Instance);
 			AddTokenHandler("for", GoForTokenHandler.Instance);
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
 			AddTokenHandler("break", BreakTokenHandler.Instance);
