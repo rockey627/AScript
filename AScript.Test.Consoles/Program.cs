@@ -71,10 +71,24 @@ namespace AScript.Test.Consoles
 			//Test24_Sqlite();
 			//Test25_js();
 			//Test26_for();
+			//Console.WriteLine(GetResult());
 			//var p = Expression.Constant(new Person());
 			//Console.WriteLine(Expression.PropertyOrField(p, "name"));
 			Console.WriteLine("end");
 			Console.ReadLine();
+		}
+
+		static int GetResult()
+		{
+			int result = 1;
+			try
+			{
+				return result;
+			}
+			finally
+			{
+				result = 2;
+			}
 		}
 
 		static void Test26_for()

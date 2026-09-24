@@ -63,24 +63,44 @@ namespace AScript.Lang.Go.TokenHandlers
 				analyzer.ValidateNextToken(e.TokenReader, ")");
 			}
 			// 检查返回值类型（可选）
+			string returnVarName = null;
 			string returnType = null;
 			Type returnSystemType = null;
 			token = analyzer.ValidateNextToken(e.TokenReader);
 			if (token.Value.IsSymbol("("))
 			{
-				// 多返回值
-				var returnTypes = new List<GoType>();
-				while (true)
+				// 命名返回值：(result int)
+				var token1 = analyzer.ValidateNextToken(e.TokenReader);
+				if (token1.Value.Type == ETokenType.Word)
 				{
-					var type = GoLang.ParseType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore);
-					returnTypes.Add(type);
-					token = analyzer.ValidateNextToken(e.TokenReader);
-					if (token.Value.IsSymbol(",")) continue;
-					if (token.Value.IsSymbol(")")) break;
-					throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' near func {funcName} at ({token.Value.Line},{token.Value.Column})");
+					var token2 = analyzer.ValidateNextToken(e.TokenReader);
+					e.TokenReader.Push(token2.Value);
+					if (!token2.Value.IsSymbol(","))
+					{
+						var type = GoLang.ParseType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore);
+						analyzer.ValidateNextToken(e.TokenReader, ")");
+						returnVarName = token1.Value.Value;
+						returnType = type.Name;
+						returnSystemType = type.RealType;
+					}
 				}
-				returnType = $"({string.Join(",", returnTypes.Select(a => a.Name))})";
-				returnSystemType = ScriptUtils.GetTupleType(returnTypes.Select(a => a.RealType).ToArray());
+				if (returnSystemType == null)
+				{
+					e.TokenReader.Push(token1.Value);
+					// 多返回值
+					var returnTypes = new List<GoType>();
+					while (true)
+					{
+						var type = GoLang.ParseType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore);
+						returnTypes.Add(type);
+						token = analyzer.ValidateNextToken(e.TokenReader);
+						if (token.Value.IsSymbol(",")) continue;
+						if (token.Value.IsSymbol(")")) break;
+						throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' near func {funcName} at ({token.Value.Line},{token.Value.Column})");
+					}
+					returnType = $"({string.Join(",", returnTypes.Select(a => a.Name))})";
+					returnSystemType = ScriptUtils.GetTupleType(returnTypes.Select(a => a.RealType).ToArray());
+				}
 			}
 			else
 			{
@@ -123,6 +143,7 @@ namespace AScript.Lang.Go.TokenHandlers
 								Name = funcName,
 								Args = args?.ToArray(),
 								Body = body,
+								ReturnVarName = returnVarName,
 								ReturnSystemType = returnSystemType,
 								ReturnType = returnType
 							};
@@ -146,6 +167,7 @@ namespace AScript.Lang.Go.TokenHandlers
 					Name = funcName,
 					Args = args?.ToArray(),
 					Body = body,
+					ReturnVarName = returnVarName,
 					ReturnSystemType = returnSystemType,
 					ReturnType = returnType
 				};
