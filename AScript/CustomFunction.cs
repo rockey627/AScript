@@ -10,6 +10,7 @@ namespace AScript
 	{
 		public string[] ArgNames { get; private set; }
 		public Type[] ArgTypes { get; set; }
+		public string ReturnVarName { get; set; }
 		public Type ReturnType { get; set; }
 		public ITreeNode Body { get; private set; }
 
@@ -42,10 +43,19 @@ namespace AScript
 			}
 			if (this.Body == null)
 			{
-				returnType = null;
+				returnType = this.ReturnType;
 				return null;
 			}
-			return this.Body.Eval(tempContext, options, new EvalControl(), out returnType);
+			if (!string.IsNullOrEmpty(this.ReturnVarName))
+			{
+				tempContext.SetVar(this.ReturnVarName, null, this.ReturnType);
+			}
+			var result = this.Body.Eval(tempContext, options, new EvalControl { ReturnVarName = this.ReturnVarName }, out returnType);
+			if (!string.IsNullOrEmpty(this.ReturnVarName))
+			{
+				return tempContext.EvalVar(this.ReturnVarName, out returnType);
+			}
+			return result;
 		}
 
 		public void Eval(FunctionEvalArgs e)
@@ -62,10 +72,18 @@ namespace AScript
 			}
 			if (this.Body == null)
 			{
-				e.SetResult(null, null);
+				e.SetResult(null, this.ReturnType);
 				return;
 			}
-			var value = this.Body.Eval(tempContext, e.Options, new EvalControl(), out var returnType);
+			if (!string.IsNullOrEmpty(this.ReturnVarName))
+			{
+				tempContext.SetVar(this.ReturnVarName, null, this.ReturnType);
+			}
+			var value = this.Body.Eval(tempContext, e.Options, new EvalControl { ReturnVarName = this.ReturnVarName }, out var returnType);
+			if (!string.IsNullOrEmpty(this.ReturnVarName))
+			{
+				value = tempContext.EvalVar(this.ReturnVarName, out returnType);
+			}
 			e.SetResult(value, returnType);
 		}
 
@@ -83,11 +101,23 @@ namespace AScript
 			}
 			if (this.Body == null)
 			{
-				e.SetResult(null, null);
+				e.SetResult(null, this.ReturnType);
 				return;
 			}
-			var result = await this.Body.EvalAsync(tempContext, e.Options, new EvalControl(), cancellationToken).ConfigureAwait(false);
-			e.SetResult(result.Value, result.Type);
+			if (!string.IsNullOrEmpty(this.ReturnVarName))
+			{
+				tempContext.SetVar(this.ReturnVarName, null, this.ReturnType);
+			}
+			var result = await this.Body.EvalAsync(tempContext, e.Options, new EvalControl { ReturnVarName = this.ReturnVarName }, cancellationToken).ConfigureAwait(false);
+			if (!string.IsNullOrEmpty(this.ReturnVarName))
+			{
+				var value = tempContext.EvalVar(this.ReturnVarName, out var returnType);
+				e.SetResult(value, returnType);
+			}
+			else
+			{
+				e.SetResult(result.Value, result.Type);
+			}
 		}
 
 		public Delegate Compile(Type delegateType, ScriptContext context, BuildOptions options)

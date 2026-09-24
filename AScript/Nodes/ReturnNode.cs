@@ -23,7 +23,13 @@ namespace AScript.Nodes
 					returnType = null;
 					return null;
 				}
-				return this.Body.Eval(context, options, control, out returnType);
+				var result = this.Body.Eval(context, options, control, out returnType);
+				string returnVarName = control.Root.ReturnVarName;
+				if (!string.IsNullOrEmpty(returnVarName))
+				{
+					context.SetTempVar(returnVarName, result, returnType, true);
+				}
+				return result;
 			}
 			finally
 			{
@@ -46,7 +52,13 @@ namespace AScript.Nodes
 				{
 					return default;
 				}
-				return await this.Body.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
+				var result = await this.Body.EvalAsync(context, options, control, cancellationToken).ConfigureAwait(false);
+				string returnVarName = control.Root.ReturnVarName;
+				if (!string.IsNullOrEmpty(returnVarName))
+				{
+					context.SetTempVar(returnVarName, result.Value, result.Type, true);
+				}
+				return result;
 			}
 			finally
 			{

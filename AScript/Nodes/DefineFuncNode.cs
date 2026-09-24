@@ -7,6 +7,10 @@ namespace AScript.Nodes
 	public class DefineFuncNode : TreeNode
 	{
 		public string Name { get; set; }
+		/// <summary>
+		/// 返回值变量名
+		/// </summary>
+		public string ReturnVarName { get; set; }
 		public string ReturnType { get; set; }
 		public Type ReturnSystemType { get; set; }
 		public DefineVarNode[] Args { get; set; }
@@ -81,7 +85,7 @@ namespace AScript.Nodes
 					argNames = null;
 					argTypes = null;
 				}
-				var customFunc = new CustomFunction(funcReturnType, argNames, argTypes, this.Body);
+				var customFunc = new CustomFunction(funcReturnType, argNames, argTypes, this.Body) { ReturnVarName = this.ReturnVarName };
 				if (!IsAnonymous(this.Name))
 				{
 					context.AddFunc(this.Name, customFunc);
@@ -102,6 +106,10 @@ namespace AScript.Nodes
 					throw new ScriptAnalyzingException($"unknown type {this.ReturnType}");
 				}
 			}
+			if (!string.IsNullOrEmpty(this.ReturnVarName))
+			{
+				if (funcReturnType == null) funcReturnType = typeof(object);
+			}
 			var tempBuildContext = new BuildContext(buildContext)
 			{
 				RewriteLocalVariables = false,
@@ -109,6 +117,12 @@ namespace AScript.Nodes
 				DelegateType = this.DelegateType,
 				IsMain = true
 			};
+			if (!string.IsNullOrEmpty(this.ReturnVarName))
+			{
+				tempBuildContext.ReturnVariableExpression = Expression.Variable(tempBuildContext.ReturnType);
+				tempBuildContext.Variables[this.ReturnVarName] = tempBuildContext.ReturnVariableExpression;
+				tempBuildContext.LocalVariables.Add(this.ReturnVarName);
+			}
 			Type[] argTypes = null;
 			if (this.Args != null && this.Args.Length > 0)
 			{

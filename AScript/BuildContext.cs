@@ -874,7 +874,7 @@ namespace AScript
 				{
 					variables = new List<ParameterExpression> { this.ReturnVariableExpression };
 				}
-				else
+				else if (!variables.Contains(this.ReturnVariableExpression))
 				{
 					variables.Add(this.ReturnVariableExpression);
 				}
