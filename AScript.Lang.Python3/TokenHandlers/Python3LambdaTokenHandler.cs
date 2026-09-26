@@ -45,12 +45,12 @@ namespace AScript.Lang.Python3.TokenHandlers
 				{
 					throw new Exceptions.ScriptAnalyzingException($"invalid lambda at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
 				}
-				if (token.Value.Value == ",")
+				if (token.Value.IsSymbol(","))
 				{
 					token = e.TokenReader.Read();
 					continue;
 				}
-				if (token.Value.Value == ":") break;
+				if (token.Value.IsSymbol(":")) break;
 				throw new Exceptions.ScriptAnalyzingException($"invalid lambda argument name '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column})");
 			}
 			// 解析 lambda 表达式体

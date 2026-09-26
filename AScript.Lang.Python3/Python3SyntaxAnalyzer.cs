@@ -48,7 +48,7 @@ namespace AScript.Lang.Python3
 							e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateDefineVarNode(e.CurrentToken.Value, definedTypeName, definedType));
 						}
 						nextToken = e.TokenReader.Read();
-						e.End = !nextToken.HasValue || nextToken.Value.Value != "=";
+						e.End = !nextToken.HasValue || !nextToken.Value.IsSymbol("=");
 						if (nextToken.HasValue)
 						{
 							e.TokenReader.Push(nextToken.Value);
@@ -83,7 +83,7 @@ namespace AScript.Lang.Python3
 				{
 					throw new Exceptions.ScriptAnalyzingException($"invalid expression at {tokenReader.CharReader.CurrentLine},{tokenReader.CharReader.CurrentColumn}, expect '}}'");
 				}
-				if (token.Value.Value == "}")
+				if (token.Value.IsSymbol("}"))
 				{
 					break;
 				}
@@ -155,11 +155,11 @@ namespace AScript.Lang.Python3
 				{
 					throw new Exceptions.ScriptAnalyzingException("invalid dictionary syntax, expect ',' or '}'");
 				}
-				if (token.Value.Value == "}")
+				if (token.Value.IsSymbol("}"))
 				{
 					break;
 				}
-				if (token.Value.Value != ",")
+				if (!token.Value.IsSymbol(","))
 				{
 					throw new Exceptions.ScriptAnalyzingException($"invalid dictionary syntax at {token.Value.Line},{token.Value.Column}, expect ',' or '}}'");
 				}

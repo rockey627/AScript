@@ -112,7 +112,7 @@ namespace AScript.TokenHandlers
 			}
 
 			var conditionBuilder = await analyzer.BuildOneStatementAsync(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore, cancellationToken: cancellationToken).ConfigureAwait(false);
-			
+
 			if (token0Symbol)
 			{
 				await analyzer.ValidateNextTokenAsync(e.TokenReader, ")", cancellationToken).ConfigureAwait(false);
@@ -162,12 +162,12 @@ namespace AScript.TokenHandlers
 		{
 			var t = e.TokenReader.Read();
 			if (!t.HasValue) return null;
-			if (t.Value.Value == ";")
+			if (t.Value.IsSymbol(";"))
 			{
 				t = e.TokenReader.Read();
 				if (!t.HasValue) return null;
 			}
-			if (t.Value.Value == this.ElseToken)
+			if (t.Value.IsSymbol(this.ElseToken))
 			{
 				return analyzer.BuildOneStatement2(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, ignore ?? e.Ignore);
 			}
@@ -179,12 +179,12 @@ namespace AScript.TokenHandlers
 		{
 			var t = await e.TokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 			if (!t.HasValue) return null;
-			if (t.Value.Value == ";")
+			if (t.Value.IsSymbol(";"))
 			{
 				t = await e.TokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 				if (!t.HasValue) return null;
 			}
-			if (t.Value.Value == this.ElseToken)
+			if (t.Value.IsSymbol(this.ElseToken))
 			{
 				return await analyzer.BuildOneStatement2Async(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, ignore ?? e.Ignore, cancellationToken: cancellationToken).ConfigureAwait(false);
 			}

@@ -113,6 +113,11 @@ namespace AScript.Syntaxs
 				if (control != null && (control.Break || control.Terminal || control.Continue)) break;
 				var nextToken = tokenReader.Read();
 				if (!nextToken.HasValue) break;
+				if (nextToken.Value.Type == ETokenType.String)
+				{
+					tokenReader.Push(nextToken.Value);
+					continue;
+				}
 				//if (nextToken.Value.Value == ";" || nextToken.Value.Value == "," || nextToken.Value.Value == ":") continue;
 				if (nextToken.Value.Value == ";" || nextToken.Value.Value == ",") continue;
 				if (nextToken.Value.Value == ":" && !scriptContext.GetOperatorPriority(":").HasValue && !scriptContext.IsKeywords(":"))
@@ -148,6 +153,11 @@ namespace AScript.Syntaxs
 				if (control != null && (control.Break || control.Terminal || control.Continue)) break;
 				var nextToken = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 				if (!nextToken.HasValue) break;
+				if (nextToken.Value.Type == ETokenType.String)
+				{
+					tokenReader.Push(nextToken.Value);
+					continue;
+				}
 				//if (nextToken.Value.Value == ";" || nextToken.Value.Value == "," || nextToken.Value.Value == ":") continue;
 				if (nextToken.Value.Value == ";" || nextToken.Value.Value == ",") continue;
 				if (nextToken.Value.Value == ":" && !scriptContext.GetOperatorPriority(":").HasValue && !scriptContext.IsKeywords(":"))

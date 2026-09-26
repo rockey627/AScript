@@ -63,7 +63,7 @@ namespace AScript.Lang.Python3.TokenHandlers
 				{
 					throw new Exceptions.ScriptAnalyzingException($"invalid def {funcName} at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
 				}
-				if (token.Value.Value == ":")
+				if (token.Value.IsSymbol(":"))
 				{
 					// 解析类型
 					var typeToken = e.TokenReader.Read();
@@ -103,7 +103,7 @@ namespace AScript.Lang.Python3.TokenHandlers
 			{
 				throw new Exceptions.ScriptAnalyzingException($"invalid def {funcName} at ({e.CurrentToken.Line},{e.CurrentToken.Column})");
 			}
-			if (token.Value.Value == "->")
+			if (token.Value.IsSymbol("->"))
 			{
 				// 解析返回类型
 				var returnTypeToken = e.TokenReader.Read();

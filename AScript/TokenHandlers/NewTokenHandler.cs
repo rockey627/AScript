@@ -36,7 +36,7 @@ namespace AScript.TokenHandlers
 				}
 				analyzer.ValidateNextToken(e.TokenReader, "{");
 				var initProperties0 = ParseInitProperties(analyzer, e);
-				e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, 
+				e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control,
 					new NewNode { ArrayDimension = 1, InitProperties = initProperties0, Args = lengthArgs });
 				e.IsHandled = true;
 				return;
@@ -64,8 +64,8 @@ namespace AScript.TokenHandlers
 					{
 						throw new Exceptions.ScriptAnalyzingException($"invalid expression near '{typeNameToken.Value.Value}', expect '>'");
 					}
-					if (nextToken.Value.Value == ",") continue;
-					if (nextToken.Value.Value == ">") break;
+					if (nextToken.Value.IsSymbol(",")) continue;
+					if (nextToken.Value.IsSymbol(">")) break;
 				}
 				nextToken = e.TokenReader.Read();
 			}

@@ -33,7 +33,7 @@ namespace AScript.Test.MSTests.中文
 			}
 			if (nextToken.HasValue)
 			{
-				if (nextToken.Value.Value == "否则")
+				if (nextToken.Value.IsSymbol("否则"))
 				{
 					node.Else = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
 				}

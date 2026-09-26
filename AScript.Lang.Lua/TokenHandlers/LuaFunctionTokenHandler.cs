@@ -121,8 +121,8 @@ namespace AScript.Lang.Lua.TokenHandlers
 				}
 				token = e.TokenReader.Read();
 				if (!token.HasValue) break;
-				if (token.Value.Value == ",") continue;
-				if (token.Value.Value == ")") break;
+				if (token.Value.IsSymbol(",")) continue;
+				if (token.Value.IsSymbol(")")) break;
 			}
 
 			// 函数体
