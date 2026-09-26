@@ -5,6 +5,5 @@
 /.vs
 */obj
 */bin
-/.claude
 *.user
 *.db
