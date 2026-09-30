@@ -99,10 +99,7 @@ namespace AScript.Syntaxs
 			var treeBuilder = ignore ? null : PoolManage.CreateTreeBuilder();
 			while (true)
 			{
-				if (treeBuilder != null)
-				{
-					treeBuilder.TryEvalRoot(buildContext, scriptContext, options, control);
-				}
+				treeBuilder?.TryEvalRoot(buildContext, scriptContext, options, control);
 				var statement = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens: endTokens);
 				options.CreateFullStatement = null;
 				if (treeBuilder != null && statement != null)
@@ -177,8 +174,12 @@ namespace AScript.Syntaxs
 
 		public virtual ITreeNode BuildOneStatement(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, IEnumerable<string> endTokens = null)
 		{
+			return BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens, null);
+		}
+
+		public virtual ITreeNode BuildOneStatement(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore, IEnumerable<string> endTokens, TreeBuilder treeBuilder)
+		{
 			var t = tokenReader.Read();
-			TreeBuilder treeBuilder = null;
 			while (t.HasValue)
 			{
 				if (t.Value.Type == ETokenType.Number)
