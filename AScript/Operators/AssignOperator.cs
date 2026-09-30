@@ -28,82 +28,8 @@ namespace AScript.Operators
 			else if (arg0 is OperatorNode opNode && opNode.Name == "[]")
 			{
 				// 索引器赋值
-				var obj = opNode.Left.Build(e.BuildContext, e.ScriptContext, e.Options);
-				var idx = opNode.Right.Build(e.BuildContext, e.ScriptContext, e.Options);
 				var value = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
-
-				// 如果idx是object类型，转换为实际需要的类型
-				if (idx.Type == typeof(object))
-				{
-					var indexType = GetIndexType(obj.Type);
-					if (indexType != null)
-					{
-						idx = Expression.Convert(idx, indexType);
-					}
-				}
-
-				// 如果value是object类型，需要转换为元素的实际类型
-				Expression valueExpr = value;
-				if (value.Type == typeof(object))
-				{
-					var elementType = GetElementType(obj.Type);
-					if (elementType != null)
-					{
-						valueExpr = Expression.Convert(value, elementType);
-					}
-				}
-
-				// 判断obj类型并生成相应的索引器赋值表达式
-				if (obj.Type.IsArray)
-				{
-					// 数组赋值
-					e.Result = Expression.Assign(Expression.ArrayAccess(obj, idx), valueExpr);
-				}
-				else
-				{
-					var objType = obj.Type == typeof(ExpandoObject) ? typeof(IDictionary<string, object>) : obj.Type;
-					// 尝试使用索引器（Item属性）赋值
-					var indexer = objType.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
-					if (indexer != null)
-					{
-						var p0 = indexer.SetMethod.GetParameters()[0];
-						if (idx.Type != p0.ParameterType)
-						{
-							idx = Expression.Convert(idx, p0.ParameterType);
-						}
-						var property = Expression.Property(obj, indexer, idx);
-						if (valueExpr.Type != property.Type)
-						{
-							valueExpr = Expression.Convert(valueExpr, property.Type);
-						}
-						e.Result = Expression.Assign(property, valueExpr);
-					}
-					else
-					{
-						// 尝试使用set_Item方法
-						var setItemMethod = objType.GetMethod("set_Item");
-						if (setItemMethod != null)
-						{
-							var p0 = setItemMethod.GetParameters()[0];
-							if (idx.Type != p0.ParameterType)
-							{
-								idx = Expression.Convert(idx, p0.ParameterType);
-							}
-							e.Result = Expression.Call(obj, setItemMethod, idx, valueExpr);
-						}
-						else
-						{
-							//// 使用动态表达式进行动态赋值
-							//e.Result = Expression.Dynamic(
-							//	IndexSetBinder,
-							//	typeof(object),
-							//	obj,
-							//	idx,
-							//	value);
-							e.Result = ExpressionUtils.setItem(obj, idx, value);
-						}
-					}
-				}
+				e.Result = BuildIndexAssign(e, opNode, value);
 			}
 			else if (arg0 is CallFuncNode callFuncNode && callFuncNode.Name == "[:]")
 			{
@@ -245,36 +171,8 @@ namespace AScript.Operators
 				if (opNode.Name == "[]")
 				{
 					// 设置索引值
-					var obj = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
-					var idx = opNode.Right.Eval(e.Context, e.Options, e.Control, out _);
 					var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
-
-					// 根据obj类型处理索引器赋值
-					if (obj is Array array)
-					{
-						// 数组赋值
-						int index = Convert.ToInt32(idx);
-						array.SetValue(value, index);
-					}
-					else if (obj is IDictionary dict)
-					{
-						// Dictionary赋值
-						dict[idx] = value;
-					}
-					else if (obj is IList list)
-					{
-						list[Convert.ToInt32(idx)] = value;
-					}
-					else if (obj is ExpandoObject expandoObj)
-					{
-						(expandoObj as IDictionary<string, object>)[idx.ToString()] = value;
-					}
-					else if (obj != null)
-					{
-						// 其他类型使用动态调用
-						dynamic dObj = obj;
-						dObj[idx] = value;
-					}
+					EvalIndexAssign(e, opNode, value);
 
 					e.SetResult(value, type);
 					return;
@@ -314,6 +212,114 @@ namespace AScript.Operators
 					DecontructArray(e, collectionNode, e.Args[1]);
 				}
 				return;
+			}
+		}
+
+		private void EvalIndexAssign(FunctionEvalArgs e, OperatorNode opNode, object value)
+		{
+			var obj = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
+			var idx = opNode.Right.Eval(e.Context, e.Options, e.Control, out _);
+
+			// 根据obj类型处理索引器赋值
+			if (obj is Array array)
+			{
+				// 数组赋值
+				int index = Convert.ToInt32(idx);
+				array.SetValue(value, index);
+			}
+			else if (obj is IDictionary dict)
+			{
+				// Dictionary赋值
+				dict[idx] = value;
+			}
+			else if (obj is IList list)
+			{
+				list[Convert.ToInt32(idx)] = value;
+			}
+			else if (obj is ExpandoObject expandoObj)
+			{
+				(expandoObj as IDictionary<string, object>)[idx.ToString()] = value;
+			}
+			else if (obj != null)
+			{
+				// 其他类型使用动态调用
+				dynamic dObj = obj;
+				dObj[idx] = value;
+			}
+		}
+
+		private Expression BuildIndexAssign(FunctionBuildArgs e, OperatorNode opNode, Expression value)
+		{
+			var obj = opNode.Left.Build(e.BuildContext, e.ScriptContext, e.Options);
+			var idx = opNode.Right.Build(e.BuildContext, e.ScriptContext, e.Options);
+
+			// 如果idx是object类型，转换为实际需要的类型
+			if (idx.Type == typeof(object))
+			{
+				var indexType = GetIndexType(obj.Type);
+				if (indexType != null)
+				{
+					idx = Expression.Convert(idx, indexType);
+				}
+			}
+
+			// 如果value是object类型，需要转换为元素的实际类型
+			Expression valueExpr = value;
+			if (value.Type == typeof(object))
+			{
+				var elementType = GetElementType(obj.Type);
+				if (elementType != null)
+				{
+					valueExpr = Expression.Convert(value, elementType);
+				}
+			}
+
+			// 判断obj类型并生成相应的索引器赋值表达式
+			if (obj.Type.IsArray)
+			{
+				// 数组赋值
+				return Expression.Assign(Expression.ArrayAccess(obj, idx), valueExpr);
+			}
+
+			var objType = obj.Type == typeof(ExpandoObject) ? typeof(IDictionary<string, object>) : obj.Type;
+			// 尝试使用索引器（Item属性）赋值
+			var indexer = objType.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
+			if (indexer != null)
+			{
+				var p0 = indexer.SetMethod.GetParameters()[0];
+				if (idx.Type != p0.ParameterType)
+				{
+					idx = Expression.Convert(idx, p0.ParameterType);
+				}
+				var property = Expression.Property(obj, indexer, idx);
+				if (valueExpr.Type != property.Type)
+				{
+					valueExpr = Expression.Convert(valueExpr, property.Type);
+				}
+				return Expression.Assign(property, valueExpr);
+			}
+
+			// 尝试使用set_Item方法
+			var setItemMethod = objType.GetMethod("set_Item");
+			if (setItemMethod != null)
+			{
+				var p0 = setItemMethod.GetParameters()[0];
+				if (idx.Type != p0.ParameterType)
+				{
+					idx = Expression.Convert(idx, p0.ParameterType);
+				}
+				return Expression.Call(obj, setItemMethod, idx, valueExpr);
+			}
+			else
+			{
+				//// 使用动态表达式进行动态赋值
+				//e.Result = Expression.Dynamic(
+				//	IndexSetBinder,
+				//	typeof(object),
+				//	obj,
+				//	idx,
+				//	value);
+				return ExpressionUtils.setItem(obj, idx, value);
 			}
 		}
 
@@ -364,6 +370,15 @@ namespace AScript.Operators
 						value = operatorNode.Right.Eval(e.Context, e.Options, e.Control, out valueType);
 					}
 					Decontruct(e, operatorNode.Left, value, valueType);
+					return;
+				}
+				if (operatorNode.Name == "[]")
+				{
+					if (value is ITreeNode treeNode)
+					{
+						value = treeNode.Eval(e.Context, e.Options, e.Control, out valueType);
+					}
+					EvalIndexAssign(e, operatorNode, value);
 					return;
 				}
 				throw new Exceptions.ScriptRuntimeException($"unsupport decontruct {operatorNode.Name}");
@@ -877,6 +892,10 @@ namespace AScript.Operators
 						right = Expression.Block(new[] { tmpVar }, tmpAssign, right2);
 					}
 					return BuildDeconstruct(e, leftVar, right);
+				}
+				if (opNode.Name == "[]")
+				{
+					return BuildIndexAssign(e, opNode, right);
 				}
 				throw new ScriptRuntimeException($"unsupport deconstruct {opNode.Name}");
 			}
