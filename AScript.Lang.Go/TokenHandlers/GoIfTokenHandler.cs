@@ -1,6 +1,7 @@
 ﻿using AScript.Nodes;
 using AScript.Syntaxs;
 using System;
+using System.Collections.Generic;
 
 namespace AScript.Lang.Go.TokenHandlers
 {
@@ -13,6 +14,8 @@ namespace AScript.Lang.Go.TokenHandlers
 	/// </summary>
 	public class GoIfTokenHandler : ITokenHandler
 	{
+		private static readonly HashSet<string> _ConditionEndTokens = new HashSet<string> { "{" };
+
 		public static readonly GoIfTokenHandler Instance = new GoIfTokenHandler();
 
 		public void Build(DefaultSyntaxAnalyzer analyzer, TokenAnalyzingArgs e)
@@ -27,26 +30,27 @@ namespace AScript.Lang.Go.TokenHandlers
 
 			var createFullOptions = new BuildOptions(e.Options) { CreateFullTreeNode = true };
 
-			ITreeNode init = null;
-			var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
+			//ITreeNode init = null;
+			//var condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
 
-			var token = analyzer.ValidateNextToken(e.TokenReader);
-			if (token.Value.IsSymbol(";"))
-			{
-				init = condition;
-				condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
-			}
-			else
-			{
-				e.TokenReader.Push(token.Value);
-			}
-
+			//var token = analyzer.ValidateNextToken(e.TokenReader);
+			//if (token.Value.IsSymbol(";"))
+			//{
+			//	init = condition;
+			//	condition = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
+			//}
+			//else
+			//{
+			//	e.TokenReader.Push(token.Value);
+			//}
+			var condition = analyzer.BuildMultiStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore, _ConditionEndTokens);
+			
 			// 构建if body
 			var body = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, createFullOptions, e.TokenReader, e.Control, e.Ignore);
 
 			// 构建else
 			ITreeNode elseNode = null;
-			token = e.TokenReader.Read();
+			var token = e.TokenReader.Read();
 			if (token.HasValue)
 			{
 				if (token.Value.IsSymbol("else"))
@@ -63,7 +67,8 @@ namespace AScript.Lang.Go.TokenHandlers
 			{
 				var ifNode = new IfNode
 				{
-					Condition = init == null ? condition : new MultiNode { Nodes = new[] { init, condition } },
+					//Condition = init == null ? condition : new MultiNode { Nodes = new[] { init, condition } },
+					Condition = condition,
 					Body = body,
 					Else = elseNode
 				};
