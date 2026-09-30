@@ -15,7 +15,7 @@ namespace AScript.Nodes
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
-			if (EvalCondition(context))
+			if (EvalCondition(context, options))
 			{
 				if (this.Body == null)
 				{
@@ -49,10 +49,10 @@ namespace AScript.Nodes
 			return default;
 		}
 
-		private bool EvalCondition(ScriptContext context)
+		private bool EvalCondition(ScriptContext context, BuildOptions options)
 		{
 			if (this.Condition == null) return true;
-			var conditionResult = this.Condition.Eval(context, null, null, out var conditionType);
+			var conditionResult = this.Condition.Eval(context, options, null, out var conditionType);
 			return context.IsTrue(conditionResult);
 		}
 
