@@ -418,6 +418,13 @@ namespace AScript.Operators
 				//{
 				//	throw new ScriptAnalyzingException("invalid expression near =, tuple length not matched");
 				//}
+				for (int i = 0; i < tupleNode.Items.Count; i++)
+				{
+					var v = tupleNode.Items[i];
+					if (v is ObjectNode) continue;
+					var v0 = v.Eval(e.Context, e.Options, e.Control, out var t0);
+					tupleNode.Items[i] = new ObjectNode(v0, t0);
+				}
 				int minCount = Math.Min(item.Items.Count, tupleNode.Items.Count);
 				//var itemValues = new object[arg0Items.Count];
 				//var itemTypes = new Type[arg0Items.Count];
