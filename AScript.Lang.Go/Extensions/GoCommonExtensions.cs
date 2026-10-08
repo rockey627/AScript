@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace AScript.Lang.Go.Extensions
 {
@@ -10,6 +9,26 @@ namespace AScript.Lang.Go.Extensions
 	/// </summary>
 	public static class GoCommonExtensions
 	{
+#if NET45
+		public static Tuple<TValue, bool> __GetMapValue__<TKey, TValue>(IDictionary<TKey, TValue> dict, TKey key)
+		{
+			if (dict.TryGetValue(key, out var value))
+			{
+				return Tuple.Create(value, true);
+			}
+			return Tuple.Create<TValue, bool>(default, false);
+		}
+#else
+		public static (TValue, bool) __GetMapValue__<TKey, TValue>(IDictionary<TKey, TValue> dict, TKey key)
+		{
+			if (dict.TryGetValue(key, out var value))
+			{
+				return (value, true);
+			}
+			return (default, false);
+		}
+#endif
+
 		/// <summary>
 		/// append 函数 - 向slice添加元素
 		/// </summary>

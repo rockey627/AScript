@@ -160,9 +160,10 @@ namespace AScript.Lang.Go
 
 					// 解析=号后面的多语句，按逗号分隔
 					var valueList = ignore ? null : new List<ITreeNode>();
+					var fullOptions = new BuildOptions(options) { CreateFullStatement = true };
 					while (true)
 					{
-						var stmt = BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore);
+						var stmt = BuildOneStatement(buildContext, scriptContext, fullOptions, tokenReader, control, ignore);
 						valueList?.Add(stmt);
 						nextToken = tokenReader.Read();
 						if (!nextToken.HasValue) break;
@@ -174,10 +175,22 @@ namespace AScript.Lang.Go
 					// 生成=号OperatorNode
 					if (treeBuilder != null)
 					{
-						var assignOp = PoolManage.CreateOperatorNode(assignOpName, 2, ASSIGN);
-						assignOp.Left = tupleNode;
-						assignOp.Right = valueList.Count == 1 ? valueList[0] : new TupleNode { Items = valueList };
-						treeBuilder.Add(buildContext, scriptContext, options, control, assignOp);
+						if (tupleNode is TupleNode tn && tn.Items.Count == 2
+							&& valueList.Count == 1 && valueList[0] is OperatorNode op && op.Name == "[]")
+						{
+							// v, ok = map[key]
+							var assign = PoolManage.CreateOperatorNode("=", 2, 0);
+							assign.Left = tn;
+							assign.Right = new CallFuncNode { Name = "__GetMapValue__", Args = new[] { op.Left, op.Right } };
+							treeBuilder.AddData(buildContext, scriptContext, options, control, assign);
+						}
+						else
+						{
+							var assignOp = PoolManage.CreateOperatorNode(assignOpName, 2, ASSIGN);
+							assignOp.Left = tupleNode;
+							assignOp.Right = valueList.Count == 1 ? valueList[0] : new TupleNode { Items = valueList };
+							treeBuilder.Add(buildContext, scriptContext, options, control, assignOp);
+						}
 					}
 					return true;
 				}

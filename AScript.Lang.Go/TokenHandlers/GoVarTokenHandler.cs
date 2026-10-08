@@ -56,9 +56,10 @@ namespace AScript.Lang.Go.TokenHandlers
 			{
 				e.End = true;
 				var values = e.Ignore ? null : new List<ITreeNode>();
+				var fullOptions = new BuildOptions(e.Options) { CreateFullStatement = true };
 				while (true)
 				{
-					var value = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control, e.Ignore);
+					var value = analyzer.BuildOneStatement(e.BuildContext, e.ScriptContext, fullOptions, e.TokenReader, e.Control, e.Ignore);
 					values?.Add(value);
 					nextToken = e.TokenReader.Read();
 					if (!nextToken.HasValue) break;
@@ -78,37 +79,31 @@ namespace AScript.Lang.Go.TokenHandlers
 						assign.Right = values[0];
 						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, assign);
 					}
+					else if (defines.Count == 2 && values.Count == 1)
+					{
+						var indexValue = values[0];
+						if (indexValue is OperatorNode op && op.Name == "[]")
+						{
+							// v, ok = map[key]
+							var assign = PoolManage.CreateOperatorNode("=", 2, 0);
+							assign.Left = new TupleNode { Items = new List<ITreeNode>(defines) };
+							assign.Right = new CallFuncNode { Name = "__GetMapValue__", Args = new[] { op.Left, op.Right } };
+							e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, assign);
+						}
+						else
+						{
+							var assign = PoolManage.CreateOperatorNode("=", 2, 0);
+							assign.Left = new TupleNode { Items = new List<ITreeNode>(defines) };
+							assign.Right = values.Count == 1 ? values[0] : new TupleNode { Items = values };
+							e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, assign);
+						}
+					}
 					else
 					{
 						var assign = PoolManage.CreateOperatorNode("=", 2, 0);
 						assign.Left = new TupleNode { Items = new List<ITreeNode>(defines) };
 						assign.Right = values.Count == 1 ? values[0] : new TupleNode { Items = values };
 						e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, assign);
-						//var multNode = new MultiNode
-						//{
-						//	Nodes = new List<ITreeNode>(Math.Max(defines.Count, values.Count))
-						//};
-						//int min = Math.Min(defines.Count, values.Count);
-						//for (int i = 0; i < min; i++)
-						//{
-						//	var define = defines[i];
-						//	define.Modifier = this.Modifier;
-						//	var assign = PoolManage.CreateOperatorNode("=", 2, 0);
-						//	assign.Left = define;
-						//	assign.Right = values[i];
-						//	multNode.Nodes.Add(assign);
-						//}
-						//for (int i = min; i < defines.Count; i++)
-						//{
-						//	var define = defines[i];
-						//	define.Modifier = this.Modifier;
-						//	multNode.Nodes.Add(define);
-						//}
-						//for (int i = min; i < values.Count; i++)
-						//{
-						//	multNode.Nodes.Add(values[i]);
-						//}
-						//e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, multNode);
 					}
 				}
 			}
