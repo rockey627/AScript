@@ -27,42 +27,27 @@ namespace AScript.Lang.Go.Types
 				return true;
 			}
 
-			// 从结构体字段定义中查找
-			if (_struct.Fields.TryGetValue(name, out var fieldType))
+			// 从结构体字段定义中查找（递归）
+			var fieldType = _struct.GetFieldType(name);
+			if (fieldType != null)
 			{
-				// 返回默认值
 				result = fieldType.IsValueType ? Activator.CreateInstance(fieldType) : null;
 				return true;
 			}
 
-			// 从结构体方法定义中查找
-			if (_struct.Methods.TryGetValue(name, out var methods))
-			{
-				result = methods.FirstOrDefault();
-				return result != null;
-			}
-
-			// 从基类中查找
-			foreach (var baseStruct in _struct.Bases)
-			{
-				if (baseStruct.Fields.TryGetValue(name, out var baseFieldType))
-				{
-					result = baseFieldType.IsValueType ? Activator.CreateInstance(baseFieldType) : null;
-					return true;
-				}
-				if (baseStruct.Methods.TryGetValue(name, out var baseMethods))
-				{
-					result = baseMethods.FirstOrDefault();
-					if (result != null) return true;
-				}
-			}
-
 			result = null;
-			return true;
+			return false;
 		}
 
 		public override bool TrySetMember(SetMemberBinder binder, object value)
 		{
+			if (!_dict.ContainsKey(binder.Name))
+			{
+				if (_struct.GetFieldType(binder.Name) == null)
+				{
+					return false;
+				}
+			}
 			_dict[binder.Name] = value;
 			return true;
 		}
@@ -78,117 +63,33 @@ namespace AScript.Lang.Go.Types
 				method = del;
 			}
 
-			// 从结构体方法定义中查找
-			if (method == null && _struct.Methods.TryGetValue(name, out var methods))
-			{
-				method = methods.FirstOrDefault();
-			}
-
-			// 从基类方法中查找
+			// 从结构体方法定义中查找（递归）
 			if (method == null)
 			{
-				foreach (var baseStruct in _struct.Bases)
+				var methods = _struct.GetMethods(name);
+				if (methods != null)
 				{
-					if (baseStruct.Methods.TryGetValue(name, out var baseMethods))
+					Type[] argTypes = null;
+					if (args != null && args.Length > 0)
 					{
-						method = baseMethods.FirstOrDefault();
-						if (method != null) break;
+						argTypes = new Type[args.Length];
+						for (int i = 0; i < args.Length; i++)
+						{
+							argTypes[i] = args[i]?.GetType();
+						}
 					}
+
+					method = methods.FirstOrDefault(a => ScriptUtils.IsMatchArgTypes(argTypes, a.Method, out _, out _, out _));
 				}
 			}
 
 			if (method != null)
 			{
-				// 处理参数数量匹配
-				var parameters = method.Method.GetParameters();
-				int argsLength = args == null ? 0 : args.Length;
-				int parametersLength = parameters.Length;
-
-				// 检查第一个参数是否为 Closure 类型
-				if (parameters.Length > 0 &&
-					parameters[0].ParameterType.FullName == "System.Runtime.CompilerServices.Closure")
-				{
-					parametersLength -= 1;
-				}
-
-				// 如果参数不足，填充 null
-				if (parametersLength > argsLength)
-				{
-					var newArgs = new object[parametersLength];
-					if (argsLength > 0)
-					{
-						System.Array.Copy(args, newArgs, argsLength);
-					}
-					args = newArgs;
-				}
-
 				result = method.DynamicInvoke(args);
 				return true;
 			}
 
 			return base.TryInvokeMember(binder, args, out result);
-		}
-
-		public object GetField(string name)
-		{
-			if (_dict.TryGetValue(name, out var value))
-			{
-				return value;
-			}
-
-			if (_struct.Fields.TryGetValue(name, out var fieldType))
-			{
-				return fieldType.IsValueType ? Activator.CreateInstance(fieldType) : null;
-			}
-
-			foreach (var baseStruct in _struct.Bases)
-			{
-				if (baseStruct.Fields.TryGetValue(name, out var baseFieldType))
-				{
-					return baseFieldType.IsValueType ? Activator.CreateInstance(baseFieldType) : null;
-				}
-			}
-
-			return null;
-		}
-
-		public void SetField(string name, object value)
-		{
-			_dict[name] = value;
-		}
-
-		public object InvokeMethod(string name, params object[] args)
-		{
-			Delegate method = null;
-
-			if (_dict.TryGetValue(name, out var value) && value is Delegate del)
-			{
-				method = del;
-			}
-
-			if (method == null && _struct.Methods.TryGetValue(name, out var methods))
-			{
-				method = methods.FirstOrDefault();
-			}
-
-			if (method == null)
-			{
-				foreach (var baseStruct in _struct.Bases)
-				{
-					if (baseStruct.Methods.TryGetValue(name, out var baseMethods))
-					{
-						method = baseMethods.FirstOrDefault();
-						if (method != null) break;
-					}
-				}
-			}
-
-			if (method != null)
-			{
-				return method.DynamicInvoke(args);
-			}
-
-			throw new MissingMemberException($"Method '{name}' not found");
 		}
 	}
 }

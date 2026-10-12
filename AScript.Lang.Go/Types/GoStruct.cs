@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AScript.Lang.Go.Types
 {
@@ -43,9 +44,32 @@ namespace AScript.Lang.Go.Types
 			return new GoStructInstance(this);
 		}
 
-		public T CreateInstance<T>() where T : GoStructInstance
+		public Type GetFieldType(string name)
 		{
-			return (T)Activator.CreateInstance(typeof(T), this);
+			if (Fields.TryGetValue(name, out var type))
+				return type;
+
+			foreach (var baseStruct in Bases)
+			{
+				var baseType = baseStruct.GetFieldType(name);
+				if (baseType != null) return baseType;
+			}
+
+			return null;
+		}
+
+		public List<Delegate> GetMethods(string name)
+		{
+			if (Methods.TryGetValue(name, out var list))
+				return list;
+
+			foreach (var baseStruct in Bases)
+			{
+				var method = baseStruct.GetMethods(name);
+				if (method != null && method.Count > 0) return method;
+			}
+
+			return null;
 		}
 	}
 }
