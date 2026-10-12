@@ -69,7 +69,7 @@ namespace AScript.Lang.Go
 			AddFunc("^", XOrOperator.Instance);
 			AddFunc("<<", LeftShiftOperator.Instance);
 			AddFunc(">>", RightShiftOperator.Instance);
-			AddFunc("&^", new AndNotOperator());
+			AddFunc("&^", GoAndNotOperator.Instance);
 
 			AddFunc("++", IncrementAssignOperator.Instance);
 			AddFunc("--", DecrementAssignOperator.Instance);
@@ -103,7 +103,7 @@ namespace AScript.Lang.Go
 			AddModule("strconv", new SingleTypeScriptModule<Extensions.strconv>(2));
 			AddModule("fmt", new SingleTypeScriptModule<Extensions.fmt>(2));
 			AddModule("sync", new SingleTypeScriptModule<Extensions.sync>(2));
-			AddModule("time", new Extensions.TimeScriptModule());
+			AddModule("time", new Extensions.GoTimeScriptModule());
 
 			// Token处理器 - 核心语句
 			AddTokenHandler("var", GoVarTokenHandler.Instance);
@@ -214,17 +214,11 @@ namespace AScript.Lang.Go
 							{
 								defineVar.GoType = type;
 							}
-							//if (defineVar.SystemType == null)
-							//{
-							//	defineVar.Type = type.Name;
-							//	defineVar.SystemType = type.RealType;
-							//}
 						}
 					}
 				}
 
 				defines?.Add(new GoDefineVarNode(varName, type));
-				//defines?.Add(PoolManage.CreateDefineVarNode(varName, type?.Name, type?.RealType));
 
 				nextToken = tokenReader.Read();
 				if (!nextToken.HasValue) break;
@@ -269,13 +263,6 @@ namespace AScript.Lang.Go
 
 			if (nextToken.Value.Type == ETokenType.Word)
 			{
-				//var typeName = nextToken.Value.Value;
-				//var runtimeType = scriptContext.EvalType(typeName);
-				//if (runtimeType != null)
-				//{
-				//	type = new GoRuntimeType(typeName, runtimeType);
-				//	return true;
-				//}
 				if (TryParseWordType(analyzer, buildContext, scriptContext, options, tokenReader, nextToken.Value, out type))
 				{
 					return true;
@@ -311,10 +298,6 @@ namespace AScript.Lang.Go
 
 			if (token.Value.Type == ETokenType.Word)
 			{
-				//var typeName = token.Value.Value;
-				//var type = scriptContext.EvalType(typeName);
-				//if (type == null) throw new Exceptions.ScriptAnalyzingException($"unknown type '{typeName}' at ({token.Value.Line},{token.Value.Column})");
-				//return new GoRuntimeType(typeName, type);
 				return ParseWordType(analyzer, buildContext, scriptContext, options, tokenReader, token.Value);
 			}
 
@@ -579,34 +562,5 @@ namespace AScript.Lang.Go
 			return ignore ? null : PoolManage.CreateObjectNode(goMapType.RealType);
 		}
 
-		//public static ITreeNode BuildBlock(int parentColumn, DefaultSyntaxAnalyzer analyzer, BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, TokenReader tokenReader, EvalControl control, bool ignore = false, HashSet<string> endTokens = null)
-		//{
-		//	var token = tokenReader.Read();
-		//	if (!token.HasValue) return null;
-		//	if (token.Value.Column <= parentColumn)
-		//	{
-		//		tokenReader.Push(token.Value);
-		//		return null;
-		//	}
-
-		//	var builder = ignore ? null : new TreeBuilder();
-		//	int column = token.Value.Column;
-		//	while (token.HasValue && token.Value.Column == column)
-		//	{
-		//		tokenReader.Push(token.Value);
-		//		var statement = analyzer.BuildOneStatement(buildContext, scriptContext, options, tokenReader, control, ignore, endTokens: endTokens);
-		//		if (!ignore)
-		//		{
-		//			builder.Add(buildContext, scriptContext, options, control, statement);
-		//		}
-		//		token = tokenReader.Read();
-		//	}
-		//	if (token.HasValue)
-		//	{
-		//		tokenReader.Push(token.Value);
-		//	}
-
-		//	return builder;
-		//}
 	}
 }

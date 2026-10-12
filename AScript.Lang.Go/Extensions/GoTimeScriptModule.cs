@@ -2,12 +2,12 @@
 
 namespace AScript.Lang.Go.Extensions
 {
-	public class TimeScriptModule : IScriptModule
+	public class GoTimeScriptModule : IScriptModule
 	{
 		public object Install(BaseContext context)
 		{
 			context.AddType("time", typeof(DateTime));
-			context.AddFunc(typeof(TimeExtensions));
+			context.AddFunc(typeof(GoTimeExtensions));
 			return new TypeWrapper("time", typeof(DateTime));
 		}
 

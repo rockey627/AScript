@@ -7,9 +7,9 @@ namespace AScript.Lang.Go.Operators
 	/// <summary>
 	/// Go语言的 &amp;^ 运算符（AND NOT）
 	/// </summary>
-	public class AndNotOperator : IFunctionEvaluator, IFunctionBuilder
+	public class GoAndNotOperator : IFunctionEvaluator, IFunctionBuilder
 	{
-		public static readonly AndNotOperator Instance = new AndNotOperator();
+		public static readonly GoAndNotOperator Instance = new GoAndNotOperator();
 
 		public void Build(FunctionBuildArgs e)
 		{

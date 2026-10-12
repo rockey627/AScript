@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace AScript.Lang.Go.Extensions
 {
-	public static class TimeExtensions
+	public static class GoTimeExtensions
 	{
 		public static DateTime time_Now() => DateTime.Now;
 

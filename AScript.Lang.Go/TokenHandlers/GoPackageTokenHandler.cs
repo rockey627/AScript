@@ -26,7 +26,7 @@ namespace AScript.Lang.Go.TokenHandlers
 			var nameToken = analyzer.ValidateNextToken(e.TokenReader, ETokenType.Word);
 			if (!e.Ignore)
 			{
-				var packageNode = new Nodes.PackageNode { Name = nameToken.Value.Value };
+				var packageNode = new Nodes.GoPackageNode { Name = nameToken.Value.Value };
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, packageNode);
 			}
 		}
