@@ -772,6 +772,10 @@ namespace AScript
 		public static object GetDefaultValue(Type targetType)
 		{
 			if (targetType == null || targetType == typeof(void)) return null;
+			if (targetType is ClassDefine classDefine)
+			{
+				return classDefine.IsValueType ? new ClassObject(classDefine) : null;
+			}
 			return targetType.IsValueType ? Activator.CreateInstance(targetType) : null;
 		}
 
