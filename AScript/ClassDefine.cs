@@ -17,9 +17,9 @@ namespace AScript
 
 		public override Guid GUID => _Guid;
 
-		public override System.Reflection.Module Module => null;
+		public override System.Reflection.Module Module => typeof(ClassDefine).Module;
 
-		public override System.Reflection.Assembly Assembly => null;
+		public override System.Reflection.Assembly Assembly => typeof(ClassDefine).Assembly;
 
 		public override string FullName => _Name;
 
@@ -27,9 +27,9 @@ namespace AScript
 
 		public override string AssemblyQualifiedName => string.Empty;
 
-		public override Type BaseType => typeof(object);
+		public override Type BaseType => typeof(Type);
 
-		public override Type UnderlyingSystemType => throw new NotImplementedException();
+		public override Type UnderlyingSystemType => typeof(ClassDefine);
 
 		public override string Name => _Name;
 
@@ -75,22 +75,6 @@ namespace AScript
 		{
 			return this.IsValueType ? CreateInstance() : null;
 		}
-
-		//public Type GetField(string name)
-		//{
-		//	if (this.Fields.TryGetValue(name, out var field))
-		//	{
-		//		return field;
-		//	}
-
-		//	foreach (var baseDefine in this.Bases)
-		//	{
-		//		var baseField = baseDefine.GetField(name);
-		//		if (baseField != null) return baseField;
-		//	}
-
-		//	return null;
-		//}
 
 		public List<Delegate> GetMethods(string name)
 		{
@@ -340,43 +324,5 @@ namespace AScript
 				((ClassObject)obj).TrySetMember(_Name, value);
 			}
 		}
-
-		//public class FieldInfo
-		//{
-		//	public string Name { get; private set; }
-		//	public Type Type { get; private set; }
-		//	public ClassDefine Define { get; private set; }
-
-		//	public bool IsValueType => this.Type == null ? this.Define.IsValueType : this.Type.IsValueType;
-
-		//	public FieldInfo(string name, Type type)
-		//	{
-		//		this.Name = name;
-		//		this.Type = type;
-		//	}
-		//	public FieldInfo(string name, ClassDefine define)
-		//	{
-		//		this.Name = name;
-		//		this.Define = define;
-		//	}
-
-		//	public object CreateDefaultValue()
-		//	{
-		//		if (this.Type != null)
-		//		{
-		//			return this.Type.IsValueType ? Activator.CreateInstance(this.Type) : null;
-		//		}
-		//		return this.Define.CreateDefaultValue();
-		//	}
-
-		//	public bool IsMatchedValue(object value)
-		//	{
-		//		if (value == null) return true;
-		//		var valueType = value.GetType();
-		//		if (this.Define != null) return valueType == typeof(ClassObject);
-		//		if (valueType == typeof(ClassObject)) return false;
-		//		return ScriptUtils.IsMatchArgType(valueType, this.Type);
-		//	}
-		//}
 	}
 }
