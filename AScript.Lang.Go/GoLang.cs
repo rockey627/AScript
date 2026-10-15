@@ -109,6 +109,7 @@ namespace AScript.Lang.Go
 			AddTokenHandler("var", GoVarTokenHandler.Instance);
 			AddTokenHandler("const", new GoVarTokenHandler(Modifiers.CONST));
 			AddTokenHandler("func", GoFuncTokenHandler.Instance);
+			AddTokenHandler("type", GoTypeTokenHandler.Instance);
 			AddTokenHandler("if", GoIfTokenHandler.Instance);
 			AddTokenHandler("for", GoForTokenHandler.Instance);
 			AddTokenHandler("return", ReturnTokenHandler.Instance);
@@ -133,6 +134,8 @@ namespace AScript.Lang.Go
 			AddTokenHandler("[", GoBracketTokenHandler.Instance);
 			// 集合
 			AddTokenHandler("map", GoMapTokenHandler.Instance);
+			// 类型定义
+			AddTokenHandler("type", GoTypeTokenHandler.Instance);
 		}
 
 		public override ITokenStream GetTokenStream(CharReader charReader)
