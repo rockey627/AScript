@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using System.Reflection;
 
 namespace AScript
 {
@@ -64,23 +63,38 @@ namespace AScript
 				var methods = _define.GetMethods(name);
 				if (methods != null)
 				{
-					Type[] argTypes = null;
+					Type[] argTypes;
 					if (args != null && args.Length > 0)
 					{
-						argTypes = new Type[args.Length];
+						argTypes = new Type[args.Length + 1];
+						argTypes[0] = _define;
 						for (int i = 0; i < args.Length; i++)
 						{
-							argTypes[i] = args[i]?.GetType();
+							argTypes[i + 1] = args[i]?.GetType();
 						}
 					}
-
+					else
+					{
+						argTypes = new Type[] { _define };
+					}
 					method = methods.FirstOrDefault(a => ScriptUtils.IsMatchArgTypes(argTypes, a.Method, out _, out _, out _));
 				}
 			}
 
 			if (method != null)
 			{
-				result = method.DynamicInvoke(args);
+				object[] newArgs;
+				if (args == null || args.Length == 0)
+				{
+					newArgs = new object[] { this };
+				}
+				else
+				{
+					newArgs = new object[args.Length + 1];
+					newArgs[0] = this;
+					Array.Copy(args, 0, newArgs, 1, args.Length);
+				}
+				result = method.DynamicInvoke(newArgs);
 				return true;
 			}
 

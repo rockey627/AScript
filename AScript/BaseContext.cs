@@ -431,6 +431,7 @@ namespace AScript
 		protected virtual bool? IsObjectMemberEnabledCore(Type objType)
 		{
 			if (objType == null) return null;
+			if (objType is ClassDefine) return null;
 			var dict = _ObjectMemberEnabledDict;
 			if (dict == null || dict.Count == 0) return null;
 			if (dict.TryGetValue(objType, out var enable))

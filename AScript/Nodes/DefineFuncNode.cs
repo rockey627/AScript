@@ -16,6 +16,7 @@ namespace AScript.Nodes
 		public DefineVarNode[] Args { get; set; }
 		public ITreeNode Body { get; set; }
 		public Type DelegateType { get; set; }
+		public ClassDefine TargetClassDefine { get; set; }
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
@@ -29,10 +30,11 @@ namespace AScript.Nodes
 				}
 			}
 			var compileMode = (options ?? Script.DefaultOptions).CompileMode ?? ECompileMode.None;
-			if ((compileMode & ECompileMode.Function) == ECompileMode.Function)
+			if ((compileMode & ECompileMode.Function) == ECompileMode.Function || this.TargetClassDefine != null)
 			{
 				var tempBuildContext = new BuildContext
 				{
+					ScriptContextParameter = Expression.Variable(typeof(ScriptContext)),
 					RewriteLocalVariables = false,
 					ReturnType = funcReturnType,
 					IsMain = true
@@ -47,6 +49,7 @@ namespace AScript.Nodes
 						{
 							throw new ScriptAnalyzingException($"unknown parameter type {arg.Type} in function {this.Name}");
 						}
+						if (type is ClassDefine) type = typeof(ClassObject);
 						tempBuildContext.Parameters[arg.Name] = Expression.Parameter(type, arg.Name);
 					}
 				}
@@ -56,7 +59,14 @@ namespace AScript.Nodes
 				returnType = func.GetType();
 				if (!IsAnonymous(this.Name))
 				{
-					context.AddTempFunc(this.Name, func);
+					if (this.TargetClassDefine == null)
+					{
+						context.AddTempFunc(this.Name, func);
+					}
+					else
+					{
+						this.TargetClassDefine.AddMethod(this.Name, func);
+					}
 				}
 				return func;
 			}
@@ -135,6 +145,7 @@ namespace AScript.Nodes
 					{
 						throw new ScriptAnalyzingException($"unknown parameter type {arg.Type} in function {this.Name}");
 					}
+					if (type is ClassDefine) type = typeof(ClassObject);
 					argTypes[i] = type;
 					string argName = arg.Name;
 					// 匿名参数名：_1、_2、_3 ...
@@ -163,17 +174,25 @@ namespace AScript.Nodes
 			buildContext.Variables[tmpVarName] = tmpVar;
 			buildContext.LocalVariables.Add(tmpVarName);
 			buildContext.PrevExpressions.Add(assign);
-			// 添加到编译上下文
-			buildContext.AddTempFunc(this.Name, tmpVar);
-			// 回写到脚本上下文
-			if (buildContext.RewriteLocalVariables && (options?.RewriteFunctions ?? true) && !(options?.Standalone ?? false))
+			if (this.TargetClassDefine == null)
 			{
-				var addTempFuncExpression = Expression.Call(
-					buildContext.GetScriptContextParameter(),
-					ScriptUtils.Method_ScriptContext_AddTempFunc,
-					Expression.Constant(this.Name),
-					tmpVar);
-				return Expression.Block(addTempFuncExpression, tmpVar);
+				// 添加到编译上下文
+				buildContext.AddTempFunc(this.Name, tmpVar);
+				// 回写到脚本上下文
+				if (buildContext.RewriteLocalVariables && (options?.RewriteFunctions ?? true) && !(options?.Standalone ?? false))
+				{
+					var addTempFuncExpression = Expression.Call(
+						buildContext.GetScriptContextParameter(),
+						ScriptUtils.Method_ScriptContext_AddTempFunc,
+						Expression.Constant(this.Name),
+						tmpVar);
+					return Expression.Block(addTempFuncExpression, tmpVar);
+				}
+			}
+			else
+			{
+				var addMethod = Expression.Call(Expression.Constant(this.TargetClassDefine), ScriptUtils.Method_ClassDefine_AddMethod, tmpVar);
+				buildContext.PrevExpressions.Add(addMethod);
 			}
 			// 返回函数引用
 			return tmpVar;
