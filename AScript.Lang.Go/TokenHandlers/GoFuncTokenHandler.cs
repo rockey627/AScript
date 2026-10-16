@@ -5,6 +5,7 @@ using AScript.Syntaxs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace AScript.Lang.Go.TokenHandlers
 {
@@ -12,7 +13,9 @@ namespace AScript.Lang.Go.TokenHandlers
 	/// Go函数声明处理器
 	/// func name(params) returnType { body }
 	/// func name(params) { body }
-	/// func(params) { body }
+	/// func (params) { body }
+	/// func (params) returnType { body }
+	/// func (p Person) setName(name string) returnType { body }
 	/// </summary>
 	public class GoFuncTokenHandler : ITokenHandler
 	{
@@ -66,6 +69,7 @@ namespace AScript.Lang.Go.TokenHandlers
 			string returnVarName = null;
 			string returnType = null;
 			Type returnSystemType = null;
+			ClassDefine targetClassDefine = null;
 			token = analyzer.ValidateNextToken(e.TokenReader);
 			if (token.Value.IsSymbol("("))
 			{
@@ -100,6 +104,84 @@ namespace AScript.Lang.Go.TokenHandlers
 					}
 					returnType = $"({string.Join(",", returnTypes.Select(a => a.Name))})";
 					returnSystemType = ScriptUtils.GetTupleType(returnTypes.Select(a => a.RealType).ToArray());
+				}
+			}
+			else if (funcName == null && token.Value.Type == ETokenType.Word
+				&& args != null && args.Count == 1 && (args[0].SystemType is ClassDefine classDefine)
+				&& (e.TokenReader.Peek()?.IsSymbol("(") ?? false))
+			{
+				// func (p Person) setName(name string) returnType { body }
+				funcName = token.Value.Value;
+				targetClassDefine = classDefine;
+				List<GoDefineVarNode> realArgs;
+				e.TokenReader.Read(); // (
+				token = analyzer.ValidateNextToken(e.TokenReader);
+				if (token.Value.IsSymbol(")"))
+				{
+					// 无参数
+					realArgs = null;
+				}
+				else
+				{
+					realArgs = GoLang.ParseDefineVars(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore);
+					analyzer.ValidateNextToken(e.TokenReader, ")");
+				}
+				if (realArgs == null) realArgs = args;
+				else realArgs.Insert(0, args[0]);
+				args = realArgs;
+
+				token = analyzer.ValidateNextToken(e.TokenReader);
+				if (token.Value.IsSymbol("("))
+				{
+					// 命名返回值：(result int)
+					var token1 = analyzer.ValidateNextToken(e.TokenReader);
+					if (token1.Value.Type == ETokenType.Word)
+					{
+						var token2 = analyzer.ValidateNextToken(e.TokenReader);
+						e.TokenReader.Push(token2.Value);
+						if (!token2.Value.IsSymbol(","))
+						{
+							var type = GoLang.ParseType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore);
+							analyzer.ValidateNextToken(e.TokenReader, ")");
+							returnVarName = token1.Value.Value;
+							returnType = type.Name;
+							returnSystemType = type.RealType;
+						}
+					}
+					if (returnSystemType == null)
+					{
+						e.TokenReader.Push(token1.Value);
+						// 多返回值
+						var returnTypes = new List<GoType>();
+						while (true)
+						{
+							var type = GoLang.ParseType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore);
+							returnTypes.Add(type);
+							token = analyzer.ValidateNextToken(e.TokenReader);
+							if (token.Value.IsSymbol(",")) continue;
+							if (token.Value.IsSymbol(")")) break;
+							throw new Exceptions.ScriptAnalyzingException($"invalid expression '{token.Value.Value}' near func {funcName} at ({token.Value.Line},{token.Value.Column})");
+						}
+						returnType = $"({string.Join(",", returnTypes.Select(a => a.Name))})";
+						returnSystemType = ScriptUtils.GetTupleType(returnTypes.Select(a => a.RealType).ToArray());
+					}
+				}
+				else
+				{
+					e.TokenReader.Push(token.Value);
+					if (GoLang.TryParseType(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore, out var goType))
+					{
+						returnType = goType.Name;
+						returnSystemType = goType.RealType;
+					}
+					else if (token.Value.Type == ETokenType.Word)
+					{
+						throw new Exceptions.ScriptRuntimeException($"unknown return type {token.Value.Value} of func {funcName} at ({token.Value.Line},{token.Value.Column})");
+					}
+					else
+					{
+						returnSystemType = typeof(void);
+					}
 				}
 			}
 			else
@@ -169,7 +251,8 @@ namespace AScript.Lang.Go.TokenHandlers
 					Body = body,
 					ReturnVarName = returnVarName,
 					ReturnSystemType = returnSystemType,
-					ReturnType = returnType
+					ReturnType = returnType,
+					TargetClassDefine = targetClassDefine
 				};
 				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, defineNode);
 			}
