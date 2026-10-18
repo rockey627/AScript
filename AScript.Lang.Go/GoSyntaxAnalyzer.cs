@@ -55,6 +55,86 @@ namespace AScript.Lang.Go
 			return treeBuilder;
 		}
 
+		protected override void ParseIdentifierOrOperator(TokenAnalyzingArgs e, IEnumerable<string> endTokens = null)
+		{
+			if (e.IsHandled) return;
+
+			if (e.CurrentToken.Type == ETokenType.Word)
+			{
+				var nextToken = e.TokenReader.Read();
+				if (nextToken.HasValue)
+				{
+					if (nextToken.Value.IsSymbol("{"))
+					{
+						var systemType = e.ScriptContext.EvalType(e.CurrentToken.Value);
+						if (systemType != null)
+						{
+							// 解析 Go 结构体实例: Person{Name: "Tom", Age: 20}
+							var initProperties = ParseStructInitProperties(e);
+							if (!e.Ignore)
+							{
+								var newNode = new NewNode
+								{
+									Name = e.CurrentToken.Value,
+									SystemType = systemType,
+									InitProperties = initProperties
+								};
+								e.TreeBuilder.Add(e.BuildContext, e.ScriptContext, e.Options, e.Control, newNode);
+							}
+							e.IsHandled = true;
+							return;
+						}
+					}
+					e.TokenReader.Push(nextToken.Value);
+				}
+			}
+
+			base.ParseIdentifierOrOperator(e, endTokens);
+		}
+
+		private IList<ITreeNode> ParseStructInitProperties(TokenAnalyzingArgs e)
+		{
+			var initProperties = e.Ignore ? null : new List<ITreeNode>();
+			while (true)
+			{
+				var token = ValidateNextToken(e.TokenReader);
+
+				if (token.Value.IsSymbol("}"))
+				{
+					break;
+				}
+
+				if (token.Value.IsSymbol(","))
+				{
+					continue;
+				}
+
+				// 字段名
+				if (token.Value.Type != ETokenType.Word)
+				{
+					throw new Exceptions.ScriptAnalyzingException($"invalid token '{token.Value.Value}' at ({token.Value.Line},{token.Value.Column}), expect field name");
+				}
+
+				string fieldName = token.Value.Value;
+
+				// 跳过冒号（Go 语法中的 : 分隔符）
+				ValidateNextToken(e.TokenReader, ":");
+
+				// 解析字段值
+				var valueNode = BuildOneStatement(e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Control);
+
+				// 将 field: value 转换为 field = value 的 OperatorNode
+				if (initProperties != null)
+				{
+					var assignNode = PoolManage.CreateOperatorNode("=", 2, ASSIGN);
+					assignNode.Left = PoolManage.CreateVariableNode(fieldName);
+					assignNode.Right = valueNode;
+					initProperties.Add(assignNode);
+				}
+			}
+			return initProperties;
+		}
+
 		/// <summary>
 		/// a, arr[1], map['hello'] = 1, 2, 3
 		/// </summary>

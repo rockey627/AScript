@@ -594,7 +594,7 @@ func (p Person) greet() {
 func (p Person) cleanup() {
     order += ""bye""
 }
-var p = Person{""Tom""}
+var p = Person{name:""Tom""}
 p.greet()
 defer p.cleanup()
 order
@@ -618,7 +618,7 @@ func (p Person) greet() {
 func (p Person) cleanup() {
     order += ""bye""
 }
-var p = Person{""Tom""}
+var p = Person{name:""Tom""}
 p.greet()
 defer p.cleanup()
 order
