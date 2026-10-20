@@ -5,6 +5,34 @@ using System.Reflection;
 
 namespace AScript
 {
+	/// <summary>
+	/// ClassDefine的实例不能直接用于Lambda编译，因为不是运行时类型，会报异常
+	/// </summary>
+	public class ClassDefineForCompile
+	{
+		private readonly ClassDefine _define;
+
+		public ClassDefineForCompile(ClassDefine classDefine)
+		{
+			_define = classDefine;
+		}
+
+		public void AddProperty(string name, Type type)
+		{
+			_define.AddProperty(name, type);
+		}
+
+		public void AddMethod(string name, Delegate method)
+		{
+			_define.AddMethod(name, method);
+		}
+
+		public ClassObject CreateInstance()
+		{
+			return _define.CreateInstance();
+		}
+	}
+
 	public class ClassDefine : Type
 	{
 		private readonly string _Name;

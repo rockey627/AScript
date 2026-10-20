@@ -10,6 +10,25 @@ namespace AScript
 		private readonly ClassDefine _define;
 		private readonly Dictionary<string, object> _values = new Dictionary<string, object>();
 
+		public object this[string name]
+		{
+			get
+			{
+				if (TryGetMember(name, out var result))
+				{
+					return result;
+				}
+				throw new Exceptions.ScriptRuntimeException($"unknow Property '{name}' of custom class '{_define.Name}'");
+			}
+			set
+			{
+				if (!TrySetMember(name, value))
+				{
+					throw new Exceptions.ScriptRuntimeException($"unknow Property '{name}' of custom class '{_define.Name}'");
+				}
+			}
+		}
+
 		public ClassObject(ClassDefine define)
 		{
 			_define = define;

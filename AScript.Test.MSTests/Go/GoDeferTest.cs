@@ -589,10 +589,10 @@ type Person struct {
     name string
 }
 func (p Person) greet() {
-    order += ""hello""
+    order += ""hello"" + p.name
 }
 func (p Person) cleanup() {
-    order += ""bye""
+    order += ""bye"" + p.name
 }
 var p = Person{name:""Tom""}
 p.greet()
@@ -601,7 +601,8 @@ order
 ";
 			var script = new Script();
 			script.Context.Langs = new[] { "go" };
-			Assert.AreEqual("hellobye", script.Eval(s));
+			Assert.AreEqual("helloTom", script.Eval(s));
+			Assert.AreEqual("helloTombyeTom", script.Context.EvalVar("order"));
 		}
 
 		[TestMethod]
@@ -613,10 +614,10 @@ type Person struct {
     name string
 }
 func (p Person) greet() {
-    order += ""hello""
+    order += ""hello"" + p.name
 }
 func (p Person) cleanup() {
-    order += ""bye""
+    order += ""bye"" + p.name
 }
 var p = Person{name:""Tom""}
 p.greet()
@@ -626,7 +627,8 @@ order
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.Langs = new[] { "go" };
-			Assert.AreEqual("hellobye", script.Eval(s));
+			Assert.AreEqual("helloTom", script.Eval(s));
+			Assert.AreEqual("helloTombyeTom", script.Context.EvalVar("order"));
 		}
 
 		[TestMethod]

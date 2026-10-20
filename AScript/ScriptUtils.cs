@@ -50,7 +50,9 @@ namespace AScript
 		public static readonly MethodInfo Method_ScriptContext_AddTempFunc = typeof(ScriptContext).GetMethod("AddTempFunc", new Type[] { typeof(string), typeof(Delegate) });
 		public static readonly MethodInfo Method_ScriptContext_IsTrue = typeof(ScriptContext).GetMethod("IsTrue", new Type[] { typeof(object) });
 
-		public static readonly MethodInfo Method_ClassDefine_AddMethod = typeof(ClassDefine).GetMethod("AddMethod", new Type[] { typeof(string), typeof(Delegate) });
+		public static readonly MethodInfo Method_ClassDefineForCompile_AddMethod = typeof(ClassDefineForCompile).GetMethod("AddMethod", new Type[] { typeof(string), typeof(Delegate) });
+		public static readonly MethodInfo Method_ClassDefineForCompile_CreateInstance = typeof(ClassDefineForCompile).GetMethod("CreateInstance");
+		public static readonly MethodInfo Method_ClassObject_TrySetMember = typeof(ClassObject).GetMethod("TrySetMember", new[] { typeof(string), typeof(object) });
 
 		public static readonly MethodInfo Method_ITreeNode_Eval = typeof(ITreeNode).GetMethod("Eval", new Type[] { typeof(ScriptContext), typeof(BuildOptions), typeof(EvalControl), typeof(Type).MakeByRefType() });
 
@@ -59,6 +61,7 @@ namespace AScript
 		public static readonly MethodInfo Method_Delegate_DynamicInvoke = typeof(Delegate).GetMethod("DynamicInvoke", new Type[] { typeof(object[]) });
 
 		public static readonly MethodInfo Method_DynamicObject_TryInvokeMember = typeof(DynamicObject).GetMethod("TryInvokeMember", BindingFlags.Instance | BindingFlags.Public);
+		public static readonly MethodInfo Method_DynamicObject_TryGetMember = typeof(DynamicObject).GetMethod("TryGetMember", BindingFlags.Instance | BindingFlags.Public);
 
 		public static readonly MethodInfo Method_String_Concat = typeof(string).GetMethod("Concat", new Type[] { typeof(string) });
 		public static readonly MethodInfo Method_String_Concat_object = typeof(string).GetMethod("Concat", new Type[] { typeof(object) });
@@ -220,6 +223,7 @@ namespace AScript
 			if (inType == defineType) return true;
 			if (defineType == typeof(object)) return true;
 			if (typeof(Delegate).IsAssignableFrom(inType)) return typeof(Delegate).IsAssignableFrom(defineType);
+			if (defineType == typeof(ClassObject)) return inType == typeof(ClassObject) || inType is ClassDefine;
 			if (IsNumberType(defineType)) return IsNumberType(inType);
 			if (defineType.IsClass) return inType.IsSubclassOf(defineType);
 			if (defineType.IsInterface) return inType.GetInterfaces().Contains(defineType);
@@ -1564,6 +1568,32 @@ namespace AScript
 			TryInvokeDynamicObject(target, methodName, args, out var result);
 			return result;
 		}
+
+		///// <summary>
+		///// 动态调用 DynamicObject 的方法（运行时执行）
+		///// </summary>
+		//public static bool TryGetMemberDynamicObject(DynamicObject target, string memberName, out object result)
+		//{
+		//	var binder = Microsoft.CSharp.RuntimeBinder.Binder.GetMember(
+		//				Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags.None,
+		//				memberName, // 成员名称，对应你的方法名或属性名等
+		//				null,
+		//				new[]
+		//				{
+		//					Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags.None, null),
+		//					Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags.IsOut, null)
+		//				}
+		//			);
+		//	var dynamicArgs = new object[] { binder, null };
+		//	var success = (bool)Method_DynamicObject_TryGetMember.Invoke(target, dynamicArgs);
+		//	if (success)
+		//	{
+		//		result = dynamicArgs[1];
+		//		return true;
+		//	}
+		//	result = null;
+		//	return false;
+		//}
 
 		/// <summary>
 		/// 构建动态调用 DynamicObject 方法的表达式

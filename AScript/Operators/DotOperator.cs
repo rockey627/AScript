@@ -193,7 +193,7 @@ namespace AScript.Operators
 					return m.Invoke(target, new object[] { propertyOrFieldName });
 				}
 
-				if (target is DynamicObject)
+				if (target is DynamicObject dynamicTarget)
 				{
 					var itemProperty = targetType.GetProperty("Item", new[] { typeof(string) });
 					if (itemProperty == null)
@@ -205,6 +205,11 @@ namespace AScript.Operators
 						type = itemProperty.PropertyType;
 						return itemProperty.GetValue(target, new object[] { propertyOrFieldName });
 					}
+					//if (ScriptUtils.TryGetMemberDynamicObject(dynamicTarget, propertyOrFieldName, out var result))
+					//{
+					//	type = result?.GetType() ?? typeof(object);
+					//	return result;
+					//}
 				}
 			}
 

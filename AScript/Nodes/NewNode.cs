@@ -130,6 +130,36 @@ namespace AScript.Nodes
 			}
 			else type = null;
 
+			if (type is ClassDefine classDefine)
+			{
+				var createInstance = Expression.Call(Expression.Constant(new ClassDefineForCompile(classDefine)), ScriptUtils.Method_ClassDefineForCompile_CreateInstance);
+				if (this.InitProperties == null || this.InitProperties.Count == 0)
+				{
+					return createInstance;
+				}
+				var instanceVar = Expression.Variable(typeof(ClassObject));
+				var assign = Expression.Assign(instanceVar, createInstance);
+				var statements = new List<Expression>(this.InitProperties.Count + 2);
+				statements.Add(assign);
+				foreach (var propInit in this.InitProperties)
+				{
+					if (propInit is OperatorNode opNode && opNode.Name == "=")
+					{
+						if (opNode.Left is VariableNode propNameNode)
+						{
+							var propValue = opNode.Right.Build(buildContext, scriptContext, options);
+							if (propValue.Type.IsValueType)
+							{
+								propValue = Expression.Convert(propValue, typeof(object));
+							}
+							statements.Add(Expression.Call(instanceVar, ScriptUtils.Method_ClassObject_TrySetMember, Expression.Constant(propNameNode.Name), propValue));
+						}
+					}
+				}
+				statements.Add(instanceVar);
+				return Expression.Block(new[] { instanceVar }, statements);
+			}
+
 			if (type == typeof(ExpandoObject))
 			{
 				// 创建匿名类型对象 ExpandoObject
@@ -565,7 +595,30 @@ namespace AScript.Nodes
 				}
 			}
 			else type = null;
-			// 
+
+			if (type is ClassDefine classDefine)
+			{
+				var obj = classDefine.CreateInstance();
+
+				if (this.InitProperties != null && this.InitProperties.Count > 0)
+				{
+					foreach (var propInit in this.InitProperties)
+					{
+						if (propInit is OperatorNode opNode && opNode.Name == "=")
+						{
+							if (opNode.Left is VariableNode propNameNode)
+							{
+								var propValue = opNode.Right.Eval(context, options, control, out _);
+								obj.TrySetMember(propNameNode.Name, propValue);
+							}
+						}
+					}
+				}
+
+				returnType = type;
+				return obj;
+			}
+
 			if (type == typeof(ExpandoObject))
 			{
 				// 创建匿名类型对象 ExpandoObject

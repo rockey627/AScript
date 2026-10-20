@@ -191,7 +191,7 @@ namespace AScript.Nodes
 			}
 			else
 			{
-				var addMethod = Expression.Call(Expression.Constant(this.TargetClassDefine), ScriptUtils.Method_ClassDefine_AddMethod, Expression.Constant(this.Name), tmpVar);
+				var addMethod = Expression.Call(Expression.Constant(new ClassDefineForCompile(this.TargetClassDefine)), ScriptUtils.Method_ClassDefineForCompile_AddMethod, Expression.Constant(this.Name), tmpVar);
 				buildContext.PrevExpressions.Add(addMethod);
 			}
 			// 返回函数引用
