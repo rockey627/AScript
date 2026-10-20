@@ -2067,6 +2067,7 @@ namespace AScript
 		{
 			if (type == null) return v;
 			if (v.Type == type) return v;
+			if (v.Type == typeof(ClassObject)) return v;
 			// 值类型->任意类型：强制转换
 			// 任意类型->引用类型：强制转换
 			// 非object/string类型->值类型：强制转换

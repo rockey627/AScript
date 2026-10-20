@@ -105,12 +105,12 @@ namespace AScript
 				object[] newArgs;
 				if (args == null || args.Length == 0)
 				{
-					newArgs = new object[] { this };
+					newArgs = new object[] { _define.IsValueType ? this.Clone() : this };
 				}
 				else
 				{
 					newArgs = new object[args.Length + 1];
-					newArgs[0] = this;
+					newArgs[0] = _define.IsValueType ? this.Clone() : this;
 					Array.Copy(args, 0, newArgs, 1, args.Length);
 				}
 				result = method.DynamicInvoke(newArgs);
@@ -138,6 +138,23 @@ namespace AScript
 				return true;
 			}
 			return base.TryInvokeMember(binder, args, out result);
+		}
+
+		public ClassObject Clone()
+		{
+			var cloneObj = new ClassObject(_define);
+			foreach (var item in _values)
+			{
+				if (item.Value is ClassObject classObject && classObject._define.IsValueType)
+				{
+					cloneObj._values[item.Key] = classObject.Clone();
+				}
+				else
+				{
+					cloneObj._values[item.Key] = item.Value;
+				}
+			}
+			return cloneObj;
 		}
 	}
 }
