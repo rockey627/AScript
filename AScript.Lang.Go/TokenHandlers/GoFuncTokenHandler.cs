@@ -123,6 +123,7 @@ namespace AScript.Lang.Go.TokenHandlers
 				}
 				else
 				{
+					e.TokenReader.Push(token.Value);
 					realArgs = GoLang.ParseDefineVars(analyzer, e.BuildContext, e.ScriptContext, e.Options, e.TokenReader, e.Ignore);
 					analyzer.ValidateNextToken(e.TokenReader, ")");
 				}

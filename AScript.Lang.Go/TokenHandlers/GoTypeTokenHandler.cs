@@ -38,7 +38,7 @@ namespace AScript.Lang.Go.TokenHandlers
 			analyzer.ValidateNextToken(e.TokenReader, "{");
 
 			// 解析字段列表
-			var classDefine = e.Ignore ? null : new ClassDefine(typeName);
+			var classDefine = e.Ignore ? null : new ClassDefine(typeName, true);
 			while (true)
 			{
 				var fieldToken = analyzer.ValidateNextToken(e.TokenReader);
@@ -62,7 +62,7 @@ namespace AScript.Lang.Go.TokenHandlers
 			if (!e.Ignore)
 			{
 				e.ScriptContext.AddType(typeName, classDefine);
-				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(classDefine));
+				e.TreeBuilder.AddData(e.BuildContext, e.ScriptContext, e.Options, e.Control, PoolManage.CreateObjectNode(new TypeWrapper(classDefine)));
 			}
 		}
 	}
