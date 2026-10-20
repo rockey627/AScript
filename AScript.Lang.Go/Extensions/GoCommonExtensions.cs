@@ -104,6 +104,11 @@ namespace AScript.Lang.Go.Extensions
 			dict.Remove(key);
 		}
 
+		public static string @string(object obj)
+		{
+			return obj?.ToString();
+		}
+
 		/// <summary>
 		/// len 函数 - 返回长度
 		/// </summary>
