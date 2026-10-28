@@ -225,6 +225,7 @@ namespace AScript.Operators
 			{
 				// 数组赋值
 				int index = Convert.ToInt32(idx);
+				if (value != null) value = ScriptUtils.Convert(value, obj.GetType().GetElementType());
 				array.SetValue(value, index);
 			}
 			else if (obj is IDictionary dict)
@@ -278,6 +279,7 @@ namespace AScript.Operators
 			if (obj.Type.IsArray)
 			{
 				// 数组赋值
+				valueExpr = ScriptUtils.Convert(valueExpr, obj.Type.GetElementType());
 				return Expression.Assign(Expression.ArrayAccess(obj, idx), valueExpr);
 			}
 

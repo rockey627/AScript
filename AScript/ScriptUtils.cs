@@ -37,7 +37,7 @@ namespace AScript
 		public static readonly MethodInfo Method_ScriptUtils_IsIntegerType = typeof(ScriptUtils).GetMethod("IsIntegerType", new[] { typeof(Type) });
 		public static readonly MethodInfo Method_ScriptUtils_DynamicInvoke_ExpandoObject = typeof(ScriptUtils).GetMethod("DynamicInvoke", new[] { typeof(ScriptContext), typeof(ExpandoObject), typeof(string), typeof(object[]) });
 		public static readonly MethodInfo Method_ScriptUtils_DynamicInvoke_Object = typeof(ScriptUtils).GetMethod("DynamicInvoke", new[] { typeof(ScriptContext), typeof(string), typeof(object), typeof(object[]) });
-		
+
 		public static readonly MethodInfo Method_ScriptContext_Create1 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(bool) });
 		public static readonly MethodInfo Method_ScriptContext_Create2 = typeof(ScriptContext).GetMethod("Create", new Type[] { typeof(ScriptContext), typeof(bool) });
 		public static readonly MethodInfo Method_ScriptContext_EvalVar = typeof(ScriptContext).GetMethods(BindingFlags.Instance | BindingFlags.Public).FirstOrDefault(a => a.Name == "EvalVar" && !a.IsGenericMethod && a.GetParameters().Length == 1);
@@ -75,7 +75,7 @@ namespace AScript
 		public static readonly MethodInfo Method_String_Concat_list_object = typeof(string).GetMethod("Concat", new Type[] { typeof(IEnumerable<object>) });
 		public static readonly MethodInfo Method_String_Concat_array = typeof(string).GetMethod("Concat", new Type[] { typeof(string[]) });
 		public static readonly MethodInfo Method_String_Concat_array_object = typeof(string).GetMethod("Concat", new Type[] { typeof(object[]) });
-		
+
 		public static readonly MethodInfo Method_Object_ToString = typeof(object).GetMethod("ToString", new Type[0]);
 		public static readonly MethodInfo Method_Object_Equals = typeof(object).GetMethod("Equals", new[] { typeof(object) });
 		public static readonly MethodInfo Method_Object_GetType = typeof(object).GetMethod("GetType", new Type[0]);
@@ -1182,6 +1182,21 @@ namespace AScript
 
 		public static object EvalNumber(string number, bool int2long)
 		{
+			if (number.Length >= 3 && number[0] == '0')
+			{
+				var c1 = number[1];
+				if (c1 == 'x' || c1 == 'X')
+				{
+					if (number.Length <= 10 && !int2long) return System.Convert.ToInt32(number, 16);
+					return System.Convert.ToInt64(number, 16);
+				}
+				if (c1 == 'b' || c1 == 'B')
+				{
+					var binStr = number.Substring(2);
+					if (binStr.Length <= 32 && !int2long) return System.Convert.ToInt32(binStr, 2);
+					return System.Convert.ToInt64(binStr, 2);
+				}
+			}
 			var lastChar = number[number.Length - 1];
 			if (lastChar == 'm' || lastChar == 'M')
 			{
@@ -1204,25 +1219,6 @@ namespace AScript
 			{
 				if (dotIndex == 0) return double.Parse("0" + number);
 				return double.Parse(number);
-			}
-			if (number.Length >= 3)
-			{
-				var c0 = number[0];
-				var c1 = number[1];
-				if (c0 == '0')
-				{
-					if (c1 == 'x' || c1 == 'X')
-					{
-						if (number.Length <= 10 && !int2long) return System.Convert.ToInt32(number, 16);
-						return System.Convert.ToInt64(number, 16);
-					}
-					if (c1 == 'b' || c1 == 'B')
-					{
-						var binStr = number.Substring(2);
-						if (binStr.Length <= 32 && !int2long) return System.Convert.ToInt32(binStr, 2);
-						return System.Convert.ToInt64(binStr, 2);
-					}
-				}
 			}
 			if (int2long) return long.Parse(number);
 			return int.Parse(number);
@@ -2224,21 +2220,21 @@ namespace AScript
 						//	case TypeCode.UInt64:
 						//		return Expression.Convert(v, type);
 						//	default:
-								MethodInfo method;
-								if (v.Type == typeof(object))
-								{
-									method = Method_Convert_ToInt32_object;
-								}
-								else
-								{
-									method = typeof(Convert).GetMethod("ToInt32", new[] { v.Type });
-									if (method == null)
-									{
-										method = Method_Convert_ToInt32_object;
-										v = Expression.Convert(v, typeof(object));
-									}
-								}
-								return Expression.Call(method, v);
+						MethodInfo method;
+						if (v.Type == typeof(object))
+						{
+							method = Method_Convert_ToInt32_object;
+						}
+						else
+						{
+							method = typeof(Convert).GetMethod("ToInt32", new[] { v.Type });
+							if (method == null)
+							{
+								method = Method_Convert_ToInt32_object;
+								v = Expression.Convert(v, typeof(object));
+							}
+						}
+						return Expression.Call(method, v);
 						//}
 					}
 				case TypeCode.Int64:

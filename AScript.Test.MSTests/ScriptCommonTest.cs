@@ -13,6 +13,39 @@ namespace AScript.Test.MSTests
 	public class ScriptCommonTest
 	{
 		[TestMethod]
+		public void Test55_bytes()
+		{
+			var s = @"
+var buffs=new byte[]{0xf3,0x04,0xff};
+buffs[0] = 0x02;
+";
+			var script = new Script();
+			script.Eval(s);
+			var buffs = script.Eval<byte[]>("buffs");
+			Assert.AreEqual(3, buffs.Length);
+			Assert.AreEqual((byte)0x02, buffs[0]);
+			Assert.AreEqual((byte)0x04, buffs[1]);
+			Assert.AreEqual((byte)0xff, buffs[2]);
+		}
+
+		[TestMethod]
+		public void Test55_bytes_CompileAll()
+		{
+			var s = @"
+var buffs=new byte[]{0xf3,0x04,0xff};
+buffs[0] = 0x02;
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Eval(s);
+			var buffs = script.Eval<byte[]>("buffs");
+			Assert.AreEqual(3, buffs.Length);
+			Assert.AreEqual((byte)0x02, buffs[0]);
+			Assert.AreEqual((byte)0x04, buffs[1]);
+			Assert.AreEqual((byte)0xff, buffs[2]);
+		}
+
+		[TestMethod]
 		public void Test54()
 		{
 			var script = new Script();
