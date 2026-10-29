@@ -137,7 +137,7 @@ namespace AScript.Nodes
 			// 从ScriptContext中取值
 			//var call = Expression.Call(buildContext.GetScriptContextParameter(), ExpressionUtils.Method_ScriptContext_EvalVar, Expression.Constant(this.Name));
 			//var assign = Expression.Assign(varExpr, Expression.Convert(call, type));
-			if (options.Standalone ?? false)
+			if (options?.Standalone ?? false)
 			{
 				var assign = Expression.Assign(varExpr, Expression.Constant(value, type));
 				mainBuildContext.PrevExpressions.Add(assign);
