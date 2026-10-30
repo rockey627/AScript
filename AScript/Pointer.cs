@@ -18,6 +18,21 @@ namespace AScript
 			this.Address = address;
 		}
 
+		public static IAddress CreateArrayAddress(object array, object index)
+		{
+			return new ArrayAddress(array, index);
+		}
+
+		public static IAddress CreatePropertyAddress(object target, string propertyName)
+		{
+			return new PropertyAddress(target, propertyName);
+		}
+
+		public static IAddress CreateVariableAddress(string name)
+		{
+			return new VariableAddress(name);
+		}
+
 		public interface IAddress
 		{
 			object GetValue(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options);
@@ -28,6 +43,12 @@ namespace AScript
 		{
 			public object Array { get; private set; }
 			public object Index { get; private set; }
+
+			public ArrayAddress(object array, object index)
+			{
+				this.Array = array;
+				this.Index = index;
+			}
 
 			public object GetValue(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
 			{
