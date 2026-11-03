@@ -78,10 +78,13 @@ var now = DateTime.Now;
 	now = now.AddDays(1)
 } 
 now.ToString('yyyy-MM-dd')+'ok}'
-}hi{aa}";
+}hi{aa}${now.Year}";
 			var script = new Script();
 			script.Context.SetVar("name", "Tom");
-			Assert.AreEqual($"Hello Tom, today is {DateTime.Now.AddDays(1).ToString("yyyy-MM-dd") + "ok}"}" + "hi{aa}", script.Translate(s));
+			var result = script.Translate(s);
+			Console.WriteLine(result);
+			var expected = $"Hello Tom, today is {DateTime.Now.AddDays(1).ToString("yyyy-MM-dd") + "ok}"}" + "hi{aa}" + DateTime.Now.Year;
+			Assert.AreEqual(expected, result);
 			Assert.IsNull(script.Context.EvalVar("now"));
 		}
 
@@ -94,11 +97,14 @@ var now = DateTime.Now;
 	now = now.AddDays(1)
 } 
 now.ToString('yyyy-MM-dd')+'ok}'
-}hi{aa}";
+}hi{aa}${now.Year}";
 			var script = new Script();
 			script.Options.CompileMode = ECompileMode.All;
 			script.Context.SetVar("name", "Tom");
-			Assert.AreEqual($"Hello Tom, today is {DateTime.Now.AddDays(1).ToString("yyyy-MM-dd") + "ok}"}" + "hi{aa}", script.Translate(s));
+			var result = script.Translate(s);
+			Console.WriteLine(result);
+			var expected = $"Hello Tom, today is {DateTime.Now.AddDays(1).ToString("yyyy-MM-dd") + "ok}"}" + "hi{aa}" + DateTime.Now.Year;
+			Assert.AreEqual(expected, result);
 			Assert.IsNull(script.Context.EvalVar("now"));
 		}
 
@@ -111,10 +117,13 @@ var now = DateTime.Now;
 	now = now.AddDays(1)
 } 
 now.ToString('yyyy-MM-dd')+'ok}'
-}hi{aa}";
+}hi{aa}${now.Year}";
 			var script = new Script();
 			script.Context.SetVar("name", "Tom");
-			Assert.AreEqual($"Hello Tom, today is {DateTime.Now.AddDays(1).ToString("yyyy-MM-dd") + "ok}"}" + "hi{aa}", script.Translate(s, ECompileMode.All));
+			var result = script.Translate(s, ECompileMode.All);
+			Console.WriteLine(result);
+			var expected = $"Hello Tom, today is {DateTime.Now.AddDays(1).ToString("yyyy-MM-dd") + "ok}"}" + "hi{aa}" + DateTime.Now.Year;
+			Assert.AreEqual(expected, result);
 			Assert.IsNull(script.Context.EvalVar("now"));
 		}
 	}

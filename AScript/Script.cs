@@ -99,7 +99,6 @@ namespace AScript
 			int index = 0;
 			var sb = new StringBuilder(s.Length);
 			var options = (this.Options.CompileMode ?? ECompileMode.None) == compileMode ? this.Options : new BuildOptions(this.Options) { CompileMode = compileMode };
-			BuildContext buildContext = compileMode == ECompileMode.All ? new BuildContext() : null;
 			var context = new ScriptContext(this.Context);
 			while (index < s.Length)
 			{
@@ -116,6 +115,7 @@ namespace AScript
 						var analyzer = GetSyntaxAnalyzer(this.Context);
 						if (compileMode == ECompileMode.All)
 						{
+							var buildContext = new BuildContext();
 							var node = analyzer.Build(buildContext, context, options, new TokenReader(translateTokenStream, false));
 							var body = node.Build(buildContext, context, options);
 							PoolManage.Return(node);

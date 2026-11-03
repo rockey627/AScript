@@ -804,3 +804,23 @@ var info = script.Eval("info");
 Assert.AreEqual("hi ABC, my name is 张三", hi);
 Assert.AreEqual("name:李四,age:18", info);
 ```
+
+#### 字符串模板
+转化执行字符串中的脚本，使用${}包含脚本块，并将执行结果拼接到字符串对应位置。
+适合模板场景，比如打印模板等。
+注：脚本块中定义的变量和函数不会回写到上下文，可以调用前一个脚本块中定义的变量和函数。
+```
+string s = @"Hello ${name}, today is ${
+var now = DateTime.Now; 
+{
+	now = now.AddDays(1)
+} 
+now.ToString('yyyy-MM-dd')+'ok}'
+}hi{aa}${now.Year}";
+var script = new Script();
+script.Context.SetVar("name", "Tom");
+var result = script.Translate(s);
+var expected = $"Hello Tom, today is {DateTime.Now.AddDays(1).ToString("yyyy-MM-dd") + "ok}"}" + "hi{aa}" + DateTime.Now.Year;
+Assert.AreEqual(expected, result);
+Assert.IsNull(script.Context.EvalVar("now"));
+```
