@@ -39,7 +39,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			Test01_Benchmark();
+			//Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -71,11 +71,23 @@ namespace AScript.Test.Consoles
 			//Test24_Sqlite();
 			//Test25_js();
 			//Test26_for();
+			Test27_pointer();
 			//Console.WriteLine(GetResult());
 			//var p = Expression.Constant(new Person());
 			//Console.WriteLine(Expression.PropertyOrField(p, "name"));
 			Console.WriteLine("end");
 			Console.ReadLine();
+		}
+
+		static void Test27_pointer()
+		{
+			unsafe
+			{
+				int a = 5;
+				int* p = &a;
+				*p = 6;
+				Console.WriteLine(a);
+			}
 		}
 
 		static int GetResult()
