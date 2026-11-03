@@ -4,6 +4,7 @@ using AScript.Readers;
 using System;
 using System.IO;
 using System.Linq.Expressions;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -69,6 +70,74 @@ namespace AScript
 		public Script(ScriptContext context)
 		{
 			this.Context = context;
+		}
+
+		/// <summary>
+		/// <para>转换执行字符串中的表达式</para>
+		/// <para>字符串中使用${}包含脚本，并将执行结果拼接到字符串对应位置</para>
+		/// <para>例如"Hello ${name}, today is ${DateTime.Now.ToString('yyyy-MM-dd')}"</para>
+		/// </summary>
+		/// <param name="s"></param>
+		/// <returns></returns>
+		public string Translate(string s)
+		{
+			return Translate(s, ECompileMode.None);
+		}
+
+		/// <summary>
+		/// <para>转换执行字符串中的表达式</para>
+		/// <para>字符串中使用${}包含脚本，并将执行结果拼接到字符串对应位置</para>
+		/// <para>例如"Hello ${name}, today is ${DateTime.Now.ToString('yyyy-MM-dd')}"</para>
+		/// </summary>
+		/// <param name="s"></param>
+		/// <param name="compileMode"></param>
+		/// <returns></returns>
+		public string Translate(string s, ECompileMode compileMode)
+		{
+			if (string.IsNullOrEmpty(s)) return s;
+			bool translated = false;
+			int index = 0;
+			var sb = new StringBuilder(s.Length);
+			var options = (this.Options.CompileMode ?? ECompileMode.None) == compileMode ? this.Options : new BuildOptions(this.Options) { CompileMode = compileMode };
+			BuildContext buildContext = compileMode == ECompileMode.All ? new BuildContext() : null;
+			var context = new ScriptContext(this.Context);
+			while (index < s.Length)
+			{
+				var c = s[index];
+				if (c == '$')
+				{
+					int nextIndex = index + 1;
+					if (nextIndex < s.Length && s[nextIndex] == '{')
+					{
+						// 执行脚本
+						translated = true;
+						var tokenStream = GetTokenStream(this.Context, s, nextIndex + 1);
+						var translateTokenStream = new TranslateTokenStream(tokenStream);
+						var analyzer = GetSyntaxAnalyzer(this.Context);
+						if (compileMode == ECompileMode.All)
+						{
+							var node = analyzer.Build(buildContext, context, options, new TokenReader(translateTokenStream, false));
+							var body = node.Build(buildContext, context, options);
+							PoolManage.Return(node);
+							var bodys = body == null ? null : new[] { body };
+							var lambda = buildContext.Build(context, options, bodys);
+							var del = lambda.Compile();
+							var result = del.DynamicInvoke(context);
+							sb.Append(result);
+						}
+						else
+						{
+							var result = analyzer.Eval(context, options, translateTokenStream, out _);
+							sb.Append(result);
+						}
+						index = ((StringCharStream)((DefaultTokenStream)tokenStream).CharReader.Stream).CurrentIndex;
+						continue;
+					}
+				}
+				sb.Append(c);
+				index++;
+			}
+			return translated ? sb.ToString() : s;
 		}
 
 		/// <summary>
@@ -1552,7 +1621,7 @@ namespace AScript
 			}
 			return Compile(buildContext, this.Context, this.Options, expression);
 		}
-		
+
 		public Delegate CompileGlobal(Stream expression, string[] argNames, Type[] argTypes)
 		{
 			if (expression == null) return null;
@@ -3440,6 +3509,12 @@ namespace AScript
 		private static ITokenStream GetTokenStream(ScriptContext context, string expression)
 		{
 			var charReader = new CharReader(new StringCharStream(expression), true);
+			return context.GetTokenStream(charReader) ?? DefaultLexicalAnalyzer.Create(charReader);
+		}
+
+		private static ITokenStream GetTokenStream(ScriptContext context, string expression, int currentIndex)
+		{
+			var charReader = new CharReader(new StringCharStream(expression, currentIndex), true);
 			return context.GetTokenStream(charReader) ?? DefaultLexicalAnalyzer.Create(charReader);
 		}
 

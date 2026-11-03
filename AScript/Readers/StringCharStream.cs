@@ -8,14 +8,20 @@ namespace AScript.Readers
     {
         private readonly string _expression;
 
-        private int _currentIndex;
+		private int _currentIndex;
+
+        public int CurrentIndex => _currentIndex;
 
         public StringCharStream(string expression)
         {
             _expression = expression;
-        }
+		}
+		public StringCharStream(string expression, int currentIndex) : this(expression)
+		{
+			_currentIndex = currentIndex;
+		}
 
-        public char? Next()
+		public char? Next()
 		{
             if (_currentIndex >= _expression.Length)
             {

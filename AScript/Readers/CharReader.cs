@@ -15,6 +15,7 @@ namespace AScript.Readers
 
 		public int CurrentLine { get; private set; } = 1;
 		public int CurrentColumn { get; private set; }
+		public ICharStream Stream => _stream;
 
 		public CharReader(ICharStream stream, bool autoDisposeStream)
 		{
