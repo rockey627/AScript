@@ -20,9 +20,6 @@ namespace AScript.Lang.Go
 	{
 		public static readonly GoLang Instance = new GoLang();
 
-		internal static readonly HashSet<string> EndTokens_brace = new HashSet<string> { "}" };
-		internal static readonly HashSet<string> EndTokens_semi = new HashSet<string> { ";" };
-
 		protected GoLang()
 		{
 			// 基本类型
@@ -41,7 +38,7 @@ namespace AScript.Lang.Go
 			AddType<bool>("bool", false);
 			AddType<string>("string", false);
 			AddType<byte>("byte", false);
-			//AddType<char>("rune", false);
+			AddType<char>("rune", false);
 			AddType<object>("any");
 
 			// 赋值运算符
