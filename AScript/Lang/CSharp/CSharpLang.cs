@@ -161,6 +161,7 @@ namespace AScript.Lang.CSharp
 			AddTokenHandler("throw", ThrowTokenHandler.Instance);
 			AddTokenHandler("try", TryTokenHandler.Instance);
 			AddTokenHandler("@@CancellationToken", CancellationTokenHandler.Instance);
+			AddTokenHandler("unsafe", IgnoreTokenHandler.Instance);
 		}
 	}
 }
