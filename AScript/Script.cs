@@ -103,7 +103,7 @@ namespace AScript
 			while (index < s.Length)
 			{
 				var c = s[index];
-				if (c == '$')
+				if (c == '$' || c == '@')
 				{
 					int nextIndex = index + 1;
 					if (nextIndex < s.Length && s[nextIndex] == '{')
@@ -123,12 +123,12 @@ namespace AScript
 							var lambda = buildContext.Build(context, options, bodys);
 							var del = lambda.Compile();
 							var result = del.DynamicInvoke(context);
-							sb.Append(result);
+							if (c == '$') sb.Append(result);
 						}
 						else
 						{
 							var result = analyzer.Eval(context, options, translateTokenStream, out _);
-							sb.Append(result);
+							if (c == '$') sb.Append(result);
 						}
 						index = ((StringCharStream)((DefaultTokenStream)tokenStream).CharReader.Stream).CurrentIndex;
 						continue;

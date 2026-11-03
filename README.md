@@ -806,21 +806,31 @@ Assert.AreEqual("name:李四,age:18", info);
 ```
 
 #### 字符串模板
-转化执行字符串中的脚本，使用${}包含脚本块，并将执行结果拼接到字符串对应位置。
-适合模板场景，比如打印模板等。
+转化执行字符串中的脚本，使用`${}`和`@{}`包含脚本块：
+* `${}`脚本块会将最后一条语句执行结果拼接到结果字符串中；
+* `@{}`脚本块只执行，不拼接结果，常用于变量计算或者函数定义。
 注：脚本块中定义的变量和函数不会回写到上下文，可以调用前一个脚本块中定义的变量和函数。
 ```
-string s = @"Hello ${name}, today is ${
-var now = DateTime.Now; 
-{
-	now = now.AddDays(1)
-} 
-now.ToString('yyyy-MM-dd')+'ok}'
-}hi{aa}${now.Year}";
+string s = @"
+@{
+int calcAge(DateTime birthday) {
+    return DateTime.Now.Year - birthday.Year
+}
+var userSex = user.Sex == 0 ? '女士' : '先生';
+//var userAge = DateTime.Now.Year - user.Birthday.Year;
+//var userAge = calcAge(user.Birthday);
+}
+尊敬的 ${user.Name}${userSex} 您好，祝您${calcAge(user.Birthday)}岁生日快乐！
+";
+// 模拟获取业务数据
+var user = new { Name = "张三", Sex = 1, Birthday = new DateTime(1990, 10, 8), CreateTime = new DateTime(2026, 5, 1) };
 var script = new Script();
-script.Context.SetVar("name", "Tom");
-var result = script.Translate(s);
-var expected = $"Hello Tom, today is {DateTime.Now.AddDays(1).ToString("yyyy-MM-dd") + "ok}"}" + "hi{aa}" + DateTime.Now.Year;
+// 注入业务数据
+script.Context.SetVar("user", user);
+// 转化模板
+var result = script.Translate(s)?.Trim();
+Console.WriteLine(result);
+var expected = $"尊敬的 张三先生 您好，祝您{DateTime.Now.Year - user.Birthday.Year}岁生日快乐！";
+Console.WriteLine(expected);
 Assert.AreEqual(expected, result);
-Assert.IsNull(script.Context.EvalVar("now"));
 ```
