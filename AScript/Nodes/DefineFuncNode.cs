@@ -50,6 +50,9 @@ namespace AScript.Nodes
 							throw new ScriptAnalyzingException($"unknown parameter type {arg.Type} in function {this.Name}");
 						}
 						if (type is ClassDefine) type = typeof(ClassObject);
+						else if (type.IsGenericType 
+							&& type.GetGenericTypeDefinition() == typeof(Pointer<>) 
+							&& type.GetGenericArguments()[0] is ClassDefine) type = typeof(Pointer<ClassObject>);
 						tempBuildContext.Parameters[arg.Name] = Expression.Parameter(type, arg.Name);
 					}
 				}

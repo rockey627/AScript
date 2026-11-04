@@ -107,12 +107,19 @@ namespace AScript.Lang.Go.TokenHandlers
 				}
 			}
 			else if (funcName == null && token.Value.Type == ETokenType.Word
-				&& args != null && args.Count == 1 && (args[0].SystemType is ClassDefine classDefine)
+				&& args != null && args.Count == 1 && (args[0].SystemType is ClassDefine || args[0].SystemType.IsGenericType && args[0].SystemType.GetGenericTypeDefinition() == typeof(Pointer<>) && args[0].SystemType.GetGenericArguments()[0] is ClassDefine)
 				&& (e.TokenReader.Peek()?.IsSymbol("(") ?? false))
 			{
 				// func (p Person) setName(name string) returnType { body }
 				funcName = token.Value.Value;
-				targetClassDefine = classDefine;
+				if (args[0].SystemType is ClassDefine classDefine)
+				{
+					targetClassDefine = classDefine;
+				}
+				else
+				{
+					targetClassDefine = (ClassDefine)args[0].SystemType.GetGenericArguments()[0];
+				}
 				List<GoDefineVarNode> realArgs;
 				e.TokenReader.Read(); // (
 				token = analyzer.ValidateNextToken(e.TokenReader);

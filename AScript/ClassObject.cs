@@ -102,15 +102,26 @@ namespace AScript
 
 			if (method != null)
 			{
+				var arg0Type = method.Method.GetParameters()[0].ParameterType;
+				object arg0;
+				if (typeof(Pointer).IsAssignableFrom(arg0Type))
+				{
+					arg0 = Activator.CreateInstance(arg0Type, Pointer.CreateObjectAddress(this));
+				}
+				else
+				{
+					arg0 = _define.IsValueType ? this.Clone() : this;
+				}
+
 				object[] newArgs;
 				if (args == null || args.Length == 0)
 				{
-					newArgs = new object[] { _define.IsValueType ? this.Clone() : this };
+					newArgs = new object[] { arg0 };
 				}
 				else
 				{
 					newArgs = new object[args.Length + 1];
-					newArgs[0] = _define.IsValueType ? this.Clone() : this;
+					newArgs[0] = arg0;
 					Array.Copy(args, 0, newArgs, 1, args.Length);
 				}
 				result = method.DynamicInvoke(newArgs);

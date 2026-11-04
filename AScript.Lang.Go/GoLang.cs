@@ -261,7 +261,26 @@ namespace AScript.Lang.Go
 				return true;
 			}
 
-			if (nextToken.Value.Type == ETokenType.Word)
+			if (nextToken.Value.IsSymbol("*"))
+			{
+				// 指针类型
+				var nextToken2 = tokenReader.Read();
+				if (nextToken2.HasValue)
+				{
+					if (nextToken2.Value.Type == ETokenType.Word)
+					{
+						if (TryParseWordType(analyzer, buildContext, scriptContext, options, tokenReader, nextToken2.Value, out type))
+						{
+							var realType = type.RealType;
+							var pointerType = typeof(Pointer<>).MakeGenericType(realType);
+							type = new GoRuntimeType($"*{type.Name}", pointerType);
+							return true;
+						}
+					}
+					tokenReader.Push(nextToken2.Value);
+				}
+			}
+			else if (nextToken.Value.Type == ETokenType.Word)
 			{
 				if (TryParseWordType(analyzer, buildContext, scriptContext, options, tokenReader, nextToken.Value, out type))
 				{
@@ -294,6 +313,15 @@ namespace AScript.Lang.Go
 			{
 				// 数组、切片类型
 				return ParseArrayType(analyzer, buildContext, scriptContext, options, tokenReader, ignore);
+			}
+
+			if (token.Value.IsSymbol("*"))
+			{
+				var token2 = analyzer.ValidateNextToken(tokenReader, ETokenType.Word);
+				var type = ParseWordType(analyzer, buildContext, scriptContext, options, tokenReader, token2.Value);
+				var realType = type.RealType;
+				var pointerType = typeof(Pointer<>).MakeGenericType(realType);
+				return new GoRuntimeType($"*{type.Name}", pointerType);
 			}
 
 			if (token.Value.Type == ETokenType.Word)

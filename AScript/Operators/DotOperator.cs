@@ -61,6 +61,11 @@ namespace AScript.Operators
 				return Expression.Property(d, ScriptUtils.Property_IDictionary_String_Object_Item, Expression.Constant(propertyOrFieldName));
 			}
 
+			if (typeof(Pointer).IsAssignableFrom(instance.Type))
+			{
+
+			}
+
 			if (instance.Type == typeof(object))
 			{
 				return e.ScriptContext.BuildFunc(e.BuildContext, e.Options, e.Control, "<>__GetValue", false, null, new[] { instance, Expression.Constant(propertyOrFieldName) });
