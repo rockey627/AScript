@@ -18,6 +18,7 @@
 * [基于AScript的JavaScript脚本语言发布啦](https://www.cnblogs.com/rockey627/p/21601395)
 * [基于AScript的Lua脚本语言发布啦](https://www.cnblogs.com/rockey627/p/22454219)
 * [AScript之编译递归函数](https://www.cnblogs.com/rockey627/p/22831561)
+* [AScript之字符串模板](https://www.cnblogs.com/rockey627/p/23539216)
 
 ## 介绍
 
@@ -813,12 +814,12 @@ Assert.AreEqual("name:李四,age:18", info);
 ```
 string s = @"
 @{
-int calcAge(DateTime birthday) {
-    return DateTime.Now.Year - birthday.Year
-}
-var userSex = user.Sex == 0 ? '女士' : '先生';
-//var userAge = DateTime.Now.Year - user.Birthday.Year;
-//var userAge = calcAge(user.Birthday);
+	int calcAge(DateTime birthday) {
+		return DateTime.Now.Year - birthday.Year
+	}
+	var userSex = user.Sex == 0 ? '女士' : '先生';
+	//var userAge = DateTime.Now.Year - user.Birthday.Year;
+	//var userAge = calcAge(user.Birthday);
 }
 尊敬的 ${user.Name}${userSex} 您好，祝您${calcAge(user.Birthday)}岁生日快乐！
 ";
