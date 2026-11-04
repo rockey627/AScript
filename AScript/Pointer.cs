@@ -33,6 +33,11 @@ namespace AScript
 			return new VariableAddress(name);
 		}
 
+		public static IAddress CreateObjectAddress(object obj)
+		{
+			return new ObjectAddress(obj);
+		}
+
 		public interface IAddress
 		{
 			object GetValue(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options);
@@ -126,6 +131,26 @@ namespace AScript
 				}
 				scriptContext.SetTempVar(this.Name, value, true);
 				return value;
+			}
+		}
+
+		public class ObjectAddress : IAddress
+		{
+			public object Object { get; private set; }
+			
+			public ObjectAddress(object obj)
+			{
+				this.Object = obj;
+			}
+
+			public object GetValue(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
+			{
+				return this.Object;
+			}
+
+			public object SetValue(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, object value)
+			{
+				throw new NotSupportedException("unsupport to assign object pointer");
 			}
 		}
 	}
