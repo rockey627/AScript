@@ -149,6 +149,9 @@ namespace AScript.Nodes
 						throw new ScriptAnalyzingException($"unknown parameter type {arg.Type} in function {this.Name}");
 					}
 					if (type is ClassDefine) type = typeof(ClassObject);
+					else if (type.IsGenericType
+						&& type.GetGenericTypeDefinition() == typeof(Pointer<>)
+						&& type.GetGenericArguments()[0] is ClassDefine) type = typeof(Pointer<ClassObject>);
 					argTypes[i] = type;
 					string argName = arg.Name;
 					// 匿名参数名：_1、_2、_3 ...

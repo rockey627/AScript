@@ -54,6 +54,9 @@ namespace AScript
 		public static readonly MethodInfo Method_ClassDefineForCompile_CreateInstance = typeof(ClassDefineForCompile).GetMethod("CreateInstance");
 		public static readonly MethodInfo Method_ClassObject_TrySetMember = typeof(ClassObject).GetMethod("TrySetMember", new[] { typeof(string), typeof(object) });
 
+		public static readonly MethodInfo Method_Pointer_Address_GetValue = typeof(Pointer.IAddress).GetMethod("GetValue");
+		public static readonly MethodInfo Method_Pointer_Address_SetValue = typeof(Pointer.IAddress).GetMethod("SetValue");
+
 		public static readonly MethodInfo Method_ITreeNode_Eval = typeof(ITreeNode).GetMethod("Eval", new Type[] { typeof(ScriptContext), typeof(BuildOptions), typeof(EvalControl), typeof(Type).MakeByRefType() });
 
 		public static readonly MethodInfo Method_LambdaExpression_Compile = typeof(LambdaExpression).GetMethod("Compile", new Type[0]);
@@ -224,6 +227,7 @@ namespace AScript
 			if (defineType == typeof(object)) return true;
 			if (typeof(Delegate).IsAssignableFrom(inType)) return typeof(Delegate).IsAssignableFrom(defineType);
 			if (defineType == typeof(ClassObject)) return inType == typeof(ClassObject) || inType is ClassDefine;
+			if (typeof(Pointer).IsAssignableFrom(defineType)) return IsMatchArgType(inType, defineType.GetGenericArguments()[0]);
 			if (IsNumberType(defineType)) return IsNumberType(inType);
 			if (defineType.IsClass) return inType.IsSubclassOf(defineType);
 			if (defineType.IsInterface) return inType.GetInterfaces().Contains(defineType);

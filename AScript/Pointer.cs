@@ -40,8 +40,8 @@ namespace AScript
 
 		public interface IAddress
 		{
-			object GetValue(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options);
-			object SetValue(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, object value);
+			object GetValue(ScriptContext scriptContext);
+			object SetValue(ScriptContext scriptContext, object value);
 		}
 
 		public class ArrayAddress : IAddress
@@ -55,12 +55,12 @@ namespace AScript
 				this.Index = index;
 			}
 
-			public object GetValue(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
+			public object GetValue(ScriptContext scriptContext)
 			{
 				throw new NotImplementedException();
 			}
 
-			public object SetValue(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, object value)
+			public object SetValue(ScriptContext scriptContext, object value)
 			{
 				throw new NotImplementedException();
 			}
@@ -77,25 +77,13 @@ namespace AScript
 				this.PropertyName = propertyName;
 			}
 
-			public object GetValue(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
+			public object GetValue(ScriptContext scriptContext)
 			{
-				if (this.Target is Expression expr)
-				{
-					return Expression.Property(expr, this.PropertyName);
-				}
 				return ScriptUtils.GetValue(this.Target, this.PropertyName, out _);
 			}
 
-			public object SetValue(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, object value)
+			public object SetValue(ScriptContext scriptContext, object value)
 			{
-				if (this.Target is Expression expr)
-				{
-					var prop = Expression.Property(expr, this.PropertyName);
-					Expression valueExpr;
-					if (value is Expression ve) valueExpr = ve;
-					else valueExpr = Expression.Constant(value);
-					return Expression.Assign(prop, ScriptUtils.Convert(valueExpr, prop.Type));
-				}
 				ScriptUtils.SetValue(this.Target, this.PropertyName, value);
 				return value;
 			}
@@ -110,25 +98,13 @@ namespace AScript
 				this.Name = name;
 			}
 
-			public object GetValue(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
+			public object GetValue(ScriptContext scriptContext)
 			{
-				if (buildContext != null && buildContext.TryGetVariableOrParameter(this.Name, out var value))
-				{
-					return value;
-				}
 				return scriptContext.EvalVar(this.Name);
 			}
 
-			public object SetValue(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, object value)
+			public object SetValue(ScriptContext scriptContext, object value)
 			{
-				if (buildContext != null)
-				{
-					var left = new VariableNode(this.Name).BuildForAssign(buildContext, scriptContext, options, out _, out _);
-					Expression valueExpr;
-					if (value is Expression ve) valueExpr = ve;
-					else valueExpr = Expression.Constant(value);
-					return Expression.Assign(left, ScriptUtils.Convert(valueExpr, left.Type));
-				}
 				scriptContext.SetTempVar(this.Name, value, true);
 				return value;
 			}
@@ -143,12 +119,12 @@ namespace AScript
 				this.Object = obj;
 			}
 
-			public object GetValue(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)
+			public object GetValue(ScriptContext scriptContext)
 			{
 				return this.Object;
 			}
 
-			public object SetValue(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, object value)
+			public object SetValue(ScriptContext scriptContext, object value)
 			{
 				throw new NotSupportedException("unsupport to assign object pointer");
 			}

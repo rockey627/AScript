@@ -102,7 +102,12 @@ namespace AScript
 
 			if (method != null)
 			{
-				var arg0Type = method.Method.GetParameters()[0].ParameterType;
+				var parameters = method.Method.GetParameters();
+				var arg0Type = parameters[0].ParameterType;
+				if (arg0Type.FullName == "System.Runtime.CompilerServices.Closure")
+				{
+					arg0Type = parameters[1].ParameterType;
+				}
 				object arg0;
 				if (typeof(Pointer).IsAssignableFrom(arg0Type))
 				{

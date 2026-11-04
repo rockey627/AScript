@@ -27,6 +27,15 @@ namespace AScript.Operators
 
 			var arg0 = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
 			var fieldName = ((VariableNode)e.Args[1]).Name;
+
+			if (typeof(Pointer).IsAssignableFrom(arg0.Type))
+			{
+				var realType = arg0.Type.GetGenericArguments()[0];
+				var addr = Expression.Property(arg0, "Address");
+				var obj = Expression.Call(addr, ScriptUtils.Method_Pointer_Address_GetValue, e.BuildContext.GetScriptContextParameter());
+				arg0 = Expression.Convert(obj, realType);
+			}
+
 			e.Result = GetValue(e, arg0, fieldName);
 		}
 
@@ -59,11 +68,6 @@ namespace AScript.Operators
 			{
 				var d = Expression.Convert(instance, typeof(IDictionary<string, object>));
 				return Expression.Property(d, ScriptUtils.Property_IDictionary_String_Object_Item, Expression.Constant(propertyOrFieldName));
-			}
-
-			if (typeof(Pointer).IsAssignableFrom(instance.Type))
-			{
-
 			}
 
 			if (instance.Type == typeof(object))
