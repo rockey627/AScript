@@ -1126,6 +1126,7 @@ namespace AScript.Syntaxs
 				if (nextToken.Value.IsSymbol(",")) continue;
 				break;
 			}
+			if (nextToken.HasValue) tokenReader.Push(nextToken.Value);
 			return list;
 		}
 

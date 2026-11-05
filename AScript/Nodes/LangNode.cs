@@ -7,7 +7,7 @@ namespace AScript.Nodes
 {
 	public class LangNode : TreeNode
 	{
-		public string[] Langs { get; set; }
+		public object[] Langs { get; set; }
 		public ITreeNode Body { get; set; }
 
 		public override Expression Build(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options)

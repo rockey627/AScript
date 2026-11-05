@@ -504,9 +504,31 @@ Assert.AreEqual("2,4", string.Join(',', (List<int>)r));
 ```
 
 #### LINQ动态扩展
+* 示例1
 ```
 List<int> list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 var result = list.WhereScript(x => "x % 2 == 0").ToList();
+```
+* 示例2
+动态脚本中注入变量和函数
+```
+var context = new ScriptContext();
+context.SetVar("n", 3);
+context.AddFunc<int, bool>("isOdd", a => a % 2 == 1);
+var list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+var result = list.WhereScript(x => "x % n == 0 && isOdd(x)", context).ToList();
+CollectionAssert.AreEqual(new List<int> { 3, 9 }, result);
+```
+* 示例3
+动态脚本使用Sql语言
+```
+var context = new ScriptContext();
+context.Lang = SqlLang.Instance;
+context.SetVar("n", 3);
+context.AddFunc<int, bool>("isOdd", a => a % 2 == 1);
+var list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+var result = list.WhereScript(x => "x % n = 0 and isOdd(x)", context).ToList();
+CollectionAssert.AreEqual(new List<int> { 3, 9 }, result);
 ```
 
 #### static语句

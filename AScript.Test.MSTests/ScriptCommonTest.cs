@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using AScript.Extensions;
+using AScript.Lang.Sql;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -12,6 +14,65 @@ namespace AScript.Test.MSTests
 	[TestClass]
 	public class ScriptCommonTest
 	{
+		[TestMethod]
+		public void Test56_LinqExtensions()
+		{
+			var context = new ScriptContext();
+			context.SetVar("n", 3);
+			context.AddFunc<int, bool>("isOdd", a => a % 2 == 1);
+			var list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+			var result = list.WhereScript(x => "x % n == 0 && isOdd(x)", context).ToList();
+			CollectionAssert.AreEqual(new List<int> { 3, 9 }, result);
+		}
+
+		[TestMethod]
+		public void Test56_LinqExtensions_Sql()
+		{
+			var context = new ScriptContext();
+			context.Lang = SqlLang.Instance;
+			context.SetVar("n", 3);
+			context.AddFunc<int, bool>("isOdd", a => a % 2 == 1);
+			var list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+			var result = list.WhereScript(x => "x % n = 0 and isOdd(x)", context).ToList();
+			CollectionAssert.AreEqual(new List<int> { 3, 9 }, result);
+		}
+
+		[TestMethod]
+		public void Test56_LinqExtensions_Sql2()
+		{
+			var context = new ScriptContext();
+			context.Lang = SqlLang.Instance;
+			context.SetVar("n", 3);
+			context.AddFunc<int, bool>("isOdd", a => a % 2 == 1);
+			var list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+			var result = list.WhereScript(x => "x % n = 0 and call isOdd(x)", context).ToList();
+			CollectionAssert.AreEqual(new List<int> { 3, 9 }, result);
+		}
+
+		[TestMethod]
+		public void Test56_LinqExtensions_Sql3()
+		{
+			var context = new ScriptContext();
+			context.Lang = SqlLang.Instance;
+			context.SetVar("n", 3);
+			context.AddFunc<int, bool>("isOdd", a => a % 2 == 1);
+			var list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+			var result = list.WhereScript(x => "x % n = 0 and exec isOdd x", context).ToList();
+			CollectionAssert.AreEqual(new List<int> { 3, 9 }, result);
+		}
+
+		[TestMethod]
+		public void Test56_LinqExtensions_Sql4()
+		{
+			var context = new ScriptContext();
+			context.Lang = SqlLang.Instance;
+			context.SetVar("n", 3);
+			context.AddFunc<int, bool>("isOdd", a => a % 2 == 1);
+			var list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+			var result = list.WhereScript(x => "x % n = 0 and (exec isOdd x)", context).ToList();
+			CollectionAssert.AreEqual(new List<int> { 3, 9 }, result);
+		}
+
 		[TestMethod]
 		public void Test55_bytes()
 		{

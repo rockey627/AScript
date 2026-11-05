@@ -52,15 +52,32 @@ namespace AScript
 		// 事件
 		private IDictionary<string, Delegate> _Events;
 
-		private string[] _Langs;
+		private object[] _Langs;
 
 		/// <summary>
 		/// 指定关联的脚本语言
 		/// </summary>
-		public string[] Langs
+		public object[] Langs
 		{
 			get => _Langs ?? this.Parent?.Langs;
 			set => _Langs = value;
+		}
+
+		public object Lang
+		{
+			get
+			{
+				if (_Langs == null || _Langs.Length == 0) return null;
+				return _Langs[0];
+			}
+			set
+			{
+				if (_Langs == null || _Langs.Length != 1)
+				{
+					_Langs = new[] { value };
+				}
+				else _Langs[0] = value;
+			}
 		}
 
 		/// <summary>
@@ -86,6 +103,22 @@ namespace AScript
 		public static ScriptContext Create(ScriptContext parent, bool threadSafely = false)
 		{
 			return new ScriptContext(parent, threadSafely);
+		}
+
+		private static bool TryGetLang(object langObj, out ScriptLang lang)
+		{
+			if (langObj is ScriptLang lang2)
+			{
+				lang = lang2;
+				return true;
+			}
+			if (langObj is string langName
+				&& Script.Langs.TryGetValue(langName, out lang))
+			{
+				return true;
+			}
+			lang = null;
+			return false;
 		}
 
 		//private void Init_TempVariables()
@@ -190,7 +223,7 @@ namespace AScript
 			{
 				for (int i = 0; i < langs.Length; i++)
 				{
-					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					if (TryGetLang(langs[i], out var lang))
 					{
 						var stream = lang.GetTokenStream(charReader);
 						if (stream != null) return stream;
@@ -218,7 +251,7 @@ namespace AScript
 			{
 				for (int i = 0; i < langs.Length; i++)
 				{
-					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					if (TryGetLang(langs[i], out var lang))
 					{
 						var synalyzer = lang.GetSyntaxAnalyzer();
 						if (synalyzer != null) return synalyzer;
@@ -246,7 +279,7 @@ namespace AScript
 			{
 				for (int i = 0; i < langs.Length; i++)
 				{
-					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					if (TryGetLang(langs[i], out var lang))
 					{
 						var priority = lang.GetOperatorPriority(op);
 						if (priority != null) return priority;
@@ -281,7 +314,7 @@ namespace AScript
 			{
 				for (int i = 0; i < langs.Length; i++)
 				{
-					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					if (TryGetLang(langs[i], out var lang))
 					{
 						return lang.IsDynamic();
 					}
@@ -311,7 +344,7 @@ namespace AScript
 			{
 				for (int i = 0; i < langs.Length; i++)
 				{
-					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					if (TryGetLang(langs[i], out var lang))
 					{
 						return lang.IgnoreCase;
 					}
@@ -346,7 +379,7 @@ namespace AScript
 			{
 				for (int i = 0; i < langs.Length; i++)
 				{
-					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					if (TryGetLang(langs[i], out var lang))
 					{
 						return lang.IsKeywords(word);
 					}
@@ -378,7 +411,7 @@ namespace AScript
 			{
 				for (int i = 0; i < langs.Length; i++)
 				{
-					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					if (TryGetLang(langs[i], out var lang))
 					{
 						return lang.IsTrue(obj);
 					}
@@ -423,7 +456,7 @@ namespace AScript
 			{
 				for (int i = 0; i < langs.Length; i++)
 				{
-					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					if (TryGetLang(langs[i], out var lang))
 					{
 						var enabled = lang.IsObjectMemberEnabled(objType);
 						if (enabled.HasValue) return enabled;
@@ -459,7 +492,7 @@ namespace AScript
 			{
 				for (int i = 0; i < langs.Length; i++)
 				{
-					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					if (TryGetLang(langs[i], out var lang))
 					{
 						var module = lang.GetModule(name);
 						if (module != null) return module;
@@ -900,7 +933,7 @@ namespace AScript
 			{
 				for (int i = 0; i < langs.Length; i++)
 				{
-					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					if (TryGetLang(langs[i], out var lang))
 					{
 						var value = lang.EvalVar(name, out type);
 						if (type != null)
@@ -936,7 +969,7 @@ namespace AScript
 			{
 				for (int i = 0; i < langs.Length; i++)
 				{
-					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					if (TryGetLang(langs[i], out var lang))
 					{
 						var value = lang.EvalVar(name, out type);
 						if (type != null)
@@ -986,7 +1019,7 @@ namespace AScript
 			{
 				for (int i = 0; i < langs.Length; i++)
 				{
-					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					if (TryGetLang(langs[i], out var lang))
 					{
 						if (lang.TryEvalVar<T>(name, out value))
 						{
@@ -1020,7 +1053,7 @@ namespace AScript
 			{
 				for (int i = 0; i < langs.Length; i++)
 				{
-					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					if (TryGetLang(langs[i], out var lang))
 					{
 						if (lang.TryEvalVar<T>(name, out value))
 						{
@@ -1126,7 +1159,7 @@ namespace AScript
 				{
 					foreach (var langName in langs)
 					{
-						if (Script.Langs.TryGetValue(langName, out var lang))
+						if (TryGetLang(langName, out var lang))
 						{
 							lang.EvalFunc(functionEvalArgs);
 							if (functionEvalArgs.IsHandled)
@@ -1265,7 +1298,7 @@ namespace AScript
 				{
 					foreach (var langName in langs)
 					{
-						if (Script.Langs.TryGetValue(langName, out var lang))
+						if (TryGetLang(langName, out var lang))
 						{
 							await lang.EvalFuncAsync(functionEvalArgs, cancellationToken).ConfigureAwait(false);
 							if (functionEvalArgs.IsHandled)
@@ -1748,7 +1781,7 @@ namespace AScript
 				{
 					foreach (var langName in langs)
 					{
-						if (Script.Langs.TryGetValue(langName, out var lang))
+						if (TryGetLang(langName, out var lang))
 						{
 							lang.BuildFunc(functionBuildArgs);
 							if (functionBuildArgs.Result != null)
@@ -1866,7 +1899,7 @@ namespace AScript
 				{
 					foreach (var langName in langs)
 					{
-						if (Script.Langs.TryGetValue(langName, out var lang))
+						if (TryGetLang(langName, out var lang))
 						{
 							lang.BuildFunc(functionBuildArgs);
 							if (functionBuildArgs.Result != null)
@@ -2419,7 +2452,7 @@ namespace AScript
 			{
 				foreach (var langName in langs)
 				{
-					if (Script.Langs.TryGetValue(langName, out var lang))
+					if (TryGetLang(langName, out var lang))
 					{
 						var type = lang.EvalType(name);
 						if (type != null) return type;
@@ -2857,7 +2890,7 @@ namespace AScript
 				// 指定脚本语言
 				for (int i = 0; i < langs.Length; i++)
 				{
-					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					if (TryGetLang(langs[i], out var lang))
 					{
 						lang.HandleToken(analyzer, e);
 						if (e.IsHandled) return;
@@ -2924,7 +2957,7 @@ namespace AScript
 				// 指定脚本语言
 				for (int i = 0; i < langs.Length; i++)
 				{
-					if (Script.Langs.TryGetValue(langs[i], out var lang))
+					if (TryGetLang(langs[i], out var lang))
 					{
 						await lang.HandleTokenAsync(analyzer, e, cancellationToken).ConfigureAwait(false);
 						if (e.IsHandled) return;
