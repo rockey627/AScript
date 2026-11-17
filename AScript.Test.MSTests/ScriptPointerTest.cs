@@ -11,7 +11,32 @@ namespace AScript.Test.MSTests
 		{
 			var s = @"
 int a = 5;
-int* p = &a;
+var p = &a;
+*p
+";
+			var script = new Script();
+			Assert.AreEqual(5, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test01_CompileAll()
+		{
+			var s = @"
+int a = 5;
+var p = &a;
+*p
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			Assert.AreEqual(5, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test02()
+		{
+			var s = @"
+int a = 5;
+var p = &a;
 *p = 6;
 a
 ";
@@ -20,11 +45,11 @@ a
 		}
 
 		[TestMethod]
-		public void Test01_CompileAll()
+		public void Test02_CompileAll()
 		{
 			var s = @"
 int a = 5;
-int* p = &a;
+var p = &a;
 *p = 6;
 a
 ";

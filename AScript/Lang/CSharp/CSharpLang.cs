@@ -114,6 +114,9 @@ namespace AScript.Lang.CSharp
 			AddFunc("[]", IndexOperator.Instance);
 			AddFunc("[:]", IndexStartEndOperator.Instance);
 
+			AddFunc("&", PointerAddressOperator.Instance);
+			AddFunc("*", PointerDataOperator.Instance);
+
 			// Convert方法，调用示例：'12'.ToInt32()
 			AddFunc(typeof(Convert));
 			// IEnumerable<T>扩展方法

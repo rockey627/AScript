@@ -89,12 +89,14 @@ namespace AScript.Lang.Go
 			AddFunc("[]", IndexOperator.Instance);
 			AddFunc("[:]", IndexStartEndOperator.Instance);
 
+			AddFunc("&", PointerAddressOperator.Instance);
+			AddFunc("*", PointerDataOperator.Instance);
+
 			// 内置函数
 			AddFunc(typeof(Extensions.GoCommonExtensions));
 			AddFunc(typeof(Extensions.GoConvertExtensions));
 
 			AddFunc("make", Functions.GoMakeFunction.Instance);
-
 			AddFunc("import", InstallModuleFunction.Instance);
 
 			AddModule("strconv", new SingleTypeScriptModule<Extensions.strconv>(2));

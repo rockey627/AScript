@@ -56,6 +56,7 @@ namespace AScript
 
 		public static readonly MethodInfo Method_Pointer_Address_GetValue = typeof(Pointer.IAddress).GetMethod("GetValue");
 		public static readonly MethodInfo Method_Pointer_Address_SetValue = typeof(Pointer.IAddress).GetMethod("SetValue");
+		public static readonly ConstructorInfo Constructor_Pointer = typeof(Pointer).GetConstructor(new[] { typeof(Type), typeof(Pointer.IAddress) });
 
 		public static readonly MethodInfo Method_ITreeNode_Eval = typeof(ITreeNode).GetMethod("Eval", new Type[] { typeof(ScriptContext), typeof(BuildOptions), typeof(EvalControl), typeof(Type).MakeByRefType() });
 

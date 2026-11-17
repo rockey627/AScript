@@ -42,6 +42,8 @@ namespace AScript
 		{
 			object GetValue(ScriptContext scriptContext);
 			object SetValue(ScriptContext scriptContext, object value);
+			//Expression GetValue(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options);
+			//Expression SetValue(BuildContext buildContext, ScriptContext scriptContext, BuildContext options, Expression value);
 		}
 
 		public class ArrayAddress : IAddress
