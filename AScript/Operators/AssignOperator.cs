@@ -74,6 +74,12 @@ namespace AScript.Operators
 				{
 					right = Expression.Convert(right, left.Type);
 				}
+				// 赋值目标是变量时，标记变量已变化，以便回写上下文
+				if (left is ParameterExpression leftParameter && !string.IsNullOrEmpty(leftParameter.Name)
+					&& e.BuildContext.TryGetVariableOrParameter(leftParameter.Name, out _, out var ownerBuildContext, out _))
+				{
+					(ownerBuildContext ?? e.BuildContext).ChangedVariables.Add(leftParameter.Name);
+				}
 				e.Result = Expression.Assign(left, right);
 			}
 			//else if (arg0 is OperatorNode opNode && opNode.Name == "." && opNode.Right is VariableNode opRightNode)
@@ -175,6 +181,18 @@ namespace AScript.Operators
 					EvalIndexAssign(e, opNode, value);
 
 					e.SetResult(value, type);
+					return;
+				}
+				if (opNode.Name == "*" && opNode.IsPrefix())
+				{
+					// 指针解引用赋值 *p = value
+					var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
+					var pointerValue = opNode.Right?.Eval(e.Context, e.Options, e.Control, out _);
+					if (pointerValue is Pointer pointer)
+					{
+						pointer.Address.SetValue(e.Context, value);
+						e.SetResult(value, type);
+					}
 					return;
 				}
 			}
@@ -746,6 +764,16 @@ namespace AScript.Operators
 			//{
 			//	(ownerBuildContext ?? e.BuildContext).AddTempFunc(left.Name, lambdaExpression);
 			//}
+			// 记录指针变量，编译期解引用时可以确定地址类型
+			var pointerBuildContext = ownerBuildContext ?? e.BuildContext;
+			if (right is ConstantExpression constantExpression && constantExpression.Value is Pointer pointer)
+			{
+				pointerBuildContext.PointerVariables[arg0Node.Name] = pointer;
+			}
+			else
+			{
+				pointerBuildContext.PointerVariables.Remove(arg0Node.Name);
+			}
 			return Expression.Assign(left, rightExpr);
 		}
 

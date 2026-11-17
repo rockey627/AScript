@@ -6,7 +6,10 @@
       "Bash(xxd:*)",
       "Bash(dotnet run:*)",
       "Bash(dotnet:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(python:*)"
     ]
   }
 }

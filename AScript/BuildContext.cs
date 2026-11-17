@@ -19,6 +19,7 @@ namespace AScript
 		private HashSet<string> _LocalVariables;
 		private HashSet<string> _ChangedVariables;
 		private Dictionary<string, Expression> _Events;
+		private Dictionary<string, Pointer> _PointerVariables;
 
 		// 用于递归函数定义
 		private Dictionary<string, List<DelegateDefine>> _DelegateDefines;
@@ -145,6 +146,20 @@ namespace AScript
 					_LocalVariables = new HashSet<string>();
 				}
 				return _LocalVariables;
+			}
+		}
+		/// <summary>
+		/// 编译期已知的指针变量（变量名 -> 指针）
+		/// </summary>
+		public Dictionary<string, Pointer> PointerVariables
+		{
+			get
+			{
+				if (_PointerVariables == null)
+				{
+					_PointerVariables = new Dictionary<string, Pointer>();
+				}
+				return _PointerVariables;
 			}
 		}
 		/// <summary>
@@ -305,6 +320,25 @@ namespace AScript
 				context = context.Parent;
 			} while (context != null);
 			p = null;
+			return false;
+		}
+
+		/// <summary>
+		/// 获取编译期已知的指针变量
+		/// </summary>
+		public bool TryGetPointerVariable(string name, out Pointer pointer)
+		{
+			var context = this;
+			do
+			{
+				if (context._PointerVariables != null
+					&& context._PointerVariables.TryGetValue(name, out pointer))
+				{
+					return true;
+				}
+				context = context.Parent;
+			} while (context != null);
+			pointer = null;
 			return false;
 		}
 
@@ -968,6 +1002,7 @@ namespace AScript
 			_Parameters?.Clear();
 			_LocalVariables?.Clear();
 			_Variables?.Clear();
+			_PointerVariables?.Clear();
 			TempFunctions?.Clear();
 		}
 	}
