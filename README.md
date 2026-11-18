@@ -20,6 +20,8 @@
 * [AScript之编译递归函数](https://www.cnblogs.com/rockey627/p/22831561)
 * [AScript之字符串模板](https://www.cnblogs.com/rockey627/p/23539216)
 
+QQ交流群：1124393316
+
 ## 介绍
 
 C#动态脚本解析、编译、执行引擎

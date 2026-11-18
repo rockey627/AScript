@@ -38,7 +38,6 @@ func setarr(x *[5]int) {
 	(*x)[0] = 100
 }
 ```
-
 * 列表
 ```
 var a = []int
