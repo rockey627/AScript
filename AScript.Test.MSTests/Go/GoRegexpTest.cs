@@ -65,6 +65,18 @@ re.FindString('abc123def456')
 		}
 
 		[TestMethod]
+		public void Test02_FindString_CompileAll()
+		{
+			var s = @"
+import 'regexp'
+re := regexp.MustCompile('\\d+')
+re.FindString('abc123def456')
+";
+			var script = NewScript(true);
+			Assert.AreEqual("123", script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test03_FindAllString()
 		{
 			var s = @"
@@ -78,6 +90,19 @@ arr[0] + ',' + arr[1] + ',' + arr[2]
 		}
 
 		[TestMethod]
+		public void Test03_FindAllString_CompileAll()
+		{
+			var s = @"
+import 'regexp'
+re := regexp.MustCompile('\\d+')
+var arr = re.FindAllString('a1b22c333', -1)
+arr[0] + ',' + arr[1] + ',' + arr[2]
+";
+			var script = NewScript(true);
+			Assert.AreEqual("1,22,333", script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test04_ReplaceAllString()
 		{
 			var s = @"
@@ -86,6 +111,18 @@ re := regexp.MustCompile('(\\w+)@(\\w+)')
 re.ReplaceAllString('hello@world', '$2@$1')
 ";
 			var script = NewScript();
+			Assert.AreEqual("world@hello", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test04_ReplaceAllString_CompileAll()
+		{
+			var s = @"
+import 'regexp'
+re := regexp.MustCompile('(\\w+)@(\\w+)')
+re.ReplaceAllString('hello@world', '$2@$1')
+";
+			var script = NewScript(true);
 			Assert.AreEqual("world@hello", script.Eval(s));
 		}
 
@@ -103,6 +140,19 @@ arr[0] + '|' + arr[1] + '|' + arr[2]
 		}
 
 		[TestMethod]
+		public void Test05_Split_CompileAll()
+		{
+			var s = @"
+import 'regexp'
+re := regexp.MustCompile(',')
+var arr = re.Split('a,b,c', -1)
+arr[0] + '|' + arr[1] + '|' + arr[2]
+";
+			var script = NewScript(true);
+			Assert.AreEqual("a|b|c", script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test06_QuoteMeta()
 		{
 			var s = @"
@@ -110,6 +160,17 @@ import 'regexp'
 regexp.QuoteMeta('a.b*c')
 ";
 			var script = NewScript();
+			Assert.AreEqual("a\\.b\\*c", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test06_QuoteMeta_CompileAll()
+		{
+			var s = @"
+import 'regexp'
+regexp.QuoteMeta('a.b*c')
+";
+			var script = NewScript(true);
 			Assert.AreEqual("a\\.b\\*c", script.Eval(s));
 		}
 
@@ -125,6 +186,17 @@ regexp.MatchString('^a.c$', 'abc')
 		}
 
 		[TestMethod]
+		public void Test07_MatchStringStatic_CompileAll()
+		{
+			var s = @"
+import 'regexp'
+regexp.MatchString('^a.c$', 'abc')
+";
+			var script = NewScript(true);
+			Assert.AreEqual(true, script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test08_CompileError()
 		{
 			var s = @"
@@ -133,6 +205,18 @@ re, err := regexp.Compile('a(')
 len(err) > 0
 ";
 			var script = NewScript();
+			Assert.AreEqual(true, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test08_CompileError_CompileAll()
+		{
+			var s = @"
+import 'regexp'
+re, err := regexp.Compile('a(')
+len(err) > 0
+";
+			var script = NewScript(true);
 			Assert.AreEqual(true, script.Eval(s));
 		}
 
@@ -150,6 +234,19 @@ m[1] + ':' + m[2]
 		}
 
 		[TestMethod]
+		public void Test09_NamedGroup_CompileAll()
+		{
+			var s = @"
+import 'regexp'
+re := regexp.MustCompile('(?P<key>\\w+)=(?P<value>\\w+)')
+m := re.FindStringSubmatch('name=ascript')
+m[1] + ':' + m[2]
+";
+			var script = NewScript(true);
+			Assert.AreEqual("name:ascript", script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test10_SubexpNames()
 		{
 			var s = @"
@@ -163,6 +260,19 @@ names[1]
 		}
 
 		[TestMethod]
+		public void Test10_SubexpNames_CompileAll()
+		{
+			var s = @"
+import 'regexp'
+re := regexp.MustCompile('(?P<key>\\w+)=(?P<value>\\w+)')
+var names = re.SubexpNames()
+names[1]
+";
+			var script = NewScript(true);
+			Assert.AreEqual("key", script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test11_NumSubexp()
 		{
 			var s = @"
@@ -171,6 +281,18 @@ re := regexp.MustCompile('(\\w+)=(\\w+)')
 re.NumSubexp()
 ";
 			var script = NewScript();
+			Assert.AreEqual(2, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test11_NumSubexp_CompileAll()
+		{
+			var s = @"
+import 'regexp'
+re := regexp.MustCompile('(\\w+)=(\\w+)')
+re.NumSubexp()
+";
+			var script = NewScript(true);
 			Assert.AreEqual(2, script.Eval(s));
 		}
 
@@ -188,6 +310,19 @@ idx[0]
 		}
 
 		[TestMethod]
+		public void Test12_FindStringIndex_CompileAll()
+		{
+			var s = @"
+import 'regexp'
+re := regexp.MustCompile('\\d+')
+var idx = re.FindStringIndex('abc123')
+idx[0]
+";
+			var script = NewScript(true);
+			Assert.AreEqual(3, script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test13_Match()
 		{
 			var s = @"
@@ -197,6 +332,19 @@ m := re.Match('hello@world')
 m.String()
 ";
 			var script = NewScript();
+			Assert.AreEqual("hello@world", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test13_Match_CompileAll()
+		{
+			var s = @"
+import 'regexp'
+re := regexp.MustCompile('(\\w+)@(\\w+)')
+m := re.Match('hello@world')
+m.String()
+";
+			var script = NewScript(true);
 			Assert.AreEqual("hello@world", script.Eval(s));
 		}
 
@@ -215,6 +363,20 @@ re.ReplaceAllStringFunc('a b c', func(s string) string {
 		}
 
 		[TestMethod]
+		public void Test14_ReplaceAllStringFunc_CompileAll()
+		{
+			var s = @"
+import 'regexp'
+re := regexp.MustCompile('\\w+')
+re.ReplaceAllStringFunc('a b c', func(s string) string {
+	return 'x'
+})
+";
+			var script = NewScript(true);
+			Assert.AreEqual("x x x", script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test15_RawString()
 		{
 			var s = @"
@@ -223,6 +385,18 @@ re := regexp.MustCompile(`\d+`)
 re.FindString('abc123')
 ";
 			var script = NewScript();
+			Assert.AreEqual("123", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test15_RawString_CompileAll()
+		{
+			var s = @"
+import 'regexp'
+re := regexp.MustCompile(`\d+`)
+re.FindString('abc123')
+";
+			var script = NewScript(true);
 			Assert.AreEqual("123", script.Eval(s));
 		}
 
@@ -236,6 +410,19 @@ var m = re.FindStringSubmatch('name=ascript')
 m[1] + ':' + m[2]
 ";
 			var script = NewScript();
+			Assert.AreEqual("name:ascript", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test16_RawString_NamedGroup_CompileAll()
+		{
+			var s = @"
+import 'regexp'
+re := regexp.MustCompile(`(?P<key>\w+)=(?P<value>\w+)`)
+var m = re.FindStringSubmatch('name=ascript')
+m[1] + ':' + m[2]
+";
+			var script = NewScript(true);
 			Assert.AreEqual("name:ascript", script.Eval(s));
 		}
 	}
