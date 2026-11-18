@@ -20,7 +20,8 @@ namespace AScript.Operators
 			{
 				var addr = Pointer.CreateVariableAddress(v0.Name);
 				var expr = v0.Build(e.BuildContext, e.ScriptContext, e.Options);
-				e.Result = Expression.Constant(new Pointer(expr.Type, addr));
+				var pointerType = typeof(Pointer<>).MakeGenericType(expr.Type);
+				e.Result = Expression.Constant(Activator.CreateInstance(pointerType, addr), pointerType);
 				//e.Result = Expression.New(ScriptUtils.Constructor_Pointer, Expression.Constant(expr.Type), Expression.Constant(addr));
 				return;
 			}
@@ -34,7 +35,9 @@ namespace AScript.Operators
 			if (a0 is VariableNode v0)
 			{
 				var addr = Pointer.CreateVariableAddress(v0.Name);
-				e.SetResult(new Pointer(typeof(object), addr));
+				var type = e.Context.GetVarType(v0.Name) ?? typeof(object);
+				var pointerType = typeof(Pointer<>).MakeGenericType(type);
+				e.SetResult(Activator.CreateInstance(pointerType, addr));
 				return;
 			}
 		}
