@@ -55,9 +55,23 @@ namespace AScript.Lang.Go
 			return treeBuilder;
 		}
 
+		private int _LastLine = -1;
+
 		protected override void ParseIdentifierOrOperator(TokenAnalyzingArgs e, IEnumerable<string> endTokens = null)
 		{
 			if (e.IsHandled) return;
+
+			if (e.CurrentToken.IsSymbol("*") || e.CurrentToken.IsSymbol("&"))
+			{
+				if (_LastLine >= 0 && e.CurrentToken.Line != _LastLine && !e.TreeBuilder.IsEmpty())
+				{
+					e.TokenReader.Push(e.CurrentToken);
+					e.End = true;
+					return;
+				}
+			}
+
+			_LastLine = e.CurrentToken.Line;
 
 			if (e.CurrentToken.Type == ETokenType.Word)
 			{
