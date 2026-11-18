@@ -102,6 +102,7 @@ namespace AScript.Lang.Go
 			AddModule("strconv", new SingleTypeScriptModule<Extensions.strconv>(2));
 			AddModule("fmt", new SingleTypeScriptModule<Extensions.fmt>(2));
 			AddModule("sync", new SingleTypeScriptModule<Extensions.sync>(2));
+			AddModule("regexp", new SingleTypeScriptModule<Extensions.regexp>(2));
 			AddModule("time", new Extensions.GoTimeScriptModule());
 
 			// Token处理器 - 核心语句

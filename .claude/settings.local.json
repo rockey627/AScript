@@ -9,7 +9,8 @@
       "Bash(cd:*)",
       "Bash(grep:*)",
       "Bash(cat:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(ls:*)"
     ]
   }
 }
