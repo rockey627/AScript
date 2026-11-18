@@ -3,6 +3,10 @@
 ## 介绍
 支持go基础语法和数据类型。
 
+不支持：
+* 不支持泛型定义
+* 不支持接口类型定义
+
 ## 安装
 ```
 install-package AScript
@@ -19,6 +23,8 @@ Script.Langs.Set("go", GoLang.Instance);
 // Script.Langs.Set("go", GoLang.Instance, setDefault: true);
 ```
 
+#### 函数
+
 #### switch
 * 不支持`fallthrough`
 
@@ -26,6 +32,7 @@ Script.Langs.Set("go", GoLang.Instance);
 数组是值类型,赋值或传参时会拷贝整个数组，可通过数组指针传递引用。
 * 数组
 ```
+var s = @"
 var a = [5]int{}
 var b = [...]int{1,2,3,4,5}
 var c = b
@@ -36,23 +43,56 @@ d[0] = 10 // b[0]为10
 // 数组指针参数
 func setarr(x *[5]int) {
 	(*x)[0] = 100
-}
+}";
+var script = new Script();
+script.Context.Lang = "go";
+script.Eval(s);
 ```
-* 列表
+* 切片
 ```
+var s = @"
 var a = []int
 append(a, 1)
+
+var b = [5]int{1,2,3,4,5}
+var c = b[1:4]
+var d = make([]int, 5, 10)
+";
+var script = new Script();
+script.Context.Lang = "go";
+script.Eval(s);
 ```
 
-#### 原始字符串
-使用反引号包裹的字符串为原始字符串，内容不做转义处理，常用于书写正则表达式。
+#### map
+无序的键值对集合
 ```
-var re = `\d+\.\d+`
+var s = @"
+m := map[string]int{
+    "apple": 1,
+    "banana": 2,
+    "orange": 3,
+}";
+var script = new Script();
+script.Context.Lang = "go";
+script.Eval(s);
 ```
+
+#### 结构体
+
+#### defer
+
+#### go
+
+#### if
+
+#### for
+
+#### import
 
 #### regexp
-支持go的regexp包，用法与go基本一致。
+正则表达式相关功能。
 ```
+var s = @"
 import 'regexp'
 
 // 编译（表达式非法时抛出异常）
@@ -81,4 +121,14 @@ re.Split('a1b22', -1)           // ["a", "b", ""]
 re := regexp.MustCompile(`(?P<key>\w+)=(?P<value>\w+)`)
 re.NumSubexp()                 // 2
 re.SubexpNames()               // ["", "key", "value"]
+";
+var script = new Script();
+script.Context.Lang = "go";
+script.Eval(s);
 ```
+
+#### fmt
+
+#### sync
+
+#### time
