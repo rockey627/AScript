@@ -46,8 +46,6 @@ Script.Langs.Set("go", GoLang.Instance);
 | `rune` | `char` |
 | `any` | `object` |
 
-自定义类型（`type X struct { ... }`）在脚本中以 `ClassObject` 实例存在。
-
 ### 变量与常量
 ```csharp
 var s = @"
@@ -135,6 +133,7 @@ script.Eval(s);
 ```
 
 #### switch
+不支持 `fallthrough`
 ```csharp
 var s = @"
 switch x {
@@ -150,8 +149,6 @@ var script = new Script();
 script.Context.Lang = "go";
 script.Eval(s);
 ```
-
-* **不支持 `fallthrough`**。
 
 #### break / continue / return
 `break`、`continue` 可用于 `for` 循环，`return` 用于函数返回。
@@ -194,8 +191,8 @@ script.Eval(s);
 * 函数作为值：可赋值给变量（`f := func(a int) int { return a }`）。
 
 ### defer
-`defer` 语句会在函数退出时执行，多个 `defer` 按**后进先出**（LIFO）顺序执行。
-
+* `defer` 语句在这里是在 **语句块结束时执行**，与go语言不一样，go语言是在函数退出时执行
+* 多个 `defer` 按**后进先出**（LIFO）顺序执行。
 ```csharp
 var s = @"
 import 'fmt'
@@ -205,17 +202,22 @@ func work() {
     fmt.Println('body')
 }
 ";
+var script = new Script();
+script.Context.Lang = "go";
+script.Eval(s);
 ```
 
 ### go
 `go` 语句用于启动一个并发调用：
-
 ```csharp
 var s = @"
 go func() {
     fmt.Println('in goroutine')
 }()
 ";
+var script = new Script();
+script.Context.Lang = "go";
+script.Eval(s);
 ```
 
 ### 数组与切片
@@ -261,6 +263,7 @@ script.Eval(s);
 * **数组是值类型**：赋值或传参时会拷贝整个数组。
 
 ```
+var s = @"
 var b = [5]int{1,2,3,4,5}
 var c = b
 c[0] = 10      // b[0] 仍为 1
@@ -274,11 +277,14 @@ func setarr(x *[5]int) {
 }
 var arr = [5]int{1,2,3,4,5}
 setarr(&arr)   // arr[0] 变为 100
+";
+var script = new Script();
+script.Context.Lang = "go";
+script.Eval(s);
 ```
 
 ### map
 无序的键值对集合。
-
 ```csharp
 var s = @"
 // 字面量
@@ -308,6 +314,9 @@ var n = len(m)
 for k, v := range m {
 }
 ";
+var script = new Script();
+script.Context.Lang = "go";
+script.Eval(s);
 ```
 
 ### 结构体
@@ -366,6 +375,9 @@ var pi *int = &i
 var pp = &p
 var vv = **pp
 ";
+var script = new Script();
+script.Context.Lang = "go";
+script.Eval(s);
 ```
 
 ### 内置函数
@@ -384,7 +396,19 @@ var vv = **pp
 | `make(map[K]V)` | 创建 map |
 
 ### 标准库模块
-需要先 `import` 才能使用：
+需要先 `import` 才能使用
+
+#### import
+导入模块，优先检索内置模块，再检索目录文件模块。
+```csharp
+var s = @"
+import 'fmt' // 导入单个模块
+import ('fmt' 'strconv') // 导入多个模块
+";
+var script = new Script();
+script.Context.Lang = "go";
+script.Eval(s);
+```
 
 #### fmt
 ```csharp
@@ -392,6 +416,9 @@ var s = @"
 import 'fmt'
 fmt.Println('hello', 'world')
 ";
+var script = new Script();
+script.Context.Lang = "go";
+script.Eval(s);
 ```
 
 #### strconv
@@ -400,6 +427,9 @@ var s = @"
 import 'strconv'
 n, err := strconv.Atoi('123')
 ";
+var script = new Script();
+script.Context.Lang = "go";
+script.Eval(s);
 ```
 
 * `strconv.Atoi(s)`：解析整数，成功返回 `(值, null)`，失败返回 `(0, 错误信息)`。
@@ -413,6 +443,9 @@ m.Lock()
 // ... 临界区
 m.Unlock()
 ";
+var script = new Script();
+script.Context.Lang = "go";
+script.Eval(s);
 ```
 
 * `sync.Mutex` 提供 `Lock()`、`TryLock()`、`Unlock()`。
@@ -452,6 +485,9 @@ re3 := regexp.MustCompile(`(?P<key>\w+)=(?P<value>\w+)`)
 re3.NumSubexp()                 // 2
 re3.SubexpNames()               // ['', 'key', 'value']
 ";
+var script = new Script();
+script.Context.Lang = "go";
+script.Eval(s);
 ```
 
 #### time
@@ -462,4 +498,7 @@ import 'time'
 var now = time.Now()   // 当前时间
 time.Sleep(100)     // 休眠 100 毫秒
 ";
+var script = new Script();
+script.Context.Lang = "go";
+script.Eval(s);
 ```
