@@ -100,6 +100,8 @@ namespace AScript
 			var sb = new StringBuilder(s.Length);
 			var options = (this.Options.CompileMode ?? ECompileMode.None) == compileMode ? this.Options : new BuildOptions(this.Options) { CompileMode = compileMode };
 			var context = new ScriptContext(this.Context);
+			context.SetVar("out", sb);
+			context.AddAction<object>("output", v => sb.Append(v));
 			while (index < s.Length)
 			{
 				var c = s[index];
