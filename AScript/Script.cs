@@ -81,7 +81,7 @@ namespace AScript
 		/// <returns></returns>
 		public string Translate(string s)
 		{
-			return Translate(s, ECompileMode.None);
+			return Translate(s, this.Options.CompileMode ?? ECompileMode.None);
 		}
 
 		/// <summary>
@@ -100,8 +100,10 @@ namespace AScript
 			var sb = new StringBuilder(s.Length);
 			var options = (this.Options.CompileMode ?? ECompileMode.None) == compileMode ? this.Options : new BuildOptions(this.Options) { CompileMode = compileMode };
 			var context = new ScriptContext(this.Context);
-			context.SetVar("out", sb);
-			context.AddAction<object>("output", v => sb.Append(v));
+			context.SetVar("output", sb);
+			context.AddAction<StringBuilder, object>("Write", (o, v) => o.Append(v));
+			context.AddAction<StringBuilder>("WriteLine", (o) => o.AppendLine());
+			context.AddAction<StringBuilder, object>("WriteLine", (o, v) => o.AppendLine(v?.ToString()));
 			while (index < s.Length)
 			{
 				var c = s[index];
@@ -1933,7 +1935,7 @@ namespace AScript
 					CompileMode = ECompileMode.All
 				};
 			}
-			var node = GetSyntaxAnalyzer(this.Context).Build(buildContext, this.Context, buildOptions, new Readers.TokenReader(tokenStream, false));
+			var node = GetSyntaxAnalyzer(this.Context).Build(buildContext, this.Context, buildOptions, this.Options.CreateTokenReader(tokenStream, false));
 			var body = node.Build(buildContext, this.Context, buildOptions);
 			PoolManage.Return(node);
 			return buildContext.Compile(this.Context, buildOptions, body);
@@ -1954,7 +1956,7 @@ namespace AScript
 					CompileMode = ECompileMode.All
 				};
 			}
-			var node = await GetSyntaxAnalyzer(this.Context).BuildAsync(buildContext, this.Context, buildOptions, new Readers.TokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
+			var node = await GetSyntaxAnalyzer(this.Context).BuildAsync(buildContext, this.Context, buildOptions, this.Options.CreateTokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
 			var body = node.Build(buildContext, this.Context, buildOptions);
 			PoolManage.Return(node);
 			return buildContext.Compile(this.Context, buildOptions, body);
@@ -2731,7 +2733,7 @@ namespace AScript
 			var buildContext = new BuildContext();
 			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
 			var tokenStream = GetTokenStream(this.Context, expression);
-			var node = GetSyntaxAnalyzer(this.Context).Build(buildContext, this.Context, new BuildOptions(this.Options) { CreateFullTreeNode = true }, new Readers.TokenReader(tokenStream, false));
+			var node = GetSyntaxAnalyzer(this.Context).Build(buildContext, this.Context, new BuildOptions(this.Options) { CreateFullTreeNode = true }, this.Options.CreateTokenReader(tokenStream, false));
 			if (node is TreeBuilder treeBuilder)
 			{
 				return treeBuilder.Root;
@@ -2750,7 +2752,7 @@ namespace AScript
 			var buildContext = new BuildContext();
 			//var tokenStream = (this.LexicalAnalyzer ?? DefaultLexicalAnalyzer).Create(expression, true);
 			var tokenStream = GetTokenStream(this.Context, expression);
-			var node = await GetSyntaxAnalyzer(this.Context).BuildAsync(buildContext, this.Context, new BuildOptions(this.Options) { CreateFullTreeNode = true }, new Readers.TokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
+			var node = await GetSyntaxAnalyzer(this.Context).BuildAsync(buildContext, this.Context, new BuildOptions(this.Options) { CreateFullTreeNode = true }, this.Options.CreateTokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
 			if (node is TreeBuilder treeBuilder)
 			{
 				return treeBuilder.Root;
@@ -2773,7 +2775,7 @@ namespace AScript
 			BuildOptions buildOptions;
 			if (options.CreateFullTreeNode ?? false) buildOptions = options;
 			else buildOptions = new BuildOptions(options) { CreateFullTreeNode = true };
-			var node = GetSyntaxAnalyzer(scriptContext).Build(buildContext, scriptContext, buildOptions, new TokenReader(tokenStream, false));
+			var node = GetSyntaxAnalyzer(scriptContext).Build(buildContext, scriptContext, buildOptions, options.CreateTokenReader(tokenStream, false));
 			if (node is TreeBuilder treeBuilder)
 			{
 				return treeBuilder.Root;
@@ -2797,7 +2799,7 @@ namespace AScript
 			BuildOptions buildOptions;
 			if (options.CreateFullTreeNode ?? false) buildOptions = options;
 			else buildOptions = new BuildOptions(options) { CreateFullTreeNode = true };
-			var node = await GetSyntaxAnalyzer(scriptContext).BuildAsync(buildContext, scriptContext, buildOptions, new TokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
+			var node = await GetSyntaxAnalyzer(scriptContext).BuildAsync(buildContext, scriptContext, buildOptions, options.CreateTokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
 			if (node is TreeBuilder treeBuilder)
 			{
 				return treeBuilder.Root;
@@ -3236,7 +3238,7 @@ namespace AScript
 				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
 			}
 			var tokenStream = GetTokenStream(scriptContext, expression);
-			var node = GetSyntaxAnalyzer(scriptContext).Build(buildContext, scriptContext, buildOptions, new TokenReader(tokenStream, false));
+			var node = GetSyntaxAnalyzer(scriptContext).Build(buildContext, scriptContext, buildOptions, buildOptions.CreateTokenReader(tokenStream, false));
 			var body = node.Build(buildContext, scriptContext, buildOptions);
 			PoolManage.Return(node);
 			var bodys = body == null ? null : new[] { body };
@@ -3260,7 +3262,7 @@ namespace AScript
 				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
 			}
 			var tokenStream = GetTokenStream(scriptContext, expression);
-			var node = await GetSyntaxAnalyzer(scriptContext).BuildAsync(buildContext, scriptContext, buildOptions, new TokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
+			var node = await GetSyntaxAnalyzer(scriptContext).BuildAsync(buildContext, scriptContext, buildOptions, buildOptions.CreateTokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
 			var body = node.Build(buildContext, scriptContext, buildOptions);
 			PoolManage.Return(node);
 			var bodys = body == null ? null : new[] { body };
@@ -3284,7 +3286,7 @@ namespace AScript
 				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
 			}
 			var tokenStream = GetTokenStream(scriptContext, expression);
-			var node = GetSyntaxAnalyzer(scriptContext).Build(buildContext, scriptContext, buildOptions, new TokenReader(tokenStream, false));
+			var node = GetSyntaxAnalyzer(scriptContext).Build(buildContext, scriptContext, buildOptions, buildOptions.CreateTokenReader(tokenStream, false));
 			var body = node.Build(buildContext, scriptContext, buildOptions);
 			PoolManage.Return(node);
 			var bodys = body == null ? null : new[] { body };
@@ -3308,7 +3310,7 @@ namespace AScript
 				buildOptions = new BuildOptions(options) { CompileMode = ECompileMode.All };
 			}
 			var tokenStream = GetTokenStream(scriptContext, expression);
-			var node = await GetSyntaxAnalyzer(scriptContext).BuildAsync(buildContext, scriptContext, buildOptions, new TokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
+			var node = await GetSyntaxAnalyzer(scriptContext).BuildAsync(buildContext, scriptContext, buildOptions, buildOptions.CreateTokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
 			var body = node.Build(buildContext, scriptContext, buildOptions);
 			PoolManage.Return(node);
 			var bodys = body == null ? null : new[] { body };

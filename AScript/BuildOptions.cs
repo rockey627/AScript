@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AScript.Readers;
+using System;
 
 namespace AScript
 {
@@ -13,6 +14,7 @@ namespace AScript
 		private bool? _Dynamic;
 		private bool? _Standalone;
 		private bool? _UseCompletionResult;
+		private Func<ITokenStream, bool, TokenReader> _TokenReaderFunc;
 
 		/// <summary>
 		/// 
@@ -99,10 +101,21 @@ namespace AScript
 			set => _UseCompletionResult = value;
 		}
 
+		public Func<ITokenStream, bool, TokenReader> TokenReaderFunc
+		{
+			get => _TokenReaderFunc ?? this.Parent?.TokenReaderFunc;
+			set => _TokenReaderFunc = value;
+		}
+
 		public BuildOptions() { }
 		public BuildOptions(BuildOptions parent)
 		{
 			this.Parent = parent;
+		}
+
+		public TokenReader CreateTokenReader(ITokenStream tokenStream, bool autoDisposeStream)
+		{
+			return this.TokenReaderFunc?.Invoke(tokenStream, autoDisposeStream) ?? new TokenReader(tokenStream, autoDisposeStream);
 		}
 	}
 }

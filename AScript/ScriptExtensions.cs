@@ -35,7 +35,7 @@ namespace AScript
 		public static object Eval(this ISyntaxAnalyzer analyzer, ScriptContext context, BuildOptions options, ITokenStream tokenStream, out Type returnType)
 		{
 			var buildContext = new BuildContext();
-			var treeBuilder = analyzer.Build(buildContext, context, options, new Readers.TokenReader(tokenStream, false));
+			var treeBuilder = analyzer.Build(buildContext, context, options, options.CreateTokenReader(tokenStream, false));
 			if (treeBuilder == null)
 			{
 				returnType = null;
@@ -49,7 +49,7 @@ namespace AScript
 		public static async Task<EvalResult> EvalAsync(this ISyntaxAnalyzer analyzer, ScriptContext context, BuildOptions options, ITokenStream tokenStream, CancellationToken cancellationToken = default)
 		{
 			var buildContext = new BuildContext();
-			var treeBuilder = await analyzer.BuildAsync(buildContext, context, options, new Readers.TokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
+			var treeBuilder = await analyzer.BuildAsync(buildContext, context, options, options.CreateTokenReader(tokenStream, false), cancellationToken).ConfigureAwait(false);
 			if (treeBuilder == null)
 			{
 				return default;
