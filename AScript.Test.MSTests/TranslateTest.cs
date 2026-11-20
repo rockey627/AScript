@@ -217,9 +217,9 @@ var userSex = user.Sex == 0 ? '女士' : '先生';
 int calcAge(DateTime birthday) {
     return DateTime.Now.Year - birthday.Year
 }
-output('hello');
+output.Append('hello');
 for(var i=0; i<5; i++) {
-	out.Append(i);
+	output.Append(i);
 }
 var userSex = user.Sex == 0 ? '女士' : '先生';
 //var userAge = DateTime.Now.Year - user.Birthday.Year;
@@ -248,9 +248,9 @@ var userSex = user.Sex == 0 ? '女士' : '先生';
 int calcAge(DateTime birthday) {
     return DateTime.Now.Year - birthday.Year
 }
-output('hello');
+output.Append('hello');
 for(var i=0; i<5; i++) {
-	out.Append(i);
+	output.Append(i);
 }
 var userSex = user.Sex == 0 ? '女士' : '先生';
 //var userAge = DateTime.Now.Year - user.Birthday.Year;
@@ -280,9 +280,9 @@ var userSex = user.Sex == 0 ? '女士' : '先生';
 	int calcAge(DateTime birthday) {
 		return DateTime.Now.Year - birthday.Year
 	}
-	output('hello');
+	output.Append('hello');
 	for(var i=0; i<5; i++) {
-		out.Append(i);
+		output.Append(i);
 	}
 	var userSex = user.Sex == 0 ? '女士' : '先生';
 	//var userAge = DateTime.Now.Year - user.Birthday.Year;
@@ -290,7 +290,7 @@ var userSex = user.Sex == 0 ? '女士' : '先生';
 }
 尊敬的 ${user.Name}${userSex} 您好，祝您${calcAge(user.Birthday)}岁生日快乐！
 @{
-	out.Replace('\r', '').Replace('\n', '')
+	output.Replace('\r', '').Replace('\n', '')
 }";
 			// 模拟获取业务数据
 			var user = new { Name = "张三", Sex = 1, Birthday = new DateTime(1990, 10, 8), CreateTime = new DateTime(2026, 5, 1) };
@@ -313,9 +313,9 @@ var userSex = user.Sex == 0 ? '女士' : '先生';
 	int calcAge(DateTime birthday) {
 		return DateTime.Now.Year - birthday.Year
 	}
-	output('hello');
+	output.Append('hello');
 	for(var i=0; i<5; i++) {
-		out.Append(i);
+		output.Append(i);
 	}
 	var userSex = user.Sex == 0 ? '女士' : '先生';
 	//var userAge = DateTime.Now.Year - user.Birthday.Year;
@@ -323,7 +323,7 @@ var userSex = user.Sex == 0 ? '女士' : '先生';
 }
 尊敬的 ${user.Name}${userSex} 您好，祝您${calcAge(user.Birthday)}岁生日快乐！
 @{
-	out.Replace('\r', '').Replace('\n', '')
+	output.Replace('\r', '').Replace('\n', '')
 }";
 			// 模拟获取业务数据
 			var user = new { Name = "张三", Sex = 1, Birthday = new DateTime(1990, 10, 8), CreateTime = new DateTime(2026, 5, 1) };

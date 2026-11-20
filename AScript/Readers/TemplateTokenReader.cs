@@ -41,11 +41,11 @@ namespace AScript.Readers
 		/// <summary>
 		/// 输出流变量名
 		/// </summary>
-		public string OutVar { get; set; } = "out";
+		public string OutputVar { get; set; } = "output";
 		/// <summary>
 		/// 输出流方法名
 		/// </summary>
-		public string OutMethod { get; set; } = "Write";
+		public string OutputMethod { get; set; } = "Write";
 
 		public TemplateTokenReader(ITokenStream stream, bool autoDisposeStream) : base(stream, autoDisposeStream)
 		{
@@ -308,9 +308,9 @@ namespace AScript.Readers
 			Push(new Token(")", ETokenType.None));
 			Push(arg);
 			Push(new Token("(", ETokenType.None));
-			Push(new Token(OutMethod, ETokenType.Word));
+			Push(new Token(OutputMethod, ETokenType.Word));
 			Push(new Token(".", ETokenType.Operator));
-			return new Token(OutVar, ETokenType.Word);
+			return new Token(OutputVar, ETokenType.Word);
 		}
 
 		/// <summary>
@@ -326,9 +326,9 @@ namespace AScript.Readers
 				Push(args[i]);
 			}
 			Push(new Token("(", ETokenType.None));
-			Push(new Token(OutMethod, ETokenType.Word));
+			Push(new Token(OutputMethod, ETokenType.Word));
 			Push(new Token(".", ETokenType.Operator));
-			return new Token(OutVar, ETokenType.Word);
+			return new Token(OutputVar, ETokenType.Word);
 		}
 
 		/// <summary>
