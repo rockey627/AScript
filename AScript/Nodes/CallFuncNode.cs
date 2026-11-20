@@ -164,10 +164,14 @@ namespace AScript.Nodes
 				if (context.IsObjectMemberEnabled(t0) ?? true)
 				{
 					bool useScriptContext = false, hasClosure = false;
-					int paramsIndex = 0;
-					var method = t0.GetMethods(BindingFlags.Instance | BindingFlags.Public)
-						.Where(a => a.Name == this.Name && !a.IsGenericMethod)
-						.FirstOrDefault(a => ScriptUtils.IsMatchArgTypes(argTypes, a, out useScriptContext, out hasClosure, out paramsIndex));
+					int paramsIndex = -1;
+					var method = t0.GetMethod(this.Name, argTypes);
+					if (method == null)
+					{
+						method = t0.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+							.Where(a => a.Name == this.Name && !a.IsGenericMethod)
+							.FirstOrDefault(a => ScriptUtils.IsMatchArgTypes(argTypes, a, out useScriptContext, out hasClosure, out paramsIndex));
+					}
 					if (method != null)
 					{
 						returnType = method.ReturnType;
