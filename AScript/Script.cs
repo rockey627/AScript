@@ -1237,7 +1237,7 @@ namespace AScript
 		/// <para>大于0表示缓存时长（单位：毫秒）</para>
 		/// </param>
 		/// <param name="cacheKey">
-		/// 缓存key（如果为空则取表达式字符串）
+		/// 缓存key（如果为空则取文件完整路径）
 		/// </param>
 		/// <param name="cacheVersion">
 		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
@@ -1267,7 +1267,7 @@ namespace AScript
 		/// <para>大于0表示缓存时长（单位：毫秒）</para>
 		/// </param>
 		/// <param name="cacheKey">
-		/// 缓存key（如果为空则取表达式字符串）
+		/// 缓存key（如果为空则取文件完整路径）
 		/// </param>
 		/// <param name="cacheVersion">
 		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
