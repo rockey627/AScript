@@ -30,6 +30,7 @@ namespace AScript.Readers
 		}
 
 		private readonly StringBuilder _buffer = new StringBuilder();
+		private readonly List<Token> _tokenBuffer = new List<Token>();
 
 		private ETemplateState _state = ETemplateState.Text;
 		private int _braceDepth;
@@ -102,9 +103,8 @@ namespace AScript.Readers
 					_state = ETemplateState.End;
 					return null;
 				}
-				var tokens = BuildWriteCall(BuildTextToken());
 				_state = ETemplateState.End;
-				return Emit(tokens);
+				return EmitWriteCall(BuildTextToken());
 			}
 			if (c.Value == '$')
 			{
@@ -136,28 +136,28 @@ namespace AScript.Readers
 		/// </summary>
 		private Token? ReadScriptBlock()
 		{
-			var tokens = new List<Token>();
+			_tokenBuffer.Clear();
 			while (true)
 			{
 				var t = base.ReadTokenFromStream();
 				if (!t.HasValue) break;
-				if (IsSymbol(t.Value, "}"))
+				if (t.Value.IsSymbol("}"))
 				{
 					_braceDepth--;
 					// 结束脚本块，块尾的'}'不输出
 					if (_braceDepth <= 0) break;
-					tokens.Add(t.Value);
+					_tokenBuffer.Add(t.Value);
 				}
 				else
 				{
-					if (IsSymbol(t.Value, "{")) _braceDepth++;
-					tokens.Add(t.Value);
+					if (t.Value.IsSymbol("{")) _braceDepth++;
+					_tokenBuffer.Add(t.Value);
 				}
 			}
 			_state = ETemplateState.Text;
 			// 脚本块的换行符不输出
 			SkipLineBreak();
-			return Emit(tokens);
+			return Emit(_tokenBuffer);
 		}
 
 		/// <summary>
@@ -165,33 +165,29 @@ namespace AScript.Readers
 		/// </summary>
 		private Token? ReadExpression()
 		{
-			var tokens = new List<Token>();
+			_tokenBuffer.Clear();
 			while (true)
 			{
 				var t = base.ReadTokenFromStream();
 				if (!t.HasValue) break;
-				if (IsSymbol(t.Value, "{"))
+				if (t.Value.IsSymbol("{"))
 				{
 					_braceDepth++;
-					tokens.Add(t.Value);
+					_tokenBuffer.Add(t.Value);
 				}
-				else if (IsSymbol(t.Value, "}"))
+				else if (t.Value.IsSymbol("}"))
 				{
 					_braceDepth--;
 					if (_braceDepth <= 0) break;
-					tokens.Add(t.Value);
+					_tokenBuffer.Add(t.Value);
 				}
 				else
 				{
-					tokens.Add(t.Value);
+					_tokenBuffer.Add(t.Value);
 				}
 			}
 			_state = ETemplateState.Text;
-			if (tokens.Count == 0)
-			{
-				throw new Exceptions.ScriptAnalyzingException($"模板表达式为空 ({this.CharReader.CurrentLine},{this.CharReader.CurrentColumn})");
-			}
-			return Emit(BuildWriteCall(tokens));
+			return EmitWriteCall(_tokenBuffer);
 		}
 
 		/// <summary>
@@ -199,21 +195,24 @@ namespace AScript.Readers
 		/// </summary>
 		private Token? ReadScriptLine()
 		{
-			var startLine = this.CharReader.CurrentLine;
-			var startColumn = this.CharReader.CurrentColumn;
-			var line = new StringBuilder();
+			_tokenBuffer.Clear();
 			while (true)
 			{
-				var p = this.CharReader.Peek();
-				// 换行符不计入脚本语句，保留给文本处理
-				if (!p.HasValue || p.Value == '\n') break;
-				this.CharReader.Read();
-				line.Append(p.Value);
+				var c = this.CharReader.Read();
+				while (c.HasValue && (c.Value == ' ' || c.Value == '\r' || c.Value == '\t'))
+				{
+					c = this.CharReader.Read();
+				}
+				if (!c.HasValue || c.Value == '\n') break;
+				this.CharReader.Push(c.Value);
+				var t = base.ReadTokenFromStream();
+				if (!t.HasValue) break;
+				_tokenBuffer.Add(t.Value);
 			}
 			_state = ETemplateState.Text;
 			// 脚本语句的换行符不输出
 			SkipLineBreak();
-			return Emit(TokenizeLine(line.ToString(), startLine, startColumn));
+			return Emit(_tokenBuffer);
 		}
 
 		/// <summary>
@@ -239,25 +238,6 @@ namespace AScript.Readers
 		}
 
 		/// <summary>
-		/// 将脚本语句行转换为记号
-		/// </summary>
-		private static List<Token> TokenizeLine(string line, int startLine, int startColumn)
-		{
-			var tokens = new List<Token>();
-			if (string.IsNullOrEmpty(line)) return tokens;
-			using (var tokenStream = new DefaultTokenStream(line))
-			{
-				while (true)
-				{
-					var t = tokenStream.Next();
-					if (!t.HasValue) break;
-					tokens.Add(new Token(t.Value.Value, t.Value.Type, startLine, startColumn + t.Value.Column));
-				}
-			}
-			return tokens;
-		}
-
-		/// <summary>
 		/// 切换到新的状态，如果当前有文本则先输出文本
 		/// </summary>
 		private Token? EnterState(ETemplateState state, int braceDepth)
@@ -270,9 +250,8 @@ namespace AScript.Readers
 			}
 			if (_buffer.Length > 0)
 			{
-				var tokens = BuildWriteCall(BuildTextToken());
 				_state = state;
-				return Emit(tokens);
+				return EmitWriteCall(BuildTextToken());
 			}
 			_state = state;
 			return null;
@@ -323,27 +302,33 @@ namespace AScript.Readers
 		/// <summary>
 		/// 组合 out.Write(...) 调用
 		/// </summary>
-		private List<Token> BuildWriteCall(Token arg)
+		private Token EmitWriteCall(Token arg)
 		{
-			return BuildWriteCall(new[] { arg });
+			Push(new Token(";", ETokenType.None));
+			Push(new Token(")", ETokenType.None));
+			Push(arg);
+			Push(new Token("(", ETokenType.None));
+			Push(new Token(OutMethod, ETokenType.Word));
+			Push(new Token(".", ETokenType.Operator));
+			return new Token(OutVar, ETokenType.Word);
 		}
 
 		/// <summary>
 		/// 组合 out.Write(...) 调用
 		/// </summary>
-		private List<Token> BuildWriteCall(IEnumerable<Token> args)
+		private Token? EmitWriteCall(IList<Token> args)
 		{
-			var tokens = new List<Token>
+			if (args == null || args.Count == 0) return null;
+			Push(new Token(";", ETokenType.None));
+			Push(new Token(")", ETokenType.None));
+			for (int i = args.Count - 1; i >= 0; i--)
 			{
-				new Token(OutVar, ETokenType.Word),
-				new Token(".", ETokenType.Operator),
-				new Token(OutMethod, ETokenType.Word),
-				new Token("(", ETokenType.None),
-			};
-			tokens.AddRange(args);
-			tokens.Add(new Token(")", ETokenType.None));
-			tokens.Add(new Token(";", ETokenType.None));
-			return tokens;
+				Push(args[i]);
+			}
+			Push(new Token("(", ETokenType.None));
+			Push(new Token(OutMethod, ETokenType.Word));
+			Push(new Token(".", ETokenType.Operator));
+			return new Token(OutVar, ETokenType.Word);
 		}
 
 		/// <summary>
@@ -351,17 +336,12 @@ namespace AScript.Readers
 		/// </summary>
 		private Token? Emit(List<Token> tokens)
 		{
-			if (tokens.Count == 0) return null;
+			if (tokens == null || tokens.Count == 0) return null;
 			for (int i = tokens.Count - 1; i >= 1; i--)
 			{
 				Push(tokens[i]);
 			}
 			return tokens[0];
-		}
-
-		private static bool IsSymbol(Token token, string value)
-		{
-			return token.Type != ETokenType.String && token.Type != ETokenType.Number && token.Value == value;
 		}
 
 		protected override Task<Token?> ReadTokenFromStreamAsync(CancellationToken cancellationToken = default)
