@@ -35,6 +35,7 @@ namespace AScript.Readers
 		private int _braceDepth;
 		private int _textLine;
 		private int _textColumn;
+		private bool _textEmitted;
 
 		/// <summary>
 		/// 输出流变量名
@@ -154,6 +155,8 @@ namespace AScript.Readers
 				}
 			}
 			_state = ETemplateState.Text;
+			// 脚本块的换行符不输出
+			SkipLineBreak();
 			return Emit(tokens);
 		}
 
@@ -203,12 +206,36 @@ namespace AScript.Readers
 			{
 				var p = this.CharReader.Peek();
 				// 换行符不计入脚本语句，保留给文本处理
-				if (!p.HasValue || p.Value == '\n' || p.Value == '\r') break;
+				if (!p.HasValue || p.Value == '\n') break;
 				this.CharReader.Read();
 				line.Append(p.Value);
 			}
 			_state = ETemplateState.Text;
+			// 脚本语句的换行符不输出
+			SkipLineBreak();
 			return Emit(TokenizeLine(line.ToString(), startLine, startColumn));
+		}
+
+		/// <summary>
+		/// 跳过换行符，脚本块和脚本语句的换行符不输出
+		/// </summary>
+		private void SkipLineBreak()
+		{
+			var c = this.CharReader.Peek();
+			if (!c.HasValue) return;
+			if (c.Value == '\r')
+			{
+				this.CharReader.Read();
+				var next = this.CharReader.Peek();
+				if (next.HasValue && next.Value == '\n')
+				{
+					this.CharReader.Read();
+				}
+			}
+			else if (c.Value == '\n')
+			{
+				this.CharReader.Read();
+			}
 		}
 
 		/// <summary>
@@ -236,6 +263,11 @@ namespace AScript.Readers
 		private Token? EnterState(ETemplateState state, int braceDepth)
 		{
 			_braceDepth = braceDepth;
+			if (state == ETemplateState.ScriptBlock || state == ETemplateState.ScriptLine)
+			{
+				// 脚本块和脚本语句前的缩进属于脚本，不输出
+				RemoveIndent();
+			}
 			if (_buffer.Length > 0)
 			{
 				var tokens = BuildWriteCall(BuildTextToken());
@@ -244,6 +276,30 @@ namespace AScript.Readers
 			}
 			_state = state;
 			return null;
+		}
+
+		/// <summary>
+		/// 移除行首缩进（缩进位于换行符之后，或位于模板开头）
+		/// </summary>
+		private void RemoveIndent()
+		{
+			int end = _buffer.Length;
+			int start = end;
+			while (start > 0 && (_buffer[start - 1] == ' ' || _buffer[start - 1] == '\t'))
+			{
+				start--;
+			}
+			if (start == end) return;
+			if (start > 0)
+			{
+				if (_buffer[start - 1] != '\n' && _buffer[start - 1] != '\r') return;
+			}
+			else if (_textEmitted)
+			{
+				// 不是模板开头的缩进，而是表达式等之后的空白
+				return;
+			}
+			_buffer.Remove(start, end - start);
 		}
 
 		private void AppendText(char c)
@@ -260,6 +316,7 @@ namespace AScript.Readers
 		{
 			var token = new Token(_buffer.ToString(), ETokenType.String, _textLine, _textColumn);
 			_buffer.Clear();
+			_textEmitted = true;
 			return token;
 		}
 

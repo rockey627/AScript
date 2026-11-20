@@ -60,7 +60,24 @@ namespace AScript.Test.MSTests
 			var context = ScriptContext.Create();
 			context.SetVar("list", new List<string> { "a", "b" });
 			var result = Translate("@foreach(var item in list) {\r\n\t[${item}]\r\n@}\r\nend", context);
-			Assert.AreEqual("\r\n\t[a]\r\n\r\n\t[b]\r\n\r\nend", result);
+			Assert.AreEqual("\t[a]\r\n\t[b]\r\nend", result);
+		}
+
+		[TestMethod]
+		public void Test04_Statement2()
+		{
+			var context = ScriptContext.Create();
+			context.SetVar("list", new List<string> { "a", "b" });
+			var template = @"@foreach(var item in list) {
+	[${item}]
+@}
+end";
+			var result = Translate(template, context);
+			Console.WriteLine(result);
+			var expected = @"	[a]
+	[b]
+end";
+			Assert.AreEqual(expected, result);
 		}
 
 		[TestMethod]
@@ -81,10 +98,28 @@ namespace AScript.Test.MSTests
 			var template = File.ReadAllText("template_01.txt");
 			var result = Translate(template, context);
 			Console.WriteLine(result);
-			Assert.IsTrue(result.Contains("public class User {"));
-			Assert.IsTrue(result.Contains("public int Id { get; set; }"));
-			Assert.IsTrue(result.Contains("public string Name { get; set; }"));
-			Assert.IsTrue(result.Contains("[Table(\"Users\")]"));
+			var expected = "// created at " + DateTime.Now.ToString("yyyy-MM-dd") + @"
+using System;
+
+namespace MyTest.Model
+{
+	/// <summary>
+	/// 用户
+	/// </summary>
+	[Table(""Users"")]
+	public class User {
+		/// <summary>
+		/// 主键
+		/// </summary>
+		[PrimaryKey]
+		public int Id { get; set; }
+		/// <summary>
+		/// 姓名
+		/// </summary>
+		public string Name { get; set; }
+	}
+}";
+			Assert.AreEqual(expected, result);
 		}
 	}
 }
