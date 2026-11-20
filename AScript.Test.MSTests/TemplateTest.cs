@@ -207,8 +207,7 @@ namespace MyTest.Model
 		[TestMethod]
 		public void Test06_TemplateFile()
 		{
-			var tpl = File.ReadAllText("template_01.txt");
-			var template = new Template(tpl);
+			var template = new Template(new FileInfo("template_01.txt"));
 			template.Context.SetVar("entity", new
 			{
 				Name = "User",
@@ -220,8 +219,8 @@ namespace MyTest.Model
 					new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
 				}
 			});
-			template.Render(null, "./template_01_result.txt");
-			var result = File.ReadAllText("./template_01_result.txt");
+			template.Render(null, "template_01_result.txt");
+			var result = File.ReadAllText("template_01_result.txt");
 			Console.WriteLine(result);
 			var expected = "// created at " + DateTime.Now.ToString("yyyy-MM-dd") + @"
 using System;
@@ -250,8 +249,7 @@ namespace MyTest.Model
 		[TestMethod]
 		public void Test06_TemplateFile_CompileAll()
 		{
-			var tpl = File.ReadAllText("template_01.txt");
-			var template = new Template(tpl);
+			var template = new Template(new FileInfo("template_01.txt"));
 			template.CompileMode = ECompileMode.All;
 			template.Context.SetVar("entity", new
 			{
@@ -264,8 +262,8 @@ namespace MyTest.Model
 					new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
 				}
 			});
-			template.Render(null, "./template_01_result.txt");
-			var result = File.ReadAllText("./template_01_result.txt");
+			template.Render(null, "template_01_result.txt");
+			var result = File.ReadAllText("template_01_result.txt");
 			Console.WriteLine(result);
 			var expected = "// created at " + DateTime.Now.ToString("yyyy-MM-dd") + @"
 using System;

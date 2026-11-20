@@ -10,22 +10,52 @@ namespace AScript
 	{
 		private readonly object _template;
 
+		/// <summary>
+		/// 模板上下文
+		/// </summary>
 		public ScriptContext Context { get; private set; }
 
+		/// <summary>
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </summary>
 		public int CacheTime { get; set; }
+		/// <summary>
+		/// 缓存key
+		/// </summary>
 		public string CacheKey { get; set; }
+		/// <summary>
+		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// </summary>
 		public string CacheVersion { get; set; }
 
+		/// <summary>
+		/// 编译模式
+		/// </summary>
 		public ECompileMode? CompileMode { get; set; }
 
+		/// <summary>
+		/// 输出流变量名
+		/// </summary>
 		public string OutputVar { get; set; } = "output";
+		/// <summary>
+		/// 模型对象变量名
+		/// </summary>
 		public string ModelVar { get; set; } = "model";
 
 		public Template(string template) : this(new ScriptContext(), template) { }
+		public Template(FileInfo template) : this(new ScriptContext(), template) { }
 		public Template(Stream template) : this(new ScriptContext(), template) { }
 		public Template(Func<string> template) : this(new ScriptContext(), template) { }
 		public Template(Func<Stream> template) : this(new ScriptContext(), template) { }
 		public Template(ScriptContext context, string template)
+		{
+			this.Context = context;
+			_template = template;
+		}
+		public Template(ScriptContext context, FileInfo template)
 		{
 			this.Context = context;
 			_template = template;
@@ -46,12 +76,29 @@ namespace AScript
 			_template = template;
 		}
 
+		/// <summary>
+		/// 设置编译模式
+		/// </summary>
+		/// <param name="compileMode"></param>
+		/// <returns></returns>
 		public Template WithCompileMode(ECompileMode? compileMode)
 		{
 			this.CompileMode = compileMode;
 			return this;
 		}
 
+		/// <summary>
+		/// 设置缓存策略
+		/// </summary>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>为0表示不使用缓存（默认）；</para>
+		/// <para>-1表示永久缓存；</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">缓存key</param>
+		/// <param name="cacheVersion">缓存版本号，如果版本号有变化，则重新编译并缓存</param>
+		/// <returns></returns>
 		public Template WithCache(int cacheTime = 0, string cacheKey = null, string cacheVersion = null)
 		{
 			this.CacheTime = cacheTime;
@@ -60,7 +107,24 @@ namespace AScript
 			return this;
 		}
 
+		/// <summary>
+		/// 渲染模板，返回结果
+		/// </summary>
+		/// <param name="model"></param>
+		/// <returns></returns>
 		public string Render(object model)
+		{
+			var output = new StringBuilder();
+			Render(model, output);
+			return output.ToString();
+		}
+
+		/// <summary>
+		/// 渲染模板，输出到output
+		/// </summary>
+		/// <param name="model"></param>
+		/// <param name="output"></param>
+		public void Render(object model, StringBuilder output)
 		{
 			var script = new Script(new ScriptContext(this.Context));
 			script.Options.CompileMode = this.CompileMode;
@@ -70,72 +134,139 @@ namespace AScript
 			script.Context.AddAction<StringBuilder, object>("Write", (o, v) => o.Append(v));
 			script.Context.AddAction<StringBuilder>("WriteLine", (o) => o.AppendLine());
 			script.Context.AddAction<StringBuilder, object>("WriteLine", (o, v) => o.AppendLine(v?.ToString()));
-			var output = new StringBuilder();
-			script.Context.SetVar(this.OutputVar, output);
-			script.Context.SetVar(this.ModelVar, model);
-			Eval(script);
-			return output.ToString();
-		}
-
-		public void Render(object model, TextWriter output)
-		{
-			var script = new Script(new ScriptContext(this.Context));
-			script.Options.CompileMode = this.CompileMode;
-			script.Options.RewriteFunctions = false;
-			script.Options.RewriteVariables = false;
-			script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream) { OutputVar = this.OutputVar, OutputMethod = "Write" };
-			script.Context.AddAction<TextWriter, object>("Append", (o, v) => o.Write(v));
-			script.Context.AddAction<TextWriter>("AppendLine", (o) => o.WriteLine());
-			script.Context.AddAction<TextWriter, object>("AppendLine", (o, v) => o.WriteLine(v?.ToString()));
 			script.Context.SetVar(this.OutputVar, output);
 			script.Context.SetVar(this.ModelVar, model);
 			Eval(script);
 		}
 
-		public Task RenderAsync(object model, TextWriter output)
+		/// <summary>
+		/// 渲染模板，输出到output
+		/// </summary>
+		/// <param name="model"></param>
+		/// <param name="output"></param>
+		/// <param name="autoDisposeOutput"></param>
+		public void Render(object model, TextWriter output, bool autoDisposeOutput = true)
 		{
-			var script = new Script(new ScriptContext(this.Context));
-			script.Options.CompileMode = this.CompileMode;
-			script.Options.RewriteFunctions = false;
-			script.Options.RewriteVariables = false;
-			script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream) { OutputVar = this.OutputVar, OutputMethod = "WriteAsync" };
-			script.Context.AddAction<TextWriter, object>("Append", (o, v) => o.Write(v));
-			script.Context.AddAction<TextWriter>("AppendLine", (o) => o.WriteLine());
-			script.Context.AddAction<TextWriter, object>("AppendLine", (o, v) => o.WriteLine(v?.ToString()));
-			script.Context.SetVar(this.OutputVar, output);
-			script.Context.SetVar(this.ModelVar, model);
-			return EvalAsync(script);
+			try
+			{
+				var script = new Script(new ScriptContext(this.Context));
+				script.Options.CompileMode = this.CompileMode;
+				script.Options.RewriteFunctions = false;
+				script.Options.RewriteVariables = false;
+				script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream) { OutputVar = this.OutputVar, OutputMethod = "Write" };
+				script.Context.AddAction<TextWriter, object>("Append", (o, v) => o.Write(v));
+				script.Context.AddAction<TextWriter>("AppendLine", (o) => o.WriteLine());
+				script.Context.AddAction<TextWriter, object>("AppendLine", (o, v) => o.WriteLine(v?.ToString()));
+				script.Context.SetVar(this.OutputVar, output);
+				script.Context.SetVar(this.ModelVar, model);
+				Eval(script);
+			}
+			finally
+			{
+				if (autoDisposeOutput)
+				{
+					output.Dispose();
+				}
+			}
 		}
 
+		/// <summary>
+		/// 异步渲染模板，输出到output
+		/// </summary>
+		/// <param name="model"></param>
+		/// <param name="output"></param>
+		/// <param name="autoDisposeOutput"></param>
+		/// <returns></returns>
+		public async Task RenderAsync(object model, TextWriter output, bool autoDisposeOutput = true)
+		{
+			try
+			{
+				var script = new Script(new ScriptContext(this.Context));
+				script.Options.CompileMode = this.CompileMode;
+				script.Options.RewriteFunctions = false;
+				script.Options.RewriteVariables = false;
+				script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream) { OutputVar = this.OutputVar, OutputMethod = "WriteAsync" };
+				script.Context.AddAction<TextWriter, object>("Append", (o, v) => o.Write(v));
+				script.Context.AddAction<TextWriter>("AppendLine", (o) => o.WriteLine());
+				script.Context.AddAction<TextWriter, object>("AppendLine", (o, v) => o.WriteLine(v?.ToString()));
+				script.Context.SetVar(this.OutputVar, output);
+				script.Context.SetVar(this.ModelVar, model);
+				await EvalAsync(script).ConfigureAwait(false);
+			}
+			finally
+			{
+				if (autoDisposeOutput)
+				{
+					output.Dispose();
+				}
+			}
+		}
+
+		/// <summary>
+		/// 渲染模板，输出到outputPath文件
+		/// </summary>
+		/// <param name="model"></param>
+		/// <param name="outputPath"></param>
+		/// <param name="encoding"></param>
 		public void Render(object model, string outputPath, Encoding encoding = null)
 		{
-			using (var writer = new StreamWriter(outputPath, false, encoding ?? Encoding.UTF8))
-			{
-				Render(model, writer);
-			}
+			Render(model, new StreamWriter(outputPath, false, encoding ?? Encoding.UTF8), true);
 		}
 
-		public void Render(object model, Stream output, Encoding encoding = null)
+		/// <summary>
+		/// 渲染模板，输出到output
+		/// </summary>
+		/// <param name="model"></param>
+		/// <param name="output"></param>
+		/// <param name="encoding"></param>
+		/// <param name="autoDisposeOutput"></param>
+		public void Render(object model, Stream output, Encoding encoding = null, bool autoDisposeOutput = true)
 		{
-			using (var writer = new StreamWriter(output, encoding ?? Encoding.UTF8))
+			try
 			{
-				Render(model, writer);
+				Render(model, new StreamWriter(output, encoding ?? Encoding.UTF8), true);
+			}
+			finally
+			{
+				if (autoDisposeOutput)
+				{
+					output.Dispose();
+				}
 			}
 		}
 
+		/// <summary>
+		/// 异步渲染模板，输出到outputPath文件
+		/// </summary>
+		/// <param name="model"></param>
+		/// <param name="outputPath"></param>
+		/// <param name="encoding"></param>
+		/// <returns></returns>
 		public Task RenderAsync(object model, string outputPath, Encoding encoding = null)
 		{
-			using (var writer = new StreamWriter(outputPath, false, encoding ?? Encoding.UTF8))
-			{
-				return RenderAsync(model, writer);
-			}
+			return RenderAsync(model, new StreamWriter(outputPath, false, encoding ?? Encoding.UTF8), true);
 		}
 
-		public Task RenderAsync(object model, Stream output, Encoding encoding = null)
+		/// <summary>
+		/// 异步渲染模板，输出到output
+		/// </summary>
+		/// <param name="model"></param>
+		/// <param name="output"></param>
+		/// <param name="encoding"></param>
+		/// <param name="autoDisposeOutput"></param>
+		/// <returns></returns>
+		public async Task RenderAsync(object model, Stream output, Encoding encoding = null, bool autoDisposeOutput = true)
 		{
-			using (var writer = new StreamWriter(output, encoding ?? Encoding.UTF8))
+			try
 			{
-				return RenderAsync(model, writer);
+				await RenderAsync(model, new StreamWriter(output, encoding ?? Encoding.UTF8), true).ConfigureAwait(false);
+			}
+			finally
+			{
+				if (autoDisposeOutput)
+				{
+					output.Dispose();
+				}
 			}
 		}
 
@@ -144,6 +275,10 @@ namespace AScript
 			if (_template is string s)
 			{
 				script.Eval(s, this.CacheTime, this.CacheKey, this.CacheVersion);
+			}
+			else if (_template is FileInfo fi)
+			{
+				script.EvalFile(fi.FullName, this.CacheTime, this.CacheKey, this.CacheVersion);
 			}
 			else if (_template is Stream stream)
 			{
@@ -168,6 +303,10 @@ namespace AScript
 			if (_template is string s)
 			{
 				return script.EvalAsync(s, this.CacheTime, this.CacheKey, this.CacheVersion);
+			}
+			else if (_template is FileInfo fi)
+			{
+				return script.EvalFileAsync(fi.FullName, this.CacheTime, this.CacheKey, this.CacheVersion);
 			}
 			else if (_template is Stream stream)
 			{
