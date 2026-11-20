@@ -39,7 +39,7 @@ namespace AScript.Readers
 			{
 				return _peekStack.Pop();
 			}
-			return this.TokenStream.Next();
+			return ReadTokenFromStream();
 		}
 
 		/// <summary>
@@ -52,7 +52,7 @@ namespace AScript.Readers
 			{
 				return _peekStack.Pop();
 			}
-			return await this.TokenStream.NextAsync(cancellationToken).ConfigureAwait(false);
+			return await ReadTokenFromStreamAsync(cancellationToken).ConfigureAwait(false);
 		}
 
 		public Token? Peek()
@@ -61,7 +61,7 @@ namespace AScript.Readers
 			{
 				return _peekStack.Peek();
 			}
-			var c1 = this.TokenStream.Next();
+			var c1 = ReadTokenFromStream();
 			if (c1.HasValue) _peekStack.Push(c1.Value);
 			return c1;
 		}
@@ -72,9 +72,19 @@ namespace AScript.Readers
 			{
 				return _peekStack.Peek();
 			}
-			var c1 = await this.TokenStream.NextAsync(cancellationToken).ConfigureAwait(false);
+			var c1 = await ReadTokenFromStreamAsync(cancellationToken).ConfigureAwait(false);
 			if (c1.HasValue) _peekStack.Push(c1.Value);
 			return c1;
+		}
+
+		protected virtual Token? ReadTokenFromStream()
+		{
+			return this.TokenStream.Next();
+		}
+
+		protected virtual Task<Token?> ReadTokenFromStreamAsync(CancellationToken cancellationToken = default)
+		{
+			return this.TokenStream.NextAsync(cancellationToken);
 		}
 
 		public void Dispose()
