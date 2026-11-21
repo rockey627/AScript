@@ -875,6 +875,7 @@ Assert.AreEqual(expected, result);
 * 内置`output`输出流变量，提供方法：`output.Write/output.WriteLine/output.WriteAsync/output.WriteLineAsync`
 * 内置`model`模型对象变量
 * 内置`include`函数，包含另一个模板文件：`include('head.tpl')`或者`include('item.tpl', item)`
+* 转义：`\\ \@ \$`只转义3个字符
 * 支持异步渲染
 * 支持预编译，`Compile`
 * 支持缓存

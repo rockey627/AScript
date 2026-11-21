@@ -635,5 +635,27 @@ namespace MyTest.Model
 			Assert.AreEqual(expected, result);
 		}
 
+		[TestMethod]
+		public void Test15_escape()
+		{
+			var tpl = @"a\${name}\$${name} b\@{DateTime.Now} c\\\@ d\$ e\f";
+			var template = new Template(tpl);
+			template.Context.SetVar("name", "Tom");
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual(@"a${name}$Tom b@{DateTime.Now} c\@ d$ e\f", result);
+		}
+
+		[TestMethod]
+		public async Task Test15_escape_Async()
+		{
+			var tpl = @"a\${name}\$${name} b\@{DateTime.Now} c\\\@ d\$ e\f";
+			var template = new Template(tpl);
+			template.Context.SetVar("name", "Tom");
+			var result = await template.RenderAsync(null);
+			Console.WriteLine(result);
+			Assert.AreEqual(@"a${name}$Tom b@{DateTime.Now} c\@ d$ e\f", result);
+		}
+
 	}
 }

@@ -103,6 +103,14 @@ namespace AScript.Readers
 		}
 
 		/// <summary>
+		/// 可转义的字符，只有这三个字符可以用 '\' 转义
+		/// </summary>
+		private static bool IsEscapeChar(char c)
+		{
+			return c == '\\' || c == '@' || c == '$';
+		}
+
+		/// <summary>
 		/// 读取文本，直到遇到模板标记或模板结束
 		/// </summary>
 		private Token? ReadText()
@@ -110,6 +118,18 @@ namespace AScript.Readers
 			var c = this.CharReader.Read();
 			while (c.HasValue && c.Value != '@' && c.Value != '$')
 			{
+				if (c.Value == '\\')
+				{
+					// 转义字符
+					var esc = this.CharReader.Peek();
+					if (esc.HasValue && IsEscapeChar(esc.Value))
+					{
+						this.CharReader.Read();
+						AppendText(esc.Value);
+						c = this.CharReader.Read();
+						continue;
+					}
+				}
 				AppendText(c.Value);
 				c = this.CharReader.Read();
 			}
@@ -430,6 +450,18 @@ namespace AScript.Readers
 			var c = await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 			while (c.HasValue && c.Value != '@' && c.Value != '$')
 			{
+				if (c.Value == '\\')
+				{
+					// 转义字符
+					var esc = await this.CharReader.PeekAsync(cancellationToken).ConfigureAwait(false);
+					if (esc.HasValue && IsEscapeChar(esc.Value))
+					{
+						await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+						AppendText(esc.Value);
+						c = await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+						continue;
+					}
+				}
 				AppendText(c.Value);
 				c = await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 			}
