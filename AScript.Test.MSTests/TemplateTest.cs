@@ -289,5 +289,122 @@ namespace MyTest.Model
 			Assert.AreEqual(expected, result);
 		}
 
+		[TestMethod]
+		public void Test07_Compile()
+		{
+			var template = new Template("Hello ${name}, today is ${DateTime.Now.Year}");
+			template.Context.SetVar("name", "Tom");
+			template.Compile(null);
+
+			{
+				var result = template.Render(null);
+				Assert.AreEqual($"Hello Tom, today is {DateTime.Now.Year}", result);
+			}
+
+			{
+				template.Context.SetVar("name", "John");
+				var result = template.Render(null);
+				Assert.AreEqual($"Hello John, today is {DateTime.Now.Year}", result);
+			}
+		}
+
+		[TestMethod]
+		public void Test07_Compile_standalone()
+		{
+			var template = new Template("Hello ${name}, today is ${DateTime.Now.Year}");
+			template.Context.SetVar("name", "Tom");
+			template.Compile(null, true);
+
+			{
+				var result = template.Render(null);
+				Assert.AreEqual($"Hello Tom, today is {DateTime.Now.Year}", result);
+			}
+
+			{
+				// 模板使用standalone编译，上下文数据更改不影响渲染
+				template.Context.SetVar("name", "John");
+				var result = template.Render(null);
+				Assert.AreEqual($"Hello Tom, today is {DateTime.Now.Year}", result);
+			}
+		}
+
+		[TestMethod]
+		public void Test08_Compile_Person()
+		{
+			var template = new Template("Hello ${model.Name}, ${age}, today is ${DateTime.Now.Year}");
+			template.Context.SetVar("age", 20);
+			template.Compile<Person>();
+
+			{
+				var result = template.Render(new Person { Name = "Tom" });
+				Assert.AreEqual($"Hello Tom, 20, today is {DateTime.Now.Year}", result);
+			}
+
+			{
+				template.Context.SetVar("age", 30);
+				var result = template.Render(new Person { Name = "John" });
+				Assert.AreEqual($"Hello John, 30, today is {DateTime.Now.Year}", result);
+			}
+		}
+
+		[TestMethod]
+		public void Test08_Compile_Person_standalone()
+		{
+			var template = new Template("Hello ${model.Name}, ${age}, today is ${DateTime.Now.Year}");
+			template.Context.SetVar("age", 20);
+			template.Compile<Person>(true);
+
+			{
+				var result = template.Render(new Person { Name = "Tom" });
+				Assert.AreEqual($"Hello Tom, 20, today is {DateTime.Now.Year}", result);
+			}
+
+			{
+				// 模板使用standalone编译，上下文数据更改不影响渲染
+				template.Context.SetVar("age", 30);
+				var result = template.Render(new Person { Name = "John" });
+				Assert.AreEqual($"Hello John, 20, today is {DateTime.Now.Year}", result);
+			}
+		}
+
+		[TestMethod]
+		public void Test09_Compiled_Person()
+		{
+			var template = new Template("Hello ${model.Name}, ${age}, today is ${DateTime.Now.Year}");
+			template.Context.SetVar("age", 20);
+			var compiled = template.Compile<Person>();
+
+			{
+				var result = compiled.Render(new Person { Name = "Tom" });
+				Assert.AreEqual($"Hello Tom, 20, today is {DateTime.Now.Year}", result);
+			}
+
+			{
+				compiled.Context.SetVar("age", 30);
+				var result = compiled.Render(new Person { Name = "John" });
+				Assert.AreEqual($"Hello John, 30, today is {DateTime.Now.Year}", result);
+			}
+		}
+
+		[TestMethod]
+		public void Test09_Compiled_Person_standalone()
+		{
+			var template = new Template("Hello ${model.Name}, ${age}, today is ${DateTime.Now.Year}");
+			template.Context.SetVar("age", 20);
+			var compiled = template.Compile<Person>(true);
+
+			{
+				var result = compiled.Render(new Person { Name = "Tom" });
+				Assert.AreEqual($"Hello Tom, 20, today is {DateTime.Now.Year}", result);
+			}
+
+			{
+				// 模板使用standalone编译，上下文数据更改不影响渲染
+				compiled.Context.SetVar("age", 30);
+				var result = compiled.Render(new Person { Name = "John" });
+				Assert.AreEqual($"Hello John, 20, today is {DateTime.Now.Year}", result);
+			}
+		}
+
 	}
 }
