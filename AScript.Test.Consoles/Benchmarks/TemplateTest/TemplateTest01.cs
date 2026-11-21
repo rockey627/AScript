@@ -12,6 +12,7 @@ namespace AScript.Test.Consoles.Benchmarks.TemplateTest
 	public class TemplateTest01
 	{
 		private static readonly string _template_text = "Hello ${name1}, my name is ${name2}";
+		private static readonly string _template_text_Scriban = "Hello {{ name1 }}, my name is {{ name2 }}";
 		private static readonly string _result = "Hello Tom, my name is John";
 
 		static TemplateTest01()
@@ -57,6 +58,17 @@ namespace AScript.Test.Consoles.Benchmarks.TemplateTest
 			template.Set("name1", "Tom");
 			template.Set("name2", "John");
 			var r = template.Render();
+			if (r != _result)
+			{
+				throw new Exception("result error");
+			}
+		}
+
+		[Benchmark]
+		public void Scriban01()
+		{
+			var template = Scriban.Template.Parse(_template_text_Scriban);
+			var r = template.Render(new { name1 = "Tom", name2 = "John" });
 			if (r != _result)
 			{
 				throw new Exception("result error");
