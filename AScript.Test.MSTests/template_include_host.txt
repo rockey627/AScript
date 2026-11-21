@@ -1,0 +1,1 @@
+begin@{ var title = "Hello"; }end@include('template_include_01.txt')

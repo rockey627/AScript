@@ -657,5 +657,81 @@ namespace MyTest.Model
 			Assert.AreEqual(@"a${name}$Tom b@{DateTime.Now} c\@ d$ e\f", result);
 		}
 
+		[TestMethod]
+		public void Test16_include()
+		{
+			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
+			var tpl = @"@{ var title = ""Hello""; }@include('template_include_01.txt')";
+			var template = new Template(tpl);
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("[Hello]", result);
+		}
+
+		[TestMethod]
+		public void Test16_include_CompileAll()
+		{
+			// 编译模式下，包含的模板与宿主模板共享上下文
+			var tpl = @"@{ var title = ""Hello""; }@include('template_include_01.txt')";
+			var template = new Template(tpl);
+			template.CompileMode = ECompileMode.All;
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("[Hello]", result);
+		}
+
+		[TestMethod]
+		public void Test16_include2()
+		{
+			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
+			var tpl = @"@{ var title = ""Hello""; }@{include('template_include_01.txt');output.Write('ok')}end";
+			var template = new Template(tpl);
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("[Hello]okend", result);
+		}
+
+		[TestMethod]
+		public void Test17_include_file()
+		{
+			// 相对路径以模板文件所在目录为基准
+			var template = new Template(new FileInfo("template_include_host.txt"));
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("beginend[Hello]", result);
+		}
+
+		[TestMethod]
+		public void Test17_include_file_CompileAll()
+		{
+			// 相对路径以模板文件所在目录为基准
+			var template = new Template(new FileInfo("template_include_host.txt"));
+			template.CompileMode = ECompileMode.All;
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("beginend[Hello]", result);
+		}
+
+		[TestMethod]
+		public async Task Test18_include_Async()
+		{
+			var tpl = @"@{ var title = ""Hello""; }@include('template_include_01.txt')";
+			var template = new Template(tpl);
+			var result = await template.RenderAsync(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("[Hello]", result);
+		}
+
+		[TestMethod]
+		public async Task Test18_include_Async_CompileAll()
+		{
+			var tpl = @"@{ var title = ""Hello""; }@include('template_include_01.txt')";
+			var template = new Template(tpl);
+			template.CompileMode = ECompileMode.All;
+			var result = await template.RenderAsync(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("[Hello]", result);
+		}
+
 	}
 }

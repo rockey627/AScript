@@ -132,7 +132,13 @@ namespace AScript
 			script.Options.CompileMode = this.CompileMode;
 			script.Options.RewriteFunctions = false;
 			script.Options.RewriteVariables = false;
-			script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream) { OutputVar = this.OutputVar, OutputMethod = "Write" };
+			script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream)
+			{
+				OutputVar = this.OutputVar,
+				OutputMethod = "Write",
+				IncludeMethod = this.IncludeMethod,
+				BaseDirectory = _template is FileInfo fi ? fi.DirectoryName : null,
+			};
 			script.Options.Standalone = standalone;
 			// load(path)和load(path,model)
 			script.Context.FunctionBuild += (ss, ee) =>
@@ -162,7 +168,7 @@ namespace AScript
 				var renderMethod = typeof(Template).GetMethod("Render", new[] { typeof(object), typeof(IOutput) });
 				ee.Result = Expression.Call(template, renderMethod, model, output);
 			};
-			// 
+			//
 			if (modelType == null) modelType = typeof(object);
 			if (_template is string s)
 			{
@@ -205,54 +211,8 @@ namespace AScript
 					_compiled.DynamicInvoke(model, output);
 					return;
 				}
-				var script = new Script(new ScriptContext(this.Context));
-				script.Options.CompileMode = this.CompileMode;
-				script.Options.RewriteFunctions = false;
-				script.Options.RewriteVariables = false;
-				script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream) { OutputVar = this.OutputVar, OutputMethod = "Write" };
-				script.Context.SetVar(this.OutputVar, output);
-				script.Context.SetVar(this.ModelVar, model);
-				script.Context.AddAction<string>(this.LoadMethod, path =>
-				{
-					if (_template is FileInfo fi)
-					{
-						path = Path.Combine(fi.DirectoryName, path);
-					}
-					this.Clone(new FileInfo(path)).Render(model, output);
-				});
-				script.Context.AddAction<string, object>(this.LoadMethod, (path, m) =>
-				{
-					if (_template is FileInfo fi)
-					{
-						path = Path.Combine(fi.DirectoryName, path);
-					}
-					this.Clone(new FileInfo(path)).Render(m, output);
-				});
-				// 
-				if (_template is string s)
-				{
-					script.Eval(s, this.CacheTime, this.CacheKey, this.CacheVersion);
-				}
-				else if (_template is FileInfo fi)
-				{
-					script.EvalFile(fi.FullName, this.CacheTime, this.CacheKey, this.CacheVersion);
-				}
-				else if (_template is Stream stream)
-				{
-					script.Eval(stream, this.CacheTime, this.CacheKey, this.CacheVersion);
-				}
-				else if (_template is Func<string> stringFunc)
-				{
-					script.Eval(stringFunc, this.CacheTime, this.CacheKey, this.CacheVersion);
-				}
-				else if (_template is Func<Stream> streamFunc)
-				{
-					script.Eval(streamFunc, this.CacheTime, this.CacheKey, this.CacheVersion);
-				}
-				else
-				{
-					throw new NotSupportedException($"unsuport template of type '{_template.GetType()}'");
-				}
+				var script = CreateScript(new ScriptContext(this.Context), model, output, "Write");
+				EvalTemplate(script);
 			}
 			finally
 			{
@@ -275,58 +235,127 @@ namespace AScript
 					_compiled.DynamicInvoke(model, output);
 					return;
 				}
-				var script = new Script(new ScriptContext(this.Context));
-				script.Options.CompileMode = this.CompileMode;
-				script.Options.RewriteFunctions = false;
-				script.Options.RewriteVariables = false;
-				script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream) { OutputVar = this.OutputVar, OutputMethod = "WriteAsync" };
-				script.Context.SetVar(this.OutputVar, output);
-				script.Context.SetVar(this.ModelVar, model);
-				script.Context.AddAction<string>(this.LoadMethod, path =>
-				{
-					if (_template is FileInfo fi)
-					{
-						path = Path.Combine(fi.DirectoryName, path);
-					}
-					this.Clone(new FileInfo(path)).Render(model, output);
-				});
-				script.Context.AddAction<string, object>(this.LoadMethod, (path, m) =>
-				{
-					if (_template is FileInfo fi)
-					{
-						path = Path.Combine(fi.DirectoryName, path);
-					}
-					this.Clone(new FileInfo(path)).Render(m, output);
-				});
-				// 
-				if (_template is string s)
-				{
-					await script.EvalAsync(s, this.CacheTime, this.CacheKey, this.CacheVersion).ConfigureAwait(false);
-				}
-				else if (_template is FileInfo fi)
-				{
-					await script.EvalFileAsync(fi.FullName, this.CacheTime, this.CacheKey, this.CacheVersion).ConfigureAwait(false);
-				}
-				else if (_template is Stream stream)
-				{
-					await script.EvalAsync(stream, this.CacheTime, this.CacheKey, this.CacheVersion).ConfigureAwait(false);
-				}
-				else if (_template is Func<string> stringFunc)
-				{
-					await script.EvalAsync(stringFunc, this.CacheTime, this.CacheKey, this.CacheVersion).ConfigureAwait(false);
-				}
-				else if (_template is Func<Stream> streamFunc)
-				{
-					await script.EvalAsync(streamFunc, this.CacheTime, this.CacheKey, this.CacheVersion).ConfigureAwait(false);
-				}
-				else
-				{
-					throw new NotSupportedException($"unsuport template of type '{_template.GetType()}'");
-				}
+				var script = CreateScript(new ScriptContext(this.Context), model, output, "WriteAsync");
+				await EvalTemplateAsync(script).ConfigureAwait(false);
 			}
 			finally
 			{
 				(output as IDisposable)?.Dispose();
+			}
+		}
+
+		/// <summary>
+		/// 创建脚本，并注册模板的内置函数
+		/// </summary>
+		/// <param name="context">脚本上下文</param>
+		/// <param name="model">模型对象</param>
+		/// <param name="output">输出流</param>
+		/// <param name="outputMethod">输出流方法名</param>
+		/// <returns></returns>
+		private Script CreateScript(ScriptContext context, object model, IOutput output, string outputMethod)
+		{
+			var script = new Script(context);
+			script.Options.CompileMode = this.CompileMode;
+			script.Options.RewriteFunctions = false;
+			script.Options.RewriteVariables = false;
+			script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream)
+			{
+				OutputVar = this.OutputVar,
+				OutputMethod = outputMethod,
+				IncludeMethod = this.IncludeMethod,
+				BaseDirectory = _template is FileInfo fi ? fi.DirectoryName : null,
+			};
+			script.Context.SetVar(this.OutputVar, output);
+			script.Context.SetVar(this.ModelVar, model);
+			// load(path)和load(path,model)：加载模板文件并单独渲染
+			script.Context.AddAction<string>(this.LoadMethod, path =>
+			{
+				this.Clone(this.ResolveFile(path)).Render(model, output);
+			});
+			script.Context.AddAction<string, object>(this.LoadMethod, (path, m) =>
+			{
+				this.Clone(this.ResolveFile(path)).Render(m, output);
+			});
+			// include(path) 由 TemplateTokenReader 在读取阶段展开，无需运行时函数
+			return script;
+		}
+
+		/// <summary>
+		/// 解析模板文件的路径，相对路径以当前模板文件所在目录为基准
+		/// </summary>
+		/// <param name="path"></param>
+		/// <returns></returns>
+		private FileInfo ResolveFile(string path)
+		{
+			if (_template is FileInfo fi && !string.IsNullOrEmpty(fi.DirectoryName))
+			{
+				path = Path.Combine(fi.DirectoryName, path);
+			}
+			return new FileInfo(path);
+		}
+
+		/// <summary>
+		/// 执行模板
+		/// </summary>
+		/// <param name="script"></param>
+		private void EvalTemplate(Script script)
+		{
+			if (_template is string s)
+			{
+				script.Eval(s, this.CacheTime, this.CacheKey, this.CacheVersion);
+			}
+			else if (_template is FileInfo fi)
+			{
+				script.EvalFile(fi.FullName, this.CacheTime, this.CacheKey, this.CacheVersion);
+			}
+			else if (_template is Stream stream)
+			{
+				script.Eval(stream, this.CacheTime, this.CacheKey, this.CacheVersion);
+			}
+			else if (_template is Func<string> stringFunc)
+			{
+				script.Eval(stringFunc, this.CacheTime, this.CacheKey, this.CacheVersion);
+			}
+			else if (_template is Func<Stream> streamFunc)
+			{
+				script.Eval(streamFunc, this.CacheTime, this.CacheKey, this.CacheVersion);
+			}
+			else
+			{
+				throw new NotSupportedException($"unsuport template of type '{_template.GetType()}'");
+			}
+		}
+
+		/// <summary>
+		/// 异步执行模板
+		/// </summary>
+		/// <param name="script"></param>
+		/// <returns></returns>
+		private Task EvalTemplateAsync(Script script)
+		{
+			if (_template is string s)
+			{
+				return script.EvalAsync(s, this.CacheTime, this.CacheKey, this.CacheVersion);
+			}
+			else if (_template is FileInfo fi)
+			{
+				return script.EvalFileAsync(fi.FullName, this.CacheTime, this.CacheKey, this.CacheVersion);
+			}
+			else if (_template is Stream stream)
+			{
+				return script.EvalAsync(stream, this.CacheTime, this.CacheKey, this.CacheVersion);
+			}
+			else if (_template is Func<string> stringFunc)
+			{
+				return script.EvalAsync(stringFunc, this.CacheTime, this.CacheKey, this.CacheVersion);
+			}
+			else if (_template is Func<Stream> streamFunc)
+			{
+				return script.EvalAsync(streamFunc, this.CacheTime, this.CacheKey, this.CacheVersion);
+			}
+			else
+			{
+				throw new NotSupportedException($"unsuport template of type '{_template.GetType()}'");
 			}
 		}
 
@@ -453,7 +482,8 @@ namespace AScript
 				CompileMode = this.CompileMode,
 				ModelVar = this.ModelVar,
 				OutputVar = this.OutputVar,
-				LoadMethod = this.LoadMethod
+				LoadMethod = this.LoadMethod,
+				IncludeMethod = this.IncludeMethod
 			};
 		}
 

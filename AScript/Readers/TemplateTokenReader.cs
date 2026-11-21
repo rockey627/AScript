@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +14,7 @@ namespace AScript.Readers
 	/// <para>@ 开头为脚本行，整行记号原样透传</para>
 	/// <para>其他为文本，转换为 output.Write('文本')</para>
 	/// <para>每次只读取一个记号，通过状态记录当前解析进度</para>
+	/// <para>@include('文件') 切换字符流到指定的模板文件，读取完毕后恢复宿主字符流</para>
 	/// </summary>
 	public class TemplateTokenReader : TokenReader
 	{
@@ -31,7 +34,34 @@ namespace AScript.Readers
 			End,
 		}
 
+		/// <summary>
+		/// 包含模板文件时的宿主信息
+		/// </summary>
+		private sealed class IncludeFrame
+		{
+			/// <summary>宿主记号流</summary>
+			public ITokenStream Stream { get; set; }
+			/// <summary>宿主状态</summary>
+			public ETemplateState State { get; set; }
+			/// <summary>宿主大括号深度</summary>
+			public int BraceDepth { get; set; }
+			/// <summary>宿主基准目录</summary>
+			public string BaseDirectory { get; set; }
+			/// <summary>宿主脚本行是否为首个记号</summary>
+			public bool ScriptLineStart { get; set; }
+		}
+
 		private readonly StringBuilder _buffer = new StringBuilder();
+
+		/// <summary>
+		/// 回退的记号（识别 include 调用时读取的记号）
+		/// </summary>
+		private readonly List<Token> _pendingTokens = new List<Token>();
+
+		/// <summary>
+		/// 包含模板文件的栈
+		/// </summary>
+		private readonly Stack<IncludeFrame> _includeStack = new Stack<IncludeFrame>();
 
 		private ETemplateState _state = ETemplateState.Text;
 		private int _braceDepth;
@@ -39,6 +69,7 @@ namespace AScript.Readers
 		private int _textLine;
 		private int _textColumn;
 		private bool _textEmitted;
+		private bool _scriptLineStart;
 
 		/// <summary>
 		/// 输出流变量名
@@ -48,6 +79,14 @@ namespace AScript.Readers
 		/// 输出流方法名
 		/// </summary>
 		public string OutputMethod { get; set; } = "Write";
+		/// <summary>
+		/// 包含模板文件的方法名
+		/// </summary>
+		public string IncludeMethod { get; set; } = "include";
+		/// <summary>
+		/// 包含模板文件的基准目录（相对路径的基准）
+		/// </summary>
+		public string BaseDirectory { get; set; }
 
 		public TemplateTokenReader(ITokenStream stream, bool autoDisposeStream) : base(stream, autoDisposeStream)
 		{
@@ -135,6 +174,17 @@ namespace AScript.Readers
 			}
 			if (!c.HasValue)
 			{
+				if (_includeStack.Count > 0)
+				{
+					// 包含的模板文件读取完毕，恢复宿主字符流
+					Token? token = null;
+					if (_buffer.Length > 0)
+					{
+						token = EmitWriteCall(BuildTextToken());
+					}
+					RestoreHostStream();
+					return token;
+				}
 				// 模板结束
 				if (_buffer.Length == 0)
 				{
@@ -174,7 +224,7 @@ namespace AScript.Readers
 		/// </summary>
 		private Token? ReadExpressionToken()
 		{
-			var t = base.ReadTokenFromStream();
+			var t = ReadRawToken();
 			if (!t.HasValue)
 			{
 				throw new Exceptions.ScriptAnalyzingException($"模板表达式未闭合 ({this.CharReader.CurrentLine},{this.CharReader.CurrentColumn})");
@@ -204,7 +254,7 @@ namespace AScript.Readers
 		/// </summary>
 		private Token? ReadScriptBlockToken()
 		{
-			var t = base.ReadTokenFromStream();
+			var t = ReadRawToken();
 			if (!t.HasValue)
 			{
 				// 模板结束
@@ -262,14 +312,179 @@ namespace AScript.Readers
 				return null;
 			}
 			this.CharReader.Push(c.Value);
-			var t = base.ReadTokenFromStream();
+			var t = ReadRawToken();
 			if (!t.HasValue)
 			{
 				// 模板结束
 				_state = ETemplateState.End;
 				return null;
 			}
+			if (_scriptLineStart)
+			{
+				_scriptLineStart = false;
+				if (TryReadInclude(t.Value))
+				{
+					// 已切换到包含的模板文件
+					return null;
+				}
+			}
 			return t.Value;
+		}
+
+		/// <summary>
+		/// 读取一个记号，优先读取回退的记号
+		/// </summary>
+		/// <returns></returns>
+		private Token? ReadRawToken()
+		{
+			if (_pendingTokens.Count > 0)
+			{
+				var t = _pendingTokens[0];
+				_pendingTokens.RemoveAt(0);
+				return t;
+			}
+			return base.ReadTokenFromStream();
+		}
+
+		/// <summary>
+		/// 异步读取一个记号，优先读取回退的记号
+		/// </summary>
+		/// <returns></returns>
+		private async Task<Token?> ReadRawTokenAsync(CancellationToken cancellationToken)
+		{
+			if (_pendingTokens.Count > 0)
+			{
+				var t = _pendingTokens[0];
+				_pendingTokens.RemoveAt(0);
+				return t;
+			}
+			return await base.ReadTokenFromStreamAsync(cancellationToken).ConfigureAwait(false);
+		}
+
+		/// <summary>
+		/// 回退记号
+		/// </summary>
+		/// <param name="tokens"></param>
+		private void UnreadTokens(List<Token> tokens)
+		{
+			if (tokens == null || tokens.Count == 0) return;
+			_pendingTokens.InsertRange(0, tokens);
+		}
+
+		/// <summary>
+		/// 识别 include 调用，识别成功则切换字符流到包含的模板文件
+		/// </summary>
+		/// <param name="first">脚本行的第一个记号</param>
+		/// <returns></returns>
+		private bool TryReadInclude(Token first)
+		{
+			if (string.IsNullOrEmpty(this.IncludeMethod)) return false;
+			if (first.Type != ETokenType.Word || first.Value != this.IncludeMethod) return false;
+			var tokens = new List<Token> { first };
+			var t1 = ReadRawToken();
+			if (t1.HasValue) tokens.Add(t1.Value);
+			if (!t1.HasValue || !t1.Value.IsSymbol("("))
+			{
+				UnreadTokens(tokens);
+				return false;
+			}
+			var t2 = ReadRawToken();
+			if (t2.HasValue) tokens.Add(t2.Value);
+			if (!t2.HasValue || t2.Value.Type != ETokenType.String)
+			{
+				UnreadTokens(tokens);
+				throw new Exceptions.ScriptAnalyzingException($"{this.IncludeMethod} 函数只支持字符串字面量路径");
+			}
+			var t3 = ReadRawToken();
+			if (t3.HasValue) tokens.Add(t3.Value);
+			if (!t3.HasValue || !t3.Value.IsSymbol(")"))
+			{
+				UnreadTokens(tokens);
+				throw new Exceptions.ScriptAnalyzingException($"{this.IncludeMethod} 函数语法错误");
+			}
+			// 切换字符流到包含的模板文件
+			SwitchToInclude(t2.Value.Value);
+			return true;
+		}
+
+		/// <summary>
+		/// 异步识别 include 调用，识别成功则切换字符流到包含的模板文件
+		/// </summary>
+		/// <param name="first">脚本行的第一个记号</param>
+		/// <returns></returns>
+		private async Task<bool> TryReadIncludeAsync(Token first, CancellationToken cancellationToken)
+		{
+			if (string.IsNullOrEmpty(this.IncludeMethod)) return false;
+			if (first.Type != ETokenType.Word || first.Value != this.IncludeMethod) return false;
+			var tokens = new List<Token> { first };
+			var t1 = await ReadRawTokenAsync(cancellationToken).ConfigureAwait(false);
+			if (t1.HasValue) tokens.Add(t1.Value);
+			if (!t1.HasValue || !t1.Value.IsSymbol("("))
+			{
+				UnreadTokens(tokens);
+				return false;
+			}
+			var t2 = await ReadRawTokenAsync(cancellationToken).ConfigureAwait(false);
+			if (t2.HasValue) tokens.Add(t2.Value);
+			if (!t2.HasValue || t2.Value.Type != ETokenType.String)
+			{
+				UnreadTokens(tokens);
+				throw new Exceptions.ScriptAnalyzingException($"{this.IncludeMethod} 函数只支持字符串字面量路径");
+			}
+			var t3 = await ReadRawTokenAsync(cancellationToken).ConfigureAwait(false);
+			if (t3.HasValue) tokens.Add(t3.Value);
+			if (!t3.HasValue || !t3.Value.IsSymbol(")"))
+			{
+				UnreadTokens(tokens);
+				throw new Exceptions.ScriptAnalyzingException($"{this.IncludeMethod} 函数语法错误");
+			}
+			// 切换字符流到包含的模板文件
+			SwitchToInclude(t2.Value.Value);
+			return true;
+		}
+
+		/// <summary>
+		/// 切换字符流到包含的模板文件
+		/// </summary>
+		/// <param name="path">模板文件路径</param>
+		private void SwitchToInclude(string path)
+		{
+			if (!Path.IsPathRooted(path) && !string.IsNullOrEmpty(this.BaseDirectory))
+			{
+				path = Path.Combine(this.BaseDirectory, path);
+			}
+			var file = new FileInfo(path);
+			if (!file.Exists)
+			{
+				throw new Exceptions.ScriptAnalyzingException($"包含的模板文件不存在：{path}");
+			}
+			// 保存宿主信息
+			_includeStack.Push(new IncludeFrame
+			{
+				Stream = this.TokenStream,
+				State = _state,
+				BraceDepth = _braceDepth,
+				BaseDirectory = this.BaseDirectory,
+				ScriptLineStart = _scriptLineStart,
+			});
+			var stream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+			this.TokenStream = new DefaultTokenStream(new StreamCharStream(stream, true));
+			this.BaseDirectory = file.DirectoryName;
+			_state = ETemplateState.Text;
+		}
+
+		/// <summary>
+		/// 恢复宿主的字符流
+		/// </summary>
+		private void RestoreHostStream()
+		{
+			if (_includeStack.Count == 0) return;
+			var frame = _includeStack.Pop();
+			this.TokenStream = frame.Stream;
+			this.BaseDirectory = frame.BaseDirectory;
+			_state = frame.State;
+			_braceDepth = frame.BraceDepth;
+			_scriptLineStart = frame.ScriptLineStart;
 		}
 
 		/// <summary>
@@ -304,6 +519,10 @@ namespace AScript.Readers
 			{
 				// 脚本块和脚本行前的缩进属于脚本，不输出
 				RemoveIndent();
+			}
+			if (state == ETemplateState.ScriptLine)
+			{
+				_scriptLineStart = true;
 			}
 			else if (state == ETemplateState.ExpressionBegin)
 			{
@@ -467,6 +686,17 @@ namespace AScript.Readers
 			}
 			if (!c.HasValue)
 			{
+				if (_includeStack.Count > 0)
+				{
+					// 包含的模板文件读取完毕，恢复宿主字符流
+					Token? token = null;
+					if (_buffer.Length > 0)
+					{
+						token = EmitWriteCallForAsync(BuildTextToken());
+					}
+					RestoreHostStream();
+					return token;
+				}
 				// 模板结束
 				if (_buffer.Length == 0)
 				{
@@ -506,7 +736,7 @@ namespace AScript.Readers
 		/// </summary>
 		private async Task<Token?> ReadExpressionTokenAsync(CancellationToken cancellationToken)
 		{
-			var t = await base.ReadTokenFromStreamAsync(cancellationToken).ConfigureAwait(false);
+			var t = await ReadRawTokenAsync(cancellationToken).ConfigureAwait(false);
 			if (!t.HasValue)
 			{
 				throw new Exceptions.ScriptAnalyzingException($"模板表达式未闭合 ({this.CharReader.CurrentLine},{this.CharReader.CurrentColumn})");
@@ -536,7 +766,7 @@ namespace AScript.Readers
 		/// </summary>
 		private async Task<Token?> ReadScriptBlockTokenAsync(CancellationToken cancellationToken)
 		{
-			var t = await base.ReadTokenFromStreamAsync(cancellationToken).ConfigureAwait(false);
+			var t = await ReadRawTokenAsync(cancellationToken).ConfigureAwait(false);
 			if (!t.HasValue)
 			{
 				// 模板结束
@@ -594,12 +824,21 @@ namespace AScript.Readers
 				return null;
 			}
 			this.CharReader.Push(c.Value);
-			var t = await base.ReadTokenFromStreamAsync(cancellationToken).ConfigureAwait(false);
+			var t = await ReadRawTokenAsync(cancellationToken).ConfigureAwait(false);
 			if (!t.HasValue)
 			{
 				// 模板结束
 				_state = ETemplateState.End;
 				return null;
+			}
+			if (_scriptLineStart)
+			{
+				_scriptLineStart = false;
+				if (await TryReadIncludeAsync(t.Value, cancellationToken).ConfigureAwait(false))
+				{
+					// 已切换到包含的模板文件
+					return null;
+				}
 			}
 			return t.Value;
 		}
