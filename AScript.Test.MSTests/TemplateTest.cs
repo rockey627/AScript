@@ -505,10 +505,10 @@ namespace MyTest.Model
 		}
 
 		[TestMethod]
-		public void Test13_include()
+		public void Test13_load()
 		{
 			//var tpl = File.ReadAllText("template_01.txt");
-			var tpl = @"hello@include('template_01.txt')";
+			var tpl = @"hello@load('template_01.txt')";
 			var template = new Template(tpl);
 			template.Context.SetVar("entity", new
 			{
@@ -548,10 +548,10 @@ namespace MyTest.Model
 		}
 
 		[TestMethod]
-		public void Test13_include_CompileAll()
+		public void Test13_load_CompileAll()
 		{
 			//var tpl = File.ReadAllText("template_01.txt");
-			var tpl = @"hello@include('template_01.txt')";
+			var tpl = @"hello@load('template_01.txt')";
 			var template = new Template(tpl);
 			template.CompileMode = ECompileMode.All;
 			template.Context.SetVar("entity", new
@@ -592,10 +592,10 @@ namespace MyTest.Model
 		}
 
 		[TestMethod]
-		public void Test14_include_Compile()
+		public void Test14_load_Compile()
 		{
 			//var tpl = File.ReadAllText("template_01.txt");
-			var tpl = @"hello@include('template_01.txt')";
+			var tpl = @"hello@load('template_01.txt')";
 			var template = new Template(tpl);
 			template.Context.SetVar("entity", new
 			{

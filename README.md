@@ -834,7 +834,8 @@ Assert.AreEqual("name:李四,age:18", info);
 转化执行字符串中的脚本，使用`${}`和`@{}`包含脚本块，性能高，适合简单模板。
 * `${}`脚本块会将最后一条语句执行结果拼接到结果字符串中；
 * `@{}`脚本块只执行，不拼接结果，常用于变量计算或者函数定义；
-* 脚本块上下文已内置`output`输出流变量（`StringBuilder`类型，支持`Write`和`WriteLine`方法），提供更灵活的控制。
+* 脚本块上下文已内置`output`输出流变量（`StringBuilder`类型，支持`Write`和`WriteLine`方法），提供更灵活的控制；
+* 支持脚本引擎的所有语法和功能
 注：脚本块中定义的变量和函数不会回写到上下文，可以调用前一个脚本块中定义的变量和函数。
 ```
 string s = @"
@@ -873,12 +874,14 @@ Assert.AreEqual(expected, result);
 * `@{}`脚本块：只执行不输出
 * `@`脚本行：当前行是脚本
 * 内置`output`输出流变量，提供方法：`output.Write/output.WriteLine/output.WriteAsync/output.WriteLineAsync`
-* 内置`model`模型对象变量
-* 内置`include`函数，包含另一个模板文件：`include('head.tpl')`或者`include('item.tpl', item)`
+* 内置`model`模型对象变量，支持类似Razor引擎中的Model功能
+* 内置`load`函数，加载另一个模板文件（独立渲染）：`load('head.tpl')`或者`load('item.tpl', item)`
 * 转义：`\\ \@ \$`只转义3个字符
 * 支持异步渲染
-* 支持预编译，`Compile`
-* 支持缓存
+* 支持预编译，`Template.Compile()`
+* 支持编译模式渲染：`Template.ComileMode=ECompileMode.All`
+* 支持缓存：`Template.WithCache(-1)`
+* 支持脚本引擎的所有语法和功能
 ```模板
 @{
 	DateTime getNow() {

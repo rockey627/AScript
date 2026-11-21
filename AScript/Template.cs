@@ -50,9 +50,9 @@ namespace AScript
 		/// </summary>
 		public string ModelVar { get; set; } = "model";
 		/// <summary>
-		/// 包含文件模板的方法名
+		/// 加载文件模板的方法名（独立渲染模板）
 		/// </summary>
-		public string IncludeMethod { get; set; } = "include";
+		public string LoadMethod { get; set; } = "load";
 
 		public Template(string template) : this(new ScriptContext(), template) { }
 		public Template(FileInfo template) : this(new ScriptContext(), template) { }
@@ -133,7 +133,7 @@ namespace AScript
 			// include(path)和include(path,model)
 			script.Context.FunctionBuild += (ss, ee) =>
 			{
-				if (ee.Name != this.IncludeMethod) return;
+				if (ee.Name != this.LoadMethod) return;
 				if (ee.Args == null || ee.Args.Count != 1 && ee.Args.Count != 2) return;
 				var path = ee.BuildArgs(0);
 				if (_template is FileInfo fi)
@@ -208,7 +208,7 @@ namespace AScript
 				script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream) { OutputVar = this.OutputVar, OutputMethod = "Write" };
 				script.Context.SetVar(this.OutputVar, output);
 				script.Context.SetVar(this.ModelVar, model);
-				script.Context.AddAction<string>(this.IncludeMethod, path =>
+				script.Context.AddAction<string>(this.LoadMethod, path =>
 				{
 					if (_template is FileInfo fi)
 					{
@@ -216,7 +216,7 @@ namespace AScript
 					}
 					this.Clone(new FileInfo(path)).Render(model, output);
 				});
-				script.Context.AddAction<string, object>(this.IncludeMethod, (path, m) =>
+				script.Context.AddAction<string, object>(this.LoadMethod, (path, m) =>
 				{
 					if (_template is FileInfo fi)
 					{
@@ -278,7 +278,7 @@ namespace AScript
 				script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream) { OutputVar = this.OutputVar, OutputMethod = "WriteAsync" };
 				script.Context.SetVar(this.OutputVar, output);
 				script.Context.SetVar(this.ModelVar, model);
-				script.Context.AddAction<string>(this.IncludeMethod, path =>
+				script.Context.AddAction<string>(this.LoadMethod, path =>
 				{
 					if (_template is FileInfo fi)
 					{
@@ -286,7 +286,7 @@ namespace AScript
 					}
 					this.Clone(new FileInfo(path)).Render(model, output);
 				});
-				script.Context.AddAction<string, object>(this.IncludeMethod, (path, m) =>
+				script.Context.AddAction<string, object>(this.LoadMethod, (path, m) =>
 				{
 					if (_template is FileInfo fi)
 					{
@@ -449,7 +449,7 @@ namespace AScript
 				CompileMode = this.CompileMode,
 				ModelVar = this.ModelVar,
 				OutputVar = this.OutputVar,
-				IncludeMethod = this.IncludeMethod
+				LoadMethod = this.LoadMethod
 			};
 		}
 
