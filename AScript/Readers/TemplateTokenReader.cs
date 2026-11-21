@@ -355,7 +355,10 @@ namespace AScript.Readers
 			if (token.Type != ETokenType.Word || token.Value != this.IncludeMethod) return false;
 			// 成员访问（如 obj.include(...)）不作为 include 处理
 			if (_lastToken.HasValue && _lastToken.Value.IsSymbol(".")) return false;
+			// 确认后面紧跟 '('，避免记号级前瞻跨行读取
+			if (!TryPeekIncludeCall()) return false;
 			var path = ReadIncludePath();
+			// 不是 include('路径') 格式，按普通脚本处理
 			if (path == null) return false;
 			// 切换字符流到包含的模板文件
 			SwitchToInclude(path);
@@ -373,7 +376,10 @@ namespace AScript.Readers
 			if (token.Type != ETokenType.Word || token.Value != this.IncludeMethod) return false;
 			// 成员访问（如 obj.include(...)）不作为 include 处理
 			if (_lastToken.HasValue && _lastToken.Value.IsSymbol(".")) return false;
+			// 确认后面紧跟 '('，避免记号级前瞻跨行读取
+			if (!await TryPeekIncludeCallAsync(cancellationToken).ConfigureAwait(false)) return false;
 			var path = await ReadIncludePathAsync(cancellationToken).ConfigureAwait(false);
+			// 不是 include('路径') 格式，按普通脚本处理
 			if (path == null) return false;
 			// 切换字符流到包含的模板文件
 			SwitchToInclude(path);
@@ -381,132 +387,121 @@ namespace AScript.Readers
 		}
 
 		/// <summary>
-		/// 字符级解析 include 的参数：( '路径' )，解析成功返回路径，否则返回null
+		/// 字符级确认 include 后面是否紧跟 '('，避免记号级前瞻跨行读取
+		/// </summary>
+		/// <returns></returns>
+		private bool TryPeekIncludeCall()
+		{
+			var consumed = new StringBuilder();
+			while (true)
+			{
+				var c = this.CharReader.Read();
+				if (!c.HasValue) { UnreadChars(consumed); return false; }
+				consumed.Append(c.Value);
+				if (c.Value == ' ' || c.Value == '\t') continue;
+				var isCall = c.Value == '(';
+				UnreadChars(consumed);
+				return isCall;
+			}
+		}
+
+		/// <summary>
+		/// 异步字符级确认 include 后面是否紧跟 '('，避免记号级前瞻跨行读取
+		/// </summary>
+		/// <returns></returns>
+		private async Task<bool> TryPeekIncludeCallAsync(CancellationToken cancellationToken)
+		{
+			var consumed = new StringBuilder();
+			while (true)
+			{
+				var c = await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+				if (!c.HasValue) { UnreadChars(consumed); return false; }
+				consumed.Append(c.Value);
+				if (c.Value == ' ' || c.Value == '\t') continue;
+				var isCall = c.Value == '(';
+				UnreadChars(consumed);
+				return isCall;
+			}
+		}
+
+		/// <summary>
+		/// 读取 include 的参数：( '路径' )，路径为字符串字面量；格式不匹配时返回null
 		/// </summary>
 		/// <returns></returns>
 		private string ReadIncludePath()
 		{
-			var consumed = new StringBuilder();
+			var tokens = new List<Token>();
 			// '('
-			var c0 = ReadNonBlank(consumed);
-			if (!c0.HasValue || c0.Value != '(') { UnreadChars(consumed); return null; }
-			// 字符串引号
-			var c1 = ReadNonBlank(consumed);
-			if (!c1.HasValue) { UnreadChars(consumed); throw IncludeSyntaxError(); }
-			if (c1.Value != '\'' && c1.Value != '"') { UnreadChars(consumed); throw new Exceptions.ScriptAnalyzingException($"{this.IncludeMethod} 函数只支持字符串字面量路径"); }
-			// 路径
-			var path = new StringBuilder();
-			while (true)
+			var t1 = base.ReadTokenFromStream();
+			if (t1.HasValue) tokens.Add(t1.Value);
+			if (!t1.HasValue || !t1.Value.IsSymbol("("))
 			{
-				var s = this.CharReader.Read();
-				if (!s.HasValue) { UnreadChars(consumed); throw IncludeSyntaxError(); }
-				consumed.Append(s.Value);
-				if (s.Value == '\\')
-				{
-					var e = this.CharReader.Read();
-					if (!e.HasValue) { UnreadChars(consumed); throw IncludeSyntaxError(); }
-					consumed.Append(e.Value);
-					path.Append(UnescapeChar(e.Value));
-					continue;
-				}
-				if (s.Value == c1.Value) break;
-				path.Append(s.Value);
+				UnreadTokens(tokens);
+				return null;
+			}
+			// 路径（字符串字面量）
+			var t2 = base.ReadTokenFromStream();
+			if (t2.HasValue) tokens.Add(t2.Value);
+			if (!t2.HasValue || t2.Value.Type != ETokenType.String)
+			{
+				UnreadTokens(tokens);
+				return null;
 			}
 			// ')'
-			var c2 = ReadNonBlank(consumed);
-			if (!c2.HasValue || c2.Value != ')') { UnreadChars(consumed); throw IncludeSyntaxError(); }
-			return path.ToString();
+			var t3 = base.ReadTokenFromStream();
+			if (t3.HasValue) tokens.Add(t3.Value);
+			if (!t3.HasValue || !t3.Value.IsSymbol(")"))
+			{
+				UnreadTokens(tokens);
+				return null;
+			}
+			return t2.Value.Value;
 		}
 
 		/// <summary>
-		/// 异步字符级解析 include 的参数：( '路径' )，解析成功返回路径，否则返回null
+		/// 异步读取 include 的参数：( '路径' )，路径为字符串字面量；格式不匹配时返回null
 		/// </summary>
 		/// <returns></returns>
 		private async Task<string> ReadIncludePathAsync(CancellationToken cancellationToken)
 		{
-			var consumed = new StringBuilder();
+			var tokens = new List<Token>();
 			// '('
-			var c0 = await ReadNonBlankAsync(consumed, cancellationToken).ConfigureAwait(false);
-			if (!c0.HasValue || c0.Value != '(') { UnreadChars(consumed); return null; }
-			// 字符串引号
-			var c1 = await ReadNonBlankAsync(consumed, cancellationToken).ConfigureAwait(false);
-			if (!c1.HasValue) { UnreadChars(consumed); throw IncludeSyntaxError(); }
-			if (c1.Value != '\'' && c1.Value != '"') { UnreadChars(consumed); throw new Exceptions.ScriptAnalyzingException($"{this.IncludeMethod} 函数只支持字符串字面量路径"); }
-			// 路径
-			var path = new StringBuilder();
-			while (true)
+			var t1 = await base.ReadTokenFromStreamAsync(cancellationToken).ConfigureAwait(false);
+			if (t1.HasValue) tokens.Add(t1.Value);
+			if (!t1.HasValue || !t1.Value.IsSymbol("("))
 			{
-				var s = await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
-				if (!s.HasValue) { UnreadChars(consumed); throw IncludeSyntaxError(); }
-				consumed.Append(s.Value);
-				if (s.Value == '\\')
-				{
-					var e = await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
-					if (!e.HasValue) { UnreadChars(consumed); throw IncludeSyntaxError(); }
-					consumed.Append(e.Value);
-					path.Append(UnescapeChar(e.Value));
-					continue;
-				}
-				if (s.Value == c1.Value) break;
-				path.Append(s.Value);
+				UnreadTokens(tokens);
+				return null;
+			}
+			// 路径（字符串字面量）
+			var t2 = await base.ReadTokenFromStreamAsync(cancellationToken).ConfigureAwait(false);
+			if (t2.HasValue) tokens.Add(t2.Value);
+			if (!t2.HasValue || t2.Value.Type != ETokenType.String)
+			{
+				UnreadTokens(tokens);
+				return null;
 			}
 			// ')'
-			var c2 = await ReadNonBlankAsync(consumed, cancellationToken).ConfigureAwait(false);
-			if (!c2.HasValue || c2.Value != ')') { UnreadChars(consumed); throw IncludeSyntaxError(); }
-			return path.ToString();
-		}
-
-		/// <summary>
-		/// 读取下一个非空白字符，读取的字符记录到consumed中，以便回退
-		/// </summary>
-		/// <param name="consumed"></param>
-		/// <returns></returns>
-		private char? ReadNonBlank(StringBuilder consumed)
-		{
-			while (true)
+			var t3 = await base.ReadTokenFromStreamAsync(cancellationToken).ConfigureAwait(false);
+			if (t3.HasValue) tokens.Add(t3.Value);
+			if (!t3.HasValue || !t3.Value.IsSymbol(")"))
 			{
-				var c = this.CharReader.Read();
-				if (!c.HasValue) return null;
-				consumed.Append(c.Value);
-				if (c.Value == ' ' || c.Value == '\t') continue;
-				return c.Value;
+				UnreadTokens(tokens);
+				return null;
 			}
+			return t2.Value.Value;
 		}
 
 		/// <summary>
-		/// 异步读取下一个非空白字符，读取的字符记录到consumed中，以便回退
+		/// 退回记号（按读取的逆序压栈，读取时顺序不变）
 		/// </summary>
-		/// <returns></returns>
-		private async Task<char?> ReadNonBlankAsync(StringBuilder consumed, CancellationToken cancellationToken)
+		/// <param name="tokens"></param>
+		private void UnreadTokens(List<Token> tokens)
 		{
-			while (true)
+			if (tokens == null || tokens.Count == 0) return;
+			for (int i = tokens.Count - 1; i >= 0; i--)
 			{
-				var c = await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
-				if (!c.HasValue) return null;
-				consumed.Append(c.Value);
-				if (c.Value == ' ' || c.Value == '\t') continue;
-				return c.Value;
-			}
-		}
-
-		private Exceptions.ScriptAnalyzingException IncludeSyntaxError()
-		{
-			return new Exceptions.ScriptAnalyzingException($"{this.IncludeMethod} 函数语法错误");
-		}
-
-		/// <summary>
-		/// 转义字符还原
-		/// </summary>
-		/// <param name="c"></param>
-		/// <returns></returns>
-		private static string UnescapeChar(char c)
-		{
-			switch (c)
-			{
-				case 'n': return "\n";
-				case 'r': return "\r";
-				case 't': return "\t";
-				default: return c.ToString();
+				Push(tokens[i]);
 			}
 		}
 
