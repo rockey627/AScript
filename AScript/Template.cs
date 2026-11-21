@@ -1,6 +1,7 @@
 ﻿using AScript.Readers;
 using System;
 using System.IO;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -48,6 +49,10 @@ namespace AScript
 		/// 模型对象变量名
 		/// </summary>
 		public string ModelVar { get; set; } = "model";
+		/// <summary>
+		/// 包含文件模板的方法名
+		/// </summary>
+		public string IncludeMethod { get; set; } = "include";
 
 		public Template(string template) : this(new ScriptContext(), template) { }
 		public Template(FileInfo template) : this(new ScriptContext(), template) { }
@@ -125,6 +130,35 @@ namespace AScript
 			script.Options.RewriteVariables = false;
 			script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream) { OutputVar = this.OutputVar, OutputMethod = "Write" };
 			script.Options.Standalone = standalone;
+			// include(path)和include(path,model)
+			script.Context.FunctionBuild += (ss, ee) =>
+			{
+				if (ee.Name != this.IncludeMethod) return;
+				if (ee.Args == null || ee.Args.Count != 1 && ee.Args.Count != 2) return;
+				var path = ee.BuildArgs(0);
+				if (_template is FileInfo fi)
+				{
+					var combineMethod = typeof(Path).GetMethod("Combine", new[] { typeof(string), typeof(string) });
+					path = Expression.Call(null, combineMethod, Expression.Constant(fi.DirectoryName), path);
+				}
+				var fileInfoConstruct = typeof(FileInfo).GetConstructor(new[] { typeof(string) });
+				var fileInfo = Expression.New(fileInfoConstruct, path);
+				var cloneMethod = typeof(Template).GetMethod("Clone", new[] { typeof(FileInfo) });
+				var template = Expression.Call(Expression.Constant(this), cloneMethod, fileInfo);
+				Expression output = ee.BuildContext.Parameters[this.OutputVar];
+				Expression model;
+				if (ee.Args.Count == 1)
+				{
+					model = ee.BuildContext.Parameters[this.ModelVar];
+				}
+				else
+				{
+					model = ee.BuildArgs(1);
+				}
+				var renderMethod = typeof(Template).GetMethod("Render", new[] { typeof(object), typeof(IOutput) });
+				ee.Result = Expression.Call(template, renderMethod, model, output);
+			};
+			// 
 			if (modelType == null) modelType = typeof(object);
 			if (_template is string s)
 			{
@@ -174,6 +208,23 @@ namespace AScript
 				script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream) { OutputVar = this.OutputVar, OutputMethod = "Write" };
 				script.Context.SetVar(this.OutputVar, output);
 				script.Context.SetVar(this.ModelVar, model);
+				script.Context.AddAction<string>(this.IncludeMethod, path =>
+				{
+					if (_template is FileInfo fi)
+					{
+						path = Path.Combine(fi.DirectoryName, path);
+					}
+					this.Clone(new FileInfo(path)).Render(model, output);
+				});
+				script.Context.AddAction<string, object>(this.IncludeMethod, (path, m) =>
+				{
+					if (_template is FileInfo fi)
+					{
+						path = Path.Combine(fi.DirectoryName, path);
+					}
+					this.Clone(new FileInfo(path)).Render(m, output);
+				});
+				// 
 				if (_template is string s)
 				{
 					script.Eval(s, this.CacheTime, this.CacheKey, this.CacheVersion);
@@ -227,6 +278,23 @@ namespace AScript
 				script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream) { OutputVar = this.OutputVar, OutputMethod = "WriteAsync" };
 				script.Context.SetVar(this.OutputVar, output);
 				script.Context.SetVar(this.ModelVar, model);
+				script.Context.AddAction<string>(this.IncludeMethod, path =>
+				{
+					if (_template is FileInfo fi)
+					{
+						path = Path.Combine(fi.DirectoryName, path);
+					}
+					this.Clone(new FileInfo(path)).Render(model, output);
+				});
+				script.Context.AddAction<string, object>(this.IncludeMethod, (path, m) =>
+				{
+					if (_template is FileInfo fi)
+					{
+						path = Path.Combine(fi.DirectoryName, path);
+					}
+					this.Clone(new FileInfo(path)).Render(m, output);
+				});
+				// 
 				if (_template is string s)
 				{
 					await script.EvalAsync(s, this.CacheTime, this.CacheKey, this.CacheVersion).ConfigureAwait(false);
@@ -370,6 +438,19 @@ namespace AScript
 		public Task RenderAsync(object model, Stream output, Encoding encoding = null, bool autoDisposeOutput = true)
 		{
 			return RenderAsync(model, new StreamWriter(output, encoding ?? Encoding.UTF8), autoDisposeOutput);
+		}
+
+		public Template Clone(FileInfo template)
+		{
+			return new Template(this.Context, template)
+			{
+				CacheTime = this.CacheTime,
+				CacheVersion = template.LastWriteTimeUtc.Ticks.ToString(),
+				CompileMode = this.CompileMode,
+				ModelVar = this.ModelVar,
+				OutputVar = this.OutputVar,
+				IncludeMethod = this.IncludeMethod
+			};
 		}
 
 		public interface IOutput

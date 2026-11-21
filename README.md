@@ -24,7 +24,7 @@ QQ交流群：1124393316
 
 ## 介绍
 
-C#动态脚本解析、编译、执行引擎
+C#动态脚本解析、编译、执行引擎；模板引擎Template。
 
 * 支持注入变量
 * 支持定义变量
@@ -831,11 +831,10 @@ Assert.AreEqual("name:李四,age:18", info);
 ```
 
 #### 字符串模板
-转化执行字符串中的脚本，使用`${}`和`@{}`包含脚本块：
+转化执行字符串中的脚本，使用`${}`和`@{}`包含脚本块，性能高，适合简单模板。
 * `${}`脚本块会将最后一条语句执行结果拼接到结果字符串中；
 * `@{}`脚本块只执行，不拼接结果，常用于变量计算或者函数定义；
-* 脚本块上下文已内置`output(object)`函数，将对象输出到结果字符串中；
-* 脚本块上下文已内置`out`输出流变量（`StringBuilder`类型），提供更灵活的控制。
+* 脚本块上下文已内置`output`输出流变量（`StringBuilder`类型，支持`Write`和`WriteLine`方法），提供更灵活的控制。
 注：脚本块中定义的变量和函数不会回写到上下文，可以调用前一个脚本块中定义的变量和函数。
 ```
 string s = @"
@@ -843,9 +842,9 @@ string s = @"
 	int calcAge(DateTime birthday) {
 		return DateTime.Now.Year - birthday.Year
 	}
-	output('hello');
+	output.Append('hello');
 	for(var i=0; i<5; i++) {
-		out.Append(i);
+		output.Append(i);
 	}
 	var userSex = user.Sex == 0 ? '女士' : '先生';
 	//var userAge = DateTime.Now.Year - user.Birthday.Year;
@@ -853,7 +852,7 @@ string s = @"
 }
 尊敬的 ${user.Name}${userSex} 您好，祝您${calcAge(user.Birthday)}岁生日快乐！
 @{
-	out.Replace('\r', '').Replace('\n', '')
+	output.Replace('\r', '').Replace('\n', '')
 }";
 // 模拟获取业务数据
 var user = new { Name = "张三", Sex = 1, Birthday = new DateTime(1990, 10, 8), CreateTime = new DateTime(2026, 5, 1) };
@@ -866,4 +865,86 @@ Console.WriteLine(result);
 var expected = $"hello01234尊敬的 张三先生 您好，祝您{DateTime.Now.Year - user.Birthday.Year}岁生日快乐！";
 Console.WriteLine(expected);
 Assert.AreEqual(expected, result);
+```
+
+## 模板引擎
+相较于**字符串模板**，`Template`模板引擎提供了更强大的功能，适合html、邮件、代码生成等复杂模板
+* `${}`脚本块：执行并输出
+* `@{}`脚本块：只执行不输出
+* `@`脚本行：当前行是脚本
+* 内置`output`输出流变量，提供方法：`output.Write/output.WriteLine/output.WriteAsync/output.WriteLineAsync`
+* 内置`model`模型对象变量
+* 内置`include`函数，包含另一个模板文件：`include('head.tpl')`或者`include('item.tpl', item)`
+* 支持异步渲染
+* 支持预编译，`Compile`
+* 支持缓存
+```模板
+@{
+	DateTime getNow() {
+		return DateTime.Now;
+	}
+	var now = getNow();
+}
+// created at ${now.ToString('yyyy-MM-dd')}
+using System;
+
+namespace MyTest.Model
+{
+	/// <summary>
+	/// ${entity.Memo}
+	/// </summary>
+	[Table("${entity.TableName}")]
+	public class ${entity.Name} {
+	@foreach(var column in entity.Columns) {
+		/// <summary>
+		/// ${column.Memo}
+		/// </summary>
+		@if (column.IsPrimaryKey) {
+		[PrimaryKey]
+		@}
+		public ${column.TypeName} ${column.Name} { get; set; }
+	@}
+	}
+}
+```
+渲染：
+```
+var template = new Template(tpl);
+template.Context.SetVar("entity", new
+{
+	Name = "User",
+	Memo = "用户",
+	TableName = "Users",
+	Columns = new[]
+	{
+		new { Name = "Id", TypeName = "int", Memo = "主键", IsPrimaryKey = true },
+		new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
+	}
+});
+var result = template.Render(null);
+Console.WriteLine(result);
+```
+输出结果：
+```
+// created at 2026-11-21
+using System;
+
+namespace MyTest.Model
+{
+	/// <summary>
+	/// 用户
+	/// </summary>
+	[Table("Users")]
+	public class User {
+		/// <summary>
+		/// 主键
+		/// </summary>
+		[PrimaryKey]
+		public int Id { get; set; }
+		/// <summary>
+		/// 姓名
+		/// </summary>
+		public string Name { get; set; }
+	}
+}
 ```

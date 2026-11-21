@@ -504,5 +504,136 @@ namespace MyTest.Model
 			Assert.AreEqual(expected, result);
 		}
 
+		[TestMethod]
+		public void Test13_include()
+		{
+			//var tpl = File.ReadAllText("template_01.txt");
+			var tpl = @"hello@include('template_01.txt')";
+			var template = new Template(tpl);
+			template.Context.SetVar("entity", new
+			{
+				Name = "User",
+				Memo = "用户",
+				TableName = "Users",
+				Columns = new[]
+				{
+					new { Name = "Id", TypeName = "int", Memo = "主键", IsPrimaryKey = true },
+					new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
+				}
+			});
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			var expected = "hello// created at " + DateTime.Now.ToString("yyyy-MM-dd") + @"
+using System;
+
+namespace MyTest.Model
+{
+	/// <summary>
+	/// 用户
+	/// </summary>
+	[Table(""Users"")]
+	public class User {
+		/// <summary>
+		/// 主键
+		/// </summary>
+		[PrimaryKey]
+		public int Id { get; set; }
+		/// <summary>
+		/// 姓名
+		/// </summary>
+		public string Name { get; set; }
+	}
+}";
+			Assert.AreEqual(expected, result);
+		}
+
+		[TestMethod]
+		public void Test13_include_CompileAll()
+		{
+			//var tpl = File.ReadAllText("template_01.txt");
+			var tpl = @"hello@include('template_01.txt')";
+			var template = new Template(tpl);
+			template.CompileMode = ECompileMode.All;
+			template.Context.SetVar("entity", new
+			{
+				Name = "User",
+				Memo = "用户",
+				TableName = "Users",
+				Columns = new[]
+				{
+					new { Name = "Id", TypeName = "int", Memo = "主键", IsPrimaryKey = true },
+					new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
+				}
+			});
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			var expected = "hello// created at " + DateTime.Now.ToString("yyyy-MM-dd") + @"
+using System;
+
+namespace MyTest.Model
+{
+	/// <summary>
+	/// 用户
+	/// </summary>
+	[Table(""Users"")]
+	public class User {
+		/// <summary>
+		/// 主键
+		/// </summary>
+		[PrimaryKey]
+		public int Id { get; set; }
+		/// <summary>
+		/// 姓名
+		/// </summary>
+		public string Name { get; set; }
+	}
+}";
+			Assert.AreEqual(expected, result);
+		}
+
+		[TestMethod]
+		public void Test14_include_Compile()
+		{
+			//var tpl = File.ReadAllText("template_01.txt");
+			var tpl = @"hello@include('template_01.txt')";
+			var template = new Template(tpl);
+			template.Context.SetVar("entity", new
+			{
+				Name = "User",
+				Memo = "用户",
+				TableName = "Users",
+				Columns = new[]
+				{
+					new { Name = "Id", TypeName = "int", Memo = "主键", IsPrimaryKey = true },
+					new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
+				}
+			});
+			template.Compile(null);
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			var expected = "hello// created at " + DateTime.Now.ToString("yyyy-MM-dd") + @"
+using System;
+
+namespace MyTest.Model
+{
+	/// <summary>
+	/// 用户
+	/// </summary>
+	[Table(""Users"")]
+	public class User {
+		/// <summary>
+		/// 主键
+		/// </summary>
+		[PrimaryKey]
+		public int Id { get; set; }
+		/// <summary>
+		/// 姓名
+		/// </summary>
+		public string Name { get; set; }
+	}
+}";
+			Assert.AreEqual(expected, result);
+		}
+
 	}
 }
