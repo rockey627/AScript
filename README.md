@@ -873,6 +873,7 @@ Assert.AreEqual(expected, result);
 * `${}`脚本块：执行并输出
 * `@{}`脚本块：只执行不输出
 * `@`脚本行：当前行是脚本
+* 换行处理：脚本块或脚本行单独占一行时移除该行的换行符，行内还有其他内容时保留换行符
 * 内置`output`输出流变量，提供方法：`output.Write/output.WriteLine/output.WriteAsync/output.WriteLineAsync`
 * 内置`model`模型对象变量，支持类似Razor引擎中的Model功能
 * 内置`load`函数，加载另一个模板文件（独立渲染）：`load('head.tpl')`或者`load('item.tpl', item)`

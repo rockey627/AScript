@@ -681,7 +681,7 @@ namespace MyTest.Model
 		}
 
 		[TestMethod]
-		public void Test16_include2()
+		public void Test16_include02()
 		{
 			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
 			var tpl = @"@{ var title = ""Hello""; }@{output.Write('hi');include('template_include_01.txt');output.Write('ok')}end";
@@ -692,7 +692,7 @@ namespace MyTest.Model
 		}
 
 		[TestMethod]
-		public void Test16_include2_Compile()
+		public void Test16_include02_Compile()
 		{
 			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
 			var tpl = @"@{ var title = ""Hello""; }@{output.Write('hi');include('template_include_01.txt');output.Write('ok')}end";
@@ -703,7 +703,7 @@ namespace MyTest.Model
 		}
 
 		[TestMethod]
-		public void Test16_include2_CompileAll()
+		public void Test16_include02_CompileAll()
 		{
 			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
 			var tpl = @"@{ var title = ""Hello""; }@{output.Write('hi');include('template_include_01.txt');output.Write('ok')}end";
@@ -715,7 +715,7 @@ namespace MyTest.Model
 		}
 
 		[TestMethod]
-		public void Test16_include3()
+		public void Test16_include03()
 		{
 			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
 			var tpl = @"@{ var title = ""Hello""; }@{output.Write('hi');include  
@@ -727,7 +727,7 @@ namespace MyTest.Model
 		}
 
 		[TestMethod]
-		public void Test16_include4()
+		public void Test16_include04()
 		{
 			// include 可以写在 ${} 表达式中
 			var tpl = @"@{ var title = ""Hello""; }A${include('template_include_01.txt')}B";
@@ -738,7 +738,7 @@ namespace MyTest.Model
 		}
 
 		[TestMethod]
-		public async Task Test16_include4_Async()
+		public async Task Test16_include04_Async()
 		{
 			// include 可以写在 ${} 表达式中
 			var tpl = @"@{ var title = ""Hello""; }A${include('template_include_01.txt')}B";
@@ -749,30 +749,78 @@ namespace MyTest.Model
 		}
 
 		[TestMethod]
-		public void Test16_include5()
+		public void Test16_include05()
 		{
 			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
-			var tpl = @"@{ var title = ""Hello""; }
-@include   ( 'template_include_01.txt')
-end";
-			var template = new Template(tpl);
-			var result = template.Render(null);
-			Console.WriteLine(result);
-			Assert.AreEqual("[Hello]end", result);
-		}
-
-		[TestMethod]
-		public void Test16_include6()
-		{
-			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
-			var tpl = @"@{ var title = ""Hello""; }
-@include   ( 'template_include_01.txt')
-
+			var tpl = @"@{ var title = ""Hello""; }@include   ( 'template_include_01.txt')
 end";
 			var template = new Template(tpl);
 			var result = template.Render(null);
 			Console.WriteLine(result);
 			Assert.AreEqual("[Hello]\r\nend", result);
+		}
+
+		[TestMethod]
+		public void Test16_include06()
+		{
+			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
+			var tpl = @"@{ var title = ""Hello""; }
+@include   ( 'template_include_01.txt')
+end";
+			var template = new Template(tpl);
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("[Hello]\r\nend", result);
+		}
+
+		[TestMethod]
+		public void Test16_include07()
+		{
+			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
+			var tpl = @"@{ var title = ""Hello""; }
+@include   ( 'template_include_01.txt')
+
+end";
+			var template = new Template(tpl);
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("[Hello]\r\n\r\nend", result);
+		}
+
+		[TestMethod]
+		public void Test16_include08()
+		{
+			var tpl = @"@{ var title = ""Hello""; }
+A${include('template_include_01.txt')}B";
+			var template = new Template(tpl);
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("A[Hello]B", result);
+		}
+
+		[TestMethod]
+		public void Test16_include09()
+		{
+			var tpl = @"@{ var title = ""Hello""; }
+A${include('template_include_01.txt')}
+B";
+			var template = new Template(tpl);
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("A[Hello]\r\nB", result);
+		}
+
+		[TestMethod]
+		public void Test16_include10()
+		{
+			var tpl = @"@{ var title = ""Hello""; }
+A
+${include('template_include_01.txt')}
+B";
+			var template = new Template(tpl);
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("A\r\n[Hello]\r\nB", result);
 		}
 
 		[TestMethod]

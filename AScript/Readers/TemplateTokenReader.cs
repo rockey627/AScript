@@ -47,6 +47,10 @@ namespace AScript.Readers
 			public int BraceDepth { get; set; }
 			/// <summary>宿主表达式记号数</summary>
 			public int ExpressionTokenCount { get; set; }
+			/// <summary>宿主当前行是否有静态文本</summary>
+			public bool LineHasText { get; set; }
+			/// <summary>宿主当前行是否有输出内容</summary>
+			public bool LineHasOutput { get; set; }
 			/// <summary>宿主基准目录</summary>
 			public string BaseDirectory { get; set; }
 			/// <summary>宿主上一个脚本记号</summary>
@@ -66,6 +70,18 @@ namespace AScript.Readers
 		private int _textLine;
 		private int _textColumn;
 		private bool _textEmitted;
+		/// <summary>
+		/// 当前行是否包含静态文本
+		/// </summary>
+		private bool _lineHasText;
+		/// <summary>
+		/// 当前行是否包含输出内容（表达式或include）
+		/// </summary>
+		private bool _lineHasOutput;
+		/// <summary>
+		/// 当前脚本行是否单独占一行（行内没有其他内容时，移除该行的换行符）
+		/// </summary>
+		private bool _lineOnlyScript => !_lineHasText && !_lineHasOutput;
 		/// <summary>
 		/// 上一个返回的脚本记号（用于排除成员访问，如 obj.include(...)）
 		/// </summary>
@@ -322,14 +338,26 @@ namespace AScript.Readers
 			}
 			if (c.Value == '\r' || c.Value == '\n')
 			{
-				// 脚本行结束，换行符不输出
-				if (c.Value == '\r')
+				// 脚本行结束
+				if (_lineOnlyScript)
 				{
-					var next = this.CharReader.Peek();
-					if (next.HasValue && next.Value == '\n')
+					// 脚本行单独占一行，移除一个换行符
+					if (c.Value == '\r')
 					{
-						this.CharReader.Read();
+						var next = this.CharReader.Peek();
+						if (next.HasValue && next.Value == '\n')
+						{
+							this.CharReader.Read();
+						}
 					}
+					// 换行符被移除，进入新的一行
+					_lineHasText = false;
+					_lineHasOutput = false;
+				}
+				else
+				{
+					// 脚本行未单独占一行，换行符保留，作为文本输出
+					this.CharReader.Push(c.Value);
 				}
 				_state = ETemplateState.Text;
 				return null;
@@ -564,6 +592,8 @@ namespace AScript.Readers
 			{
 				throw new Exceptions.ScriptAnalyzingException($"包含的模板文件不存在：{path}");
 			}
+			// 包含的模板文件会输出内容
+			_lineHasOutput = true;
 			// 保存宿主信息
 			_includeStack.Push(new IncludeFrame
 			{
@@ -571,6 +601,8 @@ namespace AScript.Readers
 				State = _state,
 				BraceDepth = _braceDepth,
 				ExpressionTokenCount = _expressionTokenCount,
+				LineHasText = _lineHasText,
+				LineHasOutput = _lineHasOutput,
 				BaseDirectory = this.BaseDirectory,
 				LastToken = _lastToken,
 			});
@@ -592,6 +624,8 @@ namespace AScript.Readers
 			_state = frame.State;
 			_braceDepth = frame.BraceDepth;
 			_expressionTokenCount = frame.ExpressionTokenCount;
+			_lineHasText = frame.LineHasText;
+			_lineHasOutput = frame.LineHasOutput;
 			_lastToken = frame.LastToken;
 		}
 
@@ -615,6 +649,14 @@ namespace AScript.Readers
 			{
 				this.CharReader.Read();
 			}
+			else
+			{
+				// 不是换行符
+				return;
+			}
+			// 换行符被移除，进入新的一行
+			_lineHasText = false;
+			_lineHasOutput = false;
 		}
 
 		/// <summary>
@@ -631,6 +673,8 @@ namespace AScript.Readers
 			if (state == ETemplateState.ExpressionBegin)
 			{
 				_expressionTokenCount = 0;
+				// 表达式会输出内容
+				_lineHasOutput = true;
 			}
 			if (_buffer.Length > 0)
 			{
@@ -673,6 +717,17 @@ namespace AScript.Readers
 				_textColumn = this.CharReader.CurrentColumn;
 			}
 			_buffer.Append(c);
+			// 记录当前行的内容，用于判断脚本行是否单独占一行
+			if (c == '\n' || c == '\r')
+			{
+				// 换行符，新的一行
+				_lineHasText = false;
+				_lineHasOutput = false;
+			}
+			else if (!char.IsWhiteSpace(c))
+			{
+				_lineHasText = true;
+			}
 		}
 
 		private Token BuildTextToken()
@@ -938,14 +993,26 @@ namespace AScript.Readers
 			}
 			if (c.Value == '\r' || c.Value == '\n')
 			{
-				// 脚本行结束，换行符不输出
-				if (c.Value == '\r')
+				// 脚本行结束
+				if (_lineOnlyScript)
 				{
-					var next = await this.CharReader.PeekAsync(cancellationToken).ConfigureAwait(false);
-					if (next.HasValue && next.Value == '\n')
+					// 脚本行单独占一行，移除一个换行符
+					if (c.Value == '\r')
 					{
-						await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+						var next = await this.CharReader.PeekAsync(cancellationToken).ConfigureAwait(false);
+						if (next.HasValue && next.Value == '\n')
+						{
+							await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+						}
 					}
+					// 换行符被移除，进入新的一行
+					_lineHasText = false;
+					_lineHasOutput = false;
+				}
+				else
+				{
+					// 脚本行未单独占一行，换行符保留，作为文本输出
+					this.CharReader.Push(c.Value);
 				}
 				_state = ETemplateState.Text;
 				return null;
@@ -993,6 +1060,14 @@ namespace AScript.Readers
 			{
 				await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 			}
+			else
+			{
+				// 不是换行符
+				return;
+			}
+			// 换行符被移除，进入新的一行
+			_lineHasText = false;
+			_lineHasOutput = false;
 		}
 	}
 }
