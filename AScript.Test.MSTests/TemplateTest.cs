@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace AScript.Test.MSTests
 {
@@ -417,6 +418,89 @@ end";
 			var result = template.Render(null);
 			var expected = $@"Hello , today is {DateTime.Now.Year}
 end";
+			Assert.AreEqual(expected, result);
+		}
+
+		[TestMethod]
+		public async Task Test11_RenderAsync()
+		{
+			var template = new Template(new FileInfo("template_01.txt"));
+			template.Context.SetVar("entity", new
+			{
+				Name = "User",
+				Memo = "用户",
+				TableName = "Users",
+				Columns = new[]
+				{
+					new { Name = "Id", TypeName = "int", Memo = "主键", IsPrimaryKey = true },
+					new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
+				}
+			});
+			var result = await template.RenderAsync(null);
+			Console.WriteLine(result);
+			var expected = "// created at " + DateTime.Now.ToString("yyyy-MM-dd") + @"
+using System;
+
+namespace MyTest.Model
+{
+	/// <summary>
+	/// 用户
+	/// </summary>
+	[Table(""Users"")]
+	public class User {
+		/// <summary>
+		/// 主键
+		/// </summary>
+		[PrimaryKey]
+		public int Id { get; set; }
+		/// <summary>
+		/// 姓名
+		/// </summary>
+		public string Name { get; set; }
+	}
+}";
+			Assert.AreEqual(expected, result);
+		}
+
+		[TestMethod]
+		public async Task Test12_RenderAsync_file()
+		{
+			var template = new Template(new FileInfo("template_01.txt"));
+			template.Context.SetVar("entity", new
+			{
+				Name = "User",
+				Memo = "用户",
+				TableName = "Users",
+				Columns = new[]
+				{
+					new { Name = "Id", TypeName = "int", Memo = "主键", IsPrimaryKey = true },
+					new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
+				}
+			});
+			await template.RenderAsync(null, "template_01_result_Test11_RenderAsync.txt");
+			var result = File.ReadAllText("template_01_result_Test11_RenderAsync.txt");
+			Console.WriteLine(result);
+			var expected = "// created at " + DateTime.Now.ToString("yyyy-MM-dd") + @"
+using System;
+
+namespace MyTest.Model
+{
+	/// <summary>
+	/// 用户
+	/// </summary>
+	[Table(""Users"")]
+	public class User {
+		/// <summary>
+		/// 主键
+		/// </summary>
+		[PrimaryKey]
+		public int Id { get; set; }
+		/// <summary>
+		/// 姓名
+		/// </summary>
+		public string Name { get; set; }
+	}
+}";
 			Assert.AreEqual(expected, result);
 		}
 

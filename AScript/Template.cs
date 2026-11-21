@@ -315,6 +315,28 @@ namespace AScript
 		}
 
 		/// <summary>
+		/// 渲染模板，返回结果
+		/// </summary>
+		/// <param name="model"></param>
+		/// <returns></returns>
+		public async Task<string> RenderAsync(object model)
+		{
+			var output = new StringBuilder();
+			await RenderAsync(model, output).ConfigureAwait(false);
+			return output.ToString();
+		}
+
+		/// <summary>
+		/// 渲染模板，输出到output
+		/// </summary>
+		/// <param name="model"></param>
+		/// <param name="output"></param>
+		public Task RenderAsync(object model, StringBuilder output)
+		{
+			return RenderAsync(model, new StringBuilderOutput(output));
+		}
+
+		/// <summary>
 		/// 异步渲染模板，输出到output
 		/// </summary>
 		/// <param name="model"></param>

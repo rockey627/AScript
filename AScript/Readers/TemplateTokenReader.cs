@@ -354,9 +354,228 @@ namespace AScript.Readers
 			return new Token(OutputVar, ETokenType.Word);
 		}
 
-		protected override Task<Token?> ReadTokenFromStreamAsync(CancellationToken cancellationToken = default)
+		/// <summary>
+		/// 异步读取记号，状态机与同步版本一致，每次只读取一个记号
+		/// </summary>
+		protected override async Task<Token?> ReadTokenFromStreamAsync(CancellationToken cancellationToken = default)
 		{
-			return base.ReadTokenFromStreamAsync(cancellationToken);
+			while (true)
+			{
+				switch (_state)
+				{
+					case ETemplateState.Text:
+						{
+							var token = await ReadTextAsync(cancellationToken).ConfigureAwait(false);
+							if (token.HasValue) return token;
+							if (_state == ETemplateState.End) return null;
+							break;
+						}
+					case ETemplateState.ExpressionBegin:
+						{
+							var token = await ReadExpressionTokenAsync(cancellationToken).ConfigureAwait(false);
+							if (!token.HasValue) return null;
+							_state = ETemplateState.Expression;
+							// output.Write(token0
+							Push(token.Value);
+							Push(new Token("(", ETokenType.None));
+							Push(new Token(OutputMethod, ETokenType.Word));
+							Push(new Token(".", ETokenType.Operator));
+							return new Token(OutputVar, ETokenType.Word);
+						}
+					case ETemplateState.Expression:
+						{
+							var token = await ReadExpressionTokenAsync(cancellationToken).ConfigureAwait(false);
+							if (token.HasValue) return token;
+							break;
+						}
+					case ETemplateState.ScriptBlock:
+						{
+							var token = await ReadScriptBlockTokenAsync(cancellationToken).ConfigureAwait(false);
+							if (token.HasValue) return token;
+							break;
+						}
+					case ETemplateState.ScriptLine:
+						{
+							var token = await ReadScriptLineTokenAsync(cancellationToken).ConfigureAwait(false);
+							if (token.HasValue) return token;
+							break;
+						}
+					default:
+						return null;
+				}
+			}
+		}
+
+		/// <summary>
+		/// 异步读取文本，直到遇到模板标记或模板结束
+		/// </summary>
+		private async Task<Token?> ReadTextAsync(CancellationToken cancellationToken)
+		{
+			var c = await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+			while (c.HasValue && c.Value != '@' && c.Value != '$')
+			{
+				AppendText(c.Value);
+				c = await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+			}
+			if (!c.HasValue)
+			{
+				// 模板结束
+				if (_buffer.Length == 0)
+				{
+					_state = ETemplateState.End;
+					return null;
+				}
+				_state = ETemplateState.End;
+				return EmitWriteCall(BuildTextToken());
+			}
+			if (c.Value == '$')
+			{
+				var next = await this.CharReader.PeekAsync(cancellationToken).ConfigureAwait(false);
+				if (next.HasValue && next.Value == '{')
+				{
+					// 表达式${...}
+					await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+					return EnterState(ETemplateState.ExpressionBegin, 1);
+				}
+				// '$' 为普通文本
+				AppendText(c.Value);
+				return null;
+			}
+			// '@'
+			var nextChar = await this.CharReader.PeekAsync(cancellationToken).ConfigureAwait(false);
+			if (nextChar.HasValue && nextChar.Value == '{')
+			{
+				// 脚本块@{...}
+				await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+				return EnterState(ETemplateState.ScriptBlock, 1);
+			}
+			// 脚本行@...
+			return EnterState(ETemplateState.ScriptLine, 0);
+		}
+
+		/// <summary>
+		/// 异步读取表达式${...}的内容，每次读取一个记号
+		/// </summary>
+		private async Task<Token?> ReadExpressionTokenAsync(CancellationToken cancellationToken)
+		{
+			var t = await base.ReadTokenFromStreamAsync(cancellationToken).ConfigureAwait(false);
+			if (!t.HasValue)
+			{
+				throw new Exceptions.ScriptAnalyzingException($"模板表达式未闭合 ({this.CharReader.CurrentLine},{this.CharReader.CurrentColumn})");
+			}
+			if (t.Value.IsSymbol("}"))
+			{
+				_braceDepth--;
+				if (_braceDepth <= 0)
+				{
+					// 表达式结束，输出 ) ;
+					_state = ETemplateState.Text;
+					if (_expressionTokenCount == 0) return null;
+					Push(new Token(";", ETokenType.None));
+					return new Token(")", ETokenType.None, t.Value.Line, t.Value.Column);
+				}
+			}
+			else
+			{
+				_expressionTokenCount++;
+				if (t.Value.IsSymbol("{")) _braceDepth++;
+			}
+			return t.Value;
+		}
+
+		/// <summary>
+		/// 异步读取脚本块@{...}的内容，每次读取一个记号
+		/// </summary>
+		private async Task<Token?> ReadScriptBlockTokenAsync(CancellationToken cancellationToken)
+		{
+			var t = await base.ReadTokenFromStreamAsync(cancellationToken).ConfigureAwait(false);
+			if (!t.HasValue)
+			{
+				// 模板结束
+				_state = ETemplateState.End;
+				return null;
+			}
+			if (t.Value.IsSymbol("}"))
+			{
+				_braceDepth--;
+				if (_braceDepth <= 0)
+				{
+					// 脚本块结束，块尾的'}'不输出
+					_state = ETemplateState.Text;
+					// 脚本块的换行符不输出
+					await SkipLineBreakAsync(cancellationToken).ConfigureAwait(false);
+					return null;
+				}
+			}
+			else if (t.Value.IsSymbol("{"))
+			{
+				_braceDepth++;
+			}
+			return t.Value;
+		}
+
+		/// <summary>
+		/// 异步读取脚本行@...的内容，每次读取一个记号
+		/// </summary>
+		private async Task<Token?> ReadScriptLineTokenAsync(CancellationToken cancellationToken)
+		{
+			// 跳过行首空白
+			var c = await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+			while (c.HasValue && (c.Value == ' ' || c.Value == '\t'))
+			{
+				c = await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+			}
+			if (!c.HasValue)
+			{
+				// 模板结束
+				_state = ETemplateState.End;
+				return null;
+			}
+			if (c.Value == '\r' || c.Value == '\n')
+			{
+				// 脚本行结束，换行符不输出
+				if (c.Value == '\r')
+				{
+					var next = await this.CharReader.PeekAsync(cancellationToken).ConfigureAwait(false);
+					if (next.HasValue && next.Value == '\n')
+					{
+						await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+					}
+				}
+				_state = ETemplateState.Text;
+				return null;
+			}
+			this.CharReader.Push(c.Value);
+			var t = await base.ReadTokenFromStreamAsync(cancellationToken).ConfigureAwait(false);
+			if (!t.HasValue)
+			{
+				// 模板结束
+				_state = ETemplateState.End;
+				return null;
+			}
+			return t.Value;
+		}
+
+		/// <summary>
+		/// 异步跳过换行符，脚本块和脚本行的换行符不输出
+		/// </summary>
+		private async Task SkipLineBreakAsync(CancellationToken cancellationToken)
+		{
+			var c = await this.CharReader.PeekAsync(cancellationToken).ConfigureAwait(false);
+			if (!c.HasValue) return;
+			if (c.Value == '\r')
+			{
+				await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+				var next = await this.CharReader.PeekAsync(cancellationToken).ConfigureAwait(false);
+				if (next.HasValue && next.Value == '\n')
+				{
+					await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+				}
+			}
+			else if (c.Value == '\n')
+			{
+				await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+			}
 		}
 	}
 }
