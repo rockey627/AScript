@@ -684,11 +684,34 @@ namespace MyTest.Model
 		public void Test16_include2()
 		{
 			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
-			var tpl = @"@{ var title = ""Hello""; }@{include('template_include_01.txt');output.Write('ok')}end";
+			var tpl = @"@{ var title = ""Hello""; }@{output.Write('hi');include('template_include_01.txt');output.Write('ok')}end";
 			var template = new Template(tpl);
 			var result = template.Render(null);
 			Console.WriteLine(result);
-			Assert.AreEqual("[Hello]okend", result);
+			Assert.AreEqual("hi[Hello]okend", result);
+		}
+
+		[TestMethod]
+		public void Test16_include2_Compile()
+		{
+			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
+			var tpl = @"@{ var title = ""Hello""; }@{output.Write('hi');include('template_include_01.txt');output.Write('ok')}end";
+			var template = new Template(tpl);
+			var result = template.Compile(null).Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("hi[Hello]okend", result);
+		}
+
+		[TestMethod]
+		public void Test16_include2_CompileAll()
+		{
+			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
+			var tpl = @"@{ var title = ""Hello""; }@{output.Write('hi');include('template_include_01.txt');output.Write('ok')}end";
+			var template = new Template(tpl);
+			template.CompileMode = ECompileMode.All;
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("hi[Hello]okend", result);
 		}
 
 		[TestMethod]
