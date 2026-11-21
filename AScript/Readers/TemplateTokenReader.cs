@@ -45,6 +45,8 @@ namespace AScript.Readers
 			public ETemplateState State { get; set; }
 			/// <summary>宿主大括号深度</summary>
 			public int BraceDepth { get; set; }
+			/// <summary>宿主表达式记号数</summary>
+			public int ExpressionTokenCount { get; set; }
 			/// <summary>宿主基准目录</summary>
 			public string BaseDirectory { get; set; }
 			/// <summary>宿主上一个脚本记号</summary>
@@ -106,7 +108,18 @@ namespace AScript.Readers
 					case ETemplateState.ExpressionBegin:
 						{
 							var token = ReadExpressionToken();
-							if (!token.HasValue) return null;
+							// 表达式结束（空表达式）或已切换到包含的模板文件，继续读取
+							if (!token.HasValue) break;
+							if (IsIncludeToken(token.Value))
+							{
+								// 表达式为include调用，包含的模板内容直接输出，不加output.Write包装
+								// 先清零表达式记号数，使包含模板结束后宿主表达式能正确结束
+								var tokenCount = _expressionTokenCount;
+								_expressionTokenCount = 0;
+								if (TryReadInclude(token.Value, false)) break;
+								// 不是include('路径')格式，按普通表达式处理
+								_expressionTokenCount = tokenCount;
+							}
 							_state = ETemplateState.Expression;
 							// output.Write(token0
 							Push(token.Value);
@@ -345,16 +358,27 @@ namespace AScript.Readers
 		}
 
 		/// <summary>
+		/// 判断记号是否为 include 方法名
+		/// </summary>
+		/// <param name="token"></param>
+		/// <returns></returns>
+		private bool IsIncludeToken(Token token)
+		{
+			if (string.IsNullOrEmpty(this.IncludeMethod)) return false;
+			return token.Type == ETokenType.Word && token.Value == this.IncludeMethod;
+		}
+
+		/// <summary>
 		/// 识别 include 调用，识别成功则切换字符流到包含的模板文件
 		/// </summary>
 		/// <param name="token">脚本记号</param>
+		/// <param name="checkMemberAccess">是否检查成员访问</param>
 		/// <returns></returns>
-		private bool TryReadInclude(Token token)
+		private bool TryReadInclude(Token token, bool checkMemberAccess = true)
 		{
-			if (string.IsNullOrEmpty(this.IncludeMethod)) return false;
-			if (token.Type != ETokenType.Word || token.Value != this.IncludeMethod) return false;
+			if (!IsIncludeToken(token)) return false;
 			// 成员访问（如 obj.include(...)）不作为 include 处理
-			if (_lastToken.HasValue && _lastToken.Value.IsSymbol(".")) return false;
+			if (checkMemberAccess && _lastToken.HasValue && _lastToken.Value.IsSymbol(".")) return false;
 			// 确认后面紧跟 '('，避免记号级前瞻跨行读取
 			if (!TryPeekIncludeCall()) return false;
 			var path = ReadIncludePath();
@@ -369,13 +393,13 @@ namespace AScript.Readers
 		/// 异步识别 include 调用，识别成功则切换字符流到包含的模板文件
 		/// </summary>
 		/// <param name="token">脚本记号</param>
+		/// <param name="checkMemberAccess">是否检查成员访问</param>
 		/// <returns></returns>
-		private async Task<bool> TryReadIncludeAsync(Token token, CancellationToken cancellationToken)
+		private async Task<bool> TryReadIncludeAsync(Token token, bool checkMemberAccess, CancellationToken cancellationToken)
 		{
-			if (string.IsNullOrEmpty(this.IncludeMethod)) return false;
-			if (token.Type != ETokenType.Word || token.Value != this.IncludeMethod) return false;
+			if (!IsIncludeToken(token)) return false;
 			// 成员访问（如 obj.include(...)）不作为 include 处理
-			if (_lastToken.HasValue && _lastToken.Value.IsSymbol(".")) return false;
+			if (checkMemberAccess && _lastToken.HasValue && _lastToken.Value.IsSymbol(".")) return false;
 			// 确认后面紧跟 '('，避免记号级前瞻跨行读取
 			if (!await TryPeekIncludeCallAsync(cancellationToken).ConfigureAwait(false)) return false;
 			var path = await ReadIncludePathAsync(cancellationToken).ConfigureAwait(false);
@@ -387,7 +411,7 @@ namespace AScript.Readers
 		}
 
 		/// <summary>
-		/// 字符级确认 include 后面是否紧跟 '('，避免记号级前瞻跨行读取
+		/// 字符级确认 include 后面是否紧跟 '('（允许空白和换行），避免记号级前瞻跨行读取
 		/// </summary>
 		/// <returns></returns>
 		private bool TryPeekIncludeCall()
@@ -398,7 +422,7 @@ namespace AScript.Readers
 				var c = this.CharReader.Read();
 				if (!c.HasValue) { UnreadChars(consumed); return false; }
 				consumed.Append(c.Value);
-				if (c.Value == ' ' || c.Value == '\t') continue;
+				if (IsWhiteSpace(c.Value)) continue;
 				var isCall = c.Value == '(';
 				UnreadChars(consumed);
 				return isCall;
@@ -406,7 +430,7 @@ namespace AScript.Readers
 		}
 
 		/// <summary>
-		/// 异步字符级确认 include 后面是否紧跟 '('，避免记号级前瞻跨行读取
+		/// 异步字符级确认 include 后面是否紧跟 '('（允许空白和换行），避免记号级前瞻跨行读取
 		/// </summary>
 		/// <returns></returns>
 		private async Task<bool> TryPeekIncludeCallAsync(CancellationToken cancellationToken)
@@ -417,11 +441,21 @@ namespace AScript.Readers
 				var c = await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 				if (!c.HasValue) { UnreadChars(consumed); return false; }
 				consumed.Append(c.Value);
-				if (c.Value == ' ' || c.Value == '\t') continue;
+				if (IsWhiteSpace(c.Value)) continue;
 				var isCall = c.Value == '(';
 				UnreadChars(consumed);
 				return isCall;
 			}
+		}
+
+		/// <summary>
+		/// 是否空白字符
+		/// </summary>
+		/// <param name="c"></param>
+		/// <returns></returns>
+		private static bool IsWhiteSpace(char c)
+		{
+			return c == ' ' || c == '\t' || c == '\r' || c == '\n';
 		}
 
 		/// <summary>
@@ -536,6 +570,7 @@ namespace AScript.Readers
 				Stream = this.TokenStream,
 				State = _state,
 				BraceDepth = _braceDepth,
+				ExpressionTokenCount = _expressionTokenCount,
 				BaseDirectory = this.BaseDirectory,
 				LastToken = _lastToken,
 			});
@@ -556,6 +591,7 @@ namespace AScript.Readers
 			this.BaseDirectory = frame.BaseDirectory;
 			_state = frame.State;
 			_braceDepth = frame.BraceDepth;
+			_expressionTokenCount = frame.ExpressionTokenCount;
 			_lastToken = frame.LastToken;
 		}
 
@@ -695,7 +731,18 @@ namespace AScript.Readers
 					case ETemplateState.ExpressionBegin:
 						{
 							var token = await ReadExpressionTokenAsync(cancellationToken).ConfigureAwait(false);
-							if (!token.HasValue) return null;
+							// 表达式结束（空表达式）或已切换到包含的模板文件，继续读取
+							if (!token.HasValue) break;
+							if (IsIncludeToken(token.Value))
+							{
+								// 表达式为include调用，包含的模板内容直接输出，不加output.Write包装
+								// 先清零表达式记号数，使包含模板结束后宿主表达式能正确结束
+								var tokenCount = _expressionTokenCount;
+								_expressionTokenCount = 0;
+								if (await TryReadIncludeAsync(token.Value, false, cancellationToken).ConfigureAwait(false)) break;
+								// 不是include('路径')格式，按普通表达式处理
+								_expressionTokenCount = tokenCount;
+							}
 							_state = ETemplateState.Expression;
 							// await output.WriteAsync(token0
 							Push(token.Value);
@@ -847,7 +894,7 @@ namespace AScript.Readers
 				_state = ETemplateState.End;
 				return null;
 			}
-			if (await TryReadIncludeAsync(t.Value, cancellationToken).ConfigureAwait(false))
+			if (await TryReadIncludeAsync(t.Value, true, cancellationToken).ConfigureAwait(false))
 			{
 				// 已切换到包含的模板文件
 				return null;
@@ -917,7 +964,7 @@ namespace AScript.Readers
 				_state = ETemplateState.End;
 				return null;
 			}
-			if (await TryReadIncludeAsync(t.Value, cancellationToken).ConfigureAwait(false))
+			if (await TryReadIncludeAsync(t.Value, true, cancellationToken).ConfigureAwait(false))
 			{
 				// 已切换到包含的模板文件
 				return null;

@@ -876,7 +876,7 @@ Assert.AreEqual(expected, result);
 * 内置`output`输出流变量，提供方法：`output.Write/output.WriteLine/output.WriteAsync/output.WriteLineAsync`
 * 内置`model`模型对象变量，支持类似Razor引擎中的Model功能
 * 内置`load`函数，加载另一个模板文件（独立渲染）：`load('head.tpl')`或者`load('item.tpl', item)`
-* 内置`include`函数，包含另一个模板文件（在宿主模板中渲染，可访问宿主模板的变量）：`include('head.tpl')`，路径只能是字符串字面量，相对路径以模板文件所在目录为基准
+* 内置`include`函数，包含另一个模板文件（在宿主模板中渲染，可访问宿主模板的变量）：`include('head.tpl')`，路径只能是字符串字面量，相对路径以模板文件所在目录为基准；
 * 转义：`\\ \@ \$`只转义3个字符
 * 支持异步渲染
 * 支持预编译，`Template.Compile()`

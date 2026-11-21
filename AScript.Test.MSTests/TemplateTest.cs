@@ -715,6 +715,67 @@ namespace MyTest.Model
 		}
 
 		[TestMethod]
+		public void Test16_include3()
+		{
+			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
+			var tpl = @"@{ var title = ""Hello""; }@{output.Write('hi');include  
+(  'template_include_01.txt' );output.Write('ok')}end";
+			var template = new Template(tpl);
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("hi[Hello]okend", result);
+		}
+
+		[TestMethod]
+		public void Test16_include4()
+		{
+			// include 可以写在 ${} 表达式中
+			var tpl = @"@{ var title = ""Hello""; }A${include('template_include_01.txt')}B";
+			var template = new Template(tpl);
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("A[Hello]B", result);
+		}
+
+		[TestMethod]
+		public async Task Test16_include4_Async()
+		{
+			// include 可以写在 ${} 表达式中
+			var tpl = @"@{ var title = ""Hello""; }A${include('template_include_01.txt')}B";
+			var template = new Template(tpl);
+			var result = await template.RenderAsync(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("A[Hello]B", result);
+		}
+
+		[TestMethod]
+		public void Test16_include5()
+		{
+			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
+			var tpl = @"@{ var title = ""Hello""; }
+@include   ( 'template_include_01.txt')
+end";
+			var template = new Template(tpl);
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("[Hello]end", result);
+		}
+
+		[TestMethod]
+		public void Test16_include6()
+		{
+			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
+			var tpl = @"@{ var title = ""Hello""; }
+@include   ( 'template_include_01.txt')
+
+end";
+			var template = new Template(tpl);
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual("[Hello]\r\nend", result);
+		}
+
+		[TestMethod]
 		public void Test17_include_file()
 		{
 			// 相对路径以模板文件所在目录为基准
