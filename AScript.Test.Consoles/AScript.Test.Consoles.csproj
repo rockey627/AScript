@@ -12,6 +12,7 @@
 		<PackageReference Include="DynamicExpresso.Core" Version="2.19.5" />
 		<PackageReference Include="Flee" Version="2.0.0" />
 		<PackageReference Include="IronPython" Version="3.4.2" />
+		<PackageReference Include="JinianNet.JNTemplate" Version="2.5.0" />
 		<PackageReference Include="Jint" Version="4.16.1" />
 		<PackageReference Include="Jurassic" Version="3.2.9" />
 		<PackageReference Include="LuaCSharp" Version="0.5.6" />
@@ -27,6 +28,7 @@
 		<PackageReference Include="MoonSharp" Version="3.0.0-beta.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="NLua" Version="1.7.9" />
+		<PackageReference Include="RazorEngineCore" Version="2026.1.1" />
 		<PackageReference Include="Z.Expressions.Eval" Version="6.3.13" />
 	</ItemGroup>
 
@@ -49,6 +51,12 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Benchmarks\JavaScriptTest\utils.js">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Benchmarks\TemplateTest\template_01_JN.txt">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Benchmarks\TemplateTest\template_01.txt">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>

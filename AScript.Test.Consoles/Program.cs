@@ -39,7 +39,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			//Test01_Benchmark();
+			Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -71,7 +71,7 @@ namespace AScript.Test.Consoles
 			//Test24_Sqlite();
 			//Test25_js();
 			//Test26_for();
-			Test27_pointer();
+			//Test27_pointer();
 			//Console.WriteLine(GetResult());
 			//var p = Expression.Constant(new Person());
 			//Console.WriteLine(Expression.PropertyOrField(p, "name"));
@@ -941,7 +941,7 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest02_local>(config);
 			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest03_var>(config);
 			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest04_call>(config);
-			BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest05_function>(config);
+			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest05_function>(config);
 			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest06_recursive>(config);
 			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest07_linq>(config);
 			//BenchmarkRunner.Run<Benchmarks.ZExpressionsTest.ZExpressionsTest08_compile>(config);
@@ -965,6 +965,15 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest05_function>(config);
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest06_table>(config);
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest07_for>(config);
+
+			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest01>(config);
+			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest01_Compile>(config);
+			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest02>(config);
+			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest02_Compile>(config);
+			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest02_Cache>(config);
+			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest03>(config);
+			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest03_Compile>(config);
+			BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest03_Cache>(config);
 
 			//new Benchmarks.PythonTest01().AScript1();
 			//new Benchmarks.ExpressionTest05_Var().AScript2_NoCache();
@@ -1010,6 +1019,23 @@ exec2(26)
 			//new Benchmarks.LuaTest.LuaTest06_table().AScript1();
 			//new Benchmarks.LuaTest.LuaTest06_table().LuaCSharp1();
 			//new Benchmarks.LuaTest.LuaTest07_for().AScript2_Compile();
+
+			//new Benchmarks.TemplateTest.TemplateTest01().Translate();
+			//new Benchmarks.TemplateTest.TemplateTest01().Template();
+			//new Benchmarks.TemplateTest.TemplateTest01().JNTemplate();
+			//new Benchmarks.TemplateTest.TemplateTest01_Compile().Razor();
+			//new Benchmarks.TemplateTest.TemplateTest02().Template();
+			//new Benchmarks.TemplateTest.TemplateTest02().JNTemplate();
+			//new Benchmarks.TemplateTest.TemplateTest02_Compile().Template();
+			//new Benchmarks.TemplateTest.TemplateTest02_Compile().JNTemplate();
+			//new Benchmarks.TemplateTest.TemplateTest02_Cache().Template();
+			//new Benchmarks.TemplateTest.TemplateTest02_Cache().JNTemplate();
+			//new Benchmarks.TemplateTest.TemplateTest03().Template();
+			//new Benchmarks.TemplateTest.TemplateTest03().JNTemplate();
+			//new Benchmarks.TemplateTest.TemplateTest03_Compile().Template();
+			//new Benchmarks.TemplateTest.TemplateTest03_Compile().JNTemplate();
+			//new Benchmarks.TemplateTest.TemplateTest03_Cache().Template();
+			//new Benchmarks.TemplateTest.TemplateTest03_Cache().JNTemplate();
 		}
 
 	}

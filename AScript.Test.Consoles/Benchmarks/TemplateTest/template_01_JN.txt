@@ -1,0 +1,21 @@
+﻿// created at ${now}
+using System;
+
+namespace MyTest.Model
+{
+	/// <summary>
+	/// ${entity.Memo}
+	/// </summary>
+	[Table("${entity.TableName}")]
+	public class ${entity.Name} {
+	$foreach(column in columns)
+		/// <summary>
+		/// ${column.Memo}
+		/// </summary>
+		$if(column.IsPrimaryKey)
+		[PrimaryKey]
+		$end
+		public ${column.TypeName} ${column.Name} { get; set; }
+	$end
+	}
+}
