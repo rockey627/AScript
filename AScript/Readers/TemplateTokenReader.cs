@@ -355,6 +355,21 @@ namespace AScript.Readers
 		}
 
 		/// <summary>
+		/// 组合 await output.WriteAsync(...) 调用
+		/// </summary>
+		private Token EmitWriteCallForAsync(Token arg)
+		{
+			Push(new Token(";", ETokenType.None));
+			Push(new Token(")", ETokenType.None));
+			Push(arg);
+			Push(new Token("(", ETokenType.None));
+			Push(new Token(OutputMethod, ETokenType.Word));
+			Push(new Token(".", ETokenType.Operator));
+			Push(new Token(OutputVar, ETokenType.Word));
+			return new Token("await", ETokenType.Word);
+		}
+
+		/// <summary>
 		/// 异步读取记号，状态机与同步版本一致，每次只读取一个记号
 		/// </summary>
 		protected override async Task<Token?> ReadTokenFromStreamAsync(CancellationToken cancellationToken = default)
@@ -375,12 +390,13 @@ namespace AScript.Readers
 							var token = await ReadExpressionTokenAsync(cancellationToken).ConfigureAwait(false);
 							if (!token.HasValue) return null;
 							_state = ETemplateState.Expression;
-							// output.Write(token0
+							// await output.WriteAsync(token0
 							Push(token.Value);
 							Push(new Token("(", ETokenType.None));
 							Push(new Token(OutputMethod, ETokenType.Word));
 							Push(new Token(".", ETokenType.Operator));
-							return new Token(OutputVar, ETokenType.Word);
+							Push(new Token(OutputVar, ETokenType.Word));
+							return new Token("await", ETokenType.Word);
 						}
 					case ETemplateState.Expression:
 						{
@@ -426,7 +442,7 @@ namespace AScript.Readers
 					return null;
 				}
 				_state = ETemplateState.End;
-				return EmitWriteCall(BuildTextToken());
+				return EmitWriteCallForAsync(BuildTextToken());
 			}
 			if (c.Value == '$')
 			{
