@@ -50,9 +50,13 @@ namespace AScript
 		/// </summary>
 		public string ModelVar { get; set; } = "model";
 		/// <summary>
-		/// 加载文件模板的方法名（独立渲染模板）
+		/// 加载模板文件的方法名（独立渲染模板）
 		/// </summary>
 		public string LoadMethod { get; set; } = "load";
+		/// <summary>
+		/// 包含模板文件的方法名（在宿主模板中渲染）
+		/// </summary>
+		public string IncludeMethod { get; set; } = "include";
 
 		public Template(string template) : this(new ScriptContext(), template) { }
 		public Template(FileInfo template) : this(new ScriptContext(), template) { }
@@ -130,7 +134,7 @@ namespace AScript
 			script.Options.RewriteVariables = false;
 			script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream) { OutputVar = this.OutputVar, OutputMethod = "Write" };
 			script.Options.Standalone = standalone;
-			// include(path)和include(path,model)
+			// load(path)和load(path,model)
 			script.Context.FunctionBuild += (ss, ee) =>
 			{
 				if (ee.Name != this.LoadMethod) return;
