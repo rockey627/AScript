@@ -406,5 +406,19 @@ namespace MyTest.Model
 			}
 		}
 
+		[TestMethod]
+		public void Test10_empty()
+		{
+			var tpl = @"Hello ${}, @{}today is ${DateTime.Now.Year}
+@
+end";
+			var template = new Template(tpl);
+			template.Context.SetVar("name", "Tom");
+			var result = template.Render(null);
+			var expected = $@"Hello , today is {DateTime.Now.Year}
+end";
+			Assert.AreEqual(expected, result);
+		}
+
 	}
 }

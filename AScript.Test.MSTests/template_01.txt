@@ -1,5 +1,8 @@
 ﻿@{
-	var now = DateTime.Now;
+	DateTime getNow() {
+		return DateTime.Now;
+	}
+	var now = getNow();
 }
 // created at ${now.ToString('yyyy-MM-dd')}
 using System;

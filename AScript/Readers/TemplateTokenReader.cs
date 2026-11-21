@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,9 +8,10 @@ namespace AScript.Readers
 	/// <summary>
 	/// <para>模板记号读取器，将模板转换为脚本记号流</para>
 	/// <para>@{...} 内部为脚本块，块内记号原样透传</para>
-	/// <para>${...} 内部为表达式，转换为 out.Write(表达式)</para>
-	/// <para>@ 开头为脚本语句，整行记号原样透传</para>
-	/// <para>其他为文本，转换为 out.Write('文本')</para>
+	/// <para>${...} 内部为表达式，转换为 output.Write(表达式)</para>
+	/// <para>@ 开头为脚本行，整行记号原样透传</para>
+	/// <para>其他为文本，转换为 output.Write('文本')</para>
+	/// <para>每次只读取一个记号，通过状态记录当前解析进度</para>
 	/// </summary>
 	public class TemplateTokenReader : TokenReader
 	{
@@ -21,19 +21,21 @@ namespace AScript.Readers
 			Text,
 			/// <summary>脚本块@{...}</summary>
 			ScriptBlock,
-			/// <summary>表达式${...}</summary>
+			/// <summary>表达式${...}，输出 output.Write( 的前缀</summary>
+			ExpressionBegin,
+			/// <summary>表达式${...}的内容</summary>
 			Expression,
-			/// <summary>脚本语句@...</summary>
+			/// <summary>脚本行@...</summary>
 			ScriptLine,
 			/// <summary>结束</summary>
 			End,
 		}
 
 		private readonly StringBuilder _buffer = new StringBuilder();
-		private readonly List<Token> _tokenBuffer = new List<Token>();
 
 		private ETemplateState _state = ETemplateState.Text;
 		private int _braceDepth;
+		private int _expressionTokenCount;
 		private int _textLine;
 		private int _textColumn;
 		private bool _textEmitted;
@@ -64,17 +66,33 @@ namespace AScript.Readers
 							if (_state == ETemplateState.End) return null;
 							break;
 						}
-					case ETemplateState.ScriptBlock:
+					case ETemplateState.ExpressionBegin:
 						{
-							var token = ReadScriptBlock();
+							var token = ReadExpressionToken();
+							if (!token.HasValue) return null;
+							_state = ETemplateState.Expression;
+							// output.Write(token0
+							Push(token.Value);
+							Push(new Token("(", ETokenType.None));
+							Push(new Token(OutputMethod, ETokenType.Word));
+							Push(new Token(".", ETokenType.Operator));
+							return new Token(OutputVar, ETokenType.Word);
+						}
+					case ETemplateState.Expression:
+						{
+							var token = ReadExpressionToken();
 							if (token.HasValue) return token;
 							break;
 						}
-					case ETemplateState.Expression:
-						return ReadExpression();
+					case ETemplateState.ScriptBlock:
+						{
+							var token = ReadScriptBlockToken();
+							if (token.HasValue) return token;
+							break;
+						}
 					case ETemplateState.ScriptLine:
 						{
-							var token = ReadScriptLine();
+							var token = ReadScriptLineToken();
 							if (token.HasValue) return token;
 							break;
 						}
@@ -113,7 +131,7 @@ namespace AScript.Readers
 				{
 					// 表达式${...}
 					this.CharReader.Read();
-					return EnterState(ETemplateState.Expression, 1);
+					return EnterState(ETemplateState.ExpressionBegin, 1);
 				}
 				// '$' 为普通文本
 				AppendText(c.Value);
@@ -127,96 +145,115 @@ namespace AScript.Readers
 				this.CharReader.Read();
 				return EnterState(ETemplateState.ScriptBlock, 1);
 			}
-			// 脚本语句@...
+			// 脚本行@...
 			return EnterState(ETemplateState.ScriptLine, 0);
 		}
 
 		/// <summary>
-		/// 读取脚本块@{...}，块内记号原样透传
+		/// 读取表达式${...}的内容，每次读取一个记号
 		/// </summary>
-		private Token? ReadScriptBlock()
+		private Token? ReadExpressionToken()
 		{
-			_tokenBuffer.Clear();
-			while (true)
+			var t = base.ReadTokenFromStream();
+			if (!t.HasValue)
 			{
-				var t = base.ReadTokenFromStream();
-				if (!t.HasValue) break;
-				if (t.Value.IsSymbol("}"))
+				throw new Exceptions.ScriptAnalyzingException($"模板表达式未闭合 ({this.CharReader.CurrentLine},{this.CharReader.CurrentColumn})");
+			}
+			if (t.Value.IsSymbol("}"))
+			{
+				_braceDepth--;
+				if (_braceDepth <= 0)
 				{
-					_braceDepth--;
-					// 结束脚本块，块尾的'}'不输出
-					if (_braceDepth <= 0) break;
-					_tokenBuffer.Add(t.Value);
-				}
-				else
-				{
-					if (t.Value.IsSymbol("{")) _braceDepth++;
-					_tokenBuffer.Add(t.Value);
+					// 表达式结束，输出 ) ;
+					_state = ETemplateState.Text;
+					if (_expressionTokenCount == 0) return null;
+					Push(new Token(";", ETokenType.None));
+					return new Token(")", ETokenType.None, t.Value.Line, t.Value.Column);
 				}
 			}
-			_state = ETemplateState.Text;
-			// 脚本块的换行符不输出
-			SkipLineBreak();
-			return Emit(_tokenBuffer);
+			else
+			{
+				_expressionTokenCount++;
+				if (t.Value.IsSymbol("{")) _braceDepth++;
+			}
+			return t.Value;
 		}
 
 		/// <summary>
-		/// 读取表达式${...}，转换为 out.Write(表达式)
+		/// 读取脚本块@{...}的内容，每次读取一个记号
 		/// </summary>
-		private Token? ReadExpression()
+		private Token? ReadScriptBlockToken()
 		{
-			_tokenBuffer.Clear();
-			while (true)
+			var t = base.ReadTokenFromStream();
+			if (!t.HasValue)
 			{
-				var t = base.ReadTokenFromStream();
-				if (!t.HasValue) break;
-				if (t.Value.IsSymbol("{"))
+				// 模板结束
+				_state = ETemplateState.End;
+				return null;
+			}
+			if (t.Value.IsSymbol("}"))
+			{
+				_braceDepth--;
+				if (_braceDepth <= 0)
 				{
-					_braceDepth++;
-					_tokenBuffer.Add(t.Value);
-				}
-				else if (t.Value.IsSymbol("}"))
-				{
-					_braceDepth--;
-					if (_braceDepth <= 0) break;
-					_tokenBuffer.Add(t.Value);
-				}
-				else
-				{
-					_tokenBuffer.Add(t.Value);
+					// 脚本块结束，块尾的'}'不输出
+					_state = ETemplateState.Text;
+					// 脚本块的换行符不输出
+					SkipLineBreak();
+					return null;
 				}
 			}
-			_state = ETemplateState.Text;
-			return EmitWriteCall(_tokenBuffer);
+			else if (t.Value.IsSymbol("{"))
+			{
+				_braceDepth++;
+			}
+			return t.Value;
 		}
 
 		/// <summary>
-		/// 读取脚本语句@...，整行记号原样透传
+		/// 读取脚本行@...的内容，每次读取一个记号
 		/// </summary>
-		private Token? ReadScriptLine()
+		private Token? ReadScriptLineToken()
 		{
-			_tokenBuffer.Clear();
-			while (true)
+			// 跳过行首空白
+			var c = this.CharReader.Read();
+			while (c.HasValue && (c.Value == ' ' || c.Value == '\t'))
 			{
-				var c = this.CharReader.Read();
-				while (c.HasValue && (c.Value == ' ' || c.Value == '\r' || c.Value == '\t'))
-				{
-					c = this.CharReader.Read();
-				}
-				if (!c.HasValue || c.Value == '\n') break;
-				this.CharReader.Push(c.Value);
-				var t = base.ReadTokenFromStream();
-				if (!t.HasValue) break;
-				_tokenBuffer.Add(t.Value);
+				c = this.CharReader.Read();
 			}
-			_state = ETemplateState.Text;
-			// 脚本语句的换行符不输出
-			SkipLineBreak();
-			return Emit(_tokenBuffer);
+			if (!c.HasValue)
+			{
+				// 模板结束
+				_state = ETemplateState.End;
+				return null;
+			}
+			if (c.Value == '\r' || c.Value == '\n')
+			{
+				// 脚本行结束，换行符不输出
+				if (c.Value == '\r')
+				{
+					var next = this.CharReader.Peek();
+					if (next.HasValue && next.Value == '\n')
+					{
+						this.CharReader.Read();
+					}
+				}
+				_state = ETemplateState.Text;
+				return null;
+			}
+			this.CharReader.Push(c.Value);
+			var t = base.ReadTokenFromStream();
+			if (!t.HasValue)
+			{
+				// 模板结束
+				_state = ETemplateState.End;
+				return null;
+			}
+			return t.Value;
 		}
 
 		/// <summary>
-		/// 跳过换行符，脚本块和脚本语句的换行符不输出
+		/// 跳过换行符，脚本块和脚本行的换行符不输出
 		/// </summary>
 		private void SkipLineBreak()
 		{
@@ -245,8 +282,12 @@ namespace AScript.Readers
 			_braceDepth = braceDepth;
 			if (state == ETemplateState.ScriptBlock || state == ETemplateState.ScriptLine)
 			{
-				// 脚本块和脚本语句前的缩进属于脚本，不输出
+				// 脚本块和脚本行前的缩进属于脚本，不输出
 				RemoveIndent();
+			}
+			else if (state == ETemplateState.ExpressionBegin)
+			{
+				_expressionTokenCount = 0;
 			}
 			if (_buffer.Length > 0)
 			{
@@ -300,7 +341,7 @@ namespace AScript.Readers
 		}
 
 		/// <summary>
-		/// 组合 out.Write(...) 调用
+		/// 组合 output.Write(...) 调用
 		/// </summary>
 		private Token EmitWriteCall(Token arg)
 		{
@@ -311,37 +352,6 @@ namespace AScript.Readers
 			Push(new Token(OutputMethod, ETokenType.Word));
 			Push(new Token(".", ETokenType.Operator));
 			return new Token(OutputVar, ETokenType.Word);
-		}
-
-		/// <summary>
-		/// 组合 out.Write(...) 调用
-		/// </summary>
-		private Token? EmitWriteCall(IList<Token> args)
-		{
-			if (args == null || args.Count == 0) return null;
-			Push(new Token(";", ETokenType.None));
-			Push(new Token(")", ETokenType.None));
-			for (int i = args.Count - 1; i >= 0; i--)
-			{
-				Push(args[i]);
-			}
-			Push(new Token("(", ETokenType.None));
-			Push(new Token(OutputMethod, ETokenType.Word));
-			Push(new Token(".", ETokenType.Operator));
-			return new Token(OutputVar, ETokenType.Word);
-		}
-
-		/// <summary>
-		/// 将记号压入栈，并返回第一个记号
-		/// </summary>
-		private Token? Emit(List<Token> tokens)
-		{
-			if (tokens == null || tokens.Count == 0) return null;
-			for (int i = tokens.Count - 1; i >= 1; i--)
-			{
-				Push(tokens[i]);
-			}
-			return tokens[0];
 		}
 
 		protected override Task<Token?> ReadTokenFromStreamAsync(CancellationToken cancellationToken = default)
