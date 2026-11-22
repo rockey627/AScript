@@ -160,6 +160,9 @@ namespace MyTest.Model
 	}
 }";
 			Assert.AreEqual(expected, result);
+
+			result = template.Render(null);
+			Assert.AreEqual(expected, result);
 		}
 
 		[TestMethod]
@@ -203,6 +206,9 @@ namespace MyTest.Model
 	}
 }";
 			Assert.AreEqual(expected, result);
+
+			result = template.Render(null);
+			Assert.AreEqual(expected, result);
 		}
 
 		[TestMethod]
@@ -244,6 +250,10 @@ namespace MyTest.Model
 		public string Name { get; set; }
 	}
 }";
+			Assert.AreEqual(expected, result);
+
+			template.Render(null, "template_01_result.txt");
+			result = File.ReadAllText("template_01_result.txt");
 			Assert.AreEqual(expected, result);
 		}
 
@@ -287,6 +297,10 @@ namespace MyTest.Model
 		public string Name { get; set; }
 	}
 }";
+			Assert.AreEqual(expected, result);
+
+			template.Render(null, "template_01_result.txt");
+			result = File.ReadAllText("template_01_result.txt");
 			Assert.AreEqual(expected, result);
 		}
 
@@ -863,6 +877,27 @@ B";
 			var result = await template.RenderAsync(null);
 			Console.WriteLine(result);
 			Assert.AreEqual("[Hello]", result);
+			result = await template.RenderAsync(null);
+			Assert.AreEqual("[Hello]", result);
+		}
+
+		[TestMethod]
+		public void Test19_Cache()
+		{
+			var template = new Template("Hello ${name}, today is ${DateTime.Now.Year}");
+			template.CacheTime = -1;
+
+			{
+				template.Context.SetVar("name", "Tom");
+				var result = template.Render(null);
+				Assert.AreEqual($"Hello Tom, today is {DateTime.Now.Year}", result);
+			}
+
+			{
+				template.Context.SetVar("name", "John");
+				var result = template.Render(null);
+				Assert.AreEqual($"Hello John, today is {DateTime.Now.Year}", result);
+			}
 		}
 
 	}

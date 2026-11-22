@@ -966,13 +966,13 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest06_table>(config);
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest07_for>(config);
 
-			BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest01>(config);
+			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest01>(config);
 			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest01_Compile>(config);
 			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest02>(config);
 			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest02_Compile>(config);
 			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest02_Cache>(config);
 			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest03>(config);
-			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest03_Compile>(config);
+			BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest03_Compile>(config);
 			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest03_Cache>(config);
 
 			//new Benchmarks.PythonTest01().AScript1();

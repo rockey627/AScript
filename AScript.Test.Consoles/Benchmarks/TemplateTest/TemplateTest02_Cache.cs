@@ -52,7 +52,7 @@ namespace MyTest.Model
 		public void Template()
 		{
 			var template = new Template(_template_text);
-			template.WithCache(-1);
+			template.WithCache(-1, null);
 			template.Context.SetVar("entity", new
 			{
 				Name = "User",

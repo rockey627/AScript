@@ -50,7 +50,7 @@ namespace MyTest.Model
 		public void Template()
 		{
 			var template = new Template(new FileInfo(_Path));
-			template.WithCache(-1);
+			template.WithCache(-1, null);
 			template.Context.SetVar("entity", new
 			{
 				Name = "User",
