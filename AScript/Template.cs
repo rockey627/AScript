@@ -12,6 +12,9 @@ namespace AScript
 	{
 		private static readonly MethodInfo Method_Output_Write = typeof(IOutput).GetMethod("Write", new[] { typeof(object) });
 		private static readonly MethodInfo Method_Output_WriteAsync = typeof(IOutput).GetMethod("WriteAsync", new[] { typeof(object) });
+		private static readonly MethodInfo Method_Path_Combine = typeof(Path).GetMethod("Combine", new[] { typeof(string), typeof(string) });
+		private static readonly MethodInfo Method_Template_Clone = typeof(Template).GetMethod("Clone", new[] { typeof(FileInfo) });
+		private static readonly MethodInfo Method_TemplateRender_IOutput = typeof(Template).GetMethod("Render", new[] { typeof(object), typeof(IOutput) });
 
 		private readonly object _template;
 
@@ -185,33 +188,7 @@ namespace AScript
 			};
 			script.Options.Standalone = standalone;
 			// load(path)和load(path,model)
-			script.Context.FunctionBuild += (ss, ee) =>
-			{
-				if (ee.Name != this.LoadMethod) return;
-				if (ee.Args == null || ee.Args.Count != 1 && ee.Args.Count != 2) return;
-				var path = ee.BuildArgs(0);
-				if (_template is FileInfo fi)
-				{
-					var combineMethod = typeof(Path).GetMethod("Combine", new[] { typeof(string), typeof(string) });
-					path = Expression.Call(null, combineMethod, Expression.Constant(fi.DirectoryName), path);
-				}
-				var fileInfoConstruct = typeof(FileInfo).GetConstructor(new[] { typeof(string) });
-				var fileInfo = Expression.New(fileInfoConstruct, path);
-				var cloneMethod = typeof(Template).GetMethod("Clone", new[] { typeof(FileInfo) });
-				var template = Expression.Call(Expression.Constant(this), cloneMethod, fileInfo);
-				Expression output = ee.BuildContext.Parameters[this.OutputVar];
-				Expression model;
-				if (ee.Args.Count == 1)
-				{
-					model = ee.BuildContext.Parameters[this.ModelVar];
-				}
-				else
-				{
-					model = ee.BuildArgs(1);
-				}
-				var renderMethod = typeof(Template).GetMethod("Render", new[] { typeof(object), typeof(IOutput) });
-				ee.Result = Expression.Call(template, renderMethod, model, output);
-			};
+			script.Context.AddFunc("load", new LoadFunction(this));
 			//
 			if (modelType == null) modelType = typeof(object);
 			if (_template is string s)
@@ -523,7 +500,6 @@ namespace AScript
 			return new Template(this.Context, template)
 			{
 				CacheTime = this.CacheTime,
-				CacheVersion = template.LastWriteTimeUtc.Ticks.ToString(),
 				CompileMode = this.CompileMode,
 				ModelVar = this.ModelVar,
 				OutputVar = this.OutputVar,
@@ -629,6 +605,45 @@ namespace AScript
 				{
 					_writer.Dispose();
 				}
+			}
+		}
+
+		private class LoadFunction : IFunctionBuilder, IFunctionEvaluator
+		{
+			private readonly Template _template;
+
+			public LoadFunction(Template template)
+			{
+				_template = template;
+			}
+
+			public void Build(FunctionBuildArgs e)
+			{
+				if (e.Args == null || e.Args.Count != 1 && e.Args.Count != 2) return;
+				var path = e.BuildArgs(0);
+				if (_template._template is FileInfo fi)
+				{
+					path = Expression.Call(null, Method_Path_Combine, Expression.Constant(fi.DirectoryName), path);
+				}
+				var fileInfoConstruct = typeof(FileInfo).GetConstructor(new[] { typeof(string) });
+				var fileInfo = Expression.New(fileInfoConstruct, path);
+				var template = Expression.Call(Expression.Constant(_template), Method_Template_Clone, fileInfo);
+				Expression output = e.BuildContext.Parameters[_template.OutputVar];
+				Expression model;
+				if (e.Args.Count == 1)
+				{
+					model = e.BuildContext.Parameters[_template.ModelVar];
+				}
+				else
+				{
+					model = e.BuildArgs(1);
+				}
+				e.Result = Expression.Call(template, Method_TemplateRender_IOutput, model, output);
+			}
+
+			public void Eval(FunctionEvalArgs e)
+			{
+				throw new NotImplementedException();
 			}
 		}
 	}

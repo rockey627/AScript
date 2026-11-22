@@ -647,6 +647,9 @@ namespace MyTest.Model
 	}
 }";
 			Assert.AreEqual(expected, result);
+
+			result = template.Render(null);
+			Assert.AreEqual(expected, result);
 		}
 
 		[TestMethod]
