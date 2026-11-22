@@ -67,10 +67,6 @@ namespace AScript
 		{
 			this.Context = context;
 			_template = template;
-			if (template.Exists)
-			{
-				this.CacheVersion = template.LastWriteTime.ToFileTimeUtc().ToString();
-			}
 		}
 		public Template(ScriptContext context, Stream template)
 		{
