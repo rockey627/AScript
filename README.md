@@ -884,7 +884,10 @@ Assert.AreEqual(expected, result);
 * 支持编译模式渲染：`Template.Options.ComileMode=ECompileMode.All`
 * 支持缓存：`Template.WithCache(-1, null)`
 * 支持脚本引擎的所有语法和功能
-```模板
+
+#### 示例
+模板：
+```
 @{
 	DateTime getNow() {
 		return DateTime.Now;
