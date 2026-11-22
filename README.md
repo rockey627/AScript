@@ -317,7 +317,7 @@ arr[0];
 ```
 
 #### 列表
-```
+```C#
 var script = new Script();
 var result1 = (List<int>)script.Eval("var list1 = [0,1,2,3,4]; list1[1:4]");
 var result2 = (List<int>)script.Eval("var list2 = new List<int> { 0,1,2,3,4 }; list2[-4:-1]");
@@ -402,7 +402,7 @@ Assert.AreEqual(10, script.Eval(s));
 ```
 
 #### 异常处理
-```
+```C#
 string s = @"
 int n=0;
 try {
@@ -507,13 +507,13 @@ Assert.AreEqual("2,4", string.Join(',', (List<int>)r));
 
 #### LINQ动态扩展
 * 示例1
-```
+```C#
 List<int> list = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 var result = list.WhereScript(x => "x % 2 == 0").ToList();
 ```
 * 示例2
 动态脚本中注入变量和函数
-```
+```C#
 var context = new ScriptContext();
 context.SetVar("n", 3);
 context.AddFunc<int, bool>("isOdd", a => a % 2 == 1);
@@ -523,7 +523,7 @@ CollectionAssert.AreEqual(new List<int> { 3, 9 }, result);
 ```
 * 示例3
 动态脚本使用Sql语言
-```
+```C#
 var context = new ScriptContext();
 context.Lang = SqlLang.Instance;
 context.SetVar("n", 3);
@@ -649,7 +649,7 @@ await Assert.ThrowsExceptionAsync<TaskCanceledException>(async () =>
 
 #### 扩展构造函数
 方法名格式：new_{类型名称}
-```
+```C#
 string s = @"
 // 脚本中扩展构造函数
 Person new_Person(string firstName, string lastName) {
@@ -673,7 +673,7 @@ Assert.AreEqual("李四", p2.Name);
 
 #### 扩展静态方法
 方法名格式：{类型名称}_{方法名}
-```
+```C#
 string s = @"
 // 脚本中扩展静态方法
 Person Person_Create(string firstName, string lastName) {
@@ -697,7 +697,7 @@ Assert.AreEqual("李四", p2.Name);
 
 #### 扩展实例方法
 方法第1个参数为要扩展的实例类型参数
-```
+```C#
 string s = @"
 // 脚本中扩展实例方法
 string SayHi(Person p, string yourName) {
@@ -722,7 +722,7 @@ Assert.AreEqual("good night john, my name is tom", night);
 
 #### 扩展静态属性
 暂只支持扩展读属性，方法名格式：{类名}_get_{属性名}
-```
+```C#
 string s = @"
 // 脚本中扩展静态属性
 string Person_get_DefaultName() {
@@ -737,7 +737,7 @@ Assert.AreEqual("ABC", script.Eval(s));
 
 #### 扩展实例属性
 暂只支持扩展读属性，方法第1个参数为该类型参数，方法名格式：get_{属性名}
-```
+```C#
 string s = @"
 // 脚本中扩展实例属性
 string get_FullInfo(Person p) {
@@ -756,7 +756,7 @@ Assert.AreEqual("name:tom,age:20", script.Eval(s));
 #### 脚本模块
 接口IScriptModule定义脚本模块，集中管理变量、方法、类型等，这在自定义其他脚本语言时非常有用，比如js语言。
 * 定义扩展PersonExtensions
-```
+```C#
 public static class PersonExtensions
 {
 	// 扩展构造函数
@@ -792,7 +792,7 @@ public static class PersonExtensions
 }
 ```
 * 定义模块PersonModule
-```
+```C#
 public class PersonModule : IScriptModule
 {
 	public object Install(BaseContext context)
@@ -808,7 +808,7 @@ public class PersonModule : IScriptModule
 }
 ```
 * 向上下文或指定语言安装模块
-```
+```C#
 // 当前上下文中安装模块
 var script = new Script();
 script.Context.InstallModule(new PersonModule());
@@ -816,7 +816,7 @@ script.Context.InstallModule(new PersonModule());
 // CSharpLang.Instance.InstallModule(new PersonModule());
 ```
 * 脚本中调用扩展
-```
+```C#
 string s = @"
 var p1 = new Person('张', '三');
 var p2 = Person.Create('李', '四');
@@ -837,7 +837,7 @@ Assert.AreEqual("name:李四,age:18", info);
 * 脚本块上下文已内置`output`输出流变量（`StringBuilder`类型，支持`Write`和`WriteLine`方法），提供更灵活的控制；
 * 支持脚本引擎的所有语法和功能
 注：脚本块中定义的变量和函数不会回写到上下文，可以调用前一个脚本块中定义的变量和函数。
-```
+```C#
 string s = @"
 @{
 	int calcAge(DateTime birthday) {
@@ -917,7 +917,7 @@ namespace MyTest.Model
 }
 ```
 渲染：
-```csharp
+```C#
 var template = new Template(new FileInfo("template.txt"));
 // 设置为编译模式
 // template.Options.CompileMode = ECompileMode.All;
