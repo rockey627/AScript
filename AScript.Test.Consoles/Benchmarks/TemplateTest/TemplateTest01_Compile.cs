@@ -31,7 +31,7 @@ namespace AScript.Test.Consoles.Benchmarks.TemplateTest
 		public void Template()
 		{
 			var template = new Template(_template_text);
-			template.CompileMode = ECompileMode.All;
+			template.Options.CompileMode = ECompileMode.All;
 			template.Context.SetVar("name1", "Tom");
 			template.Context.SetVar("name2", "John");
 			var r = template.Render(null);

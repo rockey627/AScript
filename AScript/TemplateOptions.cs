@@ -1,0 +1,64 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace AScript
+{
+	public class TemplateOptions
+	{
+		private ECompileMode? _CompileMode;
+		private string _OutputVar;
+		private string _ModelVar;
+		private string _LoadMethod;
+		private string _IncludeMethod;
+
+		public TemplateOptions Parent { get; set; }
+
+		/// <summary>
+		/// 编译模式
+		/// </summary>
+		public ECompileMode? CompileMode
+		{
+			get => _CompileMode ?? this.Parent?.CompileMode;
+			set => _CompileMode = value;
+		}
+		/// <summary>
+		/// 输出流变量名
+		/// </summary>
+		public string OutputVar
+		{
+			get => string.IsNullOrEmpty(_OutputVar) ? this.Parent?.OutputVar : _OutputVar;
+			set => _OutputVar = value;
+		}
+		/// <summary>
+		/// 模型对象变量名
+		/// </summary>
+		public string ModelVar
+		{
+			get => string.IsNullOrEmpty(_ModelVar) ? this.Parent?.ModelVar : _ModelVar;
+			set => _ModelVar = value;
+		}
+		/// <summary>
+		/// 加载模板文件的方法名（独立渲染模板）
+		/// </summary>
+		public string LoadMethod
+		{
+			get => string.IsNullOrEmpty(_LoadMethod) ? this.Parent?.LoadMethod : _LoadMethod;
+			set => _LoadMethod = value;
+		}
+		/// <summary>
+		/// 包含模板文件的方法名（在宿主模板中渲染）
+		/// </summary>
+		public string IncludeMethod
+		{
+			get => string.IsNullOrEmpty(_IncludeMethod) ? this.Parent?.IncludeMethod : _IncludeMethod;
+			set => _IncludeMethod = value;
+		}
+
+		public TemplateOptions() { }
+		public TemplateOptions(TemplateOptions parent)
+		{
+			this.Parent = parent;
+		}
+	}
+}

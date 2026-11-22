@@ -50,7 +50,7 @@ namespace MyTest.Model
 		public void Template()
 		{
 			var template = new Template(new FileInfo(_Path));
-			template.CompileMode = ECompileMode.All;
+			template.Options.CompileMode = ECompileMode.All;
 			template.Context.SetVar("entity", new
 			{
 				Name = "User",

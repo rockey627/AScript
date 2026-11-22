@@ -52,7 +52,7 @@ namespace MyTest.Model
 		public void Template()
 		{
 			var template = new Template(_template_text);
-			template.CompileMode = ECompileMode.All;
+			template.Options.CompileMode = ECompileMode.All;
 			template.Context.SetVar("entity", new
 			{
 				Name = "User",

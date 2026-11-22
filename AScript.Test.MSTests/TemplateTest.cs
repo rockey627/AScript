@@ -23,7 +23,7 @@ namespace AScript.Test.MSTests
 		public void Test01_Text_CompileAll()
 		{
 			var template = new Template("Hello World!");
-			template.CompileMode = ECompileMode.All;
+			template.Options.CompileMode = ECompileMode.All;
 			var result = template.Render(null);
 			Assert.AreEqual("Hello World!", result);
 		}
@@ -41,7 +41,7 @@ namespace AScript.Test.MSTests
 		public void Test02_Expression_CompileAll()
 		{
 			var template = new Template("Hello ${name}, today is ${DateTime.Now.Year}");
-			template.CompileMode = ECompileMode.All;
+			template.Options.CompileMode = ECompileMode.All;
 			template.Context.SetVar("name", "Tom");
 			var result = template.Render(null);
 			Assert.AreEqual($"Hello Tom, today is {DateTime.Now.Year}", result);
@@ -60,7 +60,7 @@ namespace AScript.Test.MSTests
 		public void Test03_ScriptBlock_CompileAll()
 		{
 			var template = new Template("@{var userSex = name == 'Tom' ? '先生' : '女士';}尊敬的 ${name}${userSex} 您好！");
-			template.CompileMode = ECompileMode.All;
+			template.Options.CompileMode = ECompileMode.All;
 			template.Context.SetVar("name", "Tom");
 			var result = template.Render(null);
 			Assert.AreEqual("尊敬的 Tom先生 您好！", result);
@@ -79,7 +79,7 @@ namespace AScript.Test.MSTests
 		public void Test04_Statement_CompileAll()
 		{
 			var template = new Template("@foreach(var item in list) {\r\n\t[${item}]\r\n@}\r\nend");
-			template.CompileMode = ECompileMode.All;
+			template.Options.CompileMode = ECompileMode.All;
 			template.Context.SetVar("list", new List<string> { "a", "b" });
 			var result = template.Render(null);
 			Assert.AreEqual("\t[a]\r\n\t[b]\r\nend", result);
@@ -110,7 +110,7 @@ end";
 @}
 end";
 			var template = new Template(tpl);
-			template.CompileMode = ECompileMode.All;
+			template.Options.CompileMode = ECompileMode.All;
 			template.Context.SetVar("list", new List<string> { "a", "b" });
 			var result = template.Render(null);
 			Console.WriteLine(result);
@@ -170,7 +170,7 @@ namespace MyTest.Model
 		{
 			var tpl = File.ReadAllText("template_01.txt");
 			var template = new Template(tpl);
-			template.CompileMode = ECompileMode.All;
+			template.Options.CompileMode = ECompileMode.All;
 			template.Context.SetVar("entity", new
 			{
 				Name = "User",
@@ -261,7 +261,7 @@ namespace MyTest.Model
 		public void Test06_TemplateFile_CompileAll()
 		{
 			var template = new Template(new FileInfo("template_01.txt"));
-			template.CompileMode = ECompileMode.All;
+			template.Options.CompileMode = ECompileMode.All;
 			template.Context.SetVar("entity", new
 			{
 				Name = "User",
@@ -567,7 +567,7 @@ namespace MyTest.Model
 			//var tpl = File.ReadAllText("template_01.txt");
 			var tpl = @"hello@load('template_01.txt')";
 			var template = new Template(tpl);
-			template.CompileMode = ECompileMode.All;
+			template.Options.CompileMode = ECompileMode.All;
 			template.Context.SetVar("entity", new
 			{
 				Name = "User",
@@ -691,7 +691,7 @@ namespace MyTest.Model
 			// 编译模式下，包含的模板与宿主模板共享上下文
 			var tpl = @"@{ var title = ""Hello""; }@include('template_include_01.txt')";
 			var template = new Template(tpl);
-			template.CompileMode = ECompileMode.All;
+			template.Options.CompileMode = ECompileMode.All;
 			var result = template.Render(null);
 			Console.WriteLine(result);
 			Assert.AreEqual("[Hello]", result);
@@ -725,7 +725,7 @@ namespace MyTest.Model
 			// include：包含模板文件，在宿主模板中渲染，可以访问宿主模板的变量
 			var tpl = @"@{ var title = ""Hello""; }@{output.Write('hi');include('template_include_01.txt');output.Write('ok')}end";
 			var template = new Template(tpl);
-			template.CompileMode = ECompileMode.All;
+			template.Options.CompileMode = ECompileMode.All;
 			var result = template.Render(null);
 			Console.WriteLine(result);
 			Assert.AreEqual("hi[Hello]okend", result);
@@ -855,7 +855,7 @@ B";
 		{
 			// 相对路径以模板文件所在目录为基准
 			var template = new Template(new FileInfo("template_include_host.txt"));
-			template.CompileMode = ECompileMode.All;
+			template.Options.CompileMode = ECompileMode.All;
 			var result = template.Render(null);
 			Console.WriteLine(result);
 			Assert.AreEqual("beginend[Hello]", result);
@@ -876,7 +876,7 @@ B";
 		{
 			var tpl = @"@{ var title = ""Hello""; }@include('template_include_01.txt')";
 			var template = new Template(tpl);
-			template.CompileMode = ECompileMode.All;
+			template.Options.CompileMode = ECompileMode.All;
 			var result = await template.RenderAsync(null);
 			Console.WriteLine(result);
 			Assert.AreEqual("[Hello]", result);

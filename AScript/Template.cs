@@ -16,6 +16,14 @@ namespace AScript
 		private static readonly MethodInfo Method_Template_Clone = typeof(Template).GetMethod("Clone", new[] { typeof(FileInfo) });
 		private static readonly MethodInfo Method_TemplateRender_IOutput = typeof(Template).GetMethod("Render", new[] { typeof(object), typeof(IOutput) });
 
+		public static readonly TemplateOptions DefaultOptions = new TemplateOptions
+		{
+			OutputVar = "output",
+			ModelVar = "model",
+			LoadMethod = "load",
+			IncludeMethod = "include"
+		};
+
 		private readonly object _template;
 
 		private Delegate _compiled;
@@ -43,27 +51,7 @@ namespace AScript
 		/// </summary>
 		public string CacheVersion { get; set; }
 
-		/// <summary>
-		/// 编译模式
-		/// </summary>
-		public ECompileMode? CompileMode { get; set; }
-
-		/// <summary>
-		/// 输出流变量名
-		/// </summary>
-		public string OutputVar { get; set; } = "output";
-		/// <summary>
-		/// 模型对象变量名
-		/// </summary>
-		public string ModelVar { get; set; } = "model";
-		/// <summary>
-		/// 加载模板文件的方法名（独立渲染模板）
-		/// </summary>
-		public string LoadMethod { get; set; } = "load";
-		/// <summary>
-		/// 包含模板文件的方法名（在宿主模板中渲染）
-		/// </summary>
-		public string IncludeMethod { get; set; } = "include";
+		public TemplateOptions Options { get; private set; } = new TemplateOptions(DefaultOptions);
 
 		public Template(string template) : this(new ScriptContext(), template) { }
 		public Template(FileInfo template) : this(new ScriptContext(), template) { }
@@ -101,13 +89,13 @@ namespace AScript
 		}
 
 		/// <summary>
-		/// 设置编译模式
+		/// 模板设置
 		/// </summary>
-		/// <param name="compileMode"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
-		public Template WithCompileMode(ECompileMode? compileMode)
+		public Template WithOptions(Action<TemplateOptions> options)
 		{
-			this.CompileMode = compileMode;
+			options?.Invoke(this.Options);
 			return this;
 		}
 
@@ -176,14 +164,14 @@ namespace AScript
 		public Template Compile(Type modelType, bool standalone = false)
 		{
 			var script = new Script(new ScriptContext(this.Context));
-			script.Options.CompileMode = this.CompileMode;
+			script.Options.CompileMode = this.Options.CompileMode;
 			script.Options.RewriteFunctions = false;
 			script.Options.RewriteVariables = false;
 			script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream)
 			{
-				OutputVar = this.OutputVar,
+				OutputVar = this.Options.OutputVar,
 				OutputMethod = Method_Output_Write,
-				IncludeMethod = this.IncludeMethod,
+				IncludeMethod = this.Options.IncludeMethod,
 				BaseDirectory = _template is FileInfo fi ? fi.DirectoryName : null,
 			};
 			script.Options.Standalone = standalone;
@@ -193,23 +181,23 @@ namespace AScript
 			if (modelType == null) modelType = typeof(object);
 			if (_template is string s)
 			{
-				_compiled = script.Compile(s, new[] { this.ModelVar, this.OutputVar }, new Type[] { modelType, typeof(IOutput) }, typeof(void));
+				_compiled = script.Compile(s, new[] { this.Options.ModelVar, this.Options.OutputVar }, new Type[] { modelType, typeof(IOutput) }, typeof(void));
 			}
 			else if (_template is FileInfo fileInfo)
 			{
-				_compiled = script.Compile(fileInfo.OpenRead(), new[] { this.ModelVar, this.OutputVar }, new Type[] { modelType, typeof(IOutput) }, typeof(void));
+				_compiled = script.Compile(fileInfo.OpenRead(), new[] { this.Options.ModelVar, this.Options.OutputVar }, new Type[] { modelType, typeof(IOutput) }, typeof(void));
 			}
 			else if (_template is Stream stream)
 			{
-				_compiled = script.Compile(stream, new[] { this.ModelVar, this.OutputVar }, new Type[] { modelType, typeof(IOutput) }, typeof(void));
+				_compiled = script.Compile(stream, new[] { this.Options.ModelVar, this.Options.OutputVar }, new Type[] { modelType, typeof(IOutput) }, typeof(void));
 			}
 			else if (_template is Func<string> fs)
 			{
-				_compiled = script.Compile(fs(), new[] { this.ModelVar, this.OutputVar }, new Type[] { modelType, typeof(IOutput) }, typeof(void));
+				_compiled = script.Compile(fs(), new[] { this.Options.ModelVar, this.Options.OutputVar }, new Type[] { modelType, typeof(IOutput) }, typeof(void));
 			}
 			else if (_template is Func<Stream> fstream)
 			{
-				_compiled = script.Compile(fstream(), new[] { this.ModelVar, this.OutputVar }, new Type[] { modelType, typeof(IOutput) }, typeof(void));
+				_compiled = script.Compile(fstream(), new[] { this.Options.ModelVar, this.Options.OutputVar }, new Type[] { modelType, typeof(IOutput) }, typeof(void));
 			}
 			else
 			{
@@ -276,25 +264,25 @@ namespace AScript
 		private Script CreateScript(ScriptContext context, object model, IOutput output, MethodInfo outputMethod)
 		{
 			var script = new Script(context);
-			script.Options.CompileMode = this.CompileMode;
+			script.Options.CompileMode = this.Options.CompileMode;
 			script.Options.RewriteFunctions = false;
 			script.Options.RewriteVariables = false;
 			script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream)
 			{
-				Output = (!this.CompileMode.HasValue || this.CompileMode.Value == ECompileMode.None) && this.CacheTime == 0 ? output : null,
-				OutputVar = this.OutputVar,
+				Output = this.CacheTime == 0 ? output : null,
+				OutputVar = this.Options.OutputVar,
 				OutputMethod = outputMethod,
-				IncludeMethod = this.IncludeMethod,
+				IncludeMethod = this.Options.IncludeMethod,
 				BaseDirectory = _template is FileInfo fi ? fi.DirectoryName : null,
 			};
-			script.Context.SetVar(this.OutputVar, output);
-			script.Context.SetVar(this.ModelVar, model);
+			script.Context.SetVar(this.Options.OutputVar, output);
+			script.Context.SetVar(this.Options.ModelVar, model);
 			// load(path)和load(path,model)：加载模板文件并单独渲染
-			script.Context.AddAction<string>(this.LoadMethod, path =>
+			script.Context.AddAction<string>(this.Options.LoadMethod, path =>
 			{
 				this.Clone(this.ResolveFile(path)).Render(model, output);
 			});
-			script.Context.AddAction<string, object>(this.LoadMethod, (path, m) =>
+			script.Context.AddAction<string, object>(this.Options.LoadMethod, (path, m) =>
 			{
 				this.Clone(this.ResolveFile(path)).Render(m, output);
 			});
@@ -500,11 +488,7 @@ namespace AScript
 			return new Template(this.Context, template)
 			{
 				CacheTime = this.CacheTime,
-				CompileMode = this.CompileMode,
-				ModelVar = this.ModelVar,
-				OutputVar = this.OutputVar,
-				LoadMethod = this.LoadMethod,
-				IncludeMethod = this.IncludeMethod
+				Options = this.Options
 			};
 		}
 
@@ -628,11 +612,11 @@ namespace AScript
 				var fileInfoConstruct = typeof(FileInfo).GetConstructor(new[] { typeof(string) });
 				var fileInfo = Expression.New(fileInfoConstruct, path);
 				var template = Expression.Call(Expression.Constant(_template), Method_Template_Clone, fileInfo);
-				Expression output = e.BuildContext.Parameters[_template.OutputVar];
+				Expression output = e.BuildContext.Parameters[_template.Options.OutputVar];
 				Expression model;
 				if (e.Args.Count == 1)
 				{
-					model = e.BuildContext.Parameters[_template.ModelVar];
+					model = e.BuildContext.Parameters[_template.Options.ModelVar];
 				}
 				else
 				{
