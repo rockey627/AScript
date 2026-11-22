@@ -903,5 +903,96 @@ B";
 			}
 		}
 
+		[TestMethod]
+		public void Test20_TemplateFile_model()
+		{
+			var template = new Template(new FileInfo("template_02_model.txt"));
+			template.Context.SetVar("author", "Tom");
+			var entity = new
+			{
+				Name = "User",
+				Memo = "用户",
+				TableName = "Users",
+				Columns = new[]
+				{
+					new { Name = "Id", TypeName = "int", Memo = "主键", IsPrimaryKey = true },
+					new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
+				}
+			};
+			var result = template.Render(entity);
+			Console.WriteLine(result);
+			var expected = "// created at " + DateTime.Now.ToString("yyyy-MM-dd") + @" by Tom
+using System;
+
+namespace MyTest.Model
+{
+	/// <summary>
+	/// 用户
+	/// </summary>
+	[Table(""Users"")]
+	public class User {
+		/// <summary>
+		/// 主键
+		/// </summary>
+		[PrimaryKey]
+		public int Id { get; set; }
+		/// <summary>
+		/// 姓名
+		/// </summary>
+		public string Name { get; set; }
+	}
+}";
+			Assert.AreEqual(expected, result);
+
+			result = template.Render(entity);
+			Assert.AreEqual(expected, result);
+		}
+
+		[TestMethod]
+		public void Test20_TemplateFile_model_CompileAll()
+		{
+			var template = new Template(new FileInfo("template_02_model.txt"));
+			template.Options.CompileMode = ECompileMode.All;
+			template.Context.SetVar("author", "Tom");
+			var entity = new
+			{
+				Name = "User",
+				Memo = "用户",
+				TableName = "Users",
+				Columns = new[]
+				{
+					new { Name = "Id", TypeName = "int", Memo = "主键", IsPrimaryKey = true },
+					new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
+				}
+			};
+			var result = template.Render(entity);
+			Console.WriteLine(result);
+			var expected = "// created at " + DateTime.Now.ToString("yyyy-MM-dd") + @" by Tom
+using System;
+
+namespace MyTest.Model
+{
+	/// <summary>
+	/// 用户
+	/// </summary>
+	[Table(""Users"")]
+	public class User {
+		/// <summary>
+		/// 主键
+		/// </summary>
+		[PrimaryKey]
+		public int Id { get; set; }
+		/// <summary>
+		/// 姓名
+		/// </summary>
+		public string Name { get; set; }
+	}
+}";
+			Assert.AreEqual(expected, result);
+
+			result = template.Render(entity);
+			Assert.AreEqual(expected, result);
+		}
+
 	}
 }

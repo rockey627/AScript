@@ -1,0 +1,27 @@
+﻿@{
+	DateTime getNow() {
+		return DateTime.Now;
+	}
+	var now = getNow();
+}
+// created at ${now.ToString('yyyy-MM-dd')} by ${author}
+using System;
+
+namespace MyTest.Model
+{
+	/// <summary>
+	/// ${model.Memo}
+	/// </summary>
+	[Table("${model.TableName}")]
+	public class ${model.Name} {
+	@foreach(var column in model.Columns) {
+		/// <summary>
+		/// ${column.Memo}
+		/// </summary>
+		@if (column.IsPrimaryKey) {
+		[PrimaryKey]
+		@}
+		public ${column.TypeName} ${column.Name} { get; set; }
+	@}
+	}
+}

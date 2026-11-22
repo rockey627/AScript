@@ -875,14 +875,14 @@ Assert.AreEqual(expected, result);
 * `@`脚本行：当前行是脚本
 * 换行处理：脚本块或脚本行单独占一行时移除该行的换行符，行内还有其他内容时保留换行符
 * 内置`output`输出流变量，提供方法：`output.Write/output.WriteLine/output.WriteAsync/output.WriteLineAsync`
-* 内置`model`模型对象变量，支持类似Razor引擎中的Model功能
+* 内置`model`模型对象，支持类似Razor引擎中的Model功能
 * 内置`load`函数，加载另一个模板文件（独立渲染）：`load('head.tpl')`或者`load('item.tpl', item)`
 * 内置`include`函数，包含另一个模板文件（在宿主模板中渲染，可访问宿主模板的变量）：`include('head.tpl')`，路径只能是字符串字面量，相对路径以模板文件所在目录为基准；
 * 转义：`\\ \@ \$`只转义3个字符
 * 支持异步渲染
 * 支持预编译，`Template.Compile()`
-* 支持编译模式渲染：`Template.ComileMode=ECompileMode.All`
-* 支持缓存：`Template.WithCache(-1)`
+* 支持编译模式渲染：`Template.Options.ComileMode=ECompileMode.All`
+* 支持缓存：`Template.WithCache(-1, null)`
 * 支持脚本引擎的所有语法和功能
 ```模板
 @{
@@ -891,17 +891,17 @@ Assert.AreEqual(expected, result);
 	}
 	var now = getNow();
 }
-// created at ${now.ToString('yyyy-MM-dd')}
+// created at ${now.ToString('yyyy-MM-dd')} by ${author}
 using System;
 
 namespace MyTest.Model
 {
 	/// <summary>
-	/// ${entity.Memo}
+	/// ${model.Memo}
 	/// </summary>
-	[Table("${entity.TableName}")]
-	public class ${entity.Name} {
-	@foreach(var column in entity.Columns) {
+	[Table("${model.TableName}")]
+	public class ${model.Name} {
+	@foreach(var column in model.Columns) {
 		/// <summary>
 		/// ${column.Memo}
 		/// </summary>
@@ -914,9 +914,13 @@ namespace MyTest.Model
 }
 ```
 渲染：
-```
-var template = new Template(tpl);
-template.Context.SetVar("entity", new
+```csharp
+var template = new Template(new FileInfo("template.txt"));
+// 设置为编译模式
+// template.Options.CompileMode = ECompileMode.All;
+// 添加变量
+template.Context.SetVar("author", "Tom");
+var entity = new
 {
 	Name = "User",
 	Memo = "用户",
@@ -926,13 +930,18 @@ template.Context.SetVar("entity", new
 		new { Name = "Id", TypeName = "int", Memo = "主键", IsPrimaryKey = true },
 		new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
 	}
-});
-var result = template.Render(null);
+};
+// 预编译
+// template.Compile(entity.GetType());
+// 渲染并返回结果
+var result = template.Render(entity);
 Console.WriteLine(result);
+// 渲染输出到目标文件
+// template.Render(entity, "result.txt");
 ```
 输出结果：
 ```
-// created at 2026-11-21
+// created at 2026-11-21 by Tom
 using System;
 
 namespace MyTest.Model
