@@ -18,9 +18,34 @@ namespace AScript.Nodes
 		public object Method { get; set; }
 		public object Target { get; set; }
 		public ITreeNode[] Args { get; set; }
+		public Delegate Delegate { get; set; }
 
 		public override object Eval(ScriptContext context, BuildOptions options, EvalControl control, out Type returnType)
 		{
+			if (this.Delegate is Action act)
+			{
+				act();
+				returnType = typeof(void);
+				return null;
+			}
+			if (this.Delegate is Func<Task> tf)
+			{
+				var result = tf();
+				returnType = result?.GetType() ?? typeof(object);
+				return result;
+			}
+			if (this.Delegate is Func<object> fun)
+			{
+				var result = fun();
+				returnType = result?.GetType() ?? typeof(object);
+				return result;
+			}
+			if (this.Delegate != null)
+			{
+				var result = this.Delegate.DynamicInvoke();
+				returnType = result?.GetType() ?? typeof(object);
+				return result;
+			}
 			if (string.IsNullOrEmpty(this.Name))
 			{
 				if (this.Method is MethodInfo methodInfo)
@@ -250,6 +275,28 @@ namespace AScript.Nodes
 
 		public override async Task<EvalResult> EvalAsync(ScriptContext context, BuildOptions options, EvalControl control, CancellationToken cancellationToken = default)
 		{
+			if (this.Delegate is Action act)
+			{
+				act();
+				return new EvalResult(null, typeof(void));
+			}
+			if (this.Delegate is Func<Task> tf)
+			{
+				await tf().ConfigureAwait(false);
+				return new EvalResult(null, typeof(void));
+			}
+			if (this.Delegate is Func<object> fun)
+			{
+				var result = fun();
+				var returnType = result?.GetType() ?? typeof(object);
+				return new EvalResult(result, returnType);
+			}
+			if (this.Delegate != null)
+			{
+				var result = this.Delegate.DynamicInvoke();
+				var returnType = result?.GetType() ?? typeof(object);
+				return new EvalResult(result, returnType);
+			}
 			if (string.IsNullOrEmpty(this.Name))
 			{
 				if (this.Method is MethodInfo methodInfo)
@@ -488,9 +535,14 @@ namespace AScript.Nodes
 							}
 						}
 					}
-					return this.Target == null ?
+					var target = this.Target;
+					if (target is ITreeNode targetNode)
+					{
+						target = targetNode.Build(buildContext, scriptContext, options);
+					}
+					return target == null ?
 						Expression.Call(methodInfo, argExprs) :
-						Expression.Call(Expression.Constant(this.Target), methodInfo, argExprs);
+						Expression.Call(target is Expression targetExpr ? targetExpr : Expression.Constant(target), methodInfo, argExprs);
 				}
 
 				if (this.Method is DefineFuncNode defineFuncNode)
@@ -699,6 +751,7 @@ namespace AScript.Nodes
 			this.Method = null;
 			this.Target = null;
 			this.Args = null;
+			this.Delegate = null;
 		}
 	}
 }

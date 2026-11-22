@@ -184,6 +184,11 @@ namespace AScript.Nodes
 			return AddData(buildContext, scriptContext, options, control, PoolManage.CreateObjectNode(data, dataType));
 		}
 
+		public Task AddDataAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, object data, CancellationToken cancellationToken = default)
+		{
+			return AddDataAsync(buildContext, scriptContext, options, control, PoolManage.CreateObjectNode(data), cancellationToken);
+		}
+
 		public Task AddDataAsync(BuildContext buildContext, ScriptContext scriptContext, BuildOptions options, EvalControl control, object data, Type dataType, CancellationToken cancellationToken = default)
 		{
 			return AddDataAsync(buildContext, scriptContext, options, control, PoolManage.CreateObjectNode(data, dataType), cancellationToken);

@@ -1,6 +1,8 @@
+using AScript.Nodes;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -87,6 +89,7 @@ namespace AScript.Readers
 		/// </summary>
 		private Token? _lastToken;
 
+		public Template.IOutput Output { get; set; }
 		/// <summary>
 		/// 输出流变量名
 		/// </summary>
@@ -94,7 +97,7 @@ namespace AScript.Readers
 		/// <summary>
 		/// 输出流方法名
 		/// </summary>
-		public string OutputMethod { get; set; } = "Write";
+		public MethodInfo OutputMethod { get; set; }
 		/// <summary>
 		/// 包含模板文件的方法名
 		/// </summary>
@@ -140,9 +143,9 @@ namespace AScript.Readers
 							// output.Write(token0
 							Push(token.Value);
 							Push(new Token("(", ETokenType.None));
-							Push(new Token(OutputMethod, ETokenType.Word));
+							Push(new Token(OutputMethod.Name, ETokenType.Word));
 							Push(new Token(".", ETokenType.Operator));
-							return new Token(OutputVar, ETokenType.Word);
+							return this.Output == null ? new Token(this.OutputVar, ETokenType.Word) : new Token(this.Output);
 						}
 					case ETemplateState.Expression:
 						{
@@ -207,7 +210,8 @@ namespace AScript.Readers
 					Token? token = null;
 					if (_buffer.Length > 0)
 					{
-						token = EmitWriteCall(BuildTextToken());
+						//token = EmitWriteCall(BuildTextToken());
+						token = BuildWriteStringToken();
 					}
 					RestoreHostStream();
 					return token;
@@ -219,7 +223,8 @@ namespace AScript.Readers
 					return null;
 				}
 				_state = ETemplateState.End;
-				return EmitWriteCall(BuildTextToken());
+				//return EmitWriteCall(BuildTextToken());
+				return BuildWriteStringToken();
 			}
 			if (c.Value == '$')
 			{
@@ -679,7 +684,8 @@ namespace AScript.Readers
 			if (_buffer.Length > 0)
 			{
 				_state = state;
-				return EmitWriteCall(BuildTextToken());
+				//return EmitWriteCall(BuildTextToken());
+				return BuildWriteStringToken();
 			}
 			_state = state;
 			return null;
@@ -730,42 +736,91 @@ namespace AScript.Readers
 			}
 		}
 
-		private Token BuildTextToken()
+		//private Token BuildTextToken()
+		//{
+		//	var token = new Token(_buffer.ToString(), ETokenType.String, _textLine, _textColumn);
+		//	_buffer.Clear();
+		//	_textEmitted = true;
+		//	return token;
+		//}
+
+		private Token BuildWriteStringToken()
 		{
-			var token = new Token(_buffer.ToString(), ETokenType.String, _textLine, _textColumn);
+			var s = _buffer.ToString();
+			var callFuncNode = new CallFuncNode
+			{
+				Method = this.OutputMethod,
+				Args = new[] { PoolManage.CreateObjectNode(s) }
+			};
+			if (this.Output == null)
+			{
+				callFuncNode.Target = PoolManage.CreateVariableNode(this.OutputVar);
+			}
+			else
+			{
+				callFuncNode.Target = this.Output;
+				callFuncNode.Delegate = new Action(() => this.Output.Write(s));
+			}
 			_buffer.Clear();
 			_textEmitted = true;
-			return token;
+			return new Token(callFuncNode, _textLine, _textColumn);
 		}
 
-		/// <summary>
-		/// 组合 output.Write(...) 调用
-		/// </summary>
-		private Token EmitWriteCall(Token arg)
+		private Token BuildWriteStringAsyncToken()
 		{
-			Push(new Token(";", ETokenType.None));
-			Push(new Token(")", ETokenType.None));
-			Push(arg);
-			Push(new Token("(", ETokenType.None));
-			Push(new Token(OutputMethod, ETokenType.Word));
-			Push(new Token(".", ETokenType.Operator));
-			return new Token(OutputVar, ETokenType.Word);
+			var s = _buffer.ToString();
+			var callFuncNode = new CallFuncNode
+			{
+				Method = this.OutputMethod,
+				Args = new[] { PoolManage.CreateObjectNode(s) }
+			};
+			if (this.Output == null)
+			{
+				callFuncNode.Target = PoolManage.CreateVariableNode(this.OutputVar);
+			}
+			else
+			{
+				callFuncNode.Target = this.Output;
+				callFuncNode.Delegate = new Func<Task>(() => this.Output.WriteAsync(s));
+			}
+			var awaitFuncNode = new CallFuncNode
+			{
+				Name = "await",
+				Args = new[] { callFuncNode }
+			};
+			_buffer.Clear();
+			_textEmitted = true;
+			return new Token(awaitFuncNode, _textLine, _textColumn);
 		}
 
-		/// <summary>
-		/// 组合 await output.WriteAsync(...) 调用
-		/// </summary>
-		private Token EmitWriteCallForAsync(Token arg)
-		{
-			Push(new Token(";", ETokenType.None));
-			Push(new Token(")", ETokenType.None));
-			Push(arg);
-			Push(new Token("(", ETokenType.None));
-			Push(new Token(OutputMethod, ETokenType.Word));
-			Push(new Token(".", ETokenType.Operator));
-			Push(new Token(OutputVar, ETokenType.Word));
-			return new Token("await", ETokenType.Word);
-		}
+		///// <summary>
+		///// 组合 output.Write(...) 调用
+		///// </summary>
+		//private Token EmitWriteCall(Token arg)
+		//{
+		//	Push(new Token(";", ETokenType.None));
+		//	Push(new Token(")", ETokenType.None));
+		//	Push(arg);
+		//	Push(new Token("(", ETokenType.None));
+		//	Push(new Token(OutputMethod.Name, ETokenType.Word));
+		//	Push(new Token(".", ETokenType.Operator));
+		//	return this.Output == null ? new Token(this.OutputVar, ETokenType.Word) : new Token(this.Output);
+		//}
+
+		///// <summary>
+		///// 组合 await output.WriteAsync(...) 调用
+		///// </summary>
+		//private Token EmitWriteCallForAsync(Token arg)
+		//{
+		//	Push(new Token(";", ETokenType.None));
+		//	Push(new Token(")", ETokenType.None));
+		//	Push(arg);
+		//	Push(new Token("(", ETokenType.None));
+		//	Push(new Token(OutputMethod.Name, ETokenType.Word));
+		//	Push(new Token(".", ETokenType.Operator));
+		//	Push(this.Output == null ? new Token(this.OutputVar, ETokenType.Word) : new Token(this.Output));
+		//	return new Token("await", ETokenType.Word);
+		//}
 
 		/// <summary>
 		/// 异步读取记号，状态机与同步版本一致，每次只读取一个记号
@@ -802,9 +857,9 @@ namespace AScript.Readers
 							// await output.WriteAsync(token0
 							Push(token.Value);
 							Push(new Token("(", ETokenType.None));
-							Push(new Token(OutputMethod, ETokenType.Word));
+							Push(new Token(OutputMethod.Name, ETokenType.Word));
 							Push(new Token(".", ETokenType.Operator));
-							Push(new Token(OutputVar, ETokenType.Word));
+							Push(this.Output == null ? new Token(this.OutputVar, ETokenType.Word) : new Token(this.Output));
 							return new Token("await", ETokenType.Word);
 						}
 					case ETemplateState.Expression:
@@ -862,7 +917,8 @@ namespace AScript.Readers
 					Token? token = null;
 					if (_buffer.Length > 0)
 					{
-						token = EmitWriteCallForAsync(BuildTextToken());
+						//token = EmitWriteCallForAsync(BuildTextToken());
+						token = BuildWriteStringAsyncToken();
 					}
 					RestoreHostStream();
 					return token;
@@ -874,7 +930,8 @@ namespace AScript.Readers
 					return null;
 				}
 				_state = ETemplateState.End;
-				return EmitWriteCallForAsync(BuildTextToken());
+				//return EmitWriteCallForAsync(BuildTextToken());
+				return BuildWriteStringAsyncToken();
 			}
 			if (c.Value == '$')
 			{

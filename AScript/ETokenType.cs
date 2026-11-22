@@ -27,6 +27,10 @@ namespace AScript
 		/// <summary>
 		/// 单词，如：int name a
 		/// </summary>
-		Word = 8
+		Word = 8,
+		/// <summary>
+		/// 对象
+		/// </summary>
+		Object = 16,
 	}
 }

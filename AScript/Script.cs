@@ -2483,7 +2483,8 @@ namespace AScript
 
 		public Delegate Compile(string expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
-			return Lambda(expression, argNames, argTypes, returnType)?.Compile();
+			var lambda = Lambda(expression, argNames, argTypes, returnType);
+			return lambda?.Compile();
 		}
 
 		public Delegate Compile(Stream expression, string[] argNames, Type[] argTypes, Type returnType = null)

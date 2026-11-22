@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,6 +10,9 @@ namespace AScript
 {
 	public class Template
 	{
+		private static readonly MethodInfo Method_Output_Write = typeof(IOutput).GetMethod("Write", new[] { typeof(object) });
+		private static readonly MethodInfo Method_Output_WriteAsync = typeof(IOutput).GetMethod("WriteAsync", new[] { typeof(object) });
+
 		private readonly object _template;
 
 		private Delegate _compiled;
@@ -135,7 +139,7 @@ namespace AScript
 			script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream)
 			{
 				OutputVar = this.OutputVar,
-				OutputMethod = "Write",
+				OutputMethod = Method_Output_Write,
 				IncludeMethod = this.IncludeMethod,
 				BaseDirectory = _template is FileInfo fi ? fi.DirectoryName : null,
 			};
@@ -211,7 +215,7 @@ namespace AScript
 					_compiled.DynamicInvoke(model, output);
 					return;
 				}
-				var script = CreateScript(new ScriptContext(this.Context), model, output, "Write");
+				var script = CreateScript(new ScriptContext(this.Context), model, output, Method_Output_Write);
 				EvalTemplate(script);
 			}
 			finally
@@ -235,7 +239,7 @@ namespace AScript
 					_compiled.DynamicInvoke(model, output);
 					return;
 				}
-				var script = CreateScript(new ScriptContext(this.Context), model, output, "WriteAsync");
+				var script = CreateScript(new ScriptContext(this.Context), model, output, Method_Output_WriteAsync);
 				await EvalTemplateAsync(script).ConfigureAwait(false);
 			}
 			finally
@@ -252,7 +256,7 @@ namespace AScript
 		/// <param name="output">输出流</param>
 		/// <param name="outputMethod">输出流方法名</param>
 		/// <returns></returns>
-		private Script CreateScript(ScriptContext context, object model, IOutput output, string outputMethod)
+		private Script CreateScript(ScriptContext context, object model, IOutput output, MethodInfo outputMethod)
 		{
 			var script = new Script(context);
 			script.Options.CompileMode = this.CompileMode;
@@ -260,6 +264,7 @@ namespace AScript
 			script.Options.RewriteVariables = false;
 			script.Options.TokenReaderFunc = (stream, autoDisposeStream) => new TemplateTokenReader(stream, autoDisposeStream)
 			{
+				Output = (!this.CompileMode.HasValue || this.CompileMode.Value == ECompileMode.None) && this.CacheTime == 0 ? output : null,
 				OutputVar = this.OutputVar,
 				OutputMethod = outputMethod,
 				IncludeMethod = this.IncludeMethod,

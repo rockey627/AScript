@@ -110,14 +110,14 @@ namespace AScript.Syntaxs
 				if (control != null && (control.Break || control.Terminal || control.Continue)) break;
 				var nextToken = tokenReader.Read();
 				if (!nextToken.HasValue) break;
-				if (nextToken.Value.Type == ETokenType.String)
+				if (nextToken.Value.Type == ETokenType.String || nextToken.Value.Type == ETokenType.Object)
 				{
 					tokenReader.Push(nextToken.Value);
 					continue;
 				}
 				//if (nextToken.Value.Value == ";" || nextToken.Value.Value == "," || nextToken.Value.Value == ":") continue;
-				if (nextToken.Value.Value == ";" || nextToken.Value.Value == ",") continue;
-				if (nextToken.Value.Value == ":" && !scriptContext.GetOperatorPriority(":").HasValue && !scriptContext.IsKeywords(":"))
+				if (nextToken.Value.IsSymbol( ";") || nextToken.Value.IsSymbol( ",")) continue;
+				if (nextToken.Value.IsSymbol(":") && !scriptContext.GetOperatorPriority(":").HasValue && !scriptContext.IsKeywords(":"))
 				{
 					continue;
 				}
@@ -150,7 +150,7 @@ namespace AScript.Syntaxs
 				if (control != null && (control.Break || control.Terminal || control.Continue)) break;
 				var nextToken = await tokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 				if (!nextToken.HasValue) break;
-				if (nextToken.Value.Type == ETokenType.String)
+				if (nextToken.Value.Type == ETokenType.String || nextToken.Value.Type == ETokenType.Object)
 				{
 					tokenReader.Push(nextToken.Value);
 					continue;
@@ -201,6 +201,23 @@ namespace AScript.Syntaxs
 						break;
 					}
 					treeBuilder.AddData(buildContext, scriptContext, options, control, t.Value.Value, typeof(string));
+				}
+				else if (t.Value.Type == ETokenType.Object)
+				{
+					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
+					else if (treeBuilder.IsFullStatement())
+					{
+						tokenReader.Push(t.Value);
+						break;
+					}
+					if (t.Value.Data is ITreeNode dataNode)
+					{
+						treeBuilder.AddData(buildContext, scriptContext, options, control, dataNode);
+					}
+					else
+					{
+						treeBuilder.AddData(buildContext, scriptContext, options, control, t.Value.Data);
+					}
 				}
 				else if (t.Value.Value == ")" || t.Value.Value == "]" || t.Value.Value == "}" || t.Value.Value == "," || t.Value.Value == ";")// || t.Value.Value == ":")
 				{
@@ -537,6 +554,23 @@ namespace AScript.Syntaxs
 						break;
 					}
 					await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, t.Value.Value, typeof(string), cancellationToken).ConfigureAwait(false);
+				}
+				else if (t.Value.Type == ETokenType.Object)
+				{
+					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
+					else if (treeBuilder.IsFullStatement())
+					{
+						tokenReader.Push(t.Value);
+						break;
+					}
+					if (t.Value.Data is ITreeNode dataNode)
+					{
+						await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, dataNode, cancellationToken).ConfigureAwait(false);
+					}
+					else
+					{
+						await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, t.Value.Data, cancellationToken).ConfigureAwait(false);
+					}
 				}
 				else if (t.Value.Value == ")" || t.Value.Value == "]" || t.Value.Value == "}" || t.Value.Value == "," || t.Value.Value == ";")// || t.Value.Value == ":")
 				{
