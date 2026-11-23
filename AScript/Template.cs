@@ -21,7 +21,9 @@ namespace AScript
 			OutputVar = "output",
 			ModelVar = "model",
 			LoadMethod = "load",
-			IncludeMethod = "include"
+			IncludeMethod = "include",
+			// 文件版本号默认为文件修改时间
+			CacheVersion = (tpl, cacheKey) => (tpl as FileInfo)?.LastWriteTime.ToFileTimeUtc().ToString()
 		};
 
 		private readonly object _template;
@@ -47,7 +49,7 @@ namespace AScript
 		/// </summary>
 		public string CacheKey { get; set; }
 		/// <summary>
-		/// 缓存版本号，如果版本号有变化，则重新编译并缓存
+		/// <para>缓存版本号，如果版本号有变化，则重新编译并缓存</para>
 		/// </summary>
 		public string CacheVersion { get; set; }
 
@@ -114,7 +116,7 @@ namespace AScript
 		{
 			this.CacheTime = cacheTime;
 			this.CacheKey = cacheKey;
-			if (cacheTime != 0 && string.IsNullOrEmpty(cacheKey) 
+			if (cacheTime != 0 && string.IsNullOrEmpty(cacheKey)
 				&& !(_template is string || _template is FileInfo))
 			{
 				throw new Exception("stream or lazy template need a cacheKey");
@@ -151,12 +153,33 @@ namespace AScript
 			return this;
 		}
 
+		/// <summary>
+		/// 预编译模板
+		/// </summary>
+		/// <typeparam name="TModel"></typeparam>
+		/// <param name="standalone">
+		/// <para>编译结果是否隔离ScriptContext上下文</para>
+		/// <para><c>false</c> - 上下文数据变化会影响模板渲染结果</para>
+		/// <para><c>true</c> - 上下文数据变化不会影响模板渲染结果</para>
+		/// </param>
+		/// <returns></returns>
 		public Template<TModel> Compile<TModel>(bool standalone = false)
 		{
 			Compile(typeof(TModel), standalone);
 			return new Template<TModel>(this.Context, (Action<TModel, IOutput>)_compiled);
 		}
 
+		/// <summary>
+		/// 预编译模板
+		/// </summary>
+		/// <param name="modelType"></param>
+		/// <param name="standalone">
+		/// <para>编译结果是否隔离ScriptContext上下文</para>
+		/// <para><c>false</c> - 上下文数据变化会影响模板渲染结果</para>
+		/// <para><c>true</c> - 上下文数据变化不会影响模板渲染结果</para>
+		/// </param>
+		/// <returns></returns>
+		/// <exception cref="NotSupportedException"></exception>
 		public Template Compile(Type modelType, bool standalone = false)
 		{
 			var script = new Script(new ScriptContext(this.Context));
@@ -306,25 +329,39 @@ namespace AScript
 		/// <param name="script"></param>
 		private void EvalTemplate(Script script)
 		{
+			var cacheTime = this.CacheTime;
+			var cacheKey = this.CacheKey;
+			var cacheVersion = this.CacheVersion;
+			if (cacheTime != 0)
+			{
+				if (string.IsNullOrEmpty(cacheKey) && _template is string st)
+				{
+					cacheKey = st;
+				}
+				if (string.IsNullOrEmpty(cacheVersion))
+				{
+					cacheVersion = this.Options.CacheVersion?.Invoke(_template, cacheKey);
+				}
+			}
 			if (_template is string s)
 			{
-				script.Eval(s, this.CacheTime, this.CacheKey, this.CacheVersion);
+				script.Eval(s, cacheTime, cacheKey, cacheVersion);
 			}
 			else if (_template is FileInfo fi)
 			{
-				script.EvalFile(fi.FullName, this.CacheTime, this.CacheKey, this.CacheVersion);
+				script.EvalFile(fi.FullName, cacheTime, cacheKey, cacheVersion);
 			}
 			else if (_template is Stream stream)
 			{
-				script.Eval(stream, this.CacheTime, this.CacheKey, this.CacheVersion);
+				script.Eval(stream, cacheTime, cacheKey, cacheVersion);
 			}
 			else if (_template is Func<string> stringFunc)
 			{
-				script.Eval(stringFunc, this.CacheTime, this.CacheKey, this.CacheVersion);
+				script.Eval(stringFunc, cacheTime, cacheKey, cacheVersion);
 			}
 			else if (_template is Func<Stream> streamFunc)
 			{
-				script.Eval(streamFunc, this.CacheTime, this.CacheKey, this.CacheVersion);
+				script.Eval(streamFunc, cacheTime, cacheKey, cacheVersion);
 			}
 			else
 			{
@@ -339,25 +376,39 @@ namespace AScript
 		/// <returns></returns>
 		private Task EvalTemplateAsync(Script script)
 		{
+			var cacheTime = this.CacheTime;
+			var cacheKey = this.CacheKey;
+			var cacheVersion = this.CacheVersion;
+			if (cacheTime != 0)
+			{
+				if (string.IsNullOrEmpty(cacheKey) && _template is string st)
+				{
+					cacheKey = st;
+				}
+				if (string.IsNullOrEmpty(cacheVersion))
+				{
+					cacheVersion = this.Options.CacheVersion?.Invoke(_template, cacheKey);
+				}
+			}
 			if (_template is string s)
 			{
-				return script.EvalAsync(s, this.CacheTime, this.CacheKey, this.CacheVersion);
+				return script.EvalAsync(s, cacheTime, cacheKey, cacheVersion);
 			}
 			else if (_template is FileInfo fi)
 			{
-				return script.EvalFileAsync(fi.FullName, this.CacheTime, this.CacheKey, this.CacheVersion);
+				return script.EvalFileAsync(fi.FullName, cacheTime, cacheKey, cacheVersion);
 			}
 			else if (_template is Stream stream)
 			{
-				return script.EvalAsync(stream, this.CacheTime, this.CacheKey, this.CacheVersion);
+				return script.EvalAsync(stream, cacheTime, cacheKey, cacheVersion);
 			}
 			else if (_template is Func<string> stringFunc)
 			{
-				return script.EvalAsync(stringFunc, this.CacheTime, this.CacheKey, this.CacheVersion);
+				return script.EvalAsync(stringFunc, cacheTime, cacheKey, cacheVersion);
 			}
 			else if (_template is Func<Stream> streamFunc)
 			{
-				return script.EvalAsync(streamFunc, this.CacheTime, this.CacheKey, this.CacheVersion);
+				return script.EvalAsync(streamFunc, cacheTime, cacheKey, cacheVersion);
 			}
 			else
 			{

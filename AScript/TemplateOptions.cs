@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace AScript
 {
@@ -11,6 +9,7 @@ namespace AScript
 		private string _ModelVar;
 		private string _LoadMethod;
 		private string _IncludeMethod;
+		private Func<object, string, string> _CacheVersion;
 
 		public TemplateOptions Parent { get; set; }
 
@@ -53,6 +52,14 @@ namespace AScript
 		{
 			get => string.IsNullOrEmpty(_IncludeMethod) ? this.Parent?.IncludeMethod : _IncludeMethod;
 			set => _IncludeMethod = value;
+		}
+		/// <summary>
+		/// 动态计算模板版本号，参数为<c>(template, cacheKey)</c>
+		/// </summary>
+		public Func<object, string, string> CacheVersion
+		{
+			get => _CacheVersion ?? this.Parent?.CacheVersion;
+			set => _CacheVersion = value;
 		}
 
 		public TemplateOptions() { }
