@@ -42,7 +42,7 @@ namespace AScript.Operators
 		private static Pointer TryGetPointer(FunctionBuildArgs e, Expression p0)
 		{
 			// 编译期常量指针
-			if (p0 is ConstantExpression constant && constant.Value is Pointer pointer) return pointer;
+			if (ScriptUtils.TryGetPointerConstant(p0, out var pointer)) return pointer;
 			// 编译期已知指针值的变量
 			if (e.Args != null && e.Args[0] is VariableNode variableNode
 				&& e.BuildContext.TryGetPointerVariable(variableNode.Name, out var known)) return known;

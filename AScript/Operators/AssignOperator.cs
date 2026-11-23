@@ -272,7 +272,26 @@ namespace AScript.Operators
 				}
 				pointerArray.SetValue(value, pointerIndex);
 				return;
-			} 
+			}
+			else if (obj is Pointer pointer2 && typeof(IList).IsAssignableFrom(pointer2.ObjectType))
+			{
+				// 指针指向列表时，给列表元素赋值
+				var pointerList = pointer2.Address.GetValue(e.Context) as IList;
+				if (pointerList == null)
+				{
+					throw new ScriptRuntimeException("pointer target is not a list");
+				}
+				int pointerIndex = Convert.ToInt32(idx);
+				var pointerElementType = pointerList.GetType().IsGenericType
+					? pointerList.GetType().GetGenericArguments()[0]
+					: typeof(object);
+				if (value != null)
+				{
+					value = ScriptUtils.Convert(value, pointerElementType);
+				}
+				pointerList[pointerIndex] = value;
+				return;
+			}
 			else if (obj != null)
 			{
 				// 其他类型使用动态调用
@@ -315,11 +334,12 @@ namespace AScript.Operators
 				return Expression.Assign(Expression.ArrayAccess(obj, idx), valueExpr);
 			}
 
-			// 指针指向数组时，给数组元素赋值
-			var pointerArrayType = ScriptUtils.GetPointerArrayType(obj.Type);
-			if (pointerArrayType != null)
+			// 指针指向数组或列表时，给元素赋值
+			var pointerObjectType = ScriptUtils.GetPointerObjectType(obj.Type);
+			if (pointerObjectType != null
+				&& (pointerObjectType.IsArray || typeof(IList).IsAssignableFrom(pointerObjectType)))
 			{
-				return BuildPointerIndexAssign(e, opNode, obj, idx, value, pointerArrayType);
+				return BuildPointerIndexAssign(e, opNode, obj, idx, value, pointerObjectType);
 			}
 
 			var objType = obj.Type == typeof(ExpandoObject) ? typeof(IDictionary<string, object>) : obj.Type;
@@ -365,23 +385,30 @@ namespace AScript.Operators
 		}
 
 		/// <summary>
-		/// 指针指向数组时，给数组元素赋值
+		/// 指针指向数组或列表时，给元素赋值
 		/// </summary>
-		private Expression BuildPointerIndexAssign(FunctionBuildArgs e, OperatorNode opNode, Expression obj, Expression idx, Expression value, Type arrayType)
+		private Expression BuildPointerIndexAssign(FunctionBuildArgs e, OperatorNode opNode, Expression obj, Expression idx, Expression value, Type objectType)
 		{
-			var array = BuildPointerArrayExpression(e, opNode, obj, arrayType);
+			var target = BuildPointerTargetExpression(e, opNode, obj, objectType);
 			if (idx.Type != typeof(int))
 			{
 				idx = Expression.Convert(idx, typeof(int));
 			}
-			var valueExpr = ScriptUtils.Convert(value, arrayType.GetElementType());
-			return Expression.Assign(Expression.ArrayAccess(array, idx), valueExpr);
+			if (objectType.IsArray)
+			{
+				var valueExpr = ScriptUtils.Convert(value, objectType.GetElementType());
+				return Expression.Assign(Expression.ArrayAccess(target, idx), valueExpr);
+			}
+			// 列表通过索引器（Item属性）赋值
+			var indexer = objectType.GetProperty("Item", new Type[] { typeof(int) });
+			var itemExpr = ScriptUtils.Convert(value, indexer.PropertyType);
+			return Expression.Assign(Expression.Property(target, indexer, idx), itemExpr);
 		}
 
 		/// <summary>
-		/// 获取指针指向的数组表达式
+		/// 获取指针指向的数组或列表表达式
 		/// </summary>
-		private Expression BuildPointerArrayExpression(FunctionBuildArgs e, OperatorNode opNode, Expression obj, Type arrayType)
+		private Expression BuildPointerTargetExpression(FunctionBuildArgs e, OperatorNode opNode, Expression obj, Type objectType)
 		{
 			// 编译期能确定指针时，直接按变量的方式取数组，保证与脚本变量是同一个实例
 			var pointer = TryGetPointer(e, opNode, obj);
@@ -390,16 +417,16 @@ namespace AScript.Operators
 				var expr = new VariableNode(variableAddress.Name).Build(e.BuildContext, e.ScriptContext, e.Options);
 				if (expr != null)
 				{
-					if (expr.Type != arrayType)
+					if (expr.Type != objectType)
 					{
-						expr = Expression.Convert(expr, arrayType);
+						expr = Expression.Convert(expr, objectType);
 					}
 					return expr;
 				}
 			}
 			var addr = Expression.Property(obj, "Address");
 			var data = Expression.Call(addr, ScriptUtils.Method_Pointer_Address_GetValue, e.BuildContext.GetScriptContextParameter(true));
-			return Expression.Convert(data, arrayType);
+			return Expression.Convert(data, objectType);
 		}
 
 		/// <summary>
@@ -408,7 +435,7 @@ namespace AScript.Operators
 		private static Pointer TryGetPointer(FunctionBuildArgs e, OperatorNode opNode, Expression obj)
 		{
 			// 编译期常量指针
-			if (obj is ConstantExpression constant && constant.Value is Pointer pointer) return pointer;
+			if (ScriptUtils.TryGetPointerConstant(obj, out var pointer)) return pointer;
 			// 编译期已知指针值的变量
 			if (opNode.Left is VariableNode variableNode
 				&& e.BuildContext.TryGetPointerVariable(variableNode.Name, out var known)) return known;
@@ -838,7 +865,7 @@ namespace AScript.Operators
 			//}
 			// 记录指针变量，编译期解引用时可以确定地址类型
 			var pointerBuildContext = ownerBuildContext ?? e.BuildContext;
-			if (right is ConstantExpression constantExpression && constantExpression.Value is Pointer pointer)
+			if (ScriptUtils.TryGetPointerConstant(right, out var pointer))
 			{
 				pointerBuildContext.PointerVariables[arg0Node.Name] = pointer;
 			}

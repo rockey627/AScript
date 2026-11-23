@@ -59,17 +59,39 @@ namespace AScript
 		public static readonly ConstructorInfo Constructor_Pointer = typeof(Pointer).GetConstructor(new[] { typeof(Type), typeof(Pointer.IAddress) });
 
 		/// <summary>
-		/// 获取指针指向的数组类型，指针不指向数组时返回 null
+		/// 获取指针指向的类型（Pointer&lt;T&gt; 的 T），不是泛型指针时返回 null
 		/// </summary>
-		public static Type GetPointerArrayType(Type pointerType)
+		public static Type GetPointerObjectType(Type pointerType)
 		{
 			if (pointerType != null && pointerType.IsGenericType
 				&& pointerType.GetGenericTypeDefinition() == typeof(Pointer<>))
 			{
-				var objectType = pointerType.GetGenericArguments()[0];
-				if (objectType.IsArray) return objectType;
+				return pointerType.GetGenericArguments()[0];
 			}
 			return null;
+		}
+
+		/// <summary>
+		/// 获取表达式中的指针常量，表达式可能是带副作用的Block
+		/// </summary>
+		public static bool TryGetPointerConstant(Expression expr, out Pointer pointer)
+		{
+			while (expr is BlockExpression block)
+			{
+				if (block.Expressions.Count == 0)
+				{
+					pointer = null;
+					return false;
+				}
+				expr = block.Expressions[block.Expressions.Count - 1];
+			}
+			if (expr is ConstantExpression constant && constant.Value is Pointer p)
+			{
+				pointer = p;
+				return true;
+			}
+			pointer = null;
+			return false;
 		}
 
 		public static readonly MethodInfo Method_ITreeNode_Eval = typeof(ITreeNode).GetMethod("Eval", new Type[] { typeof(ScriptContext), typeof(BuildOptions), typeof(EvalControl), typeof(Type).MakeByRefType() });

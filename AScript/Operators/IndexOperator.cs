@@ -103,21 +103,29 @@ namespace AScript.Operators
 				return;
 			}
 
-			// Pointer 指向数组时，按索引获取元素
+			// Pointer 指向数组或列表时，按索引获取元素
 			if (typeof(Pointer).IsAssignableFrom(target.Type))
 			{
-				var arrayType = ScriptUtils.GetPointerArrayType(target.Type);
-				if (arrayType != null)
+				var objectType = ScriptUtils.GetPointerObjectType(target.Type);
+				if (objectType != null)
 				{
 					var addr = Expression.Property(target, "Address");
 					var obj = Expression.Call(addr, ScriptUtils.Method_Pointer_Address_GetValue, e.BuildContext.GetScriptContextParameter(true));
-					var array = Expression.Convert(obj, arrayType);
 					if (index.Type != typeof(int))
 					{
 						index = Expression.Convert(index, typeof(int));
 					}
-					e.Result = Expression.ArrayIndex(array, index);
-					return;
+					if (objectType.IsArray)
+					{
+						e.Result = Expression.ArrayIndex(Expression.Convert(obj, objectType), index);
+						return;
+					}
+					if (typeof(IList).IsAssignableFrom(objectType))
+					{
+						var indexer = objectType.GetProperty("Item", new Type[] { typeof(int) });
+						e.Result = Expression.Property(Expression.Convert(obj, objectType), indexer, index);
+						return;
+					}
 				}
 			}
 
@@ -302,6 +310,19 @@ namespace AScript.Operators
 						index = arr.Length + index;
 					}
 					e.SetResult(arr.GetValue(index));
+					return;
+				}
+
+				if (arg0 is Pointer p2 && typeof(IList).IsAssignableFrom(p2.ObjectType))
+				{
+					int index = Convert.ToInt32(arg1);
+					if (_IndexBased1) index -= 1;
+					var list = (IList)p2.Address.GetValue(e.Context);
+					if (index < 0)
+					{
+						index = list.Count + index;
+					}
+					e.SetResult(list[index]);
 					return;
 				}
 
