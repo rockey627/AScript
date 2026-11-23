@@ -98,7 +98,18 @@ namespace AScript.Test.MSTests
 		public void Test03_ScriptBlock_Paren_Braces()
 		{
 			// 括号块内可以包含大括号，且嵌套的括号需要正确配对
-			var template = new Template("@(if (list.Count > 0) { var n = list.Count;})共 ${list.Count} 项");
+			var template = new Template("@(int n=0;if (list.Count > 0) { n = list.Count;})共 ${n} 项");
+			template.Context.SetVar("list", new List<string> { "a", "b" });
+			var result = template.Render(null);
+			Assert.AreEqual("共 2 项", result);
+		}
+
+		[TestMethod]
+		public void Test03_ScriptBlock_Paren_Braces_CompileAll()
+		{
+			// 括号块内可以包含大括号，且嵌套的括号需要正确配对
+			var template = new Template("@(int n=0;if (list.Count > 0) { n = list.Count;})共 ${n} 项");
+			template.Options.CompileMode = ECompileMode.All;
 			template.Context.SetVar("list", new List<string> { "a", "b" });
 			var result = template.Render(null);
 			Assert.AreEqual("共 2 项", result);
@@ -108,7 +119,7 @@ namespace AScript.Test.MSTests
 		public void Test03_ScriptBlock_Paren_Braces2()
 		{
 			// 括号块内可以包含大括号，且嵌套的括号需要正确配对
-			var template = new Template("@(if (list.Count > 0) { var n = list.Count;)共 ${list.Count} 项@(} else {)无数据@}");
+			var template = new Template("@(if (list.Count > 0) { var n = list.Count;)共 ${n} 项@(} else {)无数据@}");
 			template.Context.SetVar("list", new List<string> { "a", "b" });
 			var result = template.Render(null);
 			Assert.AreEqual("共 2 项", result);
@@ -118,7 +129,7 @@ namespace AScript.Test.MSTests
 		public void Test03_ScriptBlock_Paren_Braces3()
 		{
 			// 括号块内可以包含大括号，且嵌套的括号需要正确配对
-			var template = new Template("@(if (list.Count > 0) { var n = list.Count;)共 ${list.Count} 项@(} else {)无数据@}");
+			var template = new Template("@(if (list.Count > 0) { var n = list.Count;)共 ${n} 项@(} else {)无数据@}");
 			template.Context.SetVar("list", new List<string> { });
 			var result = template.Render(null);
 			Assert.AreEqual("无数据", result);
@@ -127,34 +138,59 @@ namespace AScript.Test.MSTests
 		[TestMethod]
 		public void Test03_ScriptBlock_Paren_Braces4()
 		{
-			string s = @"
-@if (list.Count > 0) { var n = list.Count;
+			string s = @"@if (list.Count > 0) { var n = list.Count;
 共 ${n} 项
 @} else {
 无数据
-@}
-";
+@}";
 			var template = new Template(s);
 			template.Context.SetVar("list", new List<string> { });
 			var result = template.Render(null);
-			Assert.AreEqual("无数据", result);
+			Assert.AreEqual("无数据\r\n", result);
 		}
 
 		[TestMethod]
 		public void Test03_ScriptBlock_Paren_Braces4_CompileAll()
 		{
-			string s = @"
-@if (list.Count > 0) { var n = list.Count;
+			string s = @"@if (list.Count > 0) { var n = list.Count;
 共 ${n} 项
 @} else {
 无数据
-@}
-";
+@}";
 			var template = new Template(s);
 			template.Options.CompileMode = ECompileMode.All;
 			template.Context.SetVar("list", new List<string> { });
 			var result = template.Render(null);
-			Assert.AreEqual("无数据", result);
+			Assert.AreEqual("无数据\r\n", result);
+		}
+
+		[TestMethod]
+		public void Test03_ScriptBlock_Paren_Braces5()
+		{
+			string s = @"@if (list.Count > 0) { var n = list.Count;
+共 ${n} 项
+@} else {
+无数据
+@}";
+			var template = new Template(s);
+			template.Context.SetVar("list", new List<string> { "a", "b" });
+			var result = template.Render(null);
+			Assert.AreEqual("共 2 项\r\n", result);
+		}
+
+		[TestMethod]
+		public void Test03_ScriptBlock_Paren_Braces5_CompileAll()
+		{
+			string s = @"@if (list.Count > 0) { var n = list.Count;
+共 ${n} 项
+@} else {
+无数据
+@}";
+			var template = new Template(s);
+			template.Options.CompileMode = ECompileMode.All;
+			template.Context.SetVar("list", new List<string> { "a", "b" });
+			var result = template.Render(null);
+			Assert.AreEqual("共 2 项\r\n", result);
 		}
 
 		[TestMethod]
