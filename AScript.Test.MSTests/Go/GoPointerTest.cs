@@ -215,7 +215,7 @@ d[1] = 20
 		{
 			var s = @"
 func setarr(x *[5]int) {
-	(*x)[0] = 100
+	x[0] = 100
 }
 var arr = [5]int{1, 2, 3, 4, 5}
 setarr(&arr)
@@ -231,7 +231,7 @@ setarr(&arr)
 		{
 			var s = @"
 func setarr(x *[5]int) {
-	(*x)[0] = 100
+	x[0] = 100
 }
 var arr = [5]int{1, 2, 3, 4, 5}
 setarr(&arr)
@@ -247,8 +247,8 @@ setarr(&arr)
 		{
 			var s = @"
 func setarr(x *[5]int) {
-	(*x)[1] = 200
-	(*x)[2] = 300
+	x[1] = 200
+	x[2] = 300
 }
 var arr = [5]int{1, 2, 3, 4, 5}
 setarr(&arr)
@@ -265,8 +265,8 @@ setarr(&arr)
 		{
 			var s = @"
 func setarr(x *[5]int) {
-	(*x)[1] = 200
-	(*x)[2] = 300
+	x[1] = 200
+	x[2] = 300
 }
 var arr = [5]int{1, 2, 3, 4, 5}
 setarr(&arr)

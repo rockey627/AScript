@@ -268,20 +268,27 @@ namespace AScript.Lang.Go
 			if (nextToken.Value.IsSymbol("*"))
 			{
 				// 指针类型
-				var nextToken2 = tokenReader.Read();
-				if (nextToken2.HasValue)
+				//var nextToken2 = tokenReader.Read();
+				//if (nextToken2.HasValue)
+				//{
+				//	if (nextToken2.Value.Type == ETokenType.Word)
+				//	{
+				//		if (TryParseWordType(analyzer, buildContext, scriptContext, options, tokenReader, nextToken2.Value, out type))
+				//		{
+				//			var realType = type.RealType;
+				//			var pointerType = typeof(Pointer<>).MakeGenericType(realType);
+				//			type = new GoRuntimeType($"*{type.Name}", pointerType);
+				//			return true;
+				//		}
+				//	}
+				//	tokenReader.Push(nextToken2.Value);
+				//}
+				if (TryParseType(analyzer, buildContext, scriptContext, options, tokenReader, ignore, out var p))
 				{
-					if (nextToken2.Value.Type == ETokenType.Word)
-					{
-						if (TryParseWordType(analyzer, buildContext, scriptContext, options, tokenReader, nextToken2.Value, out type))
-						{
-							var realType = type.RealType;
-							var pointerType = typeof(Pointer<>).MakeGenericType(realType);
-							type = new GoRuntimeType($"*{type.Name}", pointerType);
-							return true;
-						}
-					}
-					tokenReader.Push(nextToken2.Value);
+					var realType = p.RealType;
+					var pointerType = typeof(Pointer<>).MakeGenericType(realType);
+					type = new GoRuntimeType($"*{p.Name}", pointerType);
+					return true;
 				}
 			}
 			else if (nextToken.Value.Type == ETokenType.Word)
@@ -321,8 +328,9 @@ namespace AScript.Lang.Go
 
 			if (token.Value.IsSymbol("*"))
 			{
-				var token2 = analyzer.ValidateNextToken(tokenReader, ETokenType.Word);
-				var type = ParseWordType(analyzer, buildContext, scriptContext, options, tokenReader, token2.Value);
+				//var token2 = analyzer.ValidateNextToken(tokenReader, ETokenType.Word);
+				//var type = ParseWordType(analyzer, buildContext, scriptContext, options, tokenReader, token2.Value);
+				var type = ParseType(analyzer, buildContext, scriptContext, options, tokenReader, ignore);
 				var realType = type.RealType;
 				var pointerType = typeof(Pointer<>).MakeGenericType(realType);
 				return new GoRuntimeType($"*{type.Name}", pointerType);
