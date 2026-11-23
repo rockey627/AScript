@@ -204,19 +204,22 @@ namespace AScript.Syntaxs
 				}
 				else if (t.Value.Type == ETokenType.Object)
 				{
-					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
-					else if (treeBuilder.IsFullStatement())
+					if (treeBuilder == null && !ignore) treeBuilder = PoolManage.CreateTreeBuilder();
+					else if (treeBuilder != null && treeBuilder.IsFullStatement())
 					{
 						tokenReader.Push(t.Value);
 						break;
 					}
-					if (t.Value.Data is ITreeNode dataNode)
+					if (!ignore)
 					{
-						treeBuilder.AddData(buildContext, scriptContext, options, control, dataNode);
-					}
-					else
-					{
-						treeBuilder.AddData(buildContext, scriptContext, options, control, t.Value.Data);
+						if (t.Value.Data is ITreeNode dataNode)
+						{
+							treeBuilder.AddData(buildContext, scriptContext, options, control, dataNode);
+						}
+						else
+						{
+							treeBuilder.AddData(buildContext, scriptContext, options, control, t.Value.Data);
+						}
 					}
 				}
 				else if (t.Value.Value == ")" || t.Value.Value == "]" || t.Value.Value == "}" || t.Value.Value == "," || t.Value.Value == ";")// || t.Value.Value == ":")
@@ -557,19 +560,22 @@ namespace AScript.Syntaxs
 				}
 				else if (t.Value.Type == ETokenType.Object)
 				{
-					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
-					else if (treeBuilder.IsFullStatement())
+					if (treeBuilder == null && !ignore) treeBuilder = PoolManage.CreateTreeBuilder();
+					else if (treeBuilder != null && treeBuilder.IsFullStatement())
 					{
 						tokenReader.Push(t.Value);
 						break;
 					}
-					if (t.Value.Data is ITreeNode dataNode)
+					if (!ignore)
 					{
-						await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, dataNode, cancellationToken).ConfigureAwait(false);
-					}
-					else
-					{
-						await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, t.Value.Data, cancellationToken).ConfigureAwait(false);
+						if (t.Value.Data is ITreeNode dataNode)
+						{
+							await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, dataNode, cancellationToken).ConfigureAwait(false);
+						}
+						else
+						{
+							await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, t.Value.Data, cancellationToken).ConfigureAwait(false);
+						}
 					}
 				}
 				else if (t.Value.Value == ")" || t.Value.Value == "]" || t.Value.Value == "}" || t.Value.Value == "," || t.Value.Value == ";")// || t.Value.Value == ":")
