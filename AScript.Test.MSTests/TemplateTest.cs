@@ -199,7 +199,8 @@ namespace AScript.Test.MSTests
 			// 注释块@*...*@内的内容不输出
 			var template = new Template("Hello @* this is ${name} a @{ok()}@*comment @*@World\\@* hello *@");
 			var result = template.Render(null);
-			Assert.AreEqual("Hello World@* hello *@", result);
+			// 最后一个@为脚本行
+			Assert.AreEqual("Hello World@* hello *", result);
 		}
 
 		[TestMethod]

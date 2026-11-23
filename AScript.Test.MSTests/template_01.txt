@@ -7,9 +7,13 @@
 // created at ${now.ToString('yyyy-MM-dd')}
 using System;
 
+@*
+这里是注释块，不会输出
+可以随便写，${xxx} @{xxx}**\@\
+*@
 namespace MyTest.Model
 {
-	/// <summary>
+	/// <sum@* 中间插入注释块 *@mary>
 	/// ${entity.Memo}
 	/// </summary>
 	[Table("${entity.TableName}")]

@@ -873,6 +873,7 @@ Assert.AreEqual(expected, result);
 * `${}`脚本块：执行并输出
 * `@{}`和`@()`脚本块：只执行不输出
 * `@`脚本行：当前行是脚本
+* `@* *@`文本注释块，跳过注释块内的文本，如果注释块独占一行则会移除该行的换行符
 * 换行处理：脚本块或脚本行单独占一行时移除该行的换行符，行内还有其他内容时保留换行符
 * 内置`output`输出流变量，提供方法：`output.Write/output.WriteLine/output.WriteAsync/output.WriteLineAsync`
 * 内置`model`模型对象，支持类似Razor引擎中的Model功能
@@ -897,6 +898,10 @@ Assert.AreEqual(expected, result);
 // created at ${now.ToString('yyyy-MM-dd')} by ${author}
 using System;
 
+@*
+这里是注释块，不会输出
+可以随便写
+*@
 namespace MyTest.Model
 {
 	/// <summary>
