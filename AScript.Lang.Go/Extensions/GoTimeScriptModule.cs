@@ -6,14 +6,14 @@ namespace AScript.Lang.Go.Extensions
 	{
 		public object Install(BaseContext context)
 		{
-			context.AddType("time", typeof(DateTime));
+			context.AddType("time", typeof(DateTime), false);
 			context.AddFunc(typeof(GoTimeExtensions));
 			return new TypeWrapper("time", typeof(DateTime));
 		}
 
 		public void Uninstall(BaseContext context)
 		{
-			context.RemoveType("time");
+			context.RemoveType("time", true);
 		}
 	}
 }
