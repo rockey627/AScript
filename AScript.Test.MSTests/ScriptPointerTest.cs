@@ -82,5 +82,36 @@ p[1]
 			script.Options.CompileMode = ECompileMode.All;
 			Assert.AreEqual(20, script.Eval(s));
 		}
+
+		[TestMethod]
+		public void Test04_ArrayPointerModify()
+		{
+			var s = @"
+var p = &arr;
+p[1] = 99;
+";
+			var script = new Script();
+			var arr = new[] { 10, 20, 30 };
+			script.Context.SetVar("arr", arr);
+			script.Eval(s);
+			Assert.AreEqual(99, arr[1]);
+			Assert.AreEqual(10, arr[0]);
+		}
+
+		[TestMethod]
+		public void Test04_ArrayPointerModify_CompileAll()
+		{
+			var s = @"
+var p = &arr;
+p[1] = 99;
+";
+			var script = new Script();
+			var arr = new[] { 10, 20, 30 };
+			script.Context.SetVar("arr", arr);
+			script.Options.CompileMode = ECompileMode.All;
+			script.Eval(s);
+			Assert.AreEqual(99, arr[1]);
+			Assert.AreEqual(10, arr[0]);
+		}
 	}
 }

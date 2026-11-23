@@ -58,6 +58,20 @@ namespace AScript
 		public static readonly MethodInfo Method_Pointer_Address_SetValue = typeof(Pointer.IAddress).GetMethod("SetValue");
 		public static readonly ConstructorInfo Constructor_Pointer = typeof(Pointer).GetConstructor(new[] { typeof(Type), typeof(Pointer.IAddress) });
 
+		/// <summary>
+		/// 获取指针指向的数组类型，指针不指向数组时返回 null
+		/// </summary>
+		public static Type GetPointerArrayType(Type pointerType)
+		{
+			if (pointerType != null && pointerType.IsGenericType
+				&& pointerType.GetGenericTypeDefinition() == typeof(Pointer<>))
+			{
+				var objectType = pointerType.GetGenericArguments()[0];
+				if (objectType.IsArray) return objectType;
+			}
+			return null;
+		}
+
 		public static readonly MethodInfo Method_ITreeNode_Eval = typeof(ITreeNode).GetMethod("Eval", new Type[] { typeof(ScriptContext), typeof(BuildOptions), typeof(EvalControl), typeof(Type).MakeByRefType() });
 
 		public static readonly MethodInfo Method_LambdaExpression_Compile = typeof(LambdaExpression).GetMethod("Compile", new Type[0]);

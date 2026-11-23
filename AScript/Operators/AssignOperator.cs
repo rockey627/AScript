@@ -2,11 +2,8 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-//using Microsoft.CSharp.RuntimeBinder;
 using AScript.Nodes;
 using System.Collections;
-using System.Linq;
 using AScript.Exceptions;
 using System.Dynamic;
 
@@ -259,6 +256,23 @@ namespace AScript.Operators
 			{
 				(expandoObj as IDictionary<string, object>)[idx.ToString()] = value;
 			}
+			else if (obj is Pointer pointer && pointer.ObjectType.IsArray)
+			{
+				// 指针指向数组时，给数组元素赋值
+				var pointerArray = pointer.Address.GetValue(e.Context) as Array;
+				if (pointerArray == null)
+				{
+					throw new ScriptRuntimeException("pointer target is not an array");
+				}
+				int pointerIndex = Convert.ToInt32(idx);
+				var pointerElementType = pointerArray.GetType().GetElementType();
+				if (value != null && pointerElementType != null)
+				{
+					value = ScriptUtils.Convert(value, pointerElementType);
+				}
+				pointerArray.SetValue(value, pointerIndex);
+				return;
+			} 
 			else if (obj != null)
 			{
 				// 其他类型使用动态调用
@@ -301,6 +315,13 @@ namespace AScript.Operators
 				return Expression.Assign(Expression.ArrayAccess(obj, idx), valueExpr);
 			}
 
+			// 指针指向数组时，给数组元素赋值
+			var pointerArrayType = ScriptUtils.GetPointerArrayType(obj.Type);
+			if (pointerArrayType != null)
+			{
+				return BuildPointerIndexAssign(e, opNode, obj, idx, value, pointerArrayType);
+			}
+
 			var objType = obj.Type == typeof(ExpandoObject) ? typeof(IDictionary<string, object>) : obj.Type;
 			// 尝试使用索引器（Item属性）赋值
 			var indexer = objType.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance);
@@ -341,6 +362,57 @@ namespace AScript.Operators
 				//	value);
 				return ExpressionUtils.setItem(obj, idx, value);
 			}
+		}
+
+		/// <summary>
+		/// 指针指向数组时，给数组元素赋值
+		/// </summary>
+		private Expression BuildPointerIndexAssign(FunctionBuildArgs e, OperatorNode opNode, Expression obj, Expression idx, Expression value, Type arrayType)
+		{
+			var array = BuildPointerArrayExpression(e, opNode, obj, arrayType);
+			if (idx.Type != typeof(int))
+			{
+				idx = Expression.Convert(idx, typeof(int));
+			}
+			var valueExpr = ScriptUtils.Convert(value, arrayType.GetElementType());
+			return Expression.Assign(Expression.ArrayAccess(array, idx), valueExpr);
+		}
+
+		/// <summary>
+		/// 获取指针指向的数组表达式
+		/// </summary>
+		private Expression BuildPointerArrayExpression(FunctionBuildArgs e, OperatorNode opNode, Expression obj, Type arrayType)
+		{
+			// 编译期能确定指针时，直接按变量的方式取数组，保证与脚本变量是同一个实例
+			var pointer = TryGetPointer(e, opNode, obj);
+			if (pointer?.Address is Pointer.VariableAddress variableAddress)
+			{
+				var expr = new VariableNode(variableAddress.Name).Build(e.BuildContext, e.ScriptContext, e.Options);
+				if (expr != null)
+				{
+					if (expr.Type != arrayType)
+					{
+						expr = Expression.Convert(expr, arrayType);
+					}
+					return expr;
+				}
+			}
+			var addr = Expression.Property(obj, "Address");
+			var data = Expression.Call(addr, ScriptUtils.Method_Pointer_Address_GetValue, e.BuildContext.GetScriptContextParameter(true));
+			return Expression.Convert(data, arrayType);
+		}
+
+		/// <summary>
+		/// 尝试在编译期确定指针
+		/// </summary>
+		private static Pointer TryGetPointer(FunctionBuildArgs e, OperatorNode opNode, Expression obj)
+		{
+			// 编译期常量指针
+			if (obj is ConstantExpression constant && constant.Value is Pointer pointer) return pointer;
+			// 编译期已知指针值的变量
+			if (opNode.Left is VariableNode variableNode
+				&& e.BuildContext.TryGetPointerVariable(variableNode.Name, out var known)) return known;
+			return null;
 		}
 
 		private void Decontruct(FunctionEvalArgs e, ITreeNode item, object value, Type valueType = null)

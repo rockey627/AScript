@@ -106,7 +106,7 @@ namespace AScript.Operators
 			// Pointer 指向数组时，按索引获取元素
 			if (typeof(Pointer).IsAssignableFrom(target.Type))
 			{
-				var arrayType = GetPointerArrayType(target.Type);
+				var arrayType = ScriptUtils.GetPointerArrayType(target.Type);
 				if (arrayType != null)
 				{
 					var addr = Expression.Property(target, "Address");
@@ -248,19 +248,6 @@ namespace AScript.Operators
 				//}
 				e.Result = Expression.Call(Method_GetItem, target, Expression.Convert(index, typeof(object)), Expression.Constant(_IndexBased1));
 			}
-		}
-
-		/// <summary>
-		/// 获取指针指向的数组类型，指针不指向数组时返回 null
-		/// </summary>
-		private static Type GetPointerArrayType(Type pointerType)
-		{
-			if (pointerType.IsGenericType && pointerType.GetGenericTypeDefinition() == typeof(Pointer<>))
-			{
-				var objectType = pointerType.GetGenericArguments()[0];
-				if (objectType.IsArray) return objectType;
-			}
-			return null;
 		}
 
 		/// <summary>
