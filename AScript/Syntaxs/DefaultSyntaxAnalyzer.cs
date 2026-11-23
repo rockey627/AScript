@@ -116,7 +116,7 @@ namespace AScript.Syntaxs
 					continue;
 				}
 				//if (nextToken.Value.Value == ";" || nextToken.Value.Value == "," || nextToken.Value.Value == ":") continue;
-				if (nextToken.Value.IsSymbol( ";") || nextToken.Value.IsSymbol( ",")) continue;
+				if (nextToken.Value.IsSymbol(";") || nextToken.Value.IsSymbol(",")) continue;
 				if (nextToken.Value.IsSymbol(":") && !scriptContext.GetOperatorPriority(":").HasValue && !scriptContext.IsKeywords(":"))
 				{
 					continue;
@@ -184,23 +184,29 @@ namespace AScript.Syntaxs
 			{
 				if (t.Value.Type == ETokenType.Number)
 				{
-					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
-					else if (treeBuilder.IsFullStatement())
+					if (treeBuilder == null && !ignore) treeBuilder = PoolManage.CreateTreeBuilder();
+					else if (treeBuilder != null && treeBuilder.IsFullStatement())
 					{
 						tokenReader.Push(t.Value);
 						break;
 					}
-					treeBuilder.AddData(buildContext, scriptContext, options, control, EvalNumber(t.Value.Value), null);
+					if (!ignore)
+					{
+						treeBuilder.AddData(buildContext, scriptContext, options, control, EvalNumber(t.Value.Value), null);
+					}
 				}
 				else if (t.Value.Type == ETokenType.String)
 				{
-					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
-					else if (treeBuilder.IsFullStatement())
+					if (treeBuilder == null && !ignore) treeBuilder = PoolManage.CreateTreeBuilder();
+					else if (treeBuilder != null && treeBuilder.IsFullStatement())
 					{
 						tokenReader.Push(t.Value);
 						break;
 					}
-					treeBuilder.AddData(buildContext, scriptContext, options, control, t.Value.Value, typeof(string));
+					if (!ignore)
+					{
+						treeBuilder.AddData(buildContext, scriptContext, options, control, t.Value.Value, typeof(string));
+					}
 				}
 				else if (t.Value.Type == ETokenType.Object)
 				{
@@ -253,8 +259,11 @@ namespace AScript.Syntaxs
 						break;
 					}
 					var block = BuildBlock(buildContext, scriptContext, options, tokenReader, control, ignore);
-					if (treeBuilder == null) treeBuilder = new TreeBuilder();
-					treeBuilder.AddData(buildContext, scriptContext, options, control, block);
+					if (!ignore)
+					{
+						if (treeBuilder == null) treeBuilder = new TreeBuilder();
+						treeBuilder.AddData(buildContext, scriptContext, options, control, block);
+					}
 				}
 				else if (t.Value.Value == "(")
 				{
@@ -306,11 +315,14 @@ namespace AScript.Syntaxs
 									{
 										throw new Exceptions.ScriptAnalyzingException($"invalid expression '?' at ({nextToken2.Value.Line},{nextToken2.Value.Column})");
 									}
-									var type = typeof(Nullable<>).MakeGenericType(type0);
-									var typeOpNode = PoolManage.CreateOperatorNode(Functions.ConvertFunction.FORCE_NAME, 2, OperatorPriorities["."] - 1);
-									typeOpNode.Left = PoolManage.CreateObjectNode(type);
-									if (treeBuilder == null) treeBuilder = new TreeBuilder();
-									treeBuilder.AddData(buildContext, scriptContext, options, control, typeOpNode);
+									if (!ignore)
+									{
+										var type = typeof(Nullable<>).MakeGenericType(type0);
+										var typeOpNode = PoolManage.CreateOperatorNode(Functions.ConvertFunction.FORCE_NAME, 2, OperatorPriorities["."] - 1);
+										typeOpNode.Left = PoolManage.CreateObjectNode(type);
+										if (treeBuilder == null) treeBuilder = new TreeBuilder();
+										treeBuilder.AddData(buildContext, scriptContext, options, control, typeOpNode);
+									}
 									t = valueToken;
 									continue;
 								}
@@ -343,10 +355,13 @@ namespace AScript.Syntaxs
 								{
 									throw new Exceptions.ScriptAnalyzingException($"unkown type '{typeToken.Value.Value}'");
 								}
-								var typeOpNode = PoolManage.CreateOperatorNode(Functions.ConvertFunction.FORCE_NAME, 2, OperatorPriorities["."] - 1);
-								typeOpNode.Left = PoolManage.CreateObjectNode(type);
-								if (treeBuilder == null) treeBuilder = new TreeBuilder();
-								treeBuilder.AddData(buildContext, scriptContext, options, control, typeOpNode);
+								if (!ignore)
+								{
+									var typeOpNode = PoolManage.CreateOperatorNode(Functions.ConvertFunction.FORCE_NAME, 2, OperatorPriorities["."] - 1);
+									typeOpNode.Left = PoolManage.CreateObjectNode(type);
+									if (treeBuilder == null) treeBuilder = new TreeBuilder();
+									treeBuilder.AddData(buildContext, scriptContext, options, control, typeOpNode);
+								}
 								t = valueToken;
 								continue;
 							}
@@ -540,23 +555,29 @@ namespace AScript.Syntaxs
 			{
 				if (t.Value.Type == ETokenType.Number)
 				{
-					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
-					else if (treeBuilder.IsFullStatement())
+					if (treeBuilder == null && !ignore) treeBuilder = PoolManage.CreateTreeBuilder();
+					else if (treeBuilder != null && treeBuilder.IsFullStatement())
 					{
 						tokenReader.Push(t.Value);
 						break;
 					}
-					await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, EvalNumber(t.Value.Value), null).ConfigureAwait(false);
+					if (!ignore)
+					{
+						await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, EvalNumber(t.Value.Value), null).ConfigureAwait(false);
+					}
 				}
 				else if (t.Value.Type == ETokenType.String)
 				{
-					if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
-					else if (treeBuilder.IsFullStatement())
+					if (treeBuilder == null && !ignore) treeBuilder = PoolManage.CreateTreeBuilder();
+					else if (treeBuilder != null && treeBuilder.IsFullStatement())
 					{
 						tokenReader.Push(t.Value);
 						break;
 					}
-					await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, t.Value.Value, typeof(string), cancellationToken).ConfigureAwait(false);
+					if (!ignore)
+					{
+						await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, t.Value.Value, typeof(string), cancellationToken).ConfigureAwait(false);
+					}
 				}
 				else if (t.Value.Type == ETokenType.Object)
 				{
@@ -609,8 +630,11 @@ namespace AScript.Syntaxs
 						break;
 					}
 					var block = await BuildBlockAsync(buildContext, scriptContext, options, tokenReader, control, ignore, cancellationToken).ConfigureAwait(false);
-					if (treeBuilder == null) treeBuilder = new TreeBuilder();
-					await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, block, cancellationToken).ConfigureAwait(false);
+					if (!ignore)
+					{
+						if (treeBuilder == null) treeBuilder = new TreeBuilder();
+						await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, block, cancellationToken).ConfigureAwait(false);
+					}
 				}
 				else if (t.Value.Value == "(")
 				{
@@ -662,11 +686,14 @@ namespace AScript.Syntaxs
 									{
 										throw new Exceptions.ScriptAnalyzingException($"invalid expression '?' at ({nextToken2.Value.Line},{nextToken2.Value.Column})");
 									}
-									var type = typeof(Nullable<>).MakeGenericType(type0);
-									var typeOpNode = PoolManage.CreateOperatorNode(Functions.ConvertFunction.FORCE_NAME, 2, OperatorPriorities["."] - 1);
-									typeOpNode.Left = PoolManage.CreateObjectNode(type);
-									if (treeBuilder == null) treeBuilder = new TreeBuilder();
-									await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, typeOpNode, cancellationToken).ConfigureAwait(false);
+									if (!ignore)
+									{
+										var type = typeof(Nullable<>).MakeGenericType(type0);
+										var typeOpNode = PoolManage.CreateOperatorNode(Functions.ConvertFunction.FORCE_NAME, 2, OperatorPriorities["."] - 1);
+										typeOpNode.Left = PoolManage.CreateObjectNode(type);
+										if (treeBuilder == null) treeBuilder = new TreeBuilder();
+										await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, typeOpNode, cancellationToken).ConfigureAwait(false);
+									}
 									t = valueToken;
 									continue;
 								}
@@ -699,10 +726,13 @@ namespace AScript.Syntaxs
 								{
 									throw new Exceptions.ScriptAnalyzingException($"unkown type '{typeToken.Value.Value}'");
 								}
-								var typeOpNode = PoolManage.CreateOperatorNode(Functions.ConvertFunction.FORCE_NAME, 2, OperatorPriorities["."] - 1);
-								typeOpNode.Left = PoolManage.CreateObjectNode(type);
-								if (treeBuilder == null) treeBuilder = new TreeBuilder();
-								await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, typeOpNode, cancellationToken).ConfigureAwait(false);
+								if (!ignore)
+								{
+									var typeOpNode = PoolManage.CreateOperatorNode(Functions.ConvertFunction.FORCE_NAME, 2, OperatorPriorities["."] - 1);
+									typeOpNode.Left = PoolManage.CreateObjectNode(type);
+									if (treeBuilder == null) treeBuilder = new TreeBuilder();
+									await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, typeOpNode, cancellationToken).ConfigureAwait(false);
+								}
 								t = valueToken;
 								continue;
 							}
