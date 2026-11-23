@@ -1031,6 +1031,105 @@ sum
 		}
 
 		[TestMethod]
+		public void Test29_ArrayIterationSum_range()
+		{
+			var s = @"
+var arr = [4]int{10, 20, 30, 40}
+var sum = 0
+for i := range arr {
+    sum += i
+}
+sum
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			Assert.AreEqual(6, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test29_ArrayIterationSum_range_CompileAll()
+		{
+			var s = @"
+var arr = [4]int{10, 20, 30, 40}
+var sum = 0
+for i := range arr {
+    sum += i
+}
+sum
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			Assert.AreEqual(6, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test29_ArrayIterationSum_range2()
+		{
+			var s = @"
+var arr = [4]int{10, 20, 30, 40}
+var sum = 0
+for i,n := range arr {
+    sum += n
+}
+sum
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			Assert.AreEqual(100, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test29_ArrayIterationSum_range2_CompileAll()
+		{
+			var s = @"
+var arr = [4]int{10, 20, 30, 40}
+var sum = 0
+for i,n := range arr {
+    sum += n
+}
+sum
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			Assert.AreEqual(100, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test29_ArrayIterationSum_range3()
+		{
+			var s = @"
+var arr = [4]int{10, 20, 30, 40}
+var sum = 0
+for _,n := range arr {
+    sum += n
+}
+sum
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			Assert.AreEqual(100, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test29_ArrayIterationSum_range3_CompileAll()
+		{
+			var s = @"
+var arr = [4]int{10, 20, 30, 40}
+var sum = 0
+for _,n := range arr {
+    sum += n
+}
+sum
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			Assert.AreEqual(100, script.Eval(s));
+		}
+
+		[TestMethod]
 		public void Test30_ArrayMake()
 		{
 			var s = @"
