@@ -13,6 +13,8 @@ namespace AScript.Operators
 	{
 		public static readonly AssignOperator Instance = new AssignOperator();
 
+		private static readonly MethodInfo Method_CopyClassValue = typeof(AssignOperator).GetMethod("CopyClassValue", new[] { typeof(object) });
+
 		public virtual void Build(FunctionBuildArgs e)
 		{
 			if (e.Args.Count != 2) return;
@@ -20,12 +22,14 @@ namespace AScript.Operators
 			if (arg0 is VariableNode v)
 			{
 				var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+				right = BuildCopyClassValue(right);
 				e.Result = HandleVariableAssign(e, v, right);
 			}
 			else if (arg0 is OperatorNode opNode && opNode.Name == "[]")
 			{
 				// 索引器赋值
 				var value = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+				value = BuildCopyClassValue(value);
 				e.Result = BuildIndexAssign(e, opNode, value);
 			}
 			else if (arg0 is CallFuncNode callFuncNode && callFuncNode.Name == "[:]")
@@ -67,6 +71,7 @@ namespace AScript.Operators
 			{
 				var left = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
 				var right = e.Args[1].Build(e.BuildContext, e.ScriptContext, e.Options);
+				right = BuildCopyClassValue(right);
 				if (right.Type != left.Type)
 				{
 					right = Expression.Convert(right, left.Type);
@@ -97,6 +102,7 @@ namespace AScript.Operators
 			{
 				string varName = varNode.Name;
 				var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
+				value = CopyClassValue(value);
 
 				if (varName == "_")
 				{
@@ -166,6 +172,7 @@ namespace AScript.Operators
 				{
 					// 属性赋值
 					var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
+					value = CopyClassValue(value);
 					var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
 					ScriptUtils.SetValue(opLeftValue, opRightNode.Name, value);
 					e.SetResult(value, type);
@@ -175,6 +182,7 @@ namespace AScript.Operators
 				{
 					// 设置索引值
 					var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
+					value = CopyClassValue(value);
 					EvalIndexAssign(e, opNode, value);
 
 					e.SetResult(value, type);
@@ -184,6 +192,7 @@ namespace AScript.Operators
 				{
 					// 指针解引用赋值 *p = value
 					var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
+					value = CopyClassValue(value);
 					var pointerValue = opNode.Right?.Eval(e.Context, e.Options, e.Control, out _);
 					if (pointerValue is Pointer pointer)
 					{
@@ -442,6 +451,36 @@ namespace AScript.Operators
 			return null;
 		}
 
+		/// <summary>
+		/// 右值是值类型结构体时，赋值需要拷贝一份
+		/// </summary>
+		public static object CopyClassValue(object value)
+		{
+			if (value is ClassObject classObject && classObject.Define.IsValueType)
+			{
+				return classObject.Clone();
+			}
+			return value;
+		}
+
+		/// <summary>
+		/// 右值是值类型结构体时，赋值需要拷贝一份
+		/// 编译期无法确定结构体是否是值类型，交给运行期判断
+		/// </summary>
+		private static Expression BuildCopyClassValue(Expression right)
+		{
+			if (right.Type == typeof(ClassObject))
+			{
+				var copied = Expression.Call(Method_CopyClassValue, right);
+				return Expression.Convert(copied, typeof(ClassObject));
+			}
+			//if (right.Type == typeof(object))
+			//{
+			//	return Expression.Call(Method_CopyClassValue, right);
+			//}
+			return right;
+		}
+
 		private void Decontruct(FunctionEvalArgs e, ITreeNode item, object value, Type valueType = null)
 		{
 			if (item is DefineVarNode defineVarNode)
@@ -449,6 +488,7 @@ namespace AScript.Operators
 				if (value is ITreeNode treeNode)
 				{
 					value = treeNode.Eval(e.Context, e.Options, e.Control, out valueType);
+					value = CopyClassValue(value);
 				}
 				if (!string.IsNullOrEmpty(defineVarNode.Name) && defineVarNode.Name != "_")
 				{
@@ -472,6 +512,7 @@ namespace AScript.Operators
 				if (value is ITreeNode treeNode)
 				{
 					value = treeNode.Eval(e.Context, e.Options, e.Control, out valueType);
+					value = CopyClassValue(value);
 				}
 				if (!string.IsNullOrEmpty(variableNode.Name) && variableNode.Name != "_")
 				{
@@ -496,6 +537,7 @@ namespace AScript.Operators
 					if (value is ITreeNode treeNode)
 					{
 						value = treeNode.Eval(e.Context, e.Options, e.Control, out valueType);
+						value = CopyClassValue(value);
 					}
 					EvalIndexAssign(e, operatorNode, value);
 					return;
