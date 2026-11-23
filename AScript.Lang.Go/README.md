@@ -211,6 +211,7 @@ script.Eval(s);
 `go` 语句用于启动一个并发调用：
 ```csharp
 var s = @"
+import 'fmt'
 go func() {
     fmt.Println('in goroutine')
 }()
@@ -273,7 +274,7 @@ var d = &b
 d[0] = 10      // b[0] 变为 10
 
 func setarr(x *[5]int) {
-    (*x)[0] = 100
+    x[0] = 100
 }
 var arr = [5]int{1,2,3,4,5}
 setarr(&arr)   // arr[0] 变为 100
@@ -287,7 +288,6 @@ script.Eval(s);
 无序的键值对集合。
 ```csharp
 var s = @"
-// 字面量
 var m = map[string]int{
     'apple': 1,
     'banana': 2,
