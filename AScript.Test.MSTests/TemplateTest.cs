@@ -67,6 +67,97 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
+		public void Test03_ScriptBlock_Paren()
+		{
+			var template = new Template("@(var userSex = name == 'Tom' ? '先生' : '女士';)尊敬的 ${name}${userSex} 您好！");
+			template.Context.SetVar("name", "Tom");
+			var result = template.Render(null);
+			Assert.AreEqual("尊敬的 Tom先生 您好！", result);
+		}
+
+		[TestMethod]
+		public void Test03_ScriptBlock_Paren_CompileAll()
+		{
+			var template = new Template("@(var userSex = name == 'Tom' ? '先生' : '女士';)尊敬的 ${name}${userSex} 您好！");
+			template.Options.CompileMode = ECompileMode.All;
+			template.Context.SetVar("name", "Tom");
+			var result = template.Render(null);
+			Assert.AreEqual("尊敬的 Tom先生 您好！", result);
+		}
+
+		[TestMethod]
+		public void Test03_ScriptBlock_Paren_Async()
+		{
+			var template = new Template("@(var userSex = name == 'Tom' ? '先生' : '女士';)尊敬的 ${name}${userSex} 您好！");
+			template.Context.SetVar("name", "Tom");
+			var result = template.RenderAsync(null).Result;
+			Assert.AreEqual("尊敬的 Tom先生 您好！", result);
+		}
+
+		[TestMethod]
+		public void Test03_ScriptBlock_Paren_Braces()
+		{
+			// 括号块内可以包含大括号，且嵌套的括号需要正确配对
+			var template = new Template("@(if (list.Count > 0) { var n = list.Count;})共 ${list.Count} 项");
+			template.Context.SetVar("list", new List<string> { "a", "b" });
+			var result = template.Render(null);
+			Assert.AreEqual("共 2 项", result);
+		}
+
+		[TestMethod]
+		public void Test03_ScriptBlock_Paren_Braces2()
+		{
+			// 括号块内可以包含大括号，且嵌套的括号需要正确配对
+			var template = new Template("@(if (list.Count > 0) { var n = list.Count;)共 ${list.Count} 项@(} else {)无数据@}");
+			template.Context.SetVar("list", new List<string> { "a", "b" });
+			var result = template.Render(null);
+			Assert.AreEqual("共 2 项", result);
+		}
+
+		[TestMethod]
+		public void Test03_ScriptBlock_Paren_Braces3()
+		{
+			// 括号块内可以包含大括号，且嵌套的括号需要正确配对
+			var template = new Template("@(if (list.Count > 0) { var n = list.Count;)共 ${list.Count} 项@(} else {)无数据@}");
+			template.Context.SetVar("list", new List<string> { });
+			var result = template.Render(null);
+			Assert.AreEqual("无数据", result);
+		}
+
+		[TestMethod]
+		public void Test03_ScriptBlock_Paren_Braces4()
+		{
+			string s = @"
+@if (list.Count > 0) { var n = list.Count;
+共 ${n} 项
+@} else {
+无数据
+@}
+";
+			var template = new Template(s);
+			template.Context.SetVar("list", new List<string> { });
+			var result = template.Render(null);
+			Assert.AreEqual("无数据", result);
+		}
+
+		[TestMethod]
+		public void Test03_ScriptBlock_Paren_Braces4_CompileAll()
+		{
+			string s = @"
+@if (list.Count > 0) { var n = list.Count;
+共 ${n} 项
+@} else {
+无数据
+@}
+";
+			var template = new Template(s);
+			template.Options.CompileMode = ECompileMode.All;
+			template.Context.SetVar("list", new List<string> { });
+			var result = template.Render(null);
+			Assert.AreEqual("无数据", result);
+		}
+
+		[TestMethod]
 		public void Test04_Statement()
 		{
 			var template = new Template("@foreach(var item in list) {\r\n\t[${item}]\r\n@}\r\nend");

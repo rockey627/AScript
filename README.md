@@ -871,7 +871,7 @@ Assert.AreEqual(expected, result);
 ## 模板引擎
 相较于**字符串模板**，`Template`模板引擎提供了更强大的功能，适合html、邮件、代码生成等复杂模板
 * `${}`脚本块：执行并输出
-* `@{}`脚本块：只执行不输出
+* `@{}`和`@()`脚本块：只执行不输出
 * `@`脚本行：当前行是脚本
 * 换行处理：脚本块或脚本行单独占一行时移除该行的换行符，行内还有其他内容时保留换行符
 * 内置`output`输出流变量，提供方法：`output.Write/output.WriteLine/output.WriteAsync/output.WriteLineAsync`

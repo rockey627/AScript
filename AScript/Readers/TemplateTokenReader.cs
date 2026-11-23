@@ -12,6 +12,7 @@ namespace AScript.Readers
 	/// <summary>
 	/// <para>模板记号读取器，将模板转换为脚本记号流</para>
 	/// <para>@{...} 内部为脚本块，块内记号原样透传</para>
+	/// <para>@(...) 内部为脚本块，功能与@{...}一致，只是结束符为')'</para>
 	/// <para>${...} 内部为表达式，转换为 output.Write(表达式)</para>
 	/// <para>@ 开头为脚本行，整行记号原样透传</para>
 	/// <para>其他为文本，转换为 output.Write('文本')</para>
@@ -24,7 +25,7 @@ namespace AScript.Readers
 		{
 			/// <summary>文本</summary>
 			Text,
-			/// <summary>脚本块@{...}</summary>
+			/// <summary>脚本块@{...} 或 @(...)</summary>
 			ScriptBlock,
 			/// <summary>表达式${...}，输出 output.Write( 的前缀</summary>
 			ExpressionBegin,
@@ -47,6 +48,8 @@ namespace AScript.Readers
 			public ETemplateState State { get; set; }
 			/// <summary>宿主大括号深度</summary>
 			public int BraceDepth { get; set; }
+			/// <summary>宿主脚本块的结束符（'}' 或 ')'）</summary>
+			public char BlockEnd { get; set; }
 			/// <summary>宿主表达式记号数</summary>
 			public int ExpressionTokenCount { get; set; }
 			/// <summary>宿主当前行是否有静态文本</summary>
@@ -68,6 +71,10 @@ namespace AScript.Readers
 
 		private ETemplateState _state = ETemplateState.Text;
 		private int _braceDepth;
+		/// <summary>
+		/// 当前脚本块的结束符（'}' 或 ')'），@{...} 为 '}'，@(...) 为 ')'
+		/// </summary>
+		private char _blockEnd = '}';
 		private int _expressionTokenCount;
 		private int _textLine;
 		private int _textColumn;
@@ -247,6 +254,12 @@ namespace AScript.Readers
 				this.CharReader.Read();
 				return EnterState(ETemplateState.ScriptBlock, 1);
 			}
+			if (nextChar.HasValue && nextChar.Value == '(')
+			{
+				// 脚本块@(...)，功能与@{...}一致，只是结束符为')'
+				this.CharReader.Read();
+				return EnterState(ETemplateState.ScriptBlock, 1, ')');
+			}
 			// 脚本行@...
 			return EnterState(ETemplateState.ScriptLine, 0);
 		}
@@ -282,7 +295,7 @@ namespace AScript.Readers
 		}
 
 		/// <summary>
-		/// 读取脚本块@{...}的内容，每次读取一个记号
+		/// 读取脚本块@{...}或@(...)的内容，每次读取一个记号
 		/// </summary>
 		private Token? ReadScriptBlockToken()
 		{
@@ -304,24 +317,44 @@ namespace AScript.Readers
 				// 已切换到包含的模板文件
 				return null;
 			}
-			if (t.Value.IsSymbol("}"))
+			if (IsBlockEnd(t.Value))
 			{
 				_braceDepth--;
 				if (_braceDepth <= 0)
 				{
-					// 脚本块结束，块尾的'}'不输出
+					// 脚本块结束，块尾的结束符不输出
 					_state = ETemplateState.Text;
 					// 脚本块的换行符不输出
 					SkipLineBreak();
 					return null;
 				}
 			}
-			else if (t.Value.IsSymbol("{"))
+			else if (IsBlockBegin(t.Value))
 			{
 				_braceDepth++;
 			}
 			_lastToken = t.Value;
 			return t.Value;
+		}
+
+		/// <summary>
+		/// 判断记号是否为脚本块的结束符（'}' 或 ')'）
+		/// </summary>
+		/// <param name="token"></param>
+		/// <returns></returns>
+		private bool IsBlockEnd(Token token)
+		{
+			return token.IsSymbol(_blockEnd == ')' ? ")" : "}");
+		}
+
+		/// <summary>
+		/// 判断记号是否为脚本块的开始符（'{' 或 '('），与结束符配对
+		/// </summary>
+		/// <param name="token"></param>
+		/// <returns></returns>
+		private bool IsBlockBegin(Token token)
+		{
+			return _blockEnd == ')' ? token.IsSymbol("(") : token.IsSymbol("{");
 		}
 
 		/// <summary>
@@ -605,6 +638,7 @@ namespace AScript.Readers
 				Stream = this.TokenStream,
 				State = _state,
 				BraceDepth = _braceDepth,
+				BlockEnd = _blockEnd,
 				ExpressionTokenCount = _expressionTokenCount,
 				LineHasText = _lineHasText,
 				LineHasOutput = _lineHasOutput,
@@ -628,6 +662,7 @@ namespace AScript.Readers
 			this.BaseDirectory = frame.BaseDirectory;
 			_state = frame.State;
 			_braceDepth = frame.BraceDepth;
+			_blockEnd = frame.BlockEnd;
 			_expressionTokenCount = frame.ExpressionTokenCount;
 			_lineHasText = frame.LineHasText;
 			_lineHasOutput = frame.LineHasOutput;
@@ -667,9 +702,14 @@ namespace AScript.Readers
 		/// <summary>
 		/// 切换到新的状态，如果当前有文本则先输出文本
 		/// </summary>
-		private Token? EnterState(ETemplateState state, int braceDepth)
+		private Token? EnterState(ETemplateState state, int braceDepth, char blockEnd = '}')
 		{
 			_braceDepth = braceDepth;
+			if (state == ETemplateState.ScriptBlock)
+			{
+				// 脚本块的结束符（'}' 或 ')'）
+				_blockEnd = blockEnd;
+			}
 			if (state == ETemplateState.ScriptBlock || state == ETemplateState.ScriptLine)
 			{
 				// 脚本块和脚本行前的缩进属于脚本，不输出
@@ -954,6 +994,12 @@ namespace AScript.Readers
 				await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 				return EnterState(ETemplateState.ScriptBlock, 1);
 			}
+			if (nextChar.HasValue && nextChar.Value == '(')
+			{
+				// 脚本块@(...)，功能与@{...}一致，只是结束符为')'
+				await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+				return EnterState(ETemplateState.ScriptBlock, 1, ')');
+			}
 			// 脚本行@...
 			return EnterState(ETemplateState.ScriptLine, 0);
 		}
@@ -989,7 +1035,7 @@ namespace AScript.Readers
 		}
 
 		/// <summary>
-		/// 异步读取脚本块@{...}的内容，每次读取一个记号
+		/// 异步读取脚本块@{...}或@(...)的内容，每次读取一个记号
 		/// </summary>
 		private async Task<Token?> ReadScriptBlockTokenAsync(CancellationToken cancellationToken)
 		{
@@ -1011,19 +1057,19 @@ namespace AScript.Readers
 				// 已切换到包含的模板文件
 				return null;
 			}
-			if (t.Value.IsSymbol("}"))
+			if (IsBlockEnd(t.Value))
 			{
 				_braceDepth--;
 				if (_braceDepth <= 0)
 				{
-					// 脚本块结束，块尾的'}'不输出
+					// 脚本块结束，块尾的结束符不输出
 					_state = ETemplateState.Text;
 					// 脚本块的换行符不输出
 					await SkipLineBreakAsync(cancellationToken).ConfigureAwait(false);
 					return null;
 				}
 			}
-			else if (t.Value.IsSymbol("{"))
+			else if (IsBlockBegin(t.Value))
 			{
 				_braceDepth++;
 			}
