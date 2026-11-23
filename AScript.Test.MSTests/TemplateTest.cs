@@ -194,6 +194,42 @@ namespace AScript.Test.MSTests
 		}
 
 		[TestMethod]
+		public void Test03_Comment()
+		{
+			// 注释块@*...*@内的内容不输出
+			var template = new Template("Hello @* this is ${name} a @{ok()}@*comment @*@World\\@* hello *@");
+			var result = template.Render(null);
+			Assert.AreEqual("Hello World@* hello *@", result);
+		}
+
+		[TestMethod]
+		public void Test03_Comment_CompileAll()
+		{
+			var template = new Template("Hello @* this is ${name} a @{ok()}@*comment @*@World");
+			template.Options.CompileMode = ECompileMode.All;
+			var result = template.Render(null);
+			Assert.AreEqual("Hello World", result);
+		}
+
+		[TestMethod]
+		public void Test03_Comment_Line()
+		{
+			// 注释独占一行时，移除该行的换行符
+			var tpl = "@* comment *@\r\nHello\r\n@* multi\r\nline ${name} comment *@\r\nWorld";
+			var template = new Template(tpl);
+			var result = template.Render(null);
+			Assert.AreEqual("Hello\r\nWorld", result);
+		}
+
+		[TestMethod]
+		public void Test03_Comment_Async()
+		{
+			var template = new Template("Hello @* this is a comment *@World");
+			var result = template.RenderAsync(null).Result;
+			Assert.AreEqual("Hello World", result);
+		}
+
+		[TestMethod]
 		public void Test04_Statement()
 		{
 			var template = new Template("@foreach(var item in list) {\r\n\t[${item}]\r\n@}\r\nend");

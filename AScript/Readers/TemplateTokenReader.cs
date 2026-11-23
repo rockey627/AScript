@@ -13,6 +13,7 @@ namespace AScript.Readers
 	/// <para>模板记号读取器，将模板转换为脚本记号流</para>
 	/// <para>@{...} 内部为脚本块，块内记号原样透传</para>
 	/// <para>@(...) 内部为脚本块，功能与@{...}一致，只是结束符为')'</para>
+	/// <para>@*...*@ 内部为注释，注释内容不输出</para>
 	/// <para>${...} 内部为表达式，转换为 output.Write(表达式)</para>
 	/// <para>@ 开头为脚本行，整行记号原样透传</para>
 	/// <para>其他为文本，转换为 output.Write('文本')</para>
@@ -33,6 +34,8 @@ namespace AScript.Readers
 			Expression,
 			/// <summary>脚本行@...</summary>
 			ScriptLine,
+			/// <summary>注释块@*...*@</summary>
+			Comment,
 			/// <summary>结束</summary>
 			End,
 		}
@@ -172,6 +175,11 @@ namespace AScript.Readers
 							if (token.HasValue) return token;
 							break;
 						}
+					case ETemplateState.Comment:
+						{
+							SkipComment();
+							break;
+						}
 					default:
 						return null;
 				}
@@ -259,6 +267,12 @@ namespace AScript.Readers
 				// 脚本块@(...)，功能与@{...}一致，只是结束符为')'
 				this.CharReader.Read();
 				return EnterState(ETemplateState.ScriptBlock, 1, ')');
+			}
+			if (nextChar.HasValue && nextChar.Value == '*')
+			{
+				// 注释块@*...*@
+				this.CharReader.Read();
+				return EnterState(ETemplateState.Comment, 0);
 			}
 			// 脚本行@...
 			return EnterState(ETemplateState.ScriptLine, 0);
@@ -421,6 +435,33 @@ namespace AScript.Readers
 			}
 			_lastToken = t.Value;
 			return t.Value;
+		}
+
+		/// <summary>
+		/// 跳过注释块@*...*@的内容，注释内容不输出
+		/// </summary>
+		private void SkipComment()
+		{
+			while (true)
+			{
+				var c = this.CharReader.Read();
+				if (!c.HasValue)
+				{
+					// 注释未闭合
+					throw new Exceptions.ScriptAnalyzingException($"模板注释未闭合 ({this.CharReader.CurrentLine},{this.CharReader.CurrentColumn})");
+				}
+				if (c.Value != '*') continue;
+				var next = this.CharReader.Peek();
+				if (next.HasValue && next.Value == '@')
+				{
+					// 注释结束
+					this.CharReader.Read();
+					_state = ETemplateState.Text;
+					// 注释独占一行时，移除该行的换行符
+					if (_lineOnlyScript) SkipLineBreak();
+					return;
+				}
+			}
 		}
 
 		/// <summary>
@@ -710,9 +751,9 @@ namespace AScript.Readers
 				// 脚本块的结束符（'}' 或 ')'）
 				_blockEnd = blockEnd;
 			}
-			if (state == ETemplateState.ScriptBlock || state == ETemplateState.ScriptLine)
+			if (state == ETemplateState.ScriptBlock || state == ETemplateState.ScriptLine || state == ETemplateState.Comment)
 			{
-				// 脚本块和脚本行前的缩进属于脚本，不输出
+				// 脚本块、脚本行和注释块前的缩进不属于输出内容，不输出
 				RemoveIndent();
 			}
 			if (state == ETemplateState.ExpressionBegin)
@@ -920,6 +961,11 @@ namespace AScript.Readers
 							if (token.HasValue) return token;
 							break;
 						}
+					case ETemplateState.Comment:
+						{
+							await SkipCommentAsync(cancellationToken).ConfigureAwait(false);
+							break;
+						}
 					default:
 						return null;
 				}
@@ -999,6 +1045,12 @@ namespace AScript.Readers
 				// 脚本块@(...)，功能与@{...}一致，只是结束符为')'
 				await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 				return EnterState(ETemplateState.ScriptBlock, 1, ')');
+			}
+			if (nextChar.HasValue && nextChar.Value == '*')
+			{
+				// 注释块@*...*@
+				await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+				return EnterState(ETemplateState.Comment, 0);
 			}
 			// 脚本行@...
 			return EnterState(ETemplateState.ScriptLine, 0);
@@ -1141,6 +1193,33 @@ namespace AScript.Readers
 			}
 			_lastToken = t.Value;
 			return t.Value;
+		}
+
+		/// <summary>
+		/// 异步跳过注释块@*...*@的内容，注释内容不输出
+		/// </summary>
+		private async Task SkipCommentAsync(CancellationToken cancellationToken)
+		{
+			while (true)
+			{
+				var c = await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+				if (!c.HasValue)
+				{
+					// 注释未闭合
+					throw new Exceptions.ScriptAnalyzingException($"模板注释未闭合 ({this.CharReader.CurrentLine},{this.CharReader.CurrentColumn})");
+				}
+				if (c.Value != '*') continue;
+				var next = await this.CharReader.PeekAsync(cancellationToken).ConfigureAwait(false);
+				if (next.HasValue && next.Value == '@')
+				{
+					// 注释结束
+					await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+					_state = ETemplateState.Text;
+					// 注释独占一行时，移除该行的换行符
+					if (_lineOnlyScript) await SkipLineBreakAsync(cancellationToken).ConfigureAwait(false);
+					return;
+				}
+			}
 		}
 
 		/// <summary>
