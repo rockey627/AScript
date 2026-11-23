@@ -193,6 +193,10 @@ namespace AScript.Nodes
 								{
 									tempContext.SetVar(varDefine.Name, itemList == null || itemList.Count == 0 ? item : itemList[itemIndex++], null);
 								}
+								else
+								{
+									itemIndex++;
+								}
 								if (itemList == null || itemList.Count == 0 || itemIndex >= itemList.Count) break;
 							}
 						}
