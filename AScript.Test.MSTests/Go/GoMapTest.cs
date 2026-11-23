@@ -1159,5 +1159,227 @@ count
 			script.Context.Langs = new[] { "go" };
 			Assert.AreEqual(3, script.Eval(s));
 		}
+
+		[TestMethod]
+		public void Test34_MapDelete()
+		{
+			var s = @"
+m := map[string]int{
+    ""apple"": 1,
+    ""banana"": 2,
+    ""orange"": 3,
+}
+delete(m, ""banana"")
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(2, script.Eval("len(m)"));
+			Assert.AreEqual(1, script.Eval("m[\"apple\"]"));
+			Assert.AreEqual(3, script.Eval("m[\"orange\"]"));
+		}
+
+		[TestMethod]
+		public void Test34_MapDelete_CompileAll()
+		{
+			var s = @"
+m := map[string]int{
+    ""apple"": 1,
+    ""banana"": 2,
+    ""orange"": 3,
+}
+delete(m, ""banana"")
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(2, script.Eval("len(m)"));
+			Assert.AreEqual(1, script.Eval("m[\"apple\"]"));
+			Assert.AreEqual(3, script.Eval("m[\"orange\"]"));
+		}
+
+		[TestMethod]
+		public void Test35_MapDeleteKeyNotExists()
+		{
+			var s = @"
+m := map[string]int{
+    ""apple"": 1,
+}
+delete(m, ""banana"")
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(1, script.Eval("len(m)"));
+			Assert.AreEqual(1, script.Eval("m[\"apple\"]"));
+		}
+
+		[TestMethod]
+		public void Test35_MapDeleteKeyNotExists_CompileAll()
+		{
+			var s = @"
+m := map[string]int{
+    ""apple"": 1,
+}
+delete(m, ""banana"")
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(1, script.Eval("len(m)"));
+			Assert.AreEqual(1, script.Eval("m[\"apple\"]"));
+		}
+
+		[TestMethod]
+		public void Test36_MapDeleteIntKey()
+		{
+			var s = @"
+m := map[int]string{
+    1: ""one"",
+    2: ""two"",
+}
+delete(m, 1)
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(1, script.Eval("len(m)"));
+			Assert.AreEqual("two", script.Eval("m[2]"));
+		}
+
+		[TestMethod]
+		public void Test36_MapDeleteIntKey_CompileAll()
+		{
+			var s = @"
+m := map[int]string{
+    1: ""one"",
+    2: ""two"",
+}
+delete(m, 1)
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(1, script.Eval("len(m)"));
+			Assert.AreEqual("two", script.Eval("m[2]"));
+		}
+
+		[TestMethod]
+		public void Test37_MapDeleteInFunction()
+		{
+			var s = @"
+func remove(m map[string]int, key string) {
+    delete(m, key)
+}
+m := map[string]int{
+    ""apple"": 1,
+    ""banana"": 2,
+}
+remove(m, ""apple"")
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(1, script.Eval("len(m)"));
+			Assert.AreEqual(2, script.Eval("m[\"banana\"]"));
+		}
+
+		[TestMethod]
+		public void Test37_MapDeleteInFunction_CompileAll()
+		{
+			var s = @"
+func remove(m map[string]int, key string) {
+    delete(m, key)
+}
+m := map[string]int{
+    ""apple"": 1,
+    ""banana"": 2,
+}
+remove(m, ""apple"")
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(1, script.Eval("len(m)"));
+			Assert.AreEqual(2, script.Eval("m[\"banana\"]"));
+		}
+
+		[TestMethod]
+		public void Test38_MapDeleteAllKeys()
+		{
+			var s = @"
+m := map[string]int{
+    ""apple"": 1,
+    ""banana"": 2,
+    ""orange"": 3,
+}
+delete(m, ""apple"")
+delete(m, ""banana"")
+delete(m, ""orange"")
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(0, script.Eval("len(m)"));
+		}
+
+		[TestMethod]
+		public void Test38_MapDeleteAllKeys_CompileAll()
+		{
+			var s = @"
+m := map[string]int{
+    ""apple"": 1,
+    ""banana"": 2,
+    ""orange"": 3,
+}
+delete(m, ""apple"")
+delete(m, ""banana"")
+delete(m, ""orange"")
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(0, script.Eval("len(m)"));
+		}
+
+		[TestMethod]
+		public void Test39_MapDeleteThenReadd()
+		{
+			var s = @"
+m := map[string]int{
+    ""apple"": 1,
+}
+delete(m, ""apple"")
+m[""apple""] = 2
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(1, script.Eval("len(m)"));
+			Assert.AreEqual(2, script.Eval("m[\"apple\"]"));
+		}
+
+		[TestMethod]
+		public void Test39_MapDeleteThenReadd_CompileAll()
+		{
+			var s = @"
+m := map[string]int{
+    ""apple"": 1,
+}
+delete(m, ""apple"")
+m[""apple""] = 2
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual(1, script.Eval("len(m)"));
+			Assert.AreEqual(2, script.Eval("m[\"apple\"]"));
+		}
 	}
 }
