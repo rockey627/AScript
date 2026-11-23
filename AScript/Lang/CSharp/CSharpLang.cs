@@ -116,6 +116,7 @@ namespace AScript.Lang.CSharp
 
 			AddFunc("&", PointerAddressOperator.Instance);
 			AddFunc("*", PointerDataOperator.Instance);
+			AddFunc("**", PointerData2Operator.Instance);
 
 			// Convert方法，调用示例：'12'.ToInt32()
 			AddFunc(typeof(Convert));

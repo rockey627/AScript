@@ -10,7 +10,7 @@ namespace AScript.Operators
 
 		public void Build(FunctionBuildArgs e)
 		{
-			if (e.Args.Count != 1) return;
+			if (e.GetArgsCount() != 1 || !e.IsPrefix) return;
 
 			var p0 = e.BuildArgs(0);
 			if (p0 == null) return;
@@ -44,14 +44,14 @@ namespace AScript.Operators
 			// 编译期常量指针
 			if (p0 is ConstantExpression constant && constant.Value is Pointer pointer) return pointer;
 			// 编译期已知指针值的变量
-			if (e.Args[0] is VariableNode variableNode
+			if (e.Args != null && e.Args[0] is VariableNode variableNode
 				&& e.BuildContext.TryGetPointerVariable(variableNode.Name, out var known)) return known;
 			return null;
 		}
 
 		public void Eval(FunctionEvalArgs e)
 		{
-			if (e.Args.Count != 1) return;
+			if (e.GetArgsCount() != 1 || !e.IsPrefix) return;
 
 			var a0 = (Pointer)e.EvalArgs(0, out _);
 			e.SetResult(a0.Address.GetValue(e.Context));

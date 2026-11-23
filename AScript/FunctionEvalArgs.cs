@@ -103,6 +103,13 @@ namespace AScript
 			return new FunctionEvalArgs(context, options, control, name, isPrefix, args);
 		}
 
+		public int GetArgsCount()
+		{
+			if (this.Args != null) return this.Args.Count;
+			if (this.ArgValues != null) return this.ArgValues.Length;
+			return 0;
+		}
+
 		public object EvalArgs(int i, out Type type)
 		{
 			if (this.ArgValues != null)

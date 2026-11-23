@@ -273,7 +273,7 @@ namespace AScript.Operators
 			{
 				var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
 				var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
-				var result = GetItem(arg0, arg1, _IndexBased1);
+				var result = GetItem(e.Context, arg0, arg1, _IndexBased1);
 				if (_Char2String && arg0 is string)
 				{
 					result = result.ToString();
@@ -282,7 +282,7 @@ namespace AScript.Operators
 			}
 		}
 
-		public static object GetItem(object arg0, object arg1, bool indexBase1 = false)
+		public static object GetItem(ScriptContext context, object arg0, object arg1, bool indexBase1 = false)
 		{
 			if (arg0 is IList list)
 			{
@@ -303,6 +303,12 @@ namespace AScript.Operators
 					index = s.Length + index;
 				}
 				return s[index];
+			}
+			if (arg0 is Pointer p && p.ObjectType.IsArray)
+			{
+				int index = Convert.ToInt32(arg1);
+				var arr = (Array)p.Address.GetValue(context);
+				return arr.GetValue(index);
 			}
 			//if (arg0 is ExpandoObject expandoObj)
 			//{

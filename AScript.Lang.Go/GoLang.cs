@@ -91,6 +91,7 @@ namespace AScript.Lang.Go
 
 			AddFunc("&", PointerAddressOperator.Instance);
 			AddFunc("*", PointerDataOperator.Instance);
+			AddFunc("**", PointerData2Operator.Instance);
 
 			// 内置函数
 			AddFunc(typeof(Extensions.GoCommonExtensions));

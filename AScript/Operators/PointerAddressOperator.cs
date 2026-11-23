@@ -13,7 +13,7 @@ namespace AScript.Operators
 
 		public void Build(FunctionBuildArgs e)
 		{
-			if (e.Args.Count != 1) return;
+			if (e.GetArgsCount() != 1 || !e.IsPrefix) return;
 
 			var a0 = e.Args[0];
 			if (a0 is VariableNode v0)
@@ -29,7 +29,7 @@ namespace AScript.Operators
 
 		public void Eval(FunctionEvalArgs e)
 		{
-			if (e.Args.Count != 1) return;
+			if (e.GetArgsCount() != 1 || !e.IsPrefix) return;
 
 			var a0 = e.Args[0];
 			if (a0 is VariableNode v0)
