@@ -103,6 +103,24 @@ namespace AScript.Operators
 				return;
 			}
 
+			// Pointer 指向数组时，按索引获取元素
+			if (typeof(Pointer).IsAssignableFrom(target.Type))
+			{
+				var arrayType = GetPointerArrayType(target.Type);
+				if (arrayType != null)
+				{
+					var addr = Expression.Property(target, "Address");
+					var obj = Expression.Call(addr, ScriptUtils.Method_Pointer_Address_GetValue, e.BuildContext.GetScriptContextParameter(true));
+					var array = Expression.Convert(obj, arrayType);
+					if (index.Type != typeof(int))
+					{
+						index = Expression.Convert(index, typeof(int));
+					}
+					e.Result = Expression.ArrayIndex(array, index);
+					return;
+				}
+			}
+
 			// 处理 IList、string 和数组的负索引
 			if (target.Type == typeof(string) || target.Type.GetInterfaces().Contains(typeof(IList)))
 			{
@@ -233,6 +251,19 @@ namespace AScript.Operators
 		}
 
 		/// <summary>
+		/// 获取指针指向的数组类型，指针不指向数组时返回 null
+		/// </summary>
+		private static Type GetPointerArrayType(Type pointerType)
+		{
+			if (pointerType.IsGenericType && pointerType.GetGenericTypeDefinition() == typeof(Pointer<>))
+			{
+				var objectType = pointerType.GetGenericArguments()[0];
+				if (objectType.IsArray) return objectType;
+			}
+			return null;
+		}
+
+		/// <summary>
 		/// 获取索引类型
 		/// </summary>
 		private static Type GetIndexType(Type containerType)
@@ -273,7 +304,21 @@ namespace AScript.Operators
 			{
 				var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
 				var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
-				var result = GetItem(e.Context, arg0, arg1, _IndexBased1);
+
+				if (arg0 is Pointer p && p.ObjectType.IsArray)
+				{
+					int index = Convert.ToInt32(arg1);
+					if (_IndexBased1) index -= 1;
+					var arr = (Array)p.Address.GetValue(e.Context);
+					if (index < 0)
+					{
+						index = arr.Length + index;
+					}
+					e.SetResult(arr.GetValue(index));
+					return;
+				}
+
+				var result = GetItem(arg0, arg1, _IndexBased1);
 				if (_Char2String && arg0 is string)
 				{
 					result = result.ToString();
@@ -282,7 +327,7 @@ namespace AScript.Operators
 			}
 		}
 
-		public static object GetItem(ScriptContext context, object arg0, object arg1, bool indexBase1 = false)
+		public static object GetItem(object arg0, object arg1, bool indexBase1 = false)
 		{
 			if (arg0 is IList list)
 			{
@@ -303,12 +348,6 @@ namespace AScript.Operators
 					index = s.Length + index;
 				}
 				return s[index];
-			}
-			if (arg0 is Pointer p && p.ObjectType.IsArray)
-			{
-				int index = Convert.ToInt32(arg1);
-				var arr = (Array)p.Address.GetValue(context);
-				return arr.GetValue(index);
 			}
 			//if (arg0 is ExpandoObject expandoObj)
 			//{
