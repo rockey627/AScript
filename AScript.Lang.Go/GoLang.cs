@@ -42,8 +42,8 @@ namespace AScript.Lang.Go
 			AddType<object>("any");
 
 			// 赋值运算符
-			AddFunc("=", AssignOperator.Instance);
-			AddFunc(":=", AssignOperator.Instance);
+			AddFunc("=", GoAssignOperator.Instance);
+			AddFunc(":=", GoAssignOperator.Instance);
 			AddFunc("+=", PlusAssignOperator.Instance);
 			AddFunc("-=", SubtractAssignOperator.Instance);
 			AddFunc("*=", MultiplyAssignOperator.Instance);

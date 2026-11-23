@@ -13,7 +13,7 @@ namespace AScript.Operators
 	{
 		public static readonly AssignOperator Instance = new AssignOperator();
 
-		public void Build(FunctionBuildArgs e)
+		public virtual void Build(FunctionBuildArgs e)
 		{
 			if (e.Args.Count != 2) return;
 			var arg0 = e.Args[0];
@@ -88,7 +88,7 @@ namespace AScript.Operators
 			//}
 		}
 
-		public void Eval(FunctionEvalArgs e)
+		public virtual void Eval(FunctionEvalArgs e)
 		{
 			if (e.Args.Count != 2) return;
 			var arg0 = e.Args[0];

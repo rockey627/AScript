@@ -618,5 +618,40 @@ var p = new_Person('Tom', 30)
 			Assert.AreEqual("Tom", script.Eval("p.name"));
 			Assert.AreEqual(30, script.Eval("p.age"));
 		}
+
+		[TestMethod]
+		public void Test14_assign()
+		{
+			var s = @"
+type Person struct {
+	name string
+}
+var p1 = Person { name:'Tom' }
+var p2 = p1;
+p2.name = 'John'
+";
+			var script = new Script();
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual("Tom", script.Eval("p1.name"));
+		}
+
+		[TestMethod]
+		public void Test14_assign_CompileAll()
+		{
+			var s = @"
+type Person struct {
+	name string
+}
+var p1 = Person { name:'Tom' }
+var p2 = p1;
+p2.name = 'John'
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.Langs = new[] { "go" };
+			script.Eval(s);
+			Assert.AreEqual("Tom", script.Eval("p1.name"));
+		}
 	}
 }
