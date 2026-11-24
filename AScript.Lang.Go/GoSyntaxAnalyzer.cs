@@ -38,7 +38,7 @@ namespace AScript.Lang.Go
 				if (control != null && (control.Break || control.Terminal || control.Continue)) break;
 				var nextToken = tokenReader.Read();
 				if (!nextToken.HasValue) break;
-				if (nextToken.Value.Type == ETokenType.String)
+				if (nextToken.Value.Type == ETokenType.String || nextToken.Value.Type == ETokenType.Object)
 				{
 					tokenReader.Push(nextToken.Value);
 					continue;
