@@ -1,4 +1,4 @@
-using AScript.Nodes;
+﻿using AScript.Nodes;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -81,7 +81,6 @@ namespace AScript.Readers
 		private int _expressionTokenCount;
 		private int _textLine;
 		private int _textColumn;
-		private bool _textEmitted;
 		/// <summary>
 		/// 当前行是否包含静态文本
 		/// </summary>
@@ -788,9 +787,9 @@ namespace AScript.Readers
 			{
 				if (_buffer[start - 1] != '\n' && _buffer[start - 1] != '\r') return;
 			}
-			else if (_textEmitted)
+			else if (!_lineOnlyScript)
 			{
-				// 不是模板开头的缩进，而是表达式等之后的空白
+				// 整个缓冲区都是空白，但当前行已有内容（表达式、输出等），不是行首缩进
 				return;
 			}
 			_buffer.Remove(start, end - start);
@@ -843,7 +842,6 @@ namespace AScript.Readers
 				callFuncNode.Delegate = new Action(() => this.Output.Write(s));
 			}
 			_buffer.Clear();
-			_textEmitted = true;
 			return new Token(callFuncNode, _textLine, _textColumn);
 		}
 
@@ -870,7 +868,6 @@ namespace AScript.Readers
 				Args = new[] { callFuncNode }
 			};
 			_buffer.Clear();
-			_textEmitted = true;
 			return new Token(awaitFuncNode, _textLine, _textColumn);
 		}
 
