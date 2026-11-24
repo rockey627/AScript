@@ -36,11 +36,14 @@ namespace AScript.Nodes
 			{
 				if (lastType == null || lastType == varExpr.Type) return varExpr;
 				if (lastType == typeof(object)) return varExpr;
-				// 基本类型不转换
-				if (Type.GetTypeCode(lastType) != TypeCode.Object) return varExpr;
+				var lastTypeCode = Type.GetTypeCode(lastType);
 				// 对象类型要转换
-				return Expression.Convert(varExpr, lastType);
-				//return varExpr;
+				if (lastTypeCode == TypeCode.DateTime || lastTypeCode == TypeCode.Object)
+				{
+					return Expression.Convert(varExpr, lastType);
+				}
+				// 基本类型不转换
+				return varExpr;
 			}
 			var value = scriptContext.EvalVar(this.Name, out var type, out int modifier);
 			if (type == null)
