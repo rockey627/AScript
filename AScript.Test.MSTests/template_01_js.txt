@@ -1,0 +1,32 @@
+﻿@{
+	@lang js
+	var now = new Date();
+}
+// created at ${now.toString('yyyy-MM-dd')}
+using System;
+
+@*
+这里是注释块，不会输出
+可以随便写，${xxx} @{xxx}**\@\
+*@
+namespace MyTest.Model
+{
+	/// <summary>
+	/// ${entity.Memo}
+	/// </summary>
+	[Table("${entity.TableName}")]
+	public class ${entity.Name} {
+	@* js遍历集合，元素为列表下标 *@
+	@for(var i in entity.Columns) {
+		@* 取元素 *@
+		@var column = entity.Columns[i]
+		/// <summary>
+		/// ${column.Memo}
+		/// </summary>
+		@if (column.IsPrimaryKey) {
+		[PrimaryKey]
+		@}
+		public ${column.TypeName} ${column.Name} { get; set; }
+	@}
+	}
+}

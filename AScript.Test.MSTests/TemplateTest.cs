@@ -1,3 +1,5 @@
+using AScript.Lang.Go;
+using AScript.Lang.JavaScript;
 using AScript.Readers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -11,6 +13,20 @@ namespace AScript.Test.MSTests
 	[TestClass]
 	public class TemplateTest
 	{
+		[ClassInitialize]
+		public static void Init(TestContext context)
+		{
+			Script.Langs["go"] = GoLang.Instance;
+			Script.Langs["js"] = JavaScriptLang.Instance;
+		}
+
+		[ClassCleanup]
+		public static void Cleanup()
+		{
+			Script.Langs.TryRemove("go");
+			Script.Langs.TryRemove("js");
+		}
+
 		[TestMethod]
 		public void Test01_Text()
 		{
@@ -284,25 +300,7 @@ end";
 			Assert.AreEqual(expected, result);
 		}
 
-		[TestMethod]
-		public void Test05_TemplateFile()
-		{
-			var tpl = File.ReadAllText("template_01.txt");
-			var template = new Template(tpl);
-			template.Context.SetVar("entity", new
-			{
-				Name = "User",
-				Memo = "用户",
-				TableName = "Users",
-				Columns = new[]
-				{
-					new { Name = "Id", TypeName = "int", Memo = "主键", IsPrimaryKey = true },
-					new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
-				}
-			});
-			var result = template.Render(null);
-			Console.WriteLine(result);
-			var expected = "// created at " + DateTime.Now.ToString("yyyy-MM-dd") + @"
+		private static readonly string _template01_expected = "// created at " + DateTime.Now.ToString("yyyy-MM-dd") + @"
 using System;
 
 namespace MyTest.Model
@@ -323,10 +321,29 @@ namespace MyTest.Model
 		public string Name { get; set; }
 	}
 }";
-			Assert.AreEqual(expected, result);
+
+		[TestMethod]
+		public void Test05_TemplateFile()
+		{
+			var tpl = File.ReadAllText("template_01.txt");
+			var template = new Template(tpl);
+			template.Context.SetVar("entity", new
+			{
+				Name = "User",
+				Memo = "用户",
+				TableName = "Users",
+				Columns = new[]
+				{
+					new { Name = "Id", TypeName = "int", Memo = "主键", IsPrimaryKey = true },
+					new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
+				}
+			});
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual(_template01_expected, result);
 
 			result = template.Render(null);
-			Assert.AreEqual(expected, result);
+			Assert.AreEqual(_template01_expected, result);
 		}
 
 		[TestMethod]
@@ -348,31 +365,11 @@ namespace MyTest.Model
 			});
 			var result = template.Render(null);
 			Console.WriteLine(result);
-			var expected = "// created at " + DateTime.Now.ToString("yyyy-MM-dd") + @"
-using System;
-
-namespace MyTest.Model
-{
-	/// <summary>
-	/// 用户
-	/// </summary>
-	[Table(""Users"")]
-	public class User {
-		/// <summary>
-		/// 主键
-		/// </summary>
-		[PrimaryKey]
-		public int Id { get; set; }
-		/// <summary>
-		/// 姓名
-		/// </summary>
-		public string Name { get; set; }
-	}
-}";
-			Assert.AreEqual(expected, result);
+			
+			Assert.AreEqual(_template01_expected, result);
 
 			result = template.Render(null);
-			Assert.AreEqual(expected, result);
+			Assert.AreEqual(_template01_expected, result);
 		}
 
 		[TestMethod]
@@ -393,32 +390,11 @@ namespace MyTest.Model
 			template.Render(null, "template_01_result.txt");
 			var result = File.ReadAllText("template_01_result.txt");
 			Console.WriteLine(result);
-			var expected = "// created at " + DateTime.Now.ToString("yyyy-MM-dd") + @"
-using System;
-
-namespace MyTest.Model
-{
-	/// <summary>
-	/// 用户
-	/// </summary>
-	[Table(""Users"")]
-	public class User {
-		/// <summary>
-		/// 主键
-		/// </summary>
-		[PrimaryKey]
-		public int Id { get; set; }
-		/// <summary>
-		/// 姓名
-		/// </summary>
-		public string Name { get; set; }
-	}
-}";
-			Assert.AreEqual(expected, result);
+			Assert.AreEqual(_template01_expected, result);
 
 			template.Render(null, "template_01_result.txt");
 			result = File.ReadAllText("template_01_result.txt");
-			Assert.AreEqual(expected, result);
+			Assert.AreEqual(_template01_expected, result);
 		}
 
 		[TestMethod]
@@ -440,32 +416,105 @@ namespace MyTest.Model
 			template.Render(null, "template_01_result.txt");
 			var result = File.ReadAllText("template_01_result.txt");
 			Console.WriteLine(result);
-			var expected = "// created at " + DateTime.Now.ToString("yyyy-MM-dd") + @"
-using System;
-
-namespace MyTest.Model
-{
-	/// <summary>
-	/// 用户
-	/// </summary>
-	[Table(""Users"")]
-	public class User {
-		/// <summary>
-		/// 主键
-		/// </summary>
-		[PrimaryKey]
-		public int Id { get; set; }
-		/// <summary>
-		/// 姓名
-		/// </summary>
-		public string Name { get; set; }
-	}
-}";
-			Assert.AreEqual(expected, result);
+			Assert.AreEqual(_template01_expected, result);
 
 			template.Render(null, "template_01_result.txt");
 			result = File.ReadAllText("template_01_result.txt");
-			Assert.AreEqual(expected, result);
+			Assert.AreEqual(_template01_expected, result);
+		}
+
+		[TestMethod]
+		public void Test06_TemplateFile_go()
+		{
+			var template = new Template(new FileInfo("template_01_go.txt"));
+			template.Context.SetVar("entity", new
+			{
+				Name = "User",
+				Memo = "用户",
+				TableName = "Users",
+				Columns = new[]
+				{
+					new { Name = "Id", TypeName = "int", Memo = "主键", IsPrimaryKey = true },
+					new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
+				}
+			});
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual(_template01_expected, result);
+
+			result = template.Render(null);
+			Assert.AreEqual(_template01_expected, result);
+		}
+
+		[TestMethod]
+		public void Test06_TemplateFile_go_CompileAll()
+		{
+			var template = new Template(new FileInfo("template_01_go.txt"));
+			template.Options.CompileMode = ECompileMode.All;
+			template.Context.SetVar("entity", new
+			{
+				Name = "User",
+				Memo = "用户",
+				TableName = "Users",
+				Columns = new[]
+				{
+					new { Name = "Id", TypeName = "int", Memo = "主键", IsPrimaryKey = true },
+					new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
+				}
+			});
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual(_template01_expected, result);
+
+			result = template.Render(null);
+			Assert.AreEqual(_template01_expected, result);
+		}
+
+		[TestMethod]
+		public void Test06_TemplateFile_js()
+		{
+			var template = new Template(new FileInfo("template_01_js.txt"));
+			template.Context.SetVar("entity", new
+			{
+				Name = "User",
+				Memo = "用户",
+				TableName = "Users",
+				Columns = new[]
+				{
+					new { Name = "Id", TypeName = "int", Memo = "主键", IsPrimaryKey = true },
+					new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
+				}
+			});
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual(_template01_expected, result);
+
+			result = template.Render(null);
+			Assert.AreEqual(_template01_expected, result);
+		}
+
+		[TestMethod]
+		public void Test06_TemplateFile_js_CompileAll()
+		{
+			var template = new Template(new FileInfo("template_01_js.txt"));
+			template.Options.CompileMode = ECompileMode.All;
+			template.Context.SetVar("entity", new
+			{
+				Name = "User",
+				Memo = "用户",
+				TableName = "Users",
+				Columns = new[]
+				{
+					new { Name = "Id", TypeName = "int", Memo = "主键", IsPrimaryKey = true },
+					new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
+				}
+			});
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual(_template01_expected, result);
+
+			result = template.Render(null);
+			Assert.AreEqual(_template01_expected, result);
 		}
 
 		[TestMethod]

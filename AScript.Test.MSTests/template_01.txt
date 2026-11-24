@@ -13,7 +13,7 @@ using System;
 *@
 namespace MyTest.Model
 {
-	/// <sum@* 中间插入注释块 *@mary>
+	/// <summary>
 	/// ${entity.Memo}
 	/// </summary>
 	[Table("${entity.TableName}")]
