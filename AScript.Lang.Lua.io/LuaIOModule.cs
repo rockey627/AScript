@@ -7,7 +7,7 @@ namespace AScript.Lang.Lua.io
 		public object Install(BaseContext context)
 		{
 			var io = new LuaIO();
-			context.SetVar("io", io);
+			context.SetConst("io", io);
 			return io;
 		}
 

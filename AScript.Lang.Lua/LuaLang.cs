@@ -33,6 +33,8 @@ namespace AScript.Lang.Lua
 
 			SetObjectMemberEnabled(typeof(List<object>), false);
 
+			SetConst("os", new LuaOS());
+
 			// 赋值运算符
 			AddFunc("=", AssignOperator.Instance);
 			AddFunc("+=", PlusAssignOperator.Instance);
