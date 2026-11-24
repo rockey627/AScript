@@ -1053,6 +1053,33 @@ namespace AScript.Test.MSTests.JavaScript
 		}
 
 		[TestMethod]
+		public void Test52_toString2()
+		{
+			var s = @"
+@lang js
+var now = new Date(2024, 0, 15);
+now.toString('yyyy-MM-dd')
+";
+			var script = new Script();
+			var result = script.Eval<string>(s);
+			Assert.AreEqual("2024-01-15", result);
+		}
+
+		[TestMethod]
+		public void Test52_toString2_CompileAll()
+		{
+			var s = @"
+@lang js
+var now = new Date(2024, 0, 15);
+now.toString('yyyy-MM-dd')
+";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			var result = script.Eval<string>(s);
+			Assert.AreEqual("2024-01-15", result);
+		}
+
+		[TestMethod]
 		public void Test53_newDate()
 		{
 			var script = new Script();
