@@ -693,6 +693,7 @@ namespace AScript.Nodes
 			{
 				var result = await _Root.EvalAsync(scriptContext, options, control, cancellationToken).ConfigureAwait(false);
 				Clear();
+				if (result.Type == typeof(void)) return null;
 				return PoolManage.CreateObjectNode(result.Value, result.Type);
 			}
 		}

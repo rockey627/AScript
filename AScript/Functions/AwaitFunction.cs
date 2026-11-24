@@ -11,6 +11,8 @@ namespace AScript.Functions
 		private static readonly MethodInfo Method_Task_Wait = typeof(Task).GetMethod("Wait", Type.EmptyTypes);
 		private static readonly MethodInfo Method_EvalValue = typeof(AwaitFunction).GetMethod("EvalValue", BindingFlags.Static | BindingFlags.NonPublic);
 
+		public static readonly AwaitFunction Instance = new AwaitFunction();
+
 		public void Build(FunctionBuildArgs e)
 		{
 			var value = e.BuildArgs(0);

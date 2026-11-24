@@ -108,6 +108,10 @@ namespace AScript.Readers
 		/// </summary>
 		public MethodInfo OutputMethod { get; set; }
 		/// <summary>
+		/// 异步输出流方法名
+		/// </summary>
+		public MethodInfo OutputMethodAsync { get; set; }
+		/// <summary>
 		/// 包含模板文件的方法名
 		/// </summary>
 		public string IncludeMethod { get; set; } = "include";
@@ -742,7 +746,7 @@ namespace AScript.Readers
 		/// <summary>
 		/// 切换到新的状态，如果当前有文本则先输出文本
 		/// </summary>
-		private Token? EnterState(ETemplateState state, int braceDepth, char blockEnd = '}')
+		private Token? EnterState(ETemplateState state, int braceDepth, char blockEnd = '}', CancellationToken? cancellationToken = null)
 		{
 			_braceDepth = braceDepth;
 			if (state == ETemplateState.ScriptBlock)
@@ -765,7 +769,7 @@ namespace AScript.Readers
 			{
 				_state = state;
 				//return EmitWriteCall(BuildTextToken());
-				return BuildWriteStringToken();
+				return cancellationToken.HasValue ? BuildWriteStringAsyncToken(cancellationToken.Value) : BuildWriteStringToken();
 			}
 			_state = state;
 			return null;
@@ -845,27 +849,29 @@ namespace AScript.Readers
 			return new Token(callFuncNode, _textLine, _textColumn);
 		}
 
-		private Token BuildWriteStringAsyncToken()
+		private Token BuildWriteStringAsyncToken(CancellationToken cancellationToken)
 		{
 			var s = _buffer.ToString();
 			var callFuncNode = new CallFuncNode
 			{
-				Method = this.OutputMethod,
-				Args = new[] { PoolManage.CreateObjectNode(s) }
+				Method = this.OutputMethodAsync,
+				Args = new[] { PoolManage.CreateObjectNode(s), PoolManage.CreateObjectNode(cancellationToken) }
 			};
 			if (this.Output == null)
 			{
 				callFuncNode.Target = PoolManage.CreateVariableNode(this.OutputVar);
+				// 编译缓存不能用参数中的cancellationToken
+				((ObjectNode)callFuncNode.Args[1]).Data = default(CancellationToken);
 			}
 			else
 			{
 				callFuncNode.Target = this.Output;
-				callFuncNode.Delegate = new Func<Task>(() => this.Output.WriteAsync(s));
+				callFuncNode.Delegate = new Func<Task>(() => this.Output.WriteAsync(s, cancellationToken));
 			}
 			var awaitFuncNode = new CallFuncNode
 			{
 				Name = "await",
-				Args = new[] { callFuncNode }
+				Args = new ITreeNode[] { callFuncNode }
 			};
 			_buffer.Clear();
 			return new Token(awaitFuncNode, _textLine, _textColumn);
@@ -935,7 +941,7 @@ namespace AScript.Readers
 							// await output.WriteAsync(token0
 							Push(token.Value);
 							Push(new Token("(", ETokenType.None));
-							Push(new Token(OutputMethod.Name, ETokenType.Word));
+							Push(new Token(OutputMethodAsync.Name, ETokenType.Word));
 							Push(new Token(".", ETokenType.Operator));
 							Push(this.Output == null ? new Token(this.OutputVar, ETokenType.Word) : new Token(this.Output));
 							return new Token("await", ETokenType.Word);
@@ -1001,7 +1007,7 @@ namespace AScript.Readers
 					if (_buffer.Length > 0)
 					{
 						//token = EmitWriteCallForAsync(BuildTextToken());
-						token = BuildWriteStringAsyncToken();
+						token = BuildWriteStringAsyncToken(cancellationToken);
 					}
 					RestoreHostStream();
 					return token;
@@ -1014,7 +1020,7 @@ namespace AScript.Readers
 				}
 				_state = ETemplateState.End;
 				//return EmitWriteCallForAsync(BuildTextToken());
-				return BuildWriteStringAsyncToken();
+				return BuildWriteStringAsyncToken(cancellationToken);
 			}
 			if (c.Value == '$')
 			{
@@ -1023,7 +1029,7 @@ namespace AScript.Readers
 				{
 					// 表达式${...}
 					await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
-					return EnterState(ETemplateState.ExpressionBegin, 1);
+					return EnterState(ETemplateState.ExpressionBegin, 1, cancellationToken: cancellationToken);
 				}
 				// '$' 为普通文本
 				AppendText(c.Value);
@@ -1035,22 +1041,22 @@ namespace AScript.Readers
 			{
 				// 脚本块@{...}
 				await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
-				return EnterState(ETemplateState.ScriptBlock, 1);
+				return EnterState(ETemplateState.ScriptBlock, 1, cancellationToken: cancellationToken);
 			}
 			if (nextChar.HasValue && nextChar.Value == '(')
 			{
 				// 脚本块@(...)，功能与@{...}一致，只是结束符为')'
 				await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
-				return EnterState(ETemplateState.ScriptBlock, 1, ')');
+				return EnterState(ETemplateState.ScriptBlock, 1, ')', cancellationToken: cancellationToken);
 			}
 			if (nextChar.HasValue && nextChar.Value == '*')
 			{
 				// 注释块@*...*@
 				await this.CharReader.ReadAsync(cancellationToken).ConfigureAwait(false);
-				return EnterState(ETemplateState.Comment, 0);
+				return EnterState(ETemplateState.Comment, 0, cancellationToken: cancellationToken);
 			}
 			// 脚本行@...
-			return EnterState(ETemplateState.ScriptLine, 0);
+			return EnterState(ETemplateState.ScriptLine, 0, cancellationToken: cancellationToken);
 		}
 
 		/// <summary>
@@ -1072,7 +1078,9 @@ namespace AScript.Readers
 					_state = ETemplateState.Text;
 					if (_expressionTokenCount == 0) return null;
 					Push(new Token(";", ETokenType.None));
-					return new Token(")", ETokenType.None, t.Value.Line, t.Value.Column);
+					Push(new Token(")", ETokenType.None, t.Value.Line, t.Value.Column));
+					Push(new Token("@@CancellationToken", ETokenType.Word));
+					return new Token(",", ETokenType.None);
 				}
 			}
 			else

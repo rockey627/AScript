@@ -2,13 +2,13 @@
 
 namespace AScript
 {
-	public struct Token
+	public readonly struct Token
 	{
-		public ETokenType Type;
+		public readonly ETokenType Type;
 		public string Value => (string)this.Data;
-		public int Line;
-		public int Column;
-		public object Data;
+		public readonly int Line;
+		public readonly int Column;
+		public readonly object Data;
 
 		public Token(string value, ETokenType type) : this(value, type, 0, 0)
 		{

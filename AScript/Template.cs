@@ -1,9 +1,12 @@
-﻿using AScript.Readers;
+﻿using AScript.Functions;
+using AScript.Readers;
+using AScript.TokenHandlers;
 using System;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AScript
@@ -11,7 +14,7 @@ namespace AScript
 	public class Template
 	{
 		private static readonly MethodInfo Method_Output_Write = typeof(IOutput).GetMethod("Write", new[] { typeof(object) });
-		private static readonly MethodInfo Method_Output_WriteAsync = typeof(IOutput).GetMethod("WriteAsync", new[] { typeof(object) });
+		private static readonly MethodInfo Method_Output_WriteAsync = typeof(IOutput).GetMethod("WriteAsync", new[] { typeof(object), typeof(CancellationToken) });
 		private static readonly MethodInfo Method_Path_Combine = typeof(Path).GetMethod("Combine", new[] { typeof(string), typeof(string) });
 		private static readonly MethodInfo Method_Template_Clone = typeof(Template).GetMethod("Clone", new[] { typeof(FileInfo) });
 		private static readonly MethodInfo Method_TemplateRender_IOutput = typeof(Template).GetMethod("Render", new[] { typeof(object), typeof(IOutput) });
@@ -239,7 +242,7 @@ namespace AScript
 					_compiled.DynamicInvoke(model, output);
 					return;
 				}
-				var script = CreateScript(new ScriptContext(this.Context), model, output, Method_Output_Write);
+				var script = CreateScript(new ScriptContext(this.Context), model, output);
 				EvalTemplate(script);
 			}
 			finally
@@ -254,7 +257,7 @@ namespace AScript
 		/// <param name="model"></param>
 		/// <param name="output"></param>
 		/// <returns></returns>
-		public async Task RenderAsync(object model, IOutput output)
+		public async Task RenderAsync(object model, IOutput output, CancellationToken cancellationToken = default)
 		{
 			try
 			{
@@ -263,8 +266,13 @@ namespace AScript
 					_compiled.DynamicInvoke(model, output);
 					return;
 				}
-				var script = CreateScript(new ScriptContext(this.Context), model, output, Method_Output_WriteAsync);
-				await EvalTemplateAsync(script).ConfigureAwait(false);
+				var script = CreateScript(new ScriptContext(this.Context), model, output);
+				// 其他脚本语言可能没有await语法，需要手动添加
+				script.Context.AddFunc("await", AwaitFunction.Instance);
+				script.Context.AddTokenHandler("await", AwaitTokenHandler.Instance);
+				script.Context.AddTokenHandler("@@CancellationToken", CancellationTokenHandler.Instance);
+				// 
+				await EvalTemplateAsync(script, cancellationToken).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -280,7 +288,7 @@ namespace AScript
 		/// <param name="output">输出流</param>
 		/// <param name="outputMethod">输出流方法名</param>
 		/// <returns></returns>
-		private Script CreateScript(ScriptContext context, object model, IOutput output, MethodInfo outputMethod)
+		private Script CreateScript(ScriptContext context, object model, IOutput output)
 		{
 			var script = new Script(context);
 			script.Options.CompileMode = this.Options.CompileMode;
@@ -290,7 +298,8 @@ namespace AScript
 			{
 				Output = this.CacheTime == 0 ? output : null,
 				OutputVar = this.Options.OutputVar,
-				OutputMethod = outputMethod,
+				OutputMethod = Method_Output_Write,
+				OutputMethodAsync = Method_Output_WriteAsync,
 				IncludeMethod = this.Options.IncludeMethod,
 				BaseDirectory = _template is FileInfo fi ? fi.DirectoryName : null,
 			};
@@ -374,7 +383,7 @@ namespace AScript
 		/// </summary>
 		/// <param name="script"></param>
 		/// <returns></returns>
-		private Task EvalTemplateAsync(Script script)
+		private Task EvalTemplateAsync(Script script, CancellationToken cancellationToken)
 		{
 			var cacheTime = this.CacheTime;
 			var cacheKey = this.CacheKey;
@@ -392,23 +401,23 @@ namespace AScript
 			}
 			if (_template is string s)
 			{
-				return script.EvalAsync(s, cacheTime, cacheKey, cacheVersion);
+				return script.EvalAsync(s, cacheTime, cacheKey, cacheVersion, cancellationToken);
 			}
 			else if (_template is FileInfo fi)
 			{
-				return script.EvalFileAsync(fi.FullName, cacheTime, cacheKey, cacheVersion);
+				return script.EvalFileAsync(fi.FullName, cacheTime, cacheKey, cacheVersion, cancellationToken);
 			}
 			else if (_template is Stream stream)
 			{
-				return script.EvalAsync(stream, cacheTime, cacheKey, cacheVersion);
+				return script.EvalAsync(stream, cacheTime, cacheKey, cacheVersion, cancellationToken);
 			}
 			else if (_template is Func<string> stringFunc)
 			{
-				return script.EvalAsync(stringFunc, cacheTime, cacheKey, cacheVersion);
+				return script.EvalAsync(stringFunc, cacheTime, cacheKey, cacheVersion, cancellationToken);
 			}
 			else if (_template is Func<Stream> streamFunc)
 			{
-				return script.EvalAsync(streamFunc, cacheTime, cacheKey, cacheVersion);
+				return script.EvalAsync(streamFunc, cacheTime, cacheKey, cacheVersion, cancellationToken);
 			}
 			else
 			{
@@ -477,10 +486,10 @@ namespace AScript
 		/// </summary>
 		/// <param name="model"></param>
 		/// <returns></returns>
-		public async Task<string> RenderAsync(object model)
+		public async Task<string> RenderAsync(object model, CancellationToken cancellationToken = default)
 		{
 			var output = new StringBuilder();
-			await RenderAsync(model, output).ConfigureAwait(false);
+			await RenderAsync(model, output, cancellationToken).ConfigureAwait(false);
 			return output.ToString();
 		}
 
@@ -489,9 +498,9 @@ namespace AScript
 		/// </summary>
 		/// <param name="model"></param>
 		/// <param name="output"></param>
-		public Task RenderAsync(object model, StringBuilder output)
+		public Task RenderAsync(object model, StringBuilder output, CancellationToken cancellationToken = default)
 		{
-			return RenderAsync(model, new StringBuilderOutput(output));
+			return RenderAsync(model, new StringBuilderOutput(output), cancellationToken);
 		}
 
 		/// <summary>
@@ -500,9 +509,9 @@ namespace AScript
 		/// <param name="model"></param>
 		/// <param name="output"></param>
 		/// <param name="autoDisposeOutput"></param>
-		public Task RenderAsync(object model, TextWriter output, bool autoDisposeOutput = true)
+		public Task RenderAsync(object model, TextWriter output, bool autoDisposeOutput = true, CancellationToken cancellationToken = default)
 		{
-			return RenderAsync(model, new TextWriterOutput(output, autoDisposeOutput));
+			return RenderAsync(model, new TextWriterOutput(output, autoDisposeOutput), cancellationToken);
 		}
 
 		/// <summary>
@@ -512,9 +521,9 @@ namespace AScript
 		/// <param name="outputPath"></param>
 		/// <param name="encoding"></param>
 		/// <returns></returns>
-		public Task RenderAsync(object model, string outputPath, Encoding encoding = null)
+		public Task RenderAsync(object model, string outputPath, Encoding encoding = null, CancellationToken cancellationToken = default)
 		{
-			return RenderAsync(model, new StreamWriter(outputPath, false, encoding ?? Encoding.UTF8), true);
+			return RenderAsync(model, new StreamWriter(outputPath, false, encoding ?? Encoding.UTF8), true, cancellationToken);
 		}
 
 		/// <summary>
@@ -525,9 +534,9 @@ namespace AScript
 		/// <param name="encoding"></param>
 		/// <param name="autoDisposeOutput"></param>
 		/// <returns></returns>
-		public Task RenderAsync(object model, Stream output, Encoding encoding = null, bool autoDisposeOutput = true)
+		public Task RenderAsync(object model, Stream output, Encoding encoding = null, bool autoDisposeOutput = true, CancellationToken cancellationToken = default)
 		{
-			return RenderAsync(model, new StreamWriter(output, encoding ?? Encoding.UTF8), autoDisposeOutput);
+			return RenderAsync(model, new StreamWriter(output, encoding ?? Encoding.UTF8), autoDisposeOutput, cancellationToken);
 		}
 
 		public Template Clone(FileInfo template)
@@ -544,9 +553,9 @@ namespace AScript
 			void Write(object value);
 			void WriteLine();
 			void WriteLine(object value);
-			Task WriteAsync(object value);
-			Task WriteLineAsync();
-			Task WriteLineAsync(object value);
+			Task WriteAsync(object value, CancellationToken cancellationToken = default);
+			Task WriteLineAsync(CancellationToken cancellationToken = default);
+			Task WriteLineAsync(object value, CancellationToken cancellationToken = default);
 		}
 
 		public class StringBuilderOutput : IOutput
@@ -563,7 +572,7 @@ namespace AScript
 				_builder.Append(value);
 			}
 
-			public async Task WriteAsync(object value)
+			public async Task WriteAsync(object value, CancellationToken cancellationToken = default)
 			{
 				_builder.Append(value);
 			}
@@ -578,12 +587,12 @@ namespace AScript
 				_builder.AppendLine(value?.ToString());
 			}
 
-			public async Task WriteLineAsync()
+			public async Task WriteLineAsync(CancellationToken cancellationToken = default)
 			{
 				_builder.AppendLine();
 			}
 
-			public async Task WriteLineAsync(object value)
+			public async Task WriteLineAsync(object value, CancellationToken cancellationToken = default)
 			{
 				_builder.AppendLine(value?.ToString());
 			}
@@ -605,7 +614,7 @@ namespace AScript
 				_writer.Write(value);
 			}
 
-			public Task WriteAsync(object value)
+			public Task WriteAsync(object value, CancellationToken cancellationToken = default)
 			{
 				return _writer.WriteAsync(value?.ToString());
 			}
@@ -620,12 +629,12 @@ namespace AScript
 				_writer.WriteLine(value);
 			}
 
-			public Task WriteLineAsync()
+			public Task WriteLineAsync(CancellationToken cancellationToken = default)
 			{
 				return _writer.WriteLineAsync();
 			}
 
-			public Task WriteLineAsync(object value)
+			public Task WriteLineAsync(object value, CancellationToken cancellationToken = default)
 			{
 				return _writer.WriteLineAsync(value?.ToString());
 			}

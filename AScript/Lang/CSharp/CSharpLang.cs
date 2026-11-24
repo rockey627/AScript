@@ -132,7 +132,7 @@ namespace AScript.Lang.CSharp
 			// 类型转换
 			AddFunc("as", new ConvertFunction(1));
 			AddFunc(ConvertFunction.FORCE_NAME, new ConvertFunction(0));
-			AddFunc("await", new AwaitFunction());
+			AddFunc("await", AwaitFunction.Instance);
 
 			AddTokenHandler("??", LazyTokenHandler.Instance);
 			AddTokenHandler("?=", LazyTokenHandler.Instance);

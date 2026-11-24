@@ -1366,7 +1366,7 @@ namespace AScript.Syntaxs
 			}
 
 			// 标识符处理：变量、函数调用、类型定义
-			var nextToken = e.TokenReader.Read();
+			var nextToken = await e.TokenReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 			if (nextToken.HasValue && nextToken.Value.IsSymbol("("))
 			{
 				// 函数调用
