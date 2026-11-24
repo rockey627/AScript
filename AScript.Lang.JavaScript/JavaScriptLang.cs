@@ -73,7 +73,7 @@ namespace AScript.Lang.JavaScript
 			AddFunc("[]", IndexOperator.Instance);
 			AddFunc("[:]", IndexStartEndOperator.Instance);
 
-			AddFunc("await", new AwaitFunction());
+			AddFunc("await", AwaitFunction.Instance);
 			AddFunc("eval", EvalFunction.Instance);
 			AddFunc("concat", ConcatFunction.Instance);
 			AddFunc("includes", new ContainsFunction());
