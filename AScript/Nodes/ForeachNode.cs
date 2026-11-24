@@ -134,6 +134,7 @@ namespace AScript.Nodes
 				else
 				{
 					// 默认遍历模式（遍历值）
+					List<object> sharedList = null;
 					foreach (var item in en)
 					{
 						if (this.VarDefines != null)
@@ -158,18 +159,34 @@ namespace AScript.Nodes
 									var genericType = itemType.GetGenericTypeDefinition();
 									if (genericType.Name.StartsWith("Tuple`"))
 									{
-										itemList = new List<object>();
-										foreach (var prop in itemType.GetProperties())
+										if (sharedList == null) sharedList = new List<object>();
+										else sharedList.Clear();
+										itemList = sharedList;
+										//foreach (var prop in itemType.GetProperties())
+										//{
+										//	itemList.Add(prop.GetValue(item));
+										//}
+										for (int i = 0; i < 8; i++)
 										{
+											var prop = itemType.GetProperty($"Item{i + 1}");
+											if (prop == null) break;
 											itemList.Add(prop.GetValue(item));
 										}
 									}
 #if !NET45
 									else if (genericType.Name.StartsWith("ValueTuple`"))
 									{
-										itemList = new List<object>();
-										foreach (var field in itemType.GetFields())
+										if (sharedList == null) sharedList = new List<object>();
+										else sharedList.Clear();
+										itemList = sharedList;
+										//foreach (var field in itemType.GetFields())
+										//{
+										//	itemList.Add(field.GetValue(item));
+										//}
+										for (int i = 0; i < 8; i++)
 										{
+											var field = itemType.GetField($"Item{i + 1}");
+											if (field == null) break;
 											itemList.Add(field.GetValue(item));
 										}
 									}
