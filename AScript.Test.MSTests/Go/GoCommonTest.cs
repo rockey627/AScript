@@ -1481,5 +1481,21 @@ fmt.Println('hello', 'world')
 			script.Context.Langs = new[] { "go" };
 			script.Eval(s);
 		}
+
+		[TestMethod]
+		public void Test46_import_file()
+		{
+			var s = @"
+import 'Person'
+var p = Person{name: 'John', age: 20}
+p.SetAge(30)
+";
+			var script = new Script();
+			script.Context.Lang = "go";
+			script.Context.Modules.AddDir("./Go/modules");
+			script.Eval(s);
+			Assert.AreEqual("John", script.Eval("p.name"));
+			Assert.AreEqual(30, script.Eval("p.GetAge()"));
+		}
 	}
 }
