@@ -54,7 +54,7 @@ namespace AScript
 		/// <summary>
 		/// <para>缓存版本号，如果版本号有变化，则重新编译并缓存</para>
 		/// </summary>
-		public string CacheVersion { get; set; }
+		public object CacheVersion { get; set; }
 
 		public TemplateOptions Options { get; private set; } = new TemplateOptions(DefaultOptions);
 
@@ -105,8 +105,8 @@ namespace AScript
 		/// </summary>
 		/// <param name="cacheTime">
 		/// <para>缓存时长</para>
-		/// <para>为0表示不使用缓存（默认）；</para>
-		/// <para>-1表示永久缓存；</para>
+		/// <para>0表示不使用缓存</para>
+		/// <para>-1表示永久缓存</para>
 		/// <para>大于0表示缓存时长（单位：毫秒）</para>
 		/// </param>
 		/// <param name="cacheKey">
@@ -132,18 +132,23 @@ namespace AScript
 		/// </summary>
 		/// <param name="cacheTime">
 		/// <para>缓存时长</para>
-		/// <para>为0表示不使用缓存（默认）；</para>
-		/// <para>-1表示永久缓存；</para>
+		/// <para>0表示不使用缓存</para>
+		/// <para>-1表示永久缓存</para>
 		/// <para>大于0表示缓存时长（单位：毫秒）</para>
 		/// </param>
 		/// <param name="cacheKey">
 		/// <para>缓存key</para>
 		/// <para>如果为空，则使用模板内容或模板文件路径作为key</para>
 		/// </param>
-		/// <param name="cacheVersion">缓存版本号，如果版本号有变化，则重新编译并缓存</param>
+		/// <param name="cacheVersion">
+		/// <para>缓存版本号，如果版本号有变化，则重新编译并缓存</para>
+		/// <para>支持<c>Func&lt;string&gt;</c>动态获取版本号</para>
+		/// <para>支持<c>Func&lt;string, string&gt;</c>根据cacheKey动态获取版本号</para>
+		/// <para>如果模板是文件，则默认版本号为文件修改时间戳</para>
+		/// </param>
 		/// <returns></returns>
 		/// <exception cref="Exception">stream or lazy template need a cacheKey</exception>
-		public Template WithCache(int cacheTime, string cacheKey, string cacheVersion)
+		public Template WithCache(int cacheTime, string cacheKey, object cacheVersion)
 		{
 			this.CacheTime = cacheTime;
 			this.CacheKey = cacheKey;
@@ -269,6 +274,8 @@ namespace AScript
 				var script = CreateScript(new ScriptContext(this.Context), model, output);
 				// 其他脚本语言可能没有await语法，需要手动添加
 				script.Context.AddFunc("await", AwaitFunction.Instance);
+				script.Context.AddFunc<IOutput, object, Task>("WriteAsync", (o, t) => o.WriteAsync(t));
+				script.Context.AddFunc<IOutput, object, Task>("WriteLineAsync", (o, t) => o.WriteLineAsync(t));
 				script.Context.AddTokenHandler("await", AwaitTokenHandler.Instance);
 				script.Context.AddTokenHandler("@@CancellationToken", CancellationTokenHandler.Instance);
 				// 
@@ -286,7 +293,6 @@ namespace AScript
 		/// <param name="context">脚本上下文</param>
 		/// <param name="model">模型对象</param>
 		/// <param name="output">输出流</param>
-		/// <param name="outputMethod">输出流方法名</param>
 		/// <returns></returns>
 		private Script CreateScript(ScriptContext context, object model, IOutput output)
 		{
@@ -340,12 +346,24 @@ namespace AScript
 		{
 			var cacheTime = this.CacheTime;
 			var cacheKey = this.CacheKey;
-			var cacheVersion = this.CacheVersion;
+			string cacheVersion = null;
 			if (cacheTime != 0)
 			{
 				if (string.IsNullOrEmpty(cacheKey) && _template is string st)
 				{
 					cacheKey = st;
+				}
+				if (this.CacheVersion is Func<string> cvf)
+				{
+					cacheVersion = cvf();
+				}
+				else if (this.CacheVersion is Func<string, string> cvfk)
+				{
+					cacheVersion = cvfk(cacheKey);
+				}
+				else
+				{
+					cacheVersion = this.CacheVersion?.ToString();
 				}
 				if (string.IsNullOrEmpty(cacheVersion))
 				{
@@ -387,12 +405,24 @@ namespace AScript
 		{
 			var cacheTime = this.CacheTime;
 			var cacheKey = this.CacheKey;
-			var cacheVersion = this.CacheVersion;
+			string cacheVersion = null;
 			if (cacheTime != 0)
 			{
 				if (string.IsNullOrEmpty(cacheKey) && _template is string st)
 				{
 					cacheKey = st;
+				}
+				if (this.CacheVersion is Func<string> cvf)
+				{
+					cacheVersion = cvf();
+				}
+				else if (this.CacheVersion is Func<string, string> cvfk)
+				{
+					cacheVersion = cvfk(cacheKey);
+				}
+				else
+				{
+					cacheVersion = this.CacheVersion?.ToString();
 				}
 				if (string.IsNullOrEmpty(cacheVersion))
 				{
