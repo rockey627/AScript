@@ -473,7 +473,7 @@ namespace AScript.Nodes
 				var itemVars = new List<ParameterExpression>();
 				for (int i = 0; i < this.VarDefines.Count; i++)
 				{
-					var elementType = i < elementTypes.Count ? elementTypes[i] : typeof(object);
+					var elementType = elementTypes.Count == 0 ? itemType : (i < elementTypes.Count ? elementTypes[i] : typeof(object));
 					var vd = this.VarDefines[i];
 					if (IsNiming(vd))
 					{
@@ -500,7 +500,7 @@ namespace AScript.Nodes
 
 				// 构建解构赋值表达式列表
 				var assignExpressions = new List<Expression>();
-				var itemVar2 = Expression.Variable(itemType, "_item");
+				var itemVar2 = Expression.Variable(itemType);
 				assignExpressions.Add(Expression.Assign(itemVar2, Expression.Property(enumerator, currentProperty)));
 
 				for (int i = 0; i < this.VarDefines.Count; i++)
