@@ -34,6 +34,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\AScript.Lang.Go\AScript.Lang.Go.csproj" />
 		<ProjectReference Include="..\AScript.Lang.JavaScript.fs\AScript.Lang.JavaScript.fs.csproj" />
 		<ProjectReference Include="..\AScript.Lang.JavaScript\AScript.Lang.JavaScript.csproj" />
 		<ProjectReference Include="..\AScript.Lang.Lua.io\AScript.Lang.Lua.io.csproj" />
@@ -58,6 +59,18 @@
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Benchmarks\TemplateTest\template_01.txt">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="entity_lua.tpl">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="entity_go.tpl">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="entity_js.tpl">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="entity.tpl">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>

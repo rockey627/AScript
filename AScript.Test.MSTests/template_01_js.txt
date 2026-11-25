@@ -1,5 +1,5 @@
-﻿@{
-	@lang js
+﻿@@lang js
+@{
 	var now = new Date();
 }
 // created at ${now.toString('yyyy-MM-dd')}

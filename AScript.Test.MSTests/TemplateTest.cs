@@ -544,6 +544,27 @@ namespace MyTest.Model
 		}
 
 		[TestMethod]
+		public void Test06_TemplateFile_lua_Compile()
+		{
+			var template = new Template(new FileInfo("template_01_lua.txt"));
+			template.Context.SetVar("entity", new
+			{
+				Name = "User",
+				Memo = "用户",
+				TableName = "Users",
+				Columns = new[]
+				{
+					new { Name = "Id", TypeName = "int", Memo = "主键", IsPrimaryKey = true },
+					new { Name = "Name", TypeName = "string", Memo = "姓名", IsPrimaryKey = false },
+				}
+			});
+			template.Compile(null, true);
+			var result = template.Render(null);
+			Console.WriteLine(result);
+			Assert.AreEqual(_template01_expected, result);
+		}
+
+		[TestMethod]
 		public void Test06_TemplateFile_lua_CompileAll()
 		{
 			var template = new Template(new FileInfo("template_01_lua.txt"));

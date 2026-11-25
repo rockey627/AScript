@@ -1,5 +1,7 @@
-﻿using AScript.Lang.JavaScript;
+﻿using AScript.Lang.Go;
+using AScript.Lang.JavaScript;
 using AScript.Lang.JavaScript.axios;
+using AScript.Lang.Lua;
 using AScript.Lang.Sql;
 using AScript.Test.Consoles.Benchmarks.FleeTest;
 using BenchmarkDotNet.Configs;
@@ -39,7 +41,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			Test01_Benchmark();
+			//Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -72,11 +74,130 @@ namespace AScript.Test.Consoles
 			//Test25_js();
 			//Test26_for();
 			//Test27_pointer();
+			//Test28_Template();
+			//Test29_Template_Compile();
+			Test30_Template_entity();
 			//Console.WriteLine(GetResult());
 			//var p = Expression.Constant(new Person());
 			//Console.WriteLine(Expression.PropertyOrField(p, "name"));
 			Console.WriteLine("end");
 			Console.ReadLine();
+		}
+
+		static void Test30_Template_entity()
+		{
+			// 注册脚本语言
+			Script.Langs["js"] = JavaScriptLang.Instance;
+			Script.Langs["go"] = GoLang.Instance;
+			Script.Langs["lua"] = LuaLang.Instance;
+
+			var entities = GetEntities();
+
+			// 生成实体文件
+			GenerateEntities("entity.tpl", "entities/csharp", entities);
+			GenerateEntities("entity_js.tpl", "entities/js", entities);
+			GenerateEntities("entity_go.tpl", "entities/go", entities);
+			GenerateEntities("entity_lua.tpl", "entities/lua", entities);
+		}
+
+		static IList<Entity> GetEntities()
+		{
+			var entities = new[]
+			{
+				new Entity
+				{
+					Name = "User",
+					TableName = "users",
+					Memo = "用户表",
+					Columns = new List<Entity.Column>
+					{
+						new Entity.Column{ Name = "Id", TypeName = "long", IsPrimaryKey = true, Memo = "自增Id" },
+						new Entity.Column{ Name = "UserName", TypeName = "string", Memo = "用户姓名" },
+						new Entity.Column{ Name = "Birthday", TypeName = "string", Memo = "生日" },
+						new Entity.Column{ Name = "Created", TypeName = "DateTime?", Memo = "注册时间" },
+					}
+				},
+				new Entity
+				{
+					Name = "Order",
+					TableName = "orders",
+					Memo = "订单表",
+					Columns = new List<Entity.Column>
+					{
+						new Entity.Column{ Name = "Id", TypeName = "long", IsPrimaryKey = true, Memo = "自增Id" },
+						new Entity.Column{ Name = "UserId", TypeName = "long", Memo = "用户Id" },
+						new Entity.Column{ Name = "OrderNo", TypeName = "string", Memo = "订单编号" },
+						new Entity.Column{ Name = "Address", TypeName = "string", Memo = "收件地址" },
+						new Entity.Column{ Name = "Created", TypeName = "DateTime?", Memo = "下单时间" },
+					}
+				}
+			};
+			return entities;
+		}
+
+		static void GenerateEntities(string templateFile, string outputDir, IList<Entity> entities)
+		{
+			// 创建输出目录
+			Directory.CreateDirectory(outputDir);
+			// 
+			var template = new Template(new FileInfo(templateFile));
+			template.Context.SetVar("author", "张三");
+			// 预编译模板
+			template.Compile<Entity>(standalone: true);
+			// 渲染生成实体类代码
+			foreach (var entity in entities)
+			{
+				string outputFile = Path.Combine(outputDir, $"{entity.Name}.cs.txt");
+				template.Render(entity, outputFile);
+			}
+		}
+
+		public class Entity
+		{
+			public string Name { get; set; }
+			public string TableName { get; set; }
+			public string Memo { get; set; }
+			public List<Column> Columns { get; set; }
+
+			public class Column
+			{
+				public string Name { get; set; }
+				public string Memo { get; set; }
+				public bool IsPrimaryKey { get; set; }
+				public string TypeName { get; set; }
+			}
+		}
+
+		static void Test29_Template_Compile()
+		{
+			var template = new AScript.Template("您好${model.UserName}，欢迎使用${productName}。");
+			template.Context.SetVar("productName", "AScript模板引擎");
+			var user = new { UserName = "张三" };
+
+			// 预编译，编译结果隔离上下文
+			template.Compile(user.GetType(), standalone: true);
+
+			// 第1次渲染
+			var result = template.Render(user); // 您好张三，欢迎使用AScript模板引擎。
+			Console.WriteLine(result);
+
+			// 修改上下文变量和model对象
+			template.Context.SetVar("productName", "脚本引擎");
+			var user2 = new { UserName = "李四" };
+
+			// 第2次渲染，上下文变量未影响渲染结果
+			var result2 = template.Render(user2); // 您好李四，欢迎使用AScript模板引擎。
+			Console.WriteLine(result2);
+		}
+
+		static void Test28_Template()
+		{
+			var template = new AScript.Template("您好${model.UserName}，欢迎使用${productName}。");
+			template.Context.SetVar("productName", "AScript模板引擎");
+			var user = new { UserName = "张三" };
+			//var result = template.Render(user);
+			//Console.WriteLine(result);
+			template.Render(user, Console.Out);
 		}
 
 		static void Test27_pointer()
