@@ -204,6 +204,12 @@ namespace AScript
 				BaseDirectory = _template is FileInfo fi ? fi.DirectoryName : null,
 			};
 			script.Options.Standalone = standalone;
+			// 兼容模板中的异步调用
+			script.Context.AddFunc("await", AwaitFunction.Instance);
+			script.Context.AddFunc<IOutput, object, Task>("WriteAsync", async (o, t) => o.Write(t));
+			script.Context.AddFunc<IOutput, object, Task>("WriteLineAsync", async (o, t) => o.WriteLine(t));
+			script.Context.AddTokenHandler("await", AwaitTokenHandler.Instance);
+			script.Context.AddTokenHandler("@@CancellationToken", CancellationTokenHandler.Instance);
 			// load(path)和load(path,model)
 			script.Context.AddFunc("load", new LoadFunction(this));
 			//
@@ -250,6 +256,13 @@ namespace AScript
 					return;
 				}
 				var script = CreateScript(new ScriptContext(this.Context), model, output);
+				// 兼容模板中的异步调用
+				script.Context.AddFunc("await", AwaitFunction.Instance);
+				script.Context.AddFunc<IOutput, object, Task>("WriteAsync", async (o, t) => o.Write(t));
+				script.Context.AddFunc<IOutput, object, Task>("WriteLineAsync", async (o, t) => o.WriteLine(t));
+				script.Context.AddTokenHandler("await", AwaitTokenHandler.Instance);
+				script.Context.AddTokenHandler("@@CancellationToken", CancellationTokenHandler.Instance);
+				// 渲染模板
 				EvalTemplate(script);
 			}
 			finally
@@ -274,13 +287,13 @@ namespace AScript
 					return;
 				}
 				var script = CreateScript(new ScriptContext(this.Context), model, output);
-				// 其他脚本语言可能没有await语法，需要手动添加
+				// 异步支持
 				script.Context.AddFunc("await", AwaitFunction.Instance);
 				script.Context.AddFunc<IOutput, object, Task>("WriteAsync", (o, t) => o.WriteAsync(t));
 				script.Context.AddFunc<IOutput, object, Task>("WriteLineAsync", (o, t) => o.WriteLineAsync(t));
 				script.Context.AddTokenHandler("await", AwaitTokenHandler.Instance);
 				script.Context.AddTokenHandler("@@CancellationToken", CancellationTokenHandler.Instance);
-				// 
+				// 异步渲染
 				await EvalTemplateAsync(script, cancellationToken).ConfigureAwait(false);
 			}
 			finally

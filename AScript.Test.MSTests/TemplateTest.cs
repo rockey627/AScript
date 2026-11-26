@@ -1353,5 +1353,22 @@ namespace MyTest.Model
 			var result = template.Render(null);
 			Assert.AreEqual("hello !", result);
 		}
+
+		[TestMethod]
+		public void Test23_await()
+		{
+			var template = new Template("hello @{await output.WriteAsync('Tom')}");
+			var result = template.Render(null);
+			Assert.AreEqual("hello Tom", result);
+		}
+
+		[TestMethod]
+		public void Test23_await_CompileAll()
+		{
+			var template = new Template("hello @{await output.WriteAsync('Tom')}");
+			template.Options.CompileMode = ECompileMode.All;
+			var result = template.Render(null);
+			Assert.AreEqual("hello Tom", result);
+		}
 	}
 }
