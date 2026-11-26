@@ -28,6 +28,19 @@ namespace AScript.Test.Consoles.Benchmarks.TemplateTest
 		}
 
 		[Benchmark]
+		public void Translate()
+		{
+			var script = new Script();
+			script.Context.SetVar("name1", "Tom");
+			script.Context.SetVar("name2", "John");
+			var r = script.Translate(_template_text, ECompileMode.All);
+			if (r != _result)
+			{
+				throw new Exception("result error");
+			}
+		}
+
+		[Benchmark]
 		public void Template()
 		{
 			var template = new Template(_template_text);

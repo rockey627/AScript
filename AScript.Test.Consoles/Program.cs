@@ -41,7 +41,7 @@ namespace AScript.Test.Consoles
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			//Test01_Benchmark();
+			Test01_Benchmark();
 			//Test02();
 			//Test03();
 			//Test04();
@@ -76,7 +76,7 @@ namespace AScript.Test.Consoles
 			//Test27_pointer();
 			//Test28_Template();
 			//Test29_Template_Compile();
-			Test30_Template_entity();
+			//Test30_Template_entity();
 			//Console.WriteLine(GetResult());
 			//var p = Expression.Constant(new Person());
 			//Console.WriteLine(Expression.PropertyOrField(p, "name"));
@@ -1088,9 +1088,9 @@ exec2(26)
 			//BenchmarkRunner.Run<Benchmarks.LuaTest.LuaTest07_for>(config);
 
 			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest01>(config);
-			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest01_Compile>(config);
+			BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest01_Compile>(config);
 			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest02>(config);
-			BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest02_Compile>(config);
+			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest02_Compile>(config);
 			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest02_Cache>(config);
 			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest03>(config);
 			//BenchmarkRunner.Run<Benchmarks.TemplateTest.TemplateTest03_Compile>(config);

@@ -74,7 +74,11 @@ namespace AScript
 
 		/// <summary>
 		/// <para>转换执行字符串中的表达式</para>
-		/// <para>字符串中使用${}包含脚本，并将执行结果拼接到字符串对应位置</para>
+		/// <para>使用${}包含的脚本块，执行结果会拼接到字符串对应位置</para>
+		/// <para>使用@{}包含的脚本块只执行，不输出结果</para>
+		/// <para>使用@* *@包含的注释块被跳过，不输出</para>
+		/// <para>脚本块和注释块独占一行时（前后没有空白字符和其他内容），移除该行的换行符</para>
+		/// <para>文本中可以使用\转义\、@、$这三个字符</para>
 		/// <para>例如"Hello ${name}, today is ${DateTime.Now.ToString('yyyy-MM-dd')}"</para>
 		/// </summary>
 		/// <param name="s"></param>
@@ -86,7 +90,11 @@ namespace AScript
 
 		/// <summary>
 		/// <para>转换执行字符串中的表达式</para>
-		/// <para>字符串中使用${}包含脚本，并将执行结果拼接到字符串对应位置</para>
+		/// <para>使用${}包含的脚本块，执行结果会拼接到字符串对应位置</para>
+		/// <para>使用@{}包含的脚本块只执行，不输出结果</para>
+		/// <para>使用@* *@包含的注释块被跳过，不输出</para>
+		/// <para>脚本块和注释块独占一行时（前后没有空白字符和其他内容），移除该行的换行符</para>
+		/// <para>文本中可以使用\转义\、@、$这三个字符</para>
 		/// <para>例如"Hello ${name}, today is ${DateTime.Now.ToString('yyyy-MM-dd')}"</para>
 		/// </summary>
 		/// <param name="s"></param>
@@ -107,41 +115,113 @@ namespace AScript
 			while (index < s.Length)
 			{
 				var c = s[index];
+				// 转义字符，\可以转义\、@、$这三个字符
+				if (c == '\\' && index + 1 < s.Length && IsEscapeChar(s[index + 1]))
+				{
+					translated = true;
+					sb.Append(s[index + 1]);
+					index += 2;
+					continue;
+				}
 				if (c == '$' || c == '@')
 				{
 					int nextIndex = index + 1;
-					if (nextIndex < s.Length && s[nextIndex] == '{')
+					if (nextIndex < s.Length)
 					{
-						// 执行脚本
-						translated = true;
-						var tokenStream = GetTokenStream(this.Context, s, nextIndex + 1);
-						var translateTokenStream = new TranslateTokenStream(tokenStream);
-						var analyzer = GetSyntaxAnalyzer(this.Context);
-						if (compileMode == ECompileMode.All)
+						if (s[nextIndex] == '{')
 						{
-							var buildContext = new BuildContext();
-							var node = analyzer.Build(buildContext, context, options, new TokenReader(translateTokenStream, false));
-							var body = node.Build(buildContext, context, options);
-							PoolManage.Return(node);
-							var bodys = body == null ? null : new[] { body };
-							var lambda = buildContext.Build(context, options, bodys);
-							var del = lambda.Compile();
-							var result = del.DynamicInvoke(context);
-							if (c == '$') sb.Append(result);
+							// 执行脚本
+							translated = true;
+							// 块的起始位置（用于判断块是否独占一行）
+							int blockStart = index;
+							var tokenStream = GetTokenStream(this.Context, s, nextIndex + 1);
+							var translateTokenStream = new TranslateTokenStream(tokenStream);
+							var analyzer = GetSyntaxAnalyzer(this.Context);
+							if (compileMode == ECompileMode.All)
+							{
+								var buildContext = new BuildContext();
+								var node = analyzer.Build(buildContext, context, options, new TokenReader(translateTokenStream, false));
+								var body = node.Build(buildContext, context, options);
+								PoolManage.Return(node);
+								var bodys = body == null ? null : new[] { body };
+								var lambda = buildContext.Build(context, options, bodys);
+								var del = lambda.Compile();
+								var result = del.DynamicInvoke(context);
+								if (c == '$') sb.Append(result);
+							}
+							else
+							{
+								var result = analyzer.Eval(context, options, translateTokenStream, out _);
+								if (c == '$') sb.Append(result);
+							}
+							index = ((StringCharStream)((DefaultTokenStream)tokenStream).CharReader.Stream).CurrentIndex;
+							if (c == '@')
+							{
+								// 脚本块独占一行时，移除该行的换行符
+								RemoveScriptLine(s, blockStart, ref index);
+							}
+							continue;
 						}
-						else
+						if (c == '@' && s[nextIndex] == '*')
 						{
-							var result = analyzer.Eval(context, options, translateTokenStream, out _);
-							if (c == '$') sb.Append(result);
+							// 注释块@*...*@，注释内容不输出
+							translated = true;
+							// 块的起始位置（用于判断块是否独占一行）
+							int blockStart = index;
+							int endIndex = s.IndexOf("*@", nextIndex + 1, StringComparison.Ordinal);
+							if (endIndex < 0)
+							{
+								throw new Exceptions.ScriptAnalyzingException("注释块未闭合");
+							}
+							index = endIndex + 2;
+							// 注释独占一行时，移除该行的换行符
+							RemoveScriptLine(s, blockStart, ref index);
+							continue;
 						}
-						index = ((StringCharStream)((DefaultTokenStream)tokenStream).CharReader.Stream).CurrentIndex;
-						continue;
 					}
 				}
 				sb.Append(c);
 				index++;
 			}
 			return translated ? sb.ToString() : s;
+		}
+
+		/// <summary>
+		/// 可转义的字符，只有这三个字符可以用'\'转义
+		/// </summary>
+		/// <param name="c"></param>
+		/// <returns></returns>
+		private static bool IsEscapeChar(char c)
+		{
+			return c == '\\' || c == '@' || c == '$';
+		}
+
+		/// <summary>
+		/// <para>脚本块（或注释块）独占一行时，移除该行的换行符</para>
+		/// <para>独占一行的判断：块之前是行首、块之后是行尾，前后有空白字符或者其他内容都不算独占一行</para>
+		/// </summary>
+		/// <param name="s">原始字符串</param>
+		/// <param name="blockStart">块的起始位置</param>
+		/// <param name="index">块之后的位置（引用，移除换行符后会更新）</param>
+		private static void RemoveScriptLine(string s, int blockStart, ref int index)
+		{
+			// 块之前必须是行首
+			if (blockStart > 0 && s[blockStart - 1] != '\r' && s[blockStart - 1] != '\n') return;
+			// 块之后必须是行尾
+			if (index < s.Length && s[index] != '\r' && s[index] != '\n') return;
+			// 移除换行符
+			if (index < s.Length)
+			{
+				if (s[index] == '\r')
+				{
+					index++;
+					if (index < s.Length && s[index] == '\n') index++;
+				}
+				else
+				{
+					index++;
+				}
+			}
 		}
 
 		/// <summary>
@@ -2489,27 +2569,32 @@ namespace AScript
 
 		public Delegate Compile(Stream expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
-			return Lambda(expression, argNames, argTypes, returnType)?.Compile();
+			var lambda = Lambda(expression, argNames, argTypes, returnType);
+			return lambda?.Compile();
 		}
 
 		public Delegate Compile(ITreeNode expression, string[] argNames, Type[] argTypes, Type returnType = null)
 		{
-			return Lambda(expression, argNames, argTypes, returnType)?.Compile();
+			var lambda = Lambda(expression, argNames, argTypes, returnType);
+			return lambda?.Compile();
 		}
 
 		public TDelegate Compile<TDelegate>(string expression, string[] argNames) where TDelegate : Delegate
 		{
-			return Lambda<TDelegate>(expression, argNames)?.Compile();
+			var lambda = Lambda<TDelegate>(expression, argNames);
+			return lambda?.Compile();
 		}
 
 		public TDelegate Compile<TDelegate>(Stream expression, string[] argNames) where TDelegate : Delegate
 		{
-			return Lambda<TDelegate>(expression, argNames)?.Compile();
+			var lambda = Lambda<TDelegate>(expression, argNames);
+			return lambda?.Compile();
 		}
 
 		public TDelegate Compile<TDelegate>(ITreeNode expression, string[] argNames) where TDelegate : Delegate
 		{
-			return Lambda<TDelegate>(expression, argNames)?.Compile();
+			var lambda = Lambda<TDelegate>(expression, argNames);
+			return lambda?.Compile();
 		}
 
 		public Func<T1, TReturn> Compile<T1, TReturn>(string expression, string argName)

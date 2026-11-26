@@ -834,6 +834,9 @@ Assert.AreEqual("name:李四,age:18", info);
 转化执行字符串中的脚本，使用`${}`和`@{}`包含脚本块，性能高，适合简单模板。
 * `${}`脚本块会将最后一条语句执行结果拼接到结果字符串中；
 * `@{}`脚本块只执行，不拼接结果，常用于变量计算或者函数定义；
+* `@* *@`注释块，跳过注释块内的文本；
+* 换行处理：`@{}`脚本块和`@* *@`注释块独占一行时（前后没有空白字符和其他内容）移除该行的换行符，否则保留；
+* 转义处理：文本中可以用`\`转义`\`、`@`、`$`这三个字符，例如`\@{`输出`@{`而不是脚本块；
 * 脚本块上下文已内置`output`输出流变量（`StringBuilder`类型，支持`Write`和`WriteLine`方法），提供更灵活的控制；
 * 支持脚本引擎的所有语法和功能
 注：脚本块中定义的变量和函数不会回写到上下文，可以调用前一个脚本块中定义的变量和函数。
@@ -852,9 +855,7 @@ string s = @"
 	//var userAge = calcAge(user.Birthday);
 }
 尊敬的 ${user.Name}${userSex} 您好，祝您${calcAge(user.Birthday)}岁生日快乐！
-@{
-	output.Replace('\r', '').Replace('\n', '')
-}";
+";
 // 模拟获取业务数据
 var user = new { Name = "张三", Sex = 1, Birthday = new DateTime(1990, 10, 8), CreateTime = new DateTime(2026, 5, 1) };
 var script = new Script();
