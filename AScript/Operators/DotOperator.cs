@@ -23,20 +23,33 @@ namespace AScript.Operators
 		public void Build(FunctionBuildArgs e)
 		{
 			if (e.Args.Count != 2) return;
-			if (!(e.Args[1] is VariableNode)) return;
-
-			var arg0 = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
-			var fieldName = ((VariableNode)e.Args[1]).Name;
-
-			if (typeof(Pointer).IsAssignableFrom(arg0.Type))
+			if (e.Args[1] is VariableNode varNode1)
 			{
-				var realType = arg0.Type.GetGenericArguments()[0];
-				var addr = Expression.Property(arg0, "Address");
-				var obj = Expression.Call(addr, ScriptUtils.Method_Pointer_Address_GetValue, e.BuildContext.GetScriptContextParameter());
-				arg0 = Expression.Convert(obj, realType);
-			}
+				var arg0 = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
+				var fieldName = varNode1.Name;
 
-			e.Result = GetValue(e, arg0, fieldName);
+				if (typeof(Pointer).IsAssignableFrom(arg0.Type))
+				{
+					var realType = arg0.Type.GetGenericArguments()[0];
+					var addr = Expression.Property(arg0, "Address");
+					var obj = Expression.Call(addr, ScriptUtils.Method_Pointer_Address_GetValue, e.BuildContext.GetScriptContextParameter());
+					arg0 = Expression.Convert(obj, realType);
+				}
+
+				e.Result = GetValue(e, arg0, fieldName);
+			}
+			else if (e.Args[1] is CallFuncNode funcNode1)
+			{
+				if (this.Nullable)
+				{
+
+				}
+				else
+				{
+					funcNode1.Target = e.Args[0];
+					e.Result = funcNode1.Build(e.BuildContext, e.ScriptContext, e.Options);
+				}
+			}
 		}
 
 		private Expression GetValue(FunctionBuildArgs e, Expression instance, string propertyOrFieldName)
@@ -129,17 +142,29 @@ namespace AScript.Operators
 		public void Eval(FunctionEvalArgs e)
 		{
 			if (e.Args.Count != 2) return;
-			if (!(e.Args[1] is VariableNode)) return;
-
-			var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out var type0);
-			if (this.Nullable && arg0 == null)
+			if (e.Args[1] is VariableNode varNode1)
 			{
-				e.SetResult(null);
-				return;
+				var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out var type0);
+				if (this.Nullable && arg0 == null)
+				{
+					e.SetResult(null);
+					return;
+				}
+				var fieldName = varNode1.Name;
+				var value = GetValue(e, arg0, fieldName, out var type);
+				e.SetResult(value, type);
 			}
-			var fieldName = ((VariableNode)e.Args[1]).Name;
-			var value = GetValue(e, arg0, fieldName, out var type);
-			e.SetResult(value, type);
+			else if (e.Args[1] is CallFuncNode funcNode1)
+			{
+				var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out var type0);
+				if (this.Nullable && arg0 == null)
+				{
+					e.SetResult(null);
+					return;
+				}
+				funcNode1.Target = arg0;
+				e.SetResult(funcNode1.Eval(e.Context, e.Options, e.Control, out var type), type);
+			}
 		}
 
 		private object GetValue(FunctionEvalArgs e, object instance, string propertyOrFieldName, out Type type)

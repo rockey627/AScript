@@ -229,18 +229,55 @@ buffs[0] = 0x02;
 			Assert.AreEqual(typeof(int?), type);
 		}
 
-		//[TestMethod]
-		//public void Test48_4()
-		//{
-		//	string s = "p?.Name.ToString()";
-		//	var script = new Script();
-		//	script.Options.CompileMode = ECompileMode.All;
-		//	script.Context.SetVar("p", null);
-		//	Assert.IsNull(script.Eval(s));
-		//}
+		[TestMethod]
+		public void Test48_5()
+		{
+			string s = "p?.ToString()";
+			var script = new Script();
+			script.Context.SetVar("p", 6);
+			Assert.AreEqual("6", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_5_CompileAll()
+		{
+			string s = "p?.ToString()";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("p", 6);
+			Assert.AreEqual("6", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_4()
+		{
+			string s = "p?.ToString()";
+			var script = new Script();
+			script.Context.SetVar("p", null);
+			Assert.IsNull(script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_4_CompileAll()
+		{
+			string s = "p?.ToString()";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("p", null);
+			Assert.IsNull(script.Eval(s));
+		}
 
 		[TestMethod]
 		public void Test48_3()
+		{
+			string s = "p?.Name";
+			var script = new Script();
+			script.Context.SetVar("p", null);
+			Assert.IsNull(script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_3_CompileAll()
 		{
 			string s = "p?.Name";
 			var script = new Script();

@@ -133,7 +133,17 @@ namespace AScript.Nodes
 						}
 					}
 				}
-				var v0 = ((ITreeNode)this.Target).Eval(context, options, null, out var t0);
+				object v0;
+				Type t0;
+				if (this.Target is ITreeNode targetNode)
+				{
+					v0 = targetNode.Eval(context, options, null, out t0);
+				}
+				else
+				{
+					v0 = this.Target;
+					t0 = v0?.GetType();
+				}
 				if (v0 != null) t0 = v0.GetType();
 				if (t0 == typeof(TypeWrapper))
 				{
