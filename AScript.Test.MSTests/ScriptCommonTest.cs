@@ -249,6 +249,227 @@ buffs[0] = 0x02;
 		}
 
 		[TestMethod]
+		public void Test48_6()
+		{
+			string s = "p?.SayHello()";
+			var script = new Script();
+			script.Context.SetVar("p", new Person("tom", 20));
+			Assert.AreEqual("Hello, my name is tom, I'm 20 years old", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_6_CompileAll()
+		{
+			string s = "p?.SayHello()";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("p", new Person("tom", 20));
+			Assert.AreEqual("Hello, my name is tom, I'm 20 years old", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_7()
+		{
+			string s = "p?.SayHello()";
+			var script = new Script();
+			script.Context.SetVar("p", null);
+			Assert.IsNull(script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_7_CompileAll()
+		{
+			string s = "p?.SayHello()";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("p", null);
+			Assert.IsNull(script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_8()
+		{
+			string s = "p?.Play(\"football\")";
+			var script = new Script();
+			script.Context.SetVar("p", new Person("tom", 20));
+			Assert.AreEqual("tom play game football", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_8_CompileAll()
+		{
+			string s = "p?.Play(\"football\")";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("p", new Person("tom", 20));
+			Assert.AreEqual("tom play game football", script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_9()
+		{
+			string s = "p?.Play(\"football\")";
+			var script = new Script();
+			script.Context.SetVar("p", null);
+			Assert.IsNull(script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_9_CompileAll()
+		{
+			string s = "p?.Play(\"football\")";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("p", null);
+			Assert.IsNull(script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_10()
+		{
+			// 链式调用
+			string s = "p?.SayHello()?.Length";
+			var script = new Script();
+			script.Context.SetVar("p", new Person("tom", 20));
+			Assert.AreEqual("Hello, my name is tom, I'm 20 years old".Length, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_10_CompileAll()
+		{
+			string s = "p?.SayHello()?.Length";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("p", new Person("tom", 20));
+			Assert.AreEqual("Hello, my name is tom, I'm 20 years old".Length, script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_11()
+		{
+			// 链式调用，实例为 null
+			string s = "p?.SayHello()?.Length";
+			var script = new Script();
+			script.Context.SetVar("p", null);
+			Assert.IsNull(script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_11_CompileAll()
+		{
+			string s = "p?.SayHello()?.Length";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("p", null);
+			Assert.IsNull(script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_12()
+		{
+			// 返回值类型的方法
+			string s = "p?.GetHashCode()";
+			var script = new Script();
+			script.Context.SetVar("p", new Person("tom", 20));
+			Assert.IsNotNull(script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_12_CompileAll()
+		{
+			string s = "p?.GetHashCode()";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("p", new Person("tom", 20));
+			Assert.IsNotNull(script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_13()
+		{
+			// 返回值类型的方法，实例为 null
+			string s = "p?.GetHashCode()";
+			var script = new Script();
+			script.Context.SetVar("p", null);
+			Assert.IsNull(script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_13_CompileAll()
+		{
+			string s = "p?.GetHashCode()";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("p", null);
+			Assert.IsNull(script.Eval(s));
+		}
+
+		[TestMethod]
+		public void Test48_14()
+		{
+			// 实例只求值一次
+			var factory = new PersonFactory();
+			var script = new Script();
+			script.Context.SetVar("factory", factory);
+			Assert.AreEqual("Hello, my name is tom, I'm 20 years old", script.Eval("factory.Create()?.SayHello()"));
+			Assert.AreEqual(1, factory.Count);
+		}
+
+		[TestMethod]
+		public void Test48_14_CompileAll()
+		{
+			// 实例只求值一次
+			var factory = new PersonFactory();
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("factory", factory);
+			Assert.AreEqual("Hello, my name is tom, I'm 20 years old", script.Eval("factory.Create()?.SayHello()"));
+			Assert.AreEqual(1, factory.Count);
+		}
+
+		[TestMethod]
+		public void Test48_15()
+		{
+			// 无返回值的方法
+			var factory = new PersonFactory();
+			var script = new Script();
+			script.Context.SetVar("factory", factory);
+			script.Eval("factory.Create(); factory?.Reset();");
+			Assert.AreEqual(0, factory.Count);
+		}
+
+		[TestMethod]
+		public void Test48_15_CompileAll()
+		{
+			// 无返回值的方法
+			var factory = new PersonFactory();
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("factory", factory);
+			script.Eval("factory.Create(); factory?.Reset();");
+			Assert.AreEqual(0, factory.Count);
+		}
+
+		[TestMethod]
+		public void Test48_16()
+		{
+			// 无返回值的方法，实例为 null 时不执行
+			var script = new Script();
+			script.Context.SetVar("factory", null);
+			Assert.IsNull(script.Eval("factory?.Reset();"));
+		}
+
+		[TestMethod]
+		public void Test48_16_CompileAll()
+		{
+			// 无返回值的方法，实例为 null 时不执行
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("factory", null);
+			Assert.IsNull(script.Eval("factory?.Reset();"));
+		}
+
+		[TestMethod]
 		public void Test48_4()
 		{
 			string s = "p?.ToString()";

@@ -62,4 +62,20 @@ namespace AScript.Test.MSTests
 			this.Age = age;
 		}
 	}
+
+	public class PersonFactory
+	{
+		public int Count { get; private set; }
+
+		public Person Create()
+		{
+			this.Count++;
+			return new Person("tom", 20);
+		}
+
+		public void Reset()
+		{
+			this.Count = 0;
+		}
+	}
 }
