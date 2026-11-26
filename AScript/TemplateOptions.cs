@@ -5,6 +5,7 @@ namespace AScript
 	public class TemplateOptions
 	{
 		private ECompileMode? _CompileMode;
+		private bool? _ThrowIfVariableNotExists;
 		private string _OutputVar;
 		private string _ModelVar;
 		private string _LoadMethod;
@@ -20,6 +21,14 @@ namespace AScript
 		{
 			get => _CompileMode ?? this.Parent?.CompileMode;
 			set => _CompileMode = value;
+		}
+		/// <summary>
+		/// 如果变量不存在则抛异常，否则返回变量默认值
+		/// </summary>
+		public bool? ThrowIfVariableNotExists
+		{
+			get => _ThrowIfVariableNotExists ?? this.Parent?.ThrowIfVariableNotExists;
+			set => _ThrowIfVariableNotExists = value;
 		}
 		/// <summary>
 		/// 输出流变量名

@@ -21,6 +21,7 @@ namespace AScript
 
 		public static readonly TemplateOptions DefaultOptions = new TemplateOptions
 		{
+			ThrowIfVariableNotExists = true,
 			OutputVar = "output",
 			ModelVar = "model",
 			LoadMethod = "load",
@@ -191,6 +192,7 @@ namespace AScript
 		public Template Compile(Type modelType, bool standalone = false)
 		{
 			var script = new Script(new ScriptContext(this.Context));
+			script.Options.ThrowIfVariableNotExists = this.Options.ThrowIfVariableNotExists;
 			script.Options.CompileMode = this.Options.CompileMode;
 			script.Options.RewriteFunctions = false;
 			script.Options.RewriteVariables = false;
@@ -297,6 +299,7 @@ namespace AScript
 		private Script CreateScript(ScriptContext context, object model, IOutput output)
 		{
 			var script = new Script(context);
+			script.Options.ThrowIfVariableNotExists = this.Options.ThrowIfVariableNotExists;
 			script.Options.CompileMode = this.Options.CompileMode;
 			script.Options.RewriteFunctions = false;
 			script.Options.RewriteVariables = false;
