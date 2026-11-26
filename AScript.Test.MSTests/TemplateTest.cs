@@ -1319,6 +1319,25 @@ namespace MyTest.Model
 		}
 
 		[TestMethod]
+		public void Test21_var3()
+		{
+			var template = new Template("hello ${user?.name}!");
+			template.Options.ThrowIfVariableNotExists = false;
+			var result = template.Render(null);
+			Assert.AreEqual("hello !", result);
+		}
+
+		[TestMethod]
+		public void Test21_var3_CompileAll()
+		{
+			var template = new Template("hello ${user?.name}!");
+			template.Options.ThrowIfVariableNotExists = false;
+			template.Options.CompileMode = ECompileMode.All;
+			var result = template.Render(null);
+			Assert.AreEqual("hello !", result);
+		}
+
+		[TestMethod]
 		public void Test22_empty()
 		{
 			var template = new Template("hello ${}!");

@@ -229,6 +229,26 @@ buffs[0] = 0x02;
 			Assert.AreEqual(typeof(int?), type);
 		}
 
+		//[TestMethod]
+		//public void Test48_4()
+		//{
+		//	string s = "p?.Name.ToString()";
+		//	var script = new Script();
+		//	script.Options.CompileMode = ECompileMode.All;
+		//	script.Context.SetVar("p", null);
+		//	Assert.IsNull(script.Eval(s));
+		//}
+
+		[TestMethod]
+		public void Test48_3()
+		{
+			string s = "p?.Name";
+			var script = new Script();
+			script.Options.CompileMode = ECompileMode.All;
+			script.Context.SetVar("p", null);
+			Assert.IsNull(script.Eval(s));
+		}
+
 		[TestMethod]
 		public void Test48_2()
 		{

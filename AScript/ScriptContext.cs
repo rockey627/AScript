@@ -10,7 +10,6 @@ using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,6 +25,7 @@ namespace AScript
 		static ScriptContext()
 		{
 			Root.AddFunc<ScriptContext, object, string, object>("<>__GetValue", ScriptUtils.GetValue);
+			Root.AddFunc<ScriptContext, object, string, bool, object>("<>__GetValue", ScriptUtils.GetValue);
 			Root.AddTokenHandler("#lang", new LangTokenHandler("#end"));
 			Root.AddTokenHandler("@lang", new LangTokenHandler("@end"));
 		}

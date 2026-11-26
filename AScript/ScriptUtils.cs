@@ -1161,6 +1161,11 @@ namespace AScript
 			}
 		}
 
+		public static object GetValue(ScriptContext context, object instance, string propertyOrFieldName, bool nullable)
+		{
+			return nullable && instance == null ? null : GetValue(context, instance, propertyOrFieldName);
+		}
+
 		public static object GetValue(ScriptContext context, object instance, string propertyOrFieldName)
 		{
 			var flags = BindingFlags.Public | BindingFlags.IgnoreCase;

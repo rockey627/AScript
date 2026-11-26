@@ -72,7 +72,7 @@ namespace AScript.Operators
 
 			if (instance.Type == typeof(object))
 			{
-				return e.ScriptContext.BuildFunc(e.BuildContext, e.Options, e.Control, "<>__GetValue", false, null, new[] { instance, Expression.Constant(propertyOrFieldName) });
+				return e.ScriptContext.BuildFunc(e.BuildContext, e.Options, e.Control, "<>__GetValue", false, null, new[] { instance, Expression.Constant(propertyOrFieldName), Expression.Constant(this.Nullable) });
 			}
 
 			// 变量的属性或字段
