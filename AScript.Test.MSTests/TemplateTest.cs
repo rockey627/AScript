@@ -1,7 +1,7 @@
+using AScript.Exceptions;
 using AScript.Lang.Go;
 using AScript.Lang.JavaScript;
 using AScript.Lang.Lua;
-using AScript.Readers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -368,7 +368,7 @@ namespace MyTest.Model
 			});
 			var result = template.Render(null);
 			Console.WriteLine(result);
-			
+
 			Assert.AreEqual(_template01_expected, result);
 
 			result = template.Render(null);
@@ -1278,5 +1278,61 @@ namespace MyTest.Model
 			Assert.AreEqual(expected, result);
 		}
 
+		[TestMethod]
+		public void Test21_var()
+		{
+			var template = new Template("hello ${name}!");
+			Assert.ThrowsException<ScriptAnalyzingException>(() =>
+			{
+				var result = template.Render(null);
+			});
+		}
+
+		[TestMethod]
+		public void Test21_var_CompileAll()
+		{
+			var template = new Template("hello ${name}!");
+			template.Options.CompileMode = ECompileMode.All;
+			Assert.ThrowsException<ScriptAnalyzingException>(() =>
+			{
+				var result = template.Render(null);
+			});
+		}
+
+		[TestMethod]
+		public void Test21_var2()
+		{
+			var template = new Template("hello ${name}!");
+			template.Options.ThrowIfVariableNotExists = false;
+			var result = template.Render(null);
+			Assert.AreEqual("hello !", result);
+		}
+
+		[TestMethod]
+		public void Test21_var2_CompileAll()
+		{
+			var template = new Template("hello ${name}!");
+			template.Options.ThrowIfVariableNotExists = false;
+			template.Options.CompileMode = ECompileMode.All;
+			var result = template.Render(null);
+			Assert.AreEqual("hello !", result);
+		}
+
+		[TestMethod]
+		public void Test22_empty()
+		{
+			var template = new Template("hello ${}!");
+			var result = template.Render(null);
+			Assert.AreEqual("hello !", result);
+		}
+
+		[TestMethod]
+		public void Test22_empty_CompileAll()
+		{
+			var template = new Template("hello ${}!");
+			template.Options.CompileMode = ECompileMode.All;
+			var result = template.Render(null);
+			Assert.AreEqual("hello !", result);
+		}
 	}
 }

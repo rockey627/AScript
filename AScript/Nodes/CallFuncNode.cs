@@ -129,7 +129,7 @@ namespace AScript.Nodes
 						{
 							var argValue = this.Args[i].Eval(context, options, null, out var argType);
 							argValues[i] = argValue;
-							argTypes[i] = argValue?.GetType() ?? argType;
+							argTypes[i] = argValue?.GetType() ?? argType ?? typeof(object);
 						}
 					}
 				}

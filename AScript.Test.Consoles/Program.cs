@@ -147,7 +147,7 @@ namespace AScript.Test.Consoles
 			// 渲染生成实体类代码
 			foreach (var entity in entities)
 			{
-				string outputFile = Path.Combine(outputDir, $"{entity.Name}.cs.txt");
+				string outputFile = Path.Combine(outputDir, $"{entity.Name}.cs");
 				template.Render(entity, outputFile);
 			}
 		}
