@@ -62,7 +62,7 @@ namespace AScript.Functions
 				e.SetResult(value, returnType);
 				return;
 			}
-			if (returnType.IsGenericType)
+			if (returnType.IsGenericType && returnType.GetGenericArguments()[0].FullName != "System.Threading.Tasks.VoidTaskResult")
 			{
 				// Task<TResult>
 				dynamic t = task;
