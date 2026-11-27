@@ -163,6 +163,30 @@ namespace AScript
 		}
 
 		/// <summary>
+		/// 设置缓存策略
+		/// </summary>
+		/// <param name="cacheTime">
+		/// <para>缓存时长</para>
+		/// <para>0表示不使用缓存</para>
+		/// <para>-1表示永久缓存</para>
+		/// <para>大于0表示缓存时长（单位：毫秒）</para>
+		/// </param>
+		/// <param name="cacheKey">
+		/// <para>缓存key</para>
+		/// <para>如果为空，则使用模板内容或模板文件路径作为key</para>
+		/// </param>
+		/// <param name="cacheVersion">
+		/// <para>缓存版本号，如果版本号有变化，则重新编译并缓存</para>
+		/// <para>动态获取版本号</para>
+		/// </param>
+		/// <returns></returns>
+		/// <exception cref="Exception">stream or lazy template need a cacheKey</exception>
+		public Template WithCache(int cacheTime, string cacheKey, Func<string, string> cacheVersion)
+		{
+			return WithCache(cacheTime, cacheKey, (object)cacheVersion);
+		}
+
+		/// <summary>
 		/// 预编译模板
 		/// </summary>
 		/// <typeparam name="TModel"></typeparam>
