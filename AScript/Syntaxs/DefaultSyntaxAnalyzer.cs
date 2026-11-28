@@ -261,7 +261,7 @@ namespace AScript.Syntaxs
 					var block = BuildBlock(buildContext, scriptContext, options, tokenReader, control, ignore);
 					if (!ignore)
 					{
-						if (treeBuilder == null) treeBuilder = new TreeBuilder();
+						if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
 						treeBuilder.AddData(buildContext, scriptContext, options, control, block);
 					}
 				}
@@ -320,7 +320,7 @@ namespace AScript.Syntaxs
 										var type = typeof(Nullable<>).MakeGenericType(type0);
 										var typeOpNode = PoolManage.CreateOperatorNode(Functions.ConvertFunction.FORCE_NAME, 2, OperatorPriorities["."] - 1);
 										typeOpNode.Left = PoolManage.CreateObjectNode(type);
-										if (treeBuilder == null) treeBuilder = new TreeBuilder();
+										if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
 										treeBuilder.AddData(buildContext, scriptContext, options, control, typeOpNode);
 									}
 									t = valueToken;
@@ -359,7 +359,7 @@ namespace AScript.Syntaxs
 								{
 									var typeOpNode = PoolManage.CreateOperatorNode(Functions.ConvertFunction.FORCE_NAME, 2, OperatorPriorities["."] - 1);
 									typeOpNode.Left = PoolManage.CreateObjectNode(type);
-									if (treeBuilder == null) treeBuilder = new TreeBuilder();
+									if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
 									treeBuilder.AddData(buildContext, scriptContext, options, control, typeOpNode);
 								}
 								t = valueToken;
@@ -632,7 +632,7 @@ namespace AScript.Syntaxs
 					var block = await BuildBlockAsync(buildContext, scriptContext, options, tokenReader, control, ignore, cancellationToken).ConfigureAwait(false);
 					if (!ignore)
 					{
-						if (treeBuilder == null) treeBuilder = new TreeBuilder();
+						if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
 						await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, block, cancellationToken).ConfigureAwait(false);
 					}
 				}
@@ -691,7 +691,7 @@ namespace AScript.Syntaxs
 										var type = typeof(Nullable<>).MakeGenericType(type0);
 										var typeOpNode = PoolManage.CreateOperatorNode(Functions.ConvertFunction.FORCE_NAME, 2, OperatorPriorities["."] - 1);
 										typeOpNode.Left = PoolManage.CreateObjectNode(type);
-										if (treeBuilder == null) treeBuilder = new TreeBuilder();
+										if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
 										await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, typeOpNode, cancellationToken).ConfigureAwait(false);
 									}
 									t = valueToken;
@@ -730,7 +730,7 @@ namespace AScript.Syntaxs
 								{
 									var typeOpNode = PoolManage.CreateOperatorNode(Functions.ConvertFunction.FORCE_NAME, 2, OperatorPriorities["."] - 1);
 									typeOpNode.Left = PoolManage.CreateObjectNode(type);
-									if (treeBuilder == null) treeBuilder = new TreeBuilder();
+									if (treeBuilder == null) treeBuilder = PoolManage.CreateTreeBuilder();
 									await treeBuilder.AddDataAsync(buildContext, scriptContext, options, control, typeOpNode, cancellationToken).ConfigureAwait(false);
 								}
 								t = valueToken;

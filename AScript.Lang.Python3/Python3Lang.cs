@@ -484,7 +484,7 @@ namespace AScript.Lang.Python3
 				return null;
 			}
 
-			var builder = ignore ? null : new TreeBuilder();
+			var builder = ignore ? null : PoolManage.CreateTreeBuilder();
 			int column = token.Value.Column;
 			while (token.HasValue && token.Value.Column == column)
 			{

@@ -16,7 +16,7 @@ namespace AScript.Lang.Go
 			{
 				treeBuilder?.TryEvalRoot(buildContext, scriptContext, options, control);
 				// 
-				var statementTreeBuilder = ignore ? null : new TreeBuilder();
+				var statementTreeBuilder = ignore ? null : PoolManage.CreateTreeBuilder();
 				if (TryBuildComma(buildContext, scriptContext, options, tokenReader, control, statementTreeBuilder))
 				{
 					options.CreateFullStatement = null;
