@@ -5,7 +5,7 @@ namespace AScript
 	public readonly struct Token
 	{
 		public readonly ETokenType Type;
-		public string Value => (string)this.Data;
+		public readonly string Value;// => (string)this.Data;
 		public readonly int Line;
 		public readonly int Column;
 		public readonly object Data;
@@ -16,7 +16,8 @@ namespace AScript
 		public Token(string value, ETokenType type, int line, int column)
 		{
 			this.Type = type;
-			this.Data = value;
+			this.Value = value;
+			this.Data = null;
 			this.Line = line;
 			this.Column = column;
 		}
@@ -24,6 +25,7 @@ namespace AScript
 		public Token(object value, int line, int column)
 		{
 			this.Type = ETokenType.Object;
+			this.Value = null;
 			this.Data = value;
 			this.Line = line;
 			this.Column = column;
