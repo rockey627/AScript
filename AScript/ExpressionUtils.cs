@@ -201,6 +201,96 @@ namespace AScript
 			return ((dynamic)v1) >> ((dynamic)v2);
 		}
 
+		/// <summary>
+		/// 位运算：非~
+		/// </summary>
+		public static object BitwiseNot(object v1)
+		{
+			return ~((dynamic)v1);
+		}
+
+		/// <summary>
+		/// 一元正号+
+		/// </summary>
+		public static object UnaryPlus(object v1)
+		{
+			return +((dynamic)v1);
+		}
+
+		/// <summary>
+		/// 一元负号-
+		/// </summary>
+		public static object UnaryMinus(object v1)
+		{
+			return -((dynamic)v1);
+		}
+
+		/// <summary>
+		/// 自增/自减的快速路径
+		/// </summary>
+		/// <remarks>
+		/// 返回false表示该类型不支持快速路径，调用方应回退到dynamic。
+		/// prefix为true时结果为新值，false时结果为旧值。
+		/// 只处理int/uint/long/ulong/float/double/decimal，
+		/// byte/short/char等类型的自增语义（保持类型并回绕）由dynamic保证。
+		/// </remarks>
+		public static bool TryStep(object value, bool increment, bool prefix, out object newValue, out object result)
+		{
+			newValue = null;
+			result = null;
+			if (value == null) return false;
+			if (value is int i)
+			{
+				int n = increment ? i + 1 : i - 1;
+				newValue = n;
+				result = prefix ? (object)n : i;
+				return true;
+			}
+			if (value is long l)
+			{
+				long n = increment ? l + 1 : l - 1;
+				newValue = n;
+				result = prefix ? (object)n : l;
+				return true;
+			}
+			if (value is double d)
+			{
+				double n = increment ? d + 1 : d - 1;
+				newValue = n;
+				result = prefix ? (object)n : d;
+				return true;
+			}
+			if (value is uint ui)
+			{
+				uint n = increment ? ui + 1 : ui - 1;
+				newValue = n;
+				result = prefix ? (object)n : ui;
+				return true;
+			}
+			if (value is ulong ul)
+			{
+				ulong n = increment ? ul + 1 : ul - 1;
+				newValue = n;
+				result = prefix ? (object)n : ul;
+				return true;
+			}
+			if (value is float f)
+			{
+				float n = increment ? f + 1 : f - 1;
+				newValue = n;
+				result = prefix ? (object)n : f;
+				return true;
+			}
+			if (value is decimal m)
+			{
+				decimal n = increment ? m + 1 : m - 1;
+				newValue = n;
+				result = prefix ? (object)n : m;
+				return true;
+			}
+			return false;
+		}
+
 		public static Expression LessThan(Expression v1, Expression v2)
 		{
 			if (v1.Type == typeof(object) || v2.Type == typeof(object)

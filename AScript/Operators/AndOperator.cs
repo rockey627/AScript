@@ -28,9 +28,9 @@ namespace AScript.Operators
 		{
 			if (e.Args.Count == 2)
 			{
-				dynamic arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
-				dynamic arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
-				e.SetResult(arg0 & arg1);
+				var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
+				var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
+				e.SetResult(ExpressionUtils.And(arg0, arg1));
 			}
 		}
 	}

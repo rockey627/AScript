@@ -94,10 +94,10 @@ namespace AScript.Operators
 				}
 				else
 				{
-					dynamic arg0 = varNode.Eval(e.Context, e.Options, e.Control, out var type0);
-					dynamic arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
-					arg0 /= arg1;
-					e.SetResult(arg0, type0);
+					var arg0 = varNode.Eval(e.Context, e.Options, e.Control, out var type0);
+					var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
+					var result = ExpressionUtils.Divide(arg0, arg1, false);
+					e.SetResult(result, type0);
 				}
 				e.Context.SetTempVar(varNode.Name, e.Result, true);
 			}
@@ -111,7 +111,7 @@ namespace AScript.Operators
 					var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) =>
 					{
 						if (_Double) return Convert.ToDouble(v) / Convert.ToDouble(arg1);
-						return (dynamic)v / (dynamic)arg1;
+						return ExpressionUtils.Divide(v, arg1, false);
 					});
 					e.SetResult(value, type0 == typeof(object) ? type1 : type0);
 					return;
@@ -128,7 +128,7 @@ namespace AScript.Operators
 					var v = ScriptUtils.GetAndSetValue(obj, idx, v1 =>
 					{
 						if (_Double) return Convert.ToDouble(v1) / Convert.ToDouble(value);
-						return (dynamic)v1 / (dynamic)value;
+						return ExpressionUtils.Divide(v1, value, false);
 					});
 
 					e.SetResult(v);

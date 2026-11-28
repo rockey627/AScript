@@ -65,18 +65,27 @@ namespace AScript.Operators
 			var arg0Node = e.Args[0];
 			if (arg0Node is VariableNode varNode)
 			{
-				dynamic arg0 = varNode.Eval(e.Context, e.Options, e.Control, out var type0);
+				var arg0 = varNode.Eval(e.Context, e.Options, e.Control, out var type0);
 				if (ScriptUtils.IsNumberType(type0))
 				{
-					if (e.IsPrefix)
+					if (ExpressionUtils.TryStep(arg0, false, e.IsPrefix, out var newValue, out var result))
 					{
-						e.SetResult(--arg0);
+						e.SetResult(result);
+						e.Context.SetTempVar(varNode.Name, newValue, true);
 					}
 					else
 					{
-						e.SetResult(arg0--);
+						dynamic d = arg0;
+						if (e.IsPrefix)
+						{
+							e.SetResult(--d);
+						}
+						else
+						{
+							e.SetResult(d--);
+						}
+						e.Context.SetTempVar(varNode.Name, d, true);
 					}
-					e.Context.SetTempVar(varNode.Name, arg0, true);
 				}
 			}
 			else if (arg0Node is OperatorNode opNode)
@@ -87,6 +96,11 @@ namespace AScript.Operators
 					var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
 					var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) =>
 					{
+						if (ExpressionUtils.TryStep(v, false, e.IsPrefix, out var newValue, out var result))
+						{
+							e.SetResult(result);
+							return newValue;
+						}
 						dynamic d = v;
 						if (e.IsPrefix)
 						{
@@ -109,7 +123,7 @@ namespace AScript.Operators
 
 					//// 根据obj类型处理索引器赋值
 					object v2 = null;
-					var v = ScriptUtils.GetAndSetValue(obj, idx, v1 => { v2 = v1; return (dynamic)v1 - 1; });
+					var v = ScriptUtils.GetAndSetValue(obj, idx, v1 => { v2 = v1; return ExpressionUtils.Subtract(v1, 1); });
 
 					e.SetResult(e.IsPrefix ? v : v2);
 					return;

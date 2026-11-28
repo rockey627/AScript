@@ -9,7 +9,7 @@ namespace AScript.Operators
 	/// </summary>
 	public class NotOperator : IFunctionEvaluator, IFunctionBuilder
 	{
-		private static readonly MethodInfo Method_Not = typeof(NotOperator).GetMethod("Not", BindingFlags.Static | BindingFlags.NonPublic);
+		private static readonly MethodInfo Method_Not = typeof(ExpressionUtils).GetMethod("BitwiseNot", new[] { typeof(object) });
 
 		public static readonly NotOperator Instance = new NotOperator();
 
@@ -30,18 +30,12 @@ namespace AScript.Operators
 			}
 		}
 
-		private static object Not(object obj)
-		{
-			dynamic d = obj;
-			return ~d;
-		}
-
 		public void Eval(FunctionEvalArgs e)
 		{
 			if (e.Args.Count == 1)
 			{
-				dynamic arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
-				e.SetResult(~arg0);
+				var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
+				e.SetResult(ExpressionUtils.BitwiseNot(arg0));
 			}
 		}
 	}

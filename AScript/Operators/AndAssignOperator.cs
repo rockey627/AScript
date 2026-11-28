@@ -59,10 +59,10 @@ namespace AScript.Operators
 			var arg0Node = e.Args[0];
 			if (arg0Node is VariableNode varNode)
 			{
-				dynamic arg0 = varNode.Eval(e.Context, e.Options, e.Control, out var type0);
-				dynamic arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
-				arg0 &= arg1;
-				e.SetResult(arg0, type0);
+				var arg0 = varNode.Eval(e.Context, e.Options, e.Control, out var type0);
+				var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
+				var result = ExpressionUtils.And(arg0, arg1);
+				e.SetResult(result, type0);
 				e.Context.SetTempVar(varNode.Name, e.Result, true);
 				return;
 			}
@@ -73,7 +73,7 @@ namespace AScript.Operators
 					// 属性赋值
 					var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type1);
 					var opLeftValue = opNode.Left.Eval(e.Context, e.Options, e.Control, out _);
-					var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) => (dynamic)v & (dynamic)arg1);
+					var value = ScriptUtils.GetAndSetValue(opLeftValue, opRightNode.Name, out var type0, (m, t, v) => ExpressionUtils.And(v, arg1));
 					e.SetResult(value, type0 == typeof(object) ? type1 : type0);
 					return;
 				}
@@ -86,7 +86,7 @@ namespace AScript.Operators
 					var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
 
 					//// 根据obj类型处理索引器赋值
-					var v = ScriptUtils.GetAndSetValue(obj, idx, v1 => (dynamic)v1 & (dynamic)value);
+					var v = ScriptUtils.GetAndSetValue(obj, idx, v1 => ExpressionUtils.And(v1, value));
 
 					e.SetResult(v, type);
 					return;

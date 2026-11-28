@@ -73,10 +73,10 @@ namespace AScript.Operators
 			var arg0Node = e.Args[0];
 			if (arg0Node is VariableNode varNode)
 			{
-				dynamic arg0 = varNode.Eval(e.Context, e.Options, e.Control, out var type0);
-				dynamic arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
-				arg0 -= arg1;
-				e.SetResult(arg0, type0);
+				var arg0 = varNode.Eval(e.Context, e.Options, e.Control, out var type0);
+				var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out _);
+				var result = ExpressionUtils.Subtract(arg0, arg1);
+				e.SetResult(result, type0);
 				e.Context.SetTempVar(varNode.Name, e.Result, true);
 				return;
 			}
@@ -109,7 +109,7 @@ namespace AScript.Operators
 						{
 							// 属性赋值
 							var arg1 = e.Args[1].Eval(e.Context, e.Options, e.Control, out type1);
-							return (dynamic)v - (dynamic)arg1;
+							return ExpressionUtils.Subtract(v, arg1);
 						}
 					});
 					e.SetResult(value, type0 == typeof(object) ? type1 : type0);
@@ -124,7 +124,7 @@ namespace AScript.Operators
 					var value = e.Args[1].Eval(e.Context, e.Options, e.Control, out var type);
 
 					//// 根据obj类型处理索引器赋值
-					var v = ScriptUtils.GetAndSetValue(obj, idx, v1 => (dynamic)v1 - (dynamic)value);
+					var v = ScriptUtils.GetAndSetValue(obj, idx, v1 => ExpressionUtils.Subtract(v1, value));
 
 					e.SetResult(v, type);
 					return;
