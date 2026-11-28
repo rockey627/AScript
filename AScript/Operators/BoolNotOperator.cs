@@ -11,7 +11,7 @@ namespace AScript.Operators
 		{
 			if (e.Args.Count != 1) return;
 			var arg = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
-			e.Result = ExpressionUtils.Not(arg);
+			e.Result = ExpressionUtils.BoolNot(arg);
 			//if (arg.Type == typeof(object))
 			//{
 			//	e.Result = Expression.Dynamic(ExpressionUtils.Binder_Not, typeof(object), arg);
@@ -27,7 +27,7 @@ namespace AScript.Operators
 			if (e.Args.Count == 1)
 			{
 				var arg0 = e.Args[0].Eval(e.Context, e.Options, e.Control, out _);
-				e.SetResult(ExpressionUtils.Not(arg0));
+				e.SetResult(ExpressionUtils.BoolNot(arg0));
 			}
 		}
 	}

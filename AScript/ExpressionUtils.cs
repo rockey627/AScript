@@ -39,7 +39,8 @@ namespace AScript
 		public static readonly MethodInfo Method_And = typeof(ExpressionUtils).GetMethod("And", new[] { typeof(object), typeof(object) });
 		public static readonly MethodInfo Method_Or = typeof(ExpressionUtils).GetMethod("Or", new[] { typeof(object), typeof(object) });
 		public static readonly MethodInfo Method_XOr = typeof(ExpressionUtils).GetMethod("XOr", new[] { typeof(object), typeof(object) });
-		public static readonly MethodInfo Method_Not = typeof(ExpressionUtils).GetMethod("Not", new[] { typeof(object) });
+		public static readonly MethodInfo Method_BoolNot = typeof(ExpressionUtils).GetMethod("BoolNot", new[] { typeof(object) });
+		public static readonly MethodInfo Method_BitwiseNot = typeof(ExpressionUtils).GetMethod("BitwiseNot", new[] { typeof(object) });
 		public static readonly MethodInfo Method_Equal = typeof(ExpressionUtils).GetMethod("Equal", new[] { typeof(object), typeof(object) });
 		public static readonly MethodInfo Method_NotEqual = typeof(ExpressionUtils).GetMethod("NotEqual", new[] { typeof(object), typeof(object) });
 		public static readonly MethodInfo Method_GreaterThan = typeof(ExpressionUtils).GetMethod("GreaterThan", new[] { typeof(object), typeof(object) });
@@ -132,7 +133,7 @@ namespace AScript
 			return ((dynamic)v1) ^ ((dynamic)v2);
 		}
 
-		public static object Not(object v1)
+		public static object BoolNot(object v1)
 		{
 			return !((dynamic)v1);
 		}
@@ -469,12 +470,12 @@ namespace AScript
 			return Expression.ExclusiveOr(v1, v2);
 		}
 
-		public static Expression Not(Expression v1)
+		public static Expression BoolNot(Expression v1)
 		{
 			if (v1.Type == typeof(object))
 			{
 				if (v1.Type.IsValueType) v1 = Expression.Convert(v1, typeof(object));
-				return Expression.Call(Method_Not, v1);
+				return Expression.Call(Method_BoolNot, v1);
 			}
 			return Expression.Not(v1);
 		}

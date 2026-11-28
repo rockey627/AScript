@@ -9,8 +9,6 @@ namespace AScript.Operators
 	/// </summary>
 	public class NotOperator : IFunctionEvaluator, IFunctionBuilder
 	{
-		private static readonly MethodInfo Method_Not = typeof(ExpressionUtils).GetMethod("BitwiseNot", new[] { typeof(object) });
-
 		public static readonly NotOperator Instance = new NotOperator();
 
 		public void Build(FunctionBuildArgs e)
@@ -20,8 +18,7 @@ namespace AScript.Operators
 				var arg = e.Args[0].Build(e.BuildContext, e.ScriptContext, e.Options);
 				if (arg.Type == typeof(object))
 				{
-					//e.Result = Expression.Dynamic(ExpressionUtils.Binder_Not, typeof(object), arg);
-					e.Result = Expression.Call(Method_Not, arg);
+					e.Result = Expression.Call(ExpressionUtils.Method_BitwiseNot, arg);
 				}
 				else
 				{
