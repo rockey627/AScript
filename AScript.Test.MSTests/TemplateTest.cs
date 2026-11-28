@@ -1370,5 +1370,71 @@ namespace MyTest.Model
 			var result = template.Render(null);
 			Assert.AreEqual("hello Tom", result);
 		}
+
+		[TestMethod]
+		public void Test24_cache()
+		{
+			string tpl = "hello @{load('template_include_01.txt')}";
+			{
+				var template = new Template(tpl);
+				template.CacheTime = -1;
+				template.Context.SetVar("title", "tom");
+				var result = template.Render(null);
+				Assert.AreEqual("hello [tom]", result);
+			}
+			{
+				var template = new Template(tpl);
+				template.CacheTime = -1;
+				template.Context.SetVar("title", "john");
+				var result = template.Render(null);
+				Assert.AreEqual("hello [john]", result);
+			}
+		}
+
+		[TestMethod]
+		public void Test25_cache_load_render_twice()
+		{
+			// 缓存的编译结果不能持有首次渲染时的 model/output
+			var template = new Template("hello @{load('template_include_01.txt')}");
+			template.CacheTime = -1;
+			template.Context.SetVar("title", "tom");
+			Assert.AreEqual("hello [tom]", template.Render(null));
+			template.Context.SetVar("title", "john");
+			Assert.AreEqual("hello [john]", template.Render(null));
+		}
+
+		[TestMethod]
+		public void Test26_cache_load_with_model_render_twice()
+		{
+			// load(path,model)：子模板使用显式指定的模型
+			var template = new Template("hello @{load('template_load_model.txt', other)}");
+			template.CacheTime = -1;
+			template.Context.SetVar("other", new { Name = "child1" });
+			Assert.AreEqual("hello [child1]", template.Render(null));
+			template.Context.SetVar("other", new { Name = "child2" });
+			Assert.AreEqual("hello [child2]", template.Render(null));
+		}
+
+		[TestMethod]
+		public void Test27_load_render_twice_without_cache()
+		{
+			// 未启用缓存时，解释执行路径同样不能残留上一次渲染的状态
+			var template = new Template("hello @{load('template_include_01.txt')}");
+			template.Context.SetVar("title", "tom");
+			Assert.AreEqual("hello [tom]", template.Render(null));
+			template.Context.SetVar("title", "john");
+			Assert.AreEqual("hello [john]", template.Render(null));
+		}
+
+		[TestMethod]
+		public async Task Test28_cache_load_render_twice_async()
+		{
+			var template = new Template("hello @{load('template_include_01.txt')}");
+			template.CacheTime = -1;
+			template.Context.SetVar("title", "tom");
+			Assert.AreEqual("hello [tom]", await template.RenderAsync(null));
+			template.Context.SetVar("title", "john");
+			Assert.AreEqual("hello [john]", await template.RenderAsync(null));
+		}
 	}
 }

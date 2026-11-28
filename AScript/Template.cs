@@ -18,6 +18,7 @@ namespace AScript
 		private static readonly MethodInfo Method_Path_Combine = typeof(Path).GetMethod("Combine", new[] { typeof(string), typeof(string) });
 		private static readonly MethodInfo Method_Template_Clone = typeof(Template).GetMethod("Clone", new[] { typeof(FileInfo) });
 		private static readonly MethodInfo Method_TemplateRender_IOutput = typeof(Template).GetMethod("Render", new[] { typeof(object), typeof(IOutput) });
+		private static readonly MethodInfo Method_Template_LoadTemplate = typeof(Template).GetMethod(nameof(LoadTemplate), BindingFlags.NonPublic | BindingFlags.Static);
 
 		public static readonly TemplateOptions DefaultOptions = new TemplateOptions
 		{
@@ -235,7 +236,7 @@ namespace AScript
 			script.Context.AddTokenHandler("await", AwaitTokenHandler.Instance);
 			script.Context.AddTokenHandler("@@CancellationToken", CancellationTokenHandler.Instance);
 			// load(path)和load(path,model)
-			script.Context.AddFunc("load", new LoadFunction(this));
+			script.Context.AddFunc(this.Options.LoadMethod, new LoadFunction(this));
 			//
 			if (modelType == null) modelType = typeof(object);
 			if (_template is string s)
@@ -352,14 +353,10 @@ namespace AScript
 			script.Context.SetVar(this.Options.OutputVar, output);
 			script.Context.SetVar(this.Options.ModelVar, model);
 			// load(path)和load(path,model)：加载模板文件并单独渲染
-			script.Context.AddAction<string>(this.Options.LoadMethod, path =>
-			{
-				this.Clone(this.ResolveFile(path)).Render(model, output);
-			});
-			script.Context.AddAction<string, object>(this.Options.LoadMethod, (path, m) =>
-			{
-				this.Clone(this.ResolveFile(path)).Render(m, output);
-			});
+			// 这里不能使用闭包捕获 model/output，编译后的委托会被缓存（Script.Cache），
+			// 闭包会让缓存的委托一直持有首次渲染时的 model/output。
+			// 改用 LoadFunction，在运行时从 ScriptContext 中读取 model/output。
+			script.Context.AddFunc(this.Options.LoadMethod, new LoadFunction(this));
 			// include(path) 由 TemplateTokenReader 在读取阶段展开，无需运行时函数
 			return script;
 		}
@@ -735,26 +732,63 @@ namespace AScript
 				{
 					path = Expression.Call(null, Method_Path_Combine, Expression.Constant(fi.DirectoryName), path);
 				}
+				if (path.Type != typeof(string))
+				{
+					path = Expression.Convert(path, typeof(string));
+				}
 				var fileInfoConstruct = typeof(FileInfo).GetConstructor(new[] { typeof(string) });
 				var fileInfo = Expression.New(fileInfoConstruct, path);
 				var template = Expression.Call(Expression.Constant(_template), Method_Template_Clone, fileInfo);
-				Expression output = e.BuildContext.Parameters[_template.Options.OutputVar];
-				Expression model;
-				if (e.Args.Count == 1)
+				var parameters = e.BuildContext.Parameters;
+				// 预编译路径（Template.Compile）：model/output 是委托参数，直接引用
+				if (parameters.TryGetValue(_template.Options.OutputVar, out var outputParameter)
+					&& parameters.TryGetValue(_template.Options.ModelVar, out var modelParameter))
 				{
-					model = e.BuildContext.Parameters[_template.Options.ModelVar];
+					Expression model = e.Args.Count == 1 ? modelParameter : e.BuildArgs(1);
+					e.Result = Expression.Call(template, Method_TemplateRender_IOutput, model, outputParameter);
+					return;
 				}
-				else
-				{
-					model = e.BuildArgs(1);
-				}
-				e.Result = Expression.Call(template, Method_TemplateRender_IOutput, model, output);
+				// 渲染路径（Template.Render）：model/output 是 ScriptContext 中的变量，
+				// 必须在运行时读取，否则编译后的委托被缓存后会一直使用首次渲染时的 model/output
+				var scriptContext = e.BuildContext.GetScriptContextParameter();
+				var runtimeModel = e.Args.Count == 1
+					? Expression.Call(scriptContext, ScriptUtils.Method_ScriptContext_EvalVar, Expression.Constant(_template.Options.ModelVar))
+					: e.BuildArgs(1);
+				e.Result = Expression.Call(Method_Template_LoadTemplate, scriptContext, Expression.Constant(_template), path, runtimeModel);
 			}
 
 			public void Eval(FunctionEvalArgs e)
 			{
-				throw new NotImplementedException();
+				if (e.Args == null || e.Args.Count != 1 && e.Args.Count != 2) return;
+				e.EvalArgs(false);
+				var path = e.ArgValues[0] as string ?? e.ArgValues[0]?.ToString();
+				var model = e.Args.Count == 2 ? e.ArgValues[1] : e.Context.EvalVar(_template.Options.ModelVar);
+				LoadTemplate(e.Context, _template, path, model);
+				e.SetResult(null);
 			}
+		}
+
+		/// <summary>
+		/// 渲染 load 加载的子模板
+		/// </summary>
+		/// <param name="context">运行时脚本上下文，用于读取 output 变量</param>
+		/// <param name="template">父模板</param>
+		/// <param name="path">子模板路径</param>
+		/// <param name="model">子模板使用的模型</param>
+		private static void LoadTemplate(ScriptContext context, Template template, string path, object model)
+		{
+			var output = context.EvalVar(template.Options.OutputVar) as IOutput;
+			if (output == null)
+			{
+				throw new Exceptions.ScriptAnalyzingException($"output variable '{template.Options.OutputVar}' is not exists");
+			}
+			// 子模板使用运行时的上下文，否则编译后的委托被复用时会读到首次渲染时的变量
+			var child = new Template(context, template.ResolveFile(path))
+			{
+				CacheTime = template.CacheTime,
+				Options = template.Options
+			};
+			child.Render(model, output);
 		}
 	}
 
