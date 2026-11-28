@@ -89,6 +89,7 @@ namespace AScript.Nodes
 				if (this.ForeachKey && listResult is IDictionary<string, object> dict2)
 				{
 					// ForeachKey 为 true 且是 IDictionary，遍历 Keys
+					ScriptContext bodyContext = null;
 					foreach (var key in dict2.Keys)
 					{
 						if (!IsNiming(this.VarDefine))
@@ -96,7 +97,15 @@ namespace AScript.Nodes
 							this.VarDefine.Eval(tempContext, options, null, out var varType);
 							tempContext.SetVar(this.VarDefine.Name, key, key == null ? varType : null);
 						}
-						bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempController, out bodyType);
+						if (bodyContext == null)
+						{
+							bodyContext = ScriptContext.Create(tempContext);
+						}
+						else
+						{
+							bodyContext.Clear();
+						}
+						bodyResult = this.Body.Eval(bodyContext, options, tempController, out bodyType);
 						if (tempController.Terminal || tempController.Break) break;
 						tempController.Continue = false;
 					}
@@ -104,6 +113,7 @@ namespace AScript.Nodes
 				else if (this.ForeachKey && listResult is IDictionary dict)
 				{
 					// ForeachKey 为 true 且是 IDictionary，遍历 Keys
+					ScriptContext bodyContext = null;
 					foreach (var key in dict.Keys)
 					{
 						if (!IsNiming(this.VarDefine))
@@ -111,7 +121,15 @@ namespace AScript.Nodes
 							this.VarDefine.Eval(tempContext, options, null, out var varType);
 							tempContext.SetVar(this.VarDefine.Name, key, key == null ? varType : null);
 						}
-						bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempController, out bodyType);
+						if (bodyContext == null)
+						{
+							bodyContext = ScriptContext.Create(tempContext);
+						}
+						else
+						{
+							bodyContext.Clear();
+						}
+						bodyResult = this.Body.Eval(bodyContext, options, tempController, out bodyType);
 						if (tempController.Terminal || tempController.Break) break;
 						tempController.Continue = false;
 					}
@@ -119,6 +137,7 @@ namespace AScript.Nodes
 				else if (this.ForeachKey && listResult is IList list1)
 				{
 					// ForeachKey 为 true 且是 IList，使用 for 遍历索引
+					ScriptContext bodyContext = null;
 					for (int i = 0; i < list1.Count; i++)
 					{
 						if (!IsNiming(this.VarDefine))
@@ -126,7 +145,15 @@ namespace AScript.Nodes
 							this.VarDefine.Eval(tempContext, options, null, out var varType);
 							tempContext.SetVar(this.VarDefine.Name, i, typeof(int));
 						}
-						bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempController, out bodyType);
+						if (bodyContext == null)
+						{
+							bodyContext = ScriptContext.Create(tempContext);
+						}
+						else
+						{
+							bodyContext.Clear();
+						}
+						bodyResult = this.Body.Eval(bodyContext, options, tempController, out bodyType);
 						if (tempController.Terminal || tempController.Break) break;
 						tempController.Continue = false;
 					}
@@ -135,6 +162,7 @@ namespace AScript.Nodes
 				{
 					// 默认遍历模式（遍历值）
 					List<object> sharedList = null;
+					ScriptContext bodyContext = null;
 					foreach (var item in en)
 					{
 						if (this.VarDefines != null)
@@ -222,7 +250,15 @@ namespace AScript.Nodes
 							this.VarDefine.Eval(tempContext, options, null, out var varType);
 							tempContext.SetVar(this.VarDefine.Name, item, item == null ? varType : null);
 						}
-						bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempController, out bodyType);
+						if (bodyContext == null)
+						{
+							bodyContext = ScriptContext.Create(tempContext);
+						}
+						else
+						{
+							bodyContext.Clear();
+						}
+						bodyResult = this.Body.Eval(bodyContext, options, tempController, out bodyType);
 						if (tempController.Terminal || tempController.Break) break;
 						tempController.Continue = false;
 					}
@@ -302,6 +338,7 @@ namespace AScript.Nodes
 				if (this.ForeachKey && listResult is IDictionary<string, object> dict2)
 				{
 					// ForeachKey 为 true 且是 IDictionary，遍历 Keys
+					ScriptContext bodyContext = null;
 					foreach (var key in dict2.Keys)
 					{
 						cancellationToken.ThrowIfCancellationRequested();
@@ -310,7 +347,15 @@ namespace AScript.Nodes
 							var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 							tempContext.SetVar(this.VarDefine.Name, key, key == null ? varDefineResult.Type : null);
 						}
-						bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
+						if (bodyContext == null)
+						{
+							bodyContext = ScriptContext.Create(tempContext);
+						}
+						else
+						{
+							bodyContext.Clear();
+						}
+						bodyResult = await this.Body.EvalAsync(bodyContext, options, tempController, cancellationToken).ConfigureAwait(false);
 						if (tempController.Terminal || tempController.Break) break;
 						tempController.Continue = false;
 					}
@@ -318,6 +363,7 @@ namespace AScript.Nodes
 				else if (this.ForeachKey && listResult is IDictionary dict)
 				{
 					// ForeachKey 为 true 且是 IDictionary，遍历 Keys
+					ScriptContext bodyContext = null;
 					foreach (var key in dict.Keys)
 					{
 						cancellationToken.ThrowIfCancellationRequested();
@@ -326,7 +372,15 @@ namespace AScript.Nodes
 							var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 							tempContext.SetVar(this.VarDefine.Name, key, key == null ? varDefineResult.Type : null);
 						}
-						bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
+						if (bodyContext == null)
+						{
+							bodyContext = ScriptContext.Create(tempContext);
+						}
+						else
+						{
+							bodyContext.Clear();
+						}
+						bodyResult = await this.Body.EvalAsync(bodyContext, options, tempController, cancellationToken).ConfigureAwait(false);
 						if (tempController.Terminal || tempController.Break) break;
 						tempController.Continue = false;
 					}
@@ -334,6 +388,7 @@ namespace AScript.Nodes
 				else if (this.ForeachKey && listResult is IList list1)
 				{
 					// ForeachKey 为 true 且是 IList，使用 for 遍历索引
+					ScriptContext bodyContext = null;
 					for (int i = 0; i < list1.Count; i++)
 					{
 						cancellationToken.ThrowIfCancellationRequested();
@@ -342,7 +397,15 @@ namespace AScript.Nodes
 							var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 							tempContext.SetVar(this.VarDefine.Name, i, typeof(int));
 						}
-						bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
+						if (bodyContext == null)
+						{
+							bodyContext = ScriptContext.Create(tempContext);
+						}
+						else
+						{
+							bodyContext.Clear();
+						}
+						bodyResult = await this.Body.EvalAsync(bodyContext, options, tempController, cancellationToken).ConfigureAwait(false);
 						if (tempController.Terminal || tempController.Break) break;
 						tempController.Continue = false;
 					}
@@ -350,6 +413,7 @@ namespace AScript.Nodes
 				else
 				{
 					// 默认遍历模式（遍历值）
+					ScriptContext bodyContext = null;
 					foreach (var item in en)
 					{
 						cancellationToken.ThrowIfCancellationRequested();
@@ -417,7 +481,15 @@ namespace AScript.Nodes
 							var varDefineResult = await this.VarDefine.EvalAsync(tempContext, options, null, cancellationToken).ConfigureAwait(false);
 							tempContext.SetVar(this.VarDefine.Name, item, item == null ? varDefineResult.Type : null);
 						}
-						bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempController, cancellationToken).ConfigureAwait(false);
+						if (bodyContext == null)
+						{
+							bodyContext = ScriptContext.Create(tempContext);
+						}
+						else
+						{
+							bodyContext.Clear();
+						}
+						bodyResult = await this.Body.EvalAsync(bodyContext, options, tempController, cancellationToken).ConfigureAwait(false);
 						if (tempController.Terminal || tempController.Break) break;
 						tempController.Continue = false;
 					}

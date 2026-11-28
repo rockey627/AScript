@@ -53,6 +53,7 @@ namespace AScript.Nodes
 			// 执行循环
 			object bodyResult = null;
 			Type bodyReturnType = null;
+			ScriptContext bodyContext = null;
 			while (true)
 			{
 				// 条件判断
@@ -71,7 +72,15 @@ namespace AScript.Nodes
 				// 执行body
 				if (this.Body != null)
 				{
-					bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempControl, out bodyReturnType);
+					if (bodyContext == null)
+					{
+						bodyContext = ScriptContext.Create(tempContext);
+					}
+					else
+					{
+						bodyContext.Clear();
+					}
+					bodyResult = this.Body.Eval(bodyContext, options, tempControl, out bodyReturnType);
 					if (tempControl.Terminal || tempControl.Break) break;
 					tempControl.Continue = false;
 				}
@@ -123,6 +132,7 @@ namespace AScript.Nodes
 			}
 			// 执行循环
 			EvalResult bodyResult = default;
+			ScriptContext bodyContext = null;
 			while (true)
 			{
 				cancellationToken.ThrowIfCancellationRequested();
@@ -144,7 +154,15 @@ namespace AScript.Nodes
 				// 执行body
 				if (this.Body != null)
 				{
-					bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempControl, cancellationToken).ConfigureAwait(false);
+					if (bodyContext == null)
+					{
+						bodyContext = ScriptContext.Create(tempContext);
+					}
+					else
+					{
+						bodyContext.Clear();
+					}
+					bodyResult = await this.Body.EvalAsync(bodyContext, options, tempControl, cancellationToken).ConfigureAwait(false);
 					if (tempControl.Terminal || tempControl.Break) break;
 					tempControl.Continue = false;
 				}

@@ -50,6 +50,7 @@ namespace AScript.Nodes
 			var tempControl = new EvalControl(control, true);
 			object bodyResult = null;
 			Type bodyType = null;
+			ScriptContext bodyContext = null;
 			while (true)
 			{
 				if (!IsDoWhile && !EvalCondition(tempContext, options))
@@ -58,7 +59,15 @@ namespace AScript.Nodes
 				}
 				if (this.Body != null)
 				{
-					bodyResult = this.Body.Eval(ScriptContext.Create(tempContext), options, tempControl, out bodyType);
+					if (bodyContext == null)
+					{
+						bodyContext = ScriptContext.Create(tempContext);
+					}
+					else
+					{
+						bodyContext.Clear();
+					}
+					bodyResult = this.Body.Eval(bodyContext, options, tempControl, out bodyType);
 					if (tempControl.Terminal || tempControl.Break) break;
 					if (tempControl.Continue)
 					{
@@ -106,6 +115,7 @@ namespace AScript.Nodes
 			var tempContext = ScriptContext.Create(context);
 			var tempControl = new EvalControl(control, true);
 			EvalResult bodyResult = default;
+			ScriptContext bodyContext = null;
 			while (true)
 			{
 				cancellationToken.ThrowIfCancellationRequested();
@@ -115,7 +125,15 @@ namespace AScript.Nodes
 				}
 				if (this.Body != null)
 				{
-					bodyResult = await this.Body.EvalAsync(ScriptContext.Create(tempContext), options, tempControl, cancellationToken).ConfigureAwait(false);
+					if (bodyContext == null)
+					{
+						bodyContext = ScriptContext.Create(tempContext);
+					}
+					else
+					{
+						bodyContext.Clear();
+					}
+					bodyResult = await this.Body.EvalAsync(bodyContext, options, tempControl, cancellationToken).ConfigureAwait(false);
 					if (tempControl.Terminal || tempControl.Break) break;
 					if (tempControl.Continue)
 					{
